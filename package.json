@@ -31,6 +31,7 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/lib/db/migrate.ts",
+    "db:setup": "pnpm db:migrate && tsx scripts/catalog.ts seed --if-empty && tsx scripts/reco.ts simulate --if-empty && tsx scripts/reco.ts rebuild --if-empty",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

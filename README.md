@@ -187,7 +187,7 @@ Vitrine runs as **two services from this one repository**:
 
 | Service | Build | Start |
 |---|---|---|
-| `web` | `pnpm build` | `pnpm start` (migrations run pre-deploy) |
+| `web` | `pnpm build` | `pnpm start` (`pnpm db:setup` runs pre-deploy) |
 | `worker` | `pnpm build` | `pnpm worker:start` |
 
 Add the **PostgreSQL (pgvector)** and **Redis** services, then set the variables listed in

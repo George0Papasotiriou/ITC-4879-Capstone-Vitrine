@@ -10,10 +10,11 @@
 /**
  * Taste Graph commands (docs/PLAN.md Phase 8).
  *
- *   pnpm reco simulate [--sessions 1500] [--seed N] [--dry-run]
+ *   pnpm reco simulate [--sessions 1500] [--seed N] [--dry-run] [--if-empty]
  *       Generate SYNTHETIC shopper sessions from personas (src/lib/reco/simulate.ts),
  *       replacing earlier synthetic rows, then rebuild the graph. Real
- *       interactions are never touched.
+ *       interactions are never touched. --if-empty skips the simulation when
+ *       any interaction already exists (used by `pnpm db:setup` on deploy).
  *
  *   pnpm reco rebuild [--if-empty]
  *       Rebuild item_neighbors and popularity from the interactions table. In
@@ -57,6 +58,15 @@ async function main(): Promise<void> {
 
   try {
     if (command === "simulate") {
+      // --if-empty makes this safe to run on every deploy: an existing history,
+      // synthetic or real, is never replaced.
+      if (values["if-empty"]) {
+        const [row] = await sql<{ present: boolean }[]>`SELECT EXISTS (SELECT 1 FROM interactions) AS present`;
+        if (row?.present === true) {
+          out("[reco] interactions present; simulation skipped");
+          return;
+        }
+      }
       const products = await sql<(Omit<SimProduct, "priceCents"> & { price_cents: number })[]>`
         SELECT p.id, p.kind, c.slug AS category, b.name AS brand, p.colors, p.materials, p.attributes, p.price_cents
         FROM products p JOIN categories c ON c.id = p.category_id LEFT JOIN brands b ON b.id = p.brand_id
