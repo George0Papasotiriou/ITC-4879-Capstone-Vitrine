@@ -10,7 +10,7 @@
 /**
  * Lighthouse, run against a local production build (docs/PLAN.md 2.10, E7).
  *
- *   pnpm build && pnpm start --port 3100      (in another terminal)
+ *   pnpm build && pnpm local:start --port 3100      (in another terminal)
  *   node scripts/lighthouse.mjs /en /el /en/c/lighting
  *
  * Lighthouse's own launcher fails to start Chrome from this Windows shell
