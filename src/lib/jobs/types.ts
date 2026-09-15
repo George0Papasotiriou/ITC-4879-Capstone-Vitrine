@@ -26,7 +26,7 @@ export type JobName = keyof JobPayloads;
 
 /** One BullMQ queue per concern. Phase 1 needs only the default queue. */
 export const QUEUE_NAMES = {
-  default: "vitrine:default",
+  default: "vitrine-default",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
