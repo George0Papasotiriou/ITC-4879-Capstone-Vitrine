@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # `next build` and `tsc` must not require the production environment.
+  SKIP_ENV_VALIDATION: "1"
+
+jobs:
+  verify:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        # pgvector on PostgreSQL 18, matching the Railway template (ADR-002).
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_USER: vitrine
+          POSTGRES_PASSWORD: vitrine
+          POSTGRES_DB: vitrine_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vitrine"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Integration tests
+        run: pnpm test:integration
+        env:
+          DATABASE_URL: postgres://vitrine:vitrine@localhost:5432/vitrine_test
+
+      - name: Build web and worker
+        run: pnpm build

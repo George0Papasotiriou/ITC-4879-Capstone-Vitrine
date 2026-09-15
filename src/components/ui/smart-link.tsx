@@ -1,0 +1,53 @@
+/**
+ * Vitrine — AI-native e-shop (ITC 4949 Capstone)
+ * Copyright (c) 2026 George Papasotiriou. All rights reserved.
+ * Author: George Papasotiriou <g.papasotiriou@acg.edu>
+ * Project started: 2026-09-12
+ *
+ * Locale-aware link primitive used by shared components.
+ */
+
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
+
+import { Link } from "@/i18n/navigation";
+
+/**
+ * The one link primitive that shared components use.
+ *
+ * Internal paths go through the locale-aware `Link`, so `/c/lighting` becomes
+ * `/el/c/lighting` for a Greek reader. Using `next/link` directly drops the
+ * prefix; the proxy then redirects to English, and a Greek shopper who clicks a
+ * product lands on the English storefront — which is exactly what the first
+ * version of `ProductTile` did.
+ *
+ * In-page anchors (`#section`) and absolute URLs are rendered as a plain `<a>`:
+ * they are not routes, and localising them would turn `#specimen` into a
+ * navigation to the home page.
+ */
+export function SmartLink({
+  href,
+  children,
+  scroll,
+  ...props
+}: {
+  href: string;
+  children: ReactNode;
+  /** Routes only: `false` keeps the scroll position, as filter links should. */
+  scroll?: boolean;
+} & Omit<ComponentPropsWithoutRef<"a">, "href" | "children">) {
+  const isRoute = href.startsWith("/") && !href.startsWith("//");
+
+  if (!isRoute) {
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} scroll={scroll} {...props}>
+      {children}
+    </Link>
+  );
+}
