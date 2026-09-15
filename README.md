@@ -261,6 +261,6 @@ drizzle/            database migrations
 
 **© 2026 George Papasotiriou. All rights reserved.**
 
-ITC 4949 Capstone Project
+ITC 4879 Capstone Project
 
 </div>
