@@ -1,0 +1,1507 @@
+{
+  "version": 1,
+  "description": "Specimen catalogue: 25 ABO products with photographs in public/products. Used by tests and a fresh local database.",
+  "products": [
+    {
+      "source": "abo",
+      "sourceId": "B072ZLCB3M",
+      "slug": "bristol-natural-edge-black-metal-side-table-b072zlcb3m",
+      "kind": "TABLE",
+      "category": "tables",
+      "titleEn": "Bristol Natural Edge Black Metal Side Table",
+      "titleEl": null,
+      "brand": "Rivet",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "With a wood top and metal 3-legged stand, this table is modern yet classic. The wood top is a \"natural edge\" cut. No two tables are exactly alike; allow for some height variation. This table is a handy landing spot for keys, phones and small table lamps.",
+        "Engineered wood with walnut veneer; metal stand bottom",
+        "Modern yet classic",
+        "Convenient side table for living room or bedroom",
+        "Simple assembly in 15-30 minutes"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Brown",
+      "colors": [
+        "brown"
+      ],
+      "materials": [
+        "metal",
+        "walnut"
+      ],
+      "attributes": {
+        "style": "Organic modern",
+        "finish": "Walnut veneer",
+        "shape": "sector",
+        "material": "Metal"
+      },
+      "dimsCm": {
+        "w": 48,
+        "d": 46,
+        "h": 48
+      },
+      "weightGrams": 6686,
+      "priceCents": 52900,
+      "compareAtCents": null,
+      "stock": 10,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b072zlcb3m.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Bristol Natural Edge Black Metal Side Table by Rivet",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b072zlcb3m-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Bristol Natural Edge Black Metal Side Table by Rivet, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07F2X8K62",
+      "slug": "radford-modern-curved-arm-accent-chair-b07f2x8k62",
+      "kind": "CHAIR",
+      "category": "seating",
+      "titleEn": "Radford Modern Curved Arm Accent Chair",
+      "titleEl": null,
+      "brand": "Ravenna Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": null,
+      "colors": [],
+      "materials": [],
+      "attributes": {},
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 44900,
+      "compareAtCents": null,
+      "stock": 19,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07f2x8k62.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Radford Modern Curved Arm Accent Chair by Ravenna Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07f2x8k62-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Radford Modern Curved Arm Accent Chair by Ravenna Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07M6PHM8C",
+      "slug": "classic-glass-semi-flush-mount-light-pendant-b07m6phm8c",
+      "kind": "LIGHT_FIXTURE",
+      "category": "lighting",
+      "titleEn": "Classic Glass Semi-flush Mount Light Pendant",
+      "titleEl": null,
+      "brand": "Ravenna Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "15\"W x 15\"D x 9.75\"H; hanging length: 9.75\"H",
+        "2-light semiflush mount ceiling lamp; dark bronze; 15\"D amber frosted glass shade",
+        "Traditional design in a dark-bronze finish paired with 2 lights in a frosted glass shade makes this the perfect semiflush mount to add a touch of sophistication to any room or hallway.",
+        "2 60-watt equivalent LED bulbs included",
+        "Assemble in 15–30 minutes",
+        "For indoor use only"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Dark Bronze",
+      "colors": [],
+      "materials": [
+        "glass"
+      ],
+      "attributes": {
+        "style": "Semi-Flush Mount",
+        "material": "Glass"
+      },
+      "dimsCm": {
+        "w": 43,
+        "d": 42,
+        "h": 31
+      },
+      "weightGrams": 2948,
+      "priceCents": 7900,
+      "compareAtCents": null,
+      "stock": 14,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07m6phm8c.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Classic Glass Semi-flush Mount Light Pendant by Ravenna Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07m6phm8c-b.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Classic Glass Semi-flush Mount Light Pendant by Ravenna Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07DBFT2YG",
+      "slug": "angela-modern-turned-leg-wood-shelf-storage-coffee-b07dbft2yg",
+      "kind": "TABLE",
+      "category": "tables",
+      "titleEn": "Angela Modern Turned Leg Wood Shelf Storage Coffee Table",
+      "titleEl": null,
+      "brand": "Ravenna Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Solid pine and medium-density fibreboard",
+        "With a handy lower shelf, this coffee table can hold snack trays, remotes and magazines",
+        "Traditional style with turned legs",
+        "15-30 minutes assembly required"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Grey",
+      "colors": [
+        "grey"
+      ],
+      "materials": [
+        "wood"
+      ],
+      "attributes": {
+        "style": "Bold eclectic",
+        "material": "wood"
+      },
+      "dimsCm": {
+        "w": 112,
+        "d": 56,
+        "h": 51
+      },
+      "weightGrams": 20412,
+      "priceCents": 60900,
+      "compareAtCents": null,
+      "stock": 11,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07dbft2yg.webp",
+          "width": 1100,
+          "height": 775,
+          "bytes": null,
+          "altEn": "Angela Modern Turned Leg Wood Shelf Storage Coffee Table by Ravenna Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07dbft2yg-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Angela Modern Turned Leg Wood Shelf Storage Coffee Table by Ravenna Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07G2H3L4L",
+      "slug": "canova-3-seater-maxi-b07g2h3l4l",
+      "kind": "SOFA",
+      "category": "seating",
+      "titleEn": "Canova 3 Seater Maxi",
+      "titleEl": null,
+      "brand": "ROSSINI",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Grey",
+      "colors": [
+        "grey"
+      ],
+      "materials": [],
+      "attributes": {},
+      "dimsCm": {
+        "w": 233,
+        "d": 102,
+        "h": 93
+      },
+      "weightGrams": 77500,
+      "priceCents": 137900,
+      "compareAtCents": null,
+      "stock": 2,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07g2h3l4l.webp",
+          "width": 1100,
+          "height": 825,
+          "bytes": null,
+          "altEn": "Canova 3 Seater Maxi by ROSSINI",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07g2h3l4l-b.webp",
+          "width": 1100,
+          "height": 825,
+          "bytes": null,
+          "altEn": "Canova 3 Seater Maxi by ROSSINI, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B073P3NK7T",
+      "slug": "modern-crystal-glass-rectangle-table-desk-lamp-with-b073p3nk7t",
+      "kind": "LAMP",
+      "category": "lighting",
+      "titleEn": "Modern Crystal Glass Rectangle Table Desk Lamp With Bulb And White Shade",
+      "titleEl": null,
+      "brand": "Stone & Beam",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "This stately lamp combines a narrow base of white marble and clear crystal glass with a white fabric shade for a very contemporary effect. This eye-catching lamp will make an impression while illuminating your room.",
+        "Contemporary style with classic materials",
+        "Marble and crystal glass base, polished nickel hardware, white fabric shade",
+        "10.5\" width makes it compact for small tables",
+        "Simple assembly",
+        "Intended for indoor use only"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Polished Nickel",
+      "colors": [
+        "silver",
+        "white"
+      ],
+      "materials": [
+        "metal",
+        "fabric",
+        "glass"
+      ],
+      "attributes": {
+        "style": "Rectangle",
+        "finish": "Polished",
+        "shape": "Table Lamp",
+        "material": "Metal+Crystal+Fabric"
+      },
+      "dimsCm": {
+        "w": 30,
+        "d": 30,
+        "h": 46
+      },
+      "weightGrams": 5171,
+      "priceCents": 7900,
+      "compareAtCents": null,
+      "stock": 56,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b073p3nk7t.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Modern Crystal Glass Rectangle Table Desk Lamp With Bulb And White Shade by Stone & Beam",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b073p3nk7t-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Modern Crystal Glass Rectangle Table Desk Lamp With Bulb And White Shade by Stone & Beam, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07DBHCKHY",
+      "slug": "tufted-armless-english-roll-traditional-accent-chair-b07dbhckhy",
+      "kind": "CHAIR",
+      "category": "seating",
+      "titleEn": "Tufted Armless English Roll Traditional Accent Chair",
+      "titleEl": null,
+      "brand": "Ravenna Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Wood frame; velvet fabric; foam padding; wood legs with black painted finish",
+        "Mid-century inspired button tufting with traditional curved legs and rolled back",
+        "This chair adds a touch of glam to a mid-century or traditional room",
+        "Easy to assemble, just attach legs"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Merlot",
+      "colors": [
+        "red"
+      ],
+      "materials": [
+        "wood"
+      ],
+      "attributes": {
+        "style": "Glam",
+        "material": "Wood"
+      },
+      "dimsCm": {
+        "w": 68,
+        "d": 64,
+        "h": 78
+      },
+      "weightGrams": 8401,
+      "priceCents": 49900,
+      "compareAtCents": null,
+      "stock": 28,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07dbhckhy.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Tufted Armless English Roll Traditional Accent Chair by Ravenna Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07dbhckhy-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Tufted Armless English Roll Traditional Accent Chair by Ravenna Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07HKDSM1J",
+      "slug": "dome-shaped-table-lamp-b07hkdsm1j",
+      "kind": "LAMP",
+      "category": "lighting",
+      "titleEn": "Dome-Shaped Table Lamp",
+      "titleEl": null,
+      "brand": "Rivet",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "This table lamp’s simple elegance shines through its perfect “Cream Tan” light-pink dome, styled with an on-trend matte finish. A long, slender stem connects the top with a curved base, and the 2 sockets can be turned off and on via two pull chains.",
+        "Assembled Dimensions: 11\"W x 11\"D x 21\"H",
+        "Modern 2-light dome table lamp in light pink on-trend finish",
+        "Metal dome-shaped shade and pole",
+        "2 standard LED bulbs included",
+        "Assemble in 15 minutes or less"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Tan/Pink",
+      "colors": [
+        "brown",
+        "pink"
+      ],
+      "materials": [],
+      "attributes": {
+        "style": "Modern",
+        "finish": "matte"
+      },
+      "dimsCm": {
+        "w": 33,
+        "d": 33,
+        "h": 23
+      },
+      "weightGrams": 2400,
+      "priceCents": 25900,
+      "compareAtCents": null,
+      "stock": 5,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07hkdsm1j.webp",
+          "width": 1010,
+          "height": 1010,
+          "bytes": null,
+          "altEn": "Dome-Shaped Table Lamp by Rivet",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07hkdsm1j-b.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Dome-Shaped Table Lamp by Rivet, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07HK85JKQ",
+      "slug": "modern-wall-sconce-with-bulb-b07hk85jkq",
+      "kind": "LIGHT_FIXTURE",
+      "category": "lighting",
+      "titleEn": "Modern Wall Sconce with Bulb",
+      "titleEl": null,
+      "brand": "Rivet",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Add personality to your home décor with this mid-century-modern wall sconce. With its satin-brass finish, this fixture complements a variety of home-décor styles, including modern, vintage, and industrial. No shade is needed, as the decorative bulb makes a statement of its own.",
+        "Assembled Dimensions: 5.25\"W x 4.75\"D x 4.75\"H",
+        "No shade as the elongated decorative LED vintage bulb makes a statement of it's own",
+        "Mid-century-modern metal wall sconce in a satin-brass finish",
+        "1 clear decorative LED bulb included",
+        "Assemble in 30 minutes or less"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Satin Brass",
+      "colors": [
+        "gold"
+      ],
+      "materials": [],
+      "attributes": {
+        "style": "Wall Sconce",
+        "finish": "satin",
+        "material": "Brass"
+      },
+      "dimsCm": {
+        "w": 19,
+        "d": 17,
+        "h": 23
+      },
+      "weightGrams": 544,
+      "priceCents": 28900,
+      "compareAtCents": null,
+      "stock": 7,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07hk85jkq.webp",
+          "width": 1010,
+          "height": 1010,
+          "bytes": null,
+          "altEn": "Modern Wall Sconce with Bulb by Rivet",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07hk85jkq-b.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Modern Wall Sconce with Bulb by Rivet, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B082VLYQWX",
+      "slug": "westview-extra-deep-down-filled-leather-sofa-couch-b082vlyqwx",
+      "kind": "SOFA",
+      "category": "seating",
+      "titleEn": "Westview Extra-Deep Down-Filled Leather Sofa Couch",
+      "titleEl": null,
+      "brand": "Stone & Beam",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "This couch, with its deep cushions and sturdy frame, will help you add maximum comfort and style to any living space in your home. Never believe that you have to sacrifice comfort for style—this couch has it both in spades.",
+        "Solid wood frame and block legs with 100% top-grain leather and down-filled cushions",
+        "Seat and back cushions are filled with luxurious down.",
+        "Assemble in 15 minutes or less",
+        "To clean, avoid moisture and wipe down with a clean, soft cloth."
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Dark Grey",
+      "colors": [
+        "grey"
+      ],
+      "materials": [
+        "leather"
+      ],
+      "attributes": {
+        "material": "Leather"
+      },
+      "dimsCm": {
+        "w": 226,
+        "d": 107,
+        "h": 80
+      },
+      "weightGrams": 61799,
+      "priceCents": 125900,
+      "compareAtCents": null,
+      "stock": 4,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b082vlyqwx.webp",
+          "width": 1100,
+          "height": 501,
+          "bytes": null,
+          "altEn": "Westview Extra-Deep Down-Filled Leather Sofa Couch by Stone & Beam",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b082vlyqwx-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Westview Extra-Deep Down-Filled Leather Sofa Couch by Stone & Beam, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07L8DQQ4Q",
+      "slug": "lotusville-vintage-pu-leather-b07l8dqq4q",
+      "kind": "STOOL_SEATING",
+      "category": "seating",
+      "titleEn": "Lotusville Vintage PU Leather",
+      "titleEl": null,
+      "brand": "Phoenix Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Counter-height bar stool (set of 2) offers a clean, simple profile and vintage-inspired good looks",
+        "Ergonomic one-piece molded-plastic bucket seat with rounded back",
+        "Foam cushioning and PU-leather upholstery for added comfort and strength; zigzag gold-thread double stitching along the edge",
+        "Sleigh-style powder-coated metal tube legs with foot rest offer minimal form and long-lasting durability",
+        "Stool measures 18.5 by 21.5 by 34.5 inches (LxWxH); seat measures 18.5 by 15 by 24.5 inches (LxWxH)"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Grey",
+      "colors": [
+        "grey"
+      ],
+      "materials": [
+        "metal",
+        "leather"
+      ],
+      "attributes": {
+        "style": "Counter Height",
+        "shape": "L-Shape",
+        "material": "Metal",
+        "fabric": "Pu"
+      },
+      "dimsCm": {
+        "w": 55,
+        "d": 46,
+        "h": 89
+      },
+      "weightGrams": 12574,
+      "priceCents": 17900,
+      "compareAtCents": null,
+      "stock": 16,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07l8dqq4q.webp",
+          "width": 1024,
+          "height": 682,
+          "bytes": null,
+          "altEn": "Lotusville Vintage PU Leather by Phoenix Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07l8dqq4q-b.webp",
+          "width": 1024,
+          "height": 682,
+          "bytes": null,
+          "altEn": "Lotusville Vintage PU Leather by Phoenix Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07P6JV16D",
+      "slug": "emerly-modern-sofa-b07p6jv16d",
+      "kind": "SOFA",
+      "category": "seating",
+      "titleEn": "Emerly Modern Sofa",
+      "titleEl": null,
+      "brand": "Rivet",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Hardwood frame with sturdy mortise-and-tenon joints, performance fabric, metal legs",
+        "Overall: 83.5\"W x 35\"D x 34\"H; seat height: 19.5\"H; seat depth: 28\"D; seat back height: 27.5\"H; arm height: 27.5\"H; leg height: 6\"H",
+        "Wood, 100% polyester fabric, foam, metal",
+        "Loose and reversible cushions",
+        "This modern sofa in gray offers durability with removable and reversible cushions that are easy to maintain.",
+        "Assemble in 15 minutes or less"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Steel",
+      "colors": [
+        "grey"
+      ],
+      "materials": [
+        "wood"
+      ],
+      "attributes": {
+        "material": "Wood"
+      },
+      "dimsCm": {
+        "w": 212,
+        "d": 89,
+        "h": 86
+      },
+      "weightGrams": 49895,
+      "priceCents": 169900,
+      "compareAtCents": null,
+      "stock": 1,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07p6jv16d.webp",
+          "width": 1100,
+          "height": 860,
+          "bytes": null,
+          "altEn": "Emerly Modern Sofa by Rivet",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07p6jv16d-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Emerly Modern Sofa by Rivet, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B075YP4WVQ",
+      "slug": "sophia-modern-swivel-kitchen-bar-stool-b075yp4wvq",
+      "kind": "STOOL_SEATING",
+      "category": "seating",
+      "titleEn": "Sophia Modern Swivel Kitchen Bar Stool",
+      "titleEl": null,
+      "brand": "Stone & Beam",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "With a substantial padded back and seat, this bar stool provides maximum comfort -- and it swivels! The solid hardwood frame is sturdy and stable, and performance fabric makes it durable and easy to clean.",
+        "17.7\"D x 21.3\"W x 43.3\"H. Seat height is 30 inches.",
+        "95% polyester/5% nylon on hardwood frame; solid poplar legs.",
+        "Foam padding and elastic suspension system keeps upholstery firm and resilient",
+        "No assembly required. Wipe with soft dry cloth."
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Merlot",
+      "colors": [
+        "red"
+      ],
+      "materials": [],
+      "attributes": {
+        "style": "Bar Stool",
+        "material": "stone"
+      },
+      "dimsCm": {
+        "w": 54,
+        "d": 45,
+        "h": 110
+      },
+      "weightGrams": 7000,
+      "priceCents": 18900,
+      "compareAtCents": null,
+      "stock": 5,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b075yp4wvq.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Sophia Modern Swivel Kitchen Bar Stool by Stone & Beam",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b075yp4wvq-b.webp",
+          "width": 683,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Sophia Modern Swivel Kitchen Bar Stool by Stone & Beam, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07DT4GYTD",
+      "slug": "modern-farmhouse-indoor-wall-sconce-with-led-vintage-b07dt4gytd",
+      "kind": "LIGHT_FIXTURE",
+      "category": "lighting",
+      "titleEn": "Modern Farmhouse Indoor Wall Sconce With LED Vintage Light Bulb And Glass Shade",
+      "titleEl": null,
+      "brand": "Stone & Beam",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Free up table space and illuminate those hard to reach places with the dark bronze wall sconce bringing simple aesthetic. Perfect for rustic or transitional settings, this wall sconce with vintage Edison bulbs will provide a soft romantic glow that brings comfort and warmth.",
+        "5\" W x 6.5\" D x 9.75\" H, can be mounted as either Uplight or downlight",
+        "Metal in a dark bronze finish with a clear glass shade",
+        "5\" standard round back plate for wall mounting, can be mounted upwards or downwards",
+        "1 LED Vintage-style bulb Included"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Bronze",
+      "colors": [],
+      "materials": [
+        "glass",
+        "metal"
+      ],
+      "attributes": {
+        "style": "Wall Sconce",
+        "material": "Glass"
+      },
+      "dimsCm": {
+        "w": 35,
+        "d": 25,
+        "h": 20
+      },
+      "weightGrams": 798,
+      "priceCents": 11900,
+      "compareAtCents": null,
+      "stock": 4,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07dt4gytd.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Modern Farmhouse Indoor Wall Sconce With LED Vintage Light Bulb And Glass Shade by Stone & Beam",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07dt4gytd-b.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Modern Farmhouse Indoor Wall Sconce With LED Vintage Light Bulb And Glass Shade by Stone & Beam, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07B4SC2KW",
+      "slug": "vintage-bathroom-vanity-fixture-with-4-light-bulbs-b07b4sc2kw",
+      "kind": "LIGHT_FIXTURE",
+      "category": "lighting",
+      "titleEn": "Vintage Bathroom Vanity Fixture With 4 Light Bulbs And Glass Shade",
+      "titleEl": null,
+      "brand": "Stone & Beam",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Vintage and modern come together in a 4-light wall sconce that uses vintage-inspired bulbs. Chrome finish is paired with clear glass bell-shaped shades that progress from smallest to largest, adding a visually interesting twist to any style bathroom vanity.",
+        "Metal with chrome finish; clear glass shades",
+        "Classic and modern styles allow it to blend with most any décor",
+        "Bulbs included",
+        "Professional hardwiring recommended",
+        "Intended for indoor use only"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Chrome",
+      "colors": [
+        "silver"
+      ],
+      "materials": [
+        "glass",
+        "metal"
+      ],
+      "attributes": {
+        "material": "Glass"
+      },
+      "dimsCm": {
+        "w": 82,
+        "d": 18,
+        "h": 29
+      },
+      "weightGrams": 3538,
+      "priceCents": 17900,
+      "compareAtCents": null,
+      "stock": 4,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07b4sc2kw.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Vintage Bathroom Vanity Fixture With 4 Light Bulbs And Glass Shade by Stone & Beam",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07b4sc2kw-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Vintage Bathroom Vanity Fixture With 4 Light Bulbs And Glass Shade by Stone & Beam, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07SJ75Y1M",
+      "slug": "hayes-classic-fixed-solid-wood-dining-table-b07sj75y1m",
+      "kind": "TABLE",
+      "category": "tables",
+      "titleEn": "Hayes Classic Fixed Solid Wood Dining Table",
+      "titleEl": null,
+      "brand": "Alkove",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Dimensions: 130 x 90 x 75 cm (L x W x H). Weight: 42 kg",
+        "Solid wild oak with durable oiled finish, and 2.5 cm-thick tabletop",
+        "Classic, fixed table for any interior",
+        "30 minutes self-assembly; 2 people required; two spanners needed (13 and 6)",
+        "Made in Europe and FSC-certified to guarantee environmental and social responsibility",
+        "This item is shipped in 1 box : 144 x 95 x 13 cm (L x W x H), 44 kg"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Wild Oak",
+      "colors": [
+        "brown"
+      ],
+      "materials": [
+        "oak",
+        "wood"
+      ],
+      "attributes": {
+        "style": "Modern",
+        "material": "Oak"
+      },
+      "dimsCm": {
+        "w": 130,
+        "d": 90,
+        "h": 75
+      },
+      "weightGrams": 42000,
+      "priceCents": 40900,
+      "compareAtCents": null,
+      "stock": 7,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07sj75y1m.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Hayes Classic Fixed Solid Wood Dining Table by Alkove",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07sj75y1m-b.webp",
+          "width": 1024,
+          "height": 683,
+          "bytes": null,
+          "altEn": "Hayes Classic Fixed Solid Wood Dining Table by Alkove, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B001BQ1Q9G",
+      "slug": "pinzon-kinzie-leather-dining-chair-b001bq1q9g",
+      "kind": "CHAIR",
+      "category": "seating",
+      "titleEn": "Pinzon Kinzie Leather Dining Chair",
+      "titleEl": null,
+      "brand": "Pinzon by Amazon",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Set of 2 dining chairs is both handsome and versatile; offered in a choice of colors for any dcor",
+        "Solid oak and ash veneer frame; fully covered in reconstituted leather",
+        "Coordinates with most any collection and home dcor; holds up to 225 pounds",
+        "Seat area is 18 inches wide by 17-1/2 inches deep; back is 20-1/4 inches high",
+        "Measures 18 inches wide by 24-1/2 inches deep by 37-3/4 inches high"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Cream",
+      "colors": [
+        "beige"
+      ],
+      "materials": [
+        "leather"
+      ],
+      "attributes": {
+        "material": "Leather"
+      },
+      "dimsCm": null,
+      "weightGrams": 7257,
+      "priceCents": 51900,
+      "compareAtCents": null,
+      "stock": 40,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b001bq1q9g.webp",
+          "width": 767,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Pinzon Kinzie Leather Dining Chair by Pinzon by Amazon",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07MM5H3HX",
+      "slug": "classic-plank-top-console-table-with-large-drawer-b07mm5h3hx",
+      "kind": "TABLE",
+      "category": "tables",
+      "titleEn": "Classic Plank-Top Console Table with Large Drawer",
+      "titleEl": null,
+      "brand": "Ravenna Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Classic planked top adds to the traditional design.",
+        "1 large drawer",
+        "Assemble in 15-30 minutes",
+        "Wipe clean with soft, dry cloth."
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": null,
+      "colors": [],
+      "materials": [],
+      "attributes": {},
+      "dimsCm": {
+        "w": 107,
+        "d": 41,
+        "h": 76
+      },
+      "weightGrams": 18144,
+      "priceCents": 11900,
+      "compareAtCents": null,
+      "stock": 0,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07mm5h3hx.webp",
+          "width": 1100,
+          "height": 871,
+          "bytes": null,
+          "altEn": "Classic Plank-Top Console Table with Large Drawer by Ravenna Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07mm5h3hx-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Classic Plank-Top Console Table with Large Drawer by Ravenna Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07MBFD87N",
+      "slug": "faux-wood-table-lamp-b07mbfd87n",
+      "kind": "LAMP",
+      "category": "lighting",
+      "titleEn": "Faux Wood Table Lamp",
+      "titleEl": null,
+      "brand": "Ravenna Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "White painted finish; sturdy faux-wood base with a turned-style design; off-white linen shade",
+        "The paired off-white linen drum shade casts an ambient glow.",
+        "1 60-watt equivalent LED bulb included",
+        "Assemble in 15 minutes or less",
+        "For indoor use only"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "White",
+      "colors": [
+        "white"
+      ],
+      "materials": [
+        "wood"
+      ],
+      "attributes": {
+        "shape": "drum"
+      },
+      "dimsCm": {
+        "w": 23,
+        "d": 23,
+        "h": 36
+      },
+      "weightGrams": 1597,
+      "priceCents": 9400,
+      "compareAtCents": null,
+      "stock": 59,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07mbfd87n.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Faux Wood Table Lamp by Ravenna Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07mbfd87n-b.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Faux Wood Table Lamp by Ravenna Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07DBCG1Q2",
+      "slug": "glass-stacked-ball-living-room-floor-lamp-with-b07dbcg1q2",
+      "kind": "LAMP",
+      "category": "lighting",
+      "titleEn": "Glass Stacked Ball Living Room Floor Lamp with LED Light Bulb",
+      "titleEl": null,
+      "brand": "Ravenna Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "An elegant transitional look combining traditional and modern touches",
+        "Metal floor lamp with oil rubbed bronze finish; solid glass stacked balls; white linen shade",
+        "LED bulb included",
+        "Dimensions: 15.00\"W x 15.00\"D x 59.75\"H",
+        "Assemble in 15 minutes or less"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Dark Bronze",
+      "colors": [],
+      "materials": [
+        "glass"
+      ],
+      "attributes": {
+        "style": "Floor Lamp",
+        "finish": "Oil Rubbed"
+      },
+      "dimsCm": {
+        "w": 42,
+        "d": 42,
+        "h": 40
+      },
+      "weightGrams": 7793,
+      "priceCents": 6900,
+      "compareAtCents": null,
+      "stock": 14,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07dbcg1q2.webp",
+          "width": 1010,
+          "height": 1010,
+          "bytes": null,
+          "altEn": "Glass Stacked Ball Living Room Floor Lamp with LED Light Bulb by Ravenna Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07dbcg1q2-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Glass Stacked Ball Living Room Floor Lamp with LED Light Bulb by Ravenna Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07B4Z9PWF",
+      "slug": "stone-beam-rivet-cylinder-lamp-b07b4z9pwf",
+      "kind": "LAMP",
+      "category": "lighting",
+      "titleEn": "Stone & Beam - Rivet Cylinder Lamp",
+      "titleEl": null,
+      "brand": "Rivet",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Placeholder1"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Paint+plating",
+      "colors": [],
+      "materials": [],
+      "attributes": {
+        "style": "Pillar"
+      },
+      "dimsCm": {
+        "w": 10,
+        "d": 10,
+        "h": 56
+      },
+      "weightGrams": 7484,
+      "priceCents": 16900,
+      "compareAtCents": null,
+      "stock": 0,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07b4z9pwf.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Stone & Beam - Rivet Cylinder Lamp by Rivet",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07b4z9pwf-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Stone & Beam - Rivet Cylinder Lamp by Rivet, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B0825DC7JP",
+      "slug": "mid-century-modern-single-light-marble-pendant-with-b0825dc7jp",
+      "kind": "LIGHT_FIXTURE",
+      "category": "lighting",
+      "titleEn": "Mid-Century Modern Single-Light Marble Pendant with Exposed Bulb and Satin Brass",
+      "titleEl": null,
+      "brand": "Rivet",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "This chic mini pendant has a white faux marble finish with satin brass accents and an exposed vintage bulb. It provides a striking focal point for dining or living spaces and is perfect for vintage-inspired or contemporary decor. Adjustable height and adaptable mounting allow it to fit any space.",
+        "White faux marble finish with satin brass accents, exposed decorative LED vintage bulb",
+        "Uses 1 40-watt incandescent or LED-equivalent bulb. An energy-efficient 9-watt warm-white LED bulb is included.",
+        "This hardwired pendant includes a long cord to adjust the hanging height from 4\" to 66\" and can be mounted on sloped or horizontal ceilings."
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "White",
+      "colors": [
+        "white"
+      ],
+      "materials": [
+        "metal",
+        "marble"
+      ],
+      "attributes": {
+        "finish": "Satin",
+        "material": "Metal"
+      },
+      "dimsCm": {
+        "w": 13,
+        "d": 13,
+        "h": 168
+      },
+      "weightGrams": 726,
+      "priceCents": 19900,
+      "compareAtCents": null,
+      "stock": 27,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b0825dc7jp.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Mid-Century Modern Single-Light Marble Pendant with Exposed Bulb and Satin Brass by Rivet",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b0825dc7jp-b.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Mid-Century Modern Single-Light Marble Pendant with Exposed Bulb and Satin Brass by Rivet, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07DBDV3FH",
+      "slug": "swing-arm-living-room-floor-lamp-with-led-b07dbdv3fh",
+      "kind": "LAMP",
+      "category": "lighting",
+      "titleEn": "Swing Arm Living Room Floor Lamp With LED Light Bulb",
+      "titleEl": null,
+      "brand": "Ravenna Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "A traditional floor lamp with swing arm marries style and function",
+        "Metal base and swing arm with brushed nickel finish; off-white linen hardback shade",
+        "LED bulb included",
+        "Dimensions: 14.00\"W x 20.00\"D x 58.00\"H",
+        "Assemble in 15 minutes or less"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Brushed Steel",
+      "colors": [],
+      "materials": [],
+      "attributes": {
+        "style": "Floor Lamp",
+        "finish": "Brushed"
+      },
+      "dimsCm": {
+        "w": 40,
+        "d": 40,
+        "h": 39
+      },
+      "weightGrams": 4491,
+      "priceCents": 13900,
+      "compareAtCents": null,
+      "stock": 33,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07dbdv3fh.webp",
+          "width": 1010,
+          "height": 1010,
+          "bytes": null,
+          "altEn": "Swing Arm Living Room Floor Lamp With LED Light Bulb by Ravenna Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07dbdv3fh-b.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Swing Arm Living Room Floor Lamp With LED Light Bulb by Ravenna Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07MBFDJQ3",
+      "slug": "textured-ceramic-base-table-lamp-with-led-light-b07mbfdjq3",
+      "kind": "LAMP",
+      "category": "lighting",
+      "titleEn": "Textured Ceramic Base Table Lamp with LED Light Bulb",
+      "titleEl": null,
+      "brand": "Ravenna Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Table lamp with a textured ceramic base with a silver reactive glaze; brushed-nickel accents; off-white linen shade",
+        "Transitional color and a modern design make this the perfect table lamp with a pop of texture blending with a variety of styles and decor.",
+        "1 60-watt equivalent LED bulb included",
+        "Assemble in 15 minutes or less",
+        "For indoor use only"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Silver",
+      "colors": [
+        "silver"
+      ],
+      "materials": [
+        "ceramic"
+      ],
+      "attributes": {
+        "finish": "Brushed"
+      },
+      "dimsCm": {
+        "w": 23,
+        "d": 23,
+        "h": 37
+      },
+      "weightGrams": null,
+      "priceCents": 23900,
+      "compareAtCents": null,
+      "stock": 11,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07mbfdjq3.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Textured Ceramic Base Table Lamp with LED Light Bulb by Ravenna Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07mbfdjq3-b.webp",
+          "width": 1000,
+          "height": 1000,
+          "bytes": null,
+          "altEn": "Textured Ceramic Base Table Lamp with LED Light Bulb by Ravenna Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B07F2HNX7W",
+      "slug": "luna-rustic-wood-stool-b07f2hnx7w",
+      "kind": "STOOL_SEATING",
+      "category": "seating",
+      "titleEn": "Luna Rustic Wood Stool",
+      "titleEl": null,
+      "brand": "Ravenna Home",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": null,
+      "colors": [],
+      "materials": [
+        "wood"
+      ],
+      "attributes": {},
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 19900,
+      "compareAtCents": null,
+      "stock": 2,
+      "license": "CC BY-NC 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/b07f2hnx7w.webp",
+          "width": 1100,
+          "height": 944,
+          "bytes": null,
+          "altEn": "Luna Rustic Wood Stool by Ravenna Home",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/b07f2hnx7w-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Luna Rustic Wood Stool by Ravenna Home, view 2",
+          "whiteGround": true
+        }
+      ]
+    }
+  ]
+}

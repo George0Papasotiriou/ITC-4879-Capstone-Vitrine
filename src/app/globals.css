@@ -1,0 +1,287 @@
+/**
+ * Vitrine — AI-native e-shop (ITC 4949 Capstone)
+ * Copyright (c) 2026 George Papasotiriou. All rights reserved.
+ * Author: George Papasotiriou <g.papasotiriou@acg.edu>
+ * Project started: 2026-09-12
+ *
+ * Global stylesheet: Tailwind setup and the Vitrine design tokens.
+ */
+
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Vitrine design tokens — docs/PLAN.md Part 4.2
+
+   A shop window at dusk: the interface is quiet glass, products stand on
+   plinths, and the Concierge is the light. Lumen is semantic, not decorative:
+   it appears only when the AI is present or acting. Components never use raw
+   hex values; they use these tokens.
+--------------------------------------------------------------------------- */
+
+@theme {
+  /* Tailwind's default palette is removed entirely.
+     Part 4.8 forbids a long list of generic looks; the cheapest way to enforce
+     that is to make them impossible to type. `text-slate-400`, `bg-gray-100`
+     and `shadow-gray-*` do not compile in this project, so the palette below is
+     the only colour that can reach a component. */
+  --color-*: initial;
+
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-inherit: inherit;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Colour. Contrast ratios in comments were computed for these exact values;
+     recheck them if a value changes. */
+  --color-glass: #f2f3f1; /* page background, a cool neutral (not cream)     */
+  --color-plinth: #e4e6e2; /* display surface behind products                */
+  --color-slate: #5b6270; /* secondary text, icons  (5.5:1 on Glass)         */
+  --color-dusk: #1d2330; /* primary text, buttons, immersive stage (14:1)    */
+  --color-lumen: #f5b544; /* the Concierge's light ONLY (Dusk on it: 9.9:1)  */
+  --color-mist: #a7aebb; /* secondary text on Dusk (7:1)                     */
+  --color-danger: #b3261e; /* 5.9:1 on Glass                                 */
+  --color-success: #1e7b4f; /* 4.7:1 on Glass                                */
+
+  /* Hairlines are Dusk at 12%, never a grey border colour of their own. */
+  --color-hairline: color-mix(in oklab, #1d2330 12%, transparent);
+
+  /* The Spotlight's light, used for the glow and the travelling orb. */
+  --color-lumen-glow: color-mix(in oklab, #f5b544 45%, transparent);
+
+  /* Type. One family, two roles: Display uses the flare axis and heavier
+     weights; Text and UI stay flat at 400/500. */
+  --font-sans: var(--font-commissioner), ui-sans-serif, system-ui, sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.5rem;
+  --text-4xl: 3.5rem;
+  --text-5xl: 5rem;
+
+  /* Shape. No drop shadows on tiles; sheets and dialogs get one soft shadow. */
+  --radius-plinth: 2px;
+  --radius-sheet: 8px;
+
+  /* Motion. Two moments carry the motion (window light, Spotlight); everything
+     else is quick feedback at 160ms or less. */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --duration-instant: 90ms;
+  --duration-quick: 160ms;
+  --duration-calm: 280ms;
+  --duration-stage: 560ms;
+}
+
+@layer base {
+  html {
+    /* The 4px grid is Tailwind's default spacing base; stated here so the
+       relationship to Part 4.2 is explicit rather than accidental. */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-glass);
+    color: var(--color-dusk);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Greek must never be set in capitals: uppercasing drops the accents. */
+  [lang="el"] {
+    hyphens: auto;
+  }
+
+  /* Prices and any aligned numeric data. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Focus is visible everywhere: a 2px Dusk outline plus a Lumen halo. */
+  :focus-visible {
+    outline: 2px solid var(--color-dusk);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px color-mix(in oklab, var(--color-lumen) 45%, transparent);
+  }
+
+  /* Product photography sits on the plinth: a white studio background melts
+     into the surface instead of forming a visible box. */
+  .on-plinth {
+    mix-blend-mode: multiply;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Type roles (docs/PLAN.md 4.2)
+
+   Display and Text are the same family. The difference is the flare axis and
+   weight, so the display role is a utility rather than a second font file.
+--------------------------------------------------------------------------- */
+
+@utility font-display {
+  font-family: var(--font-commissioner), ui-sans-serif, system-ui, sans-serif;
+  font-variation-settings: "FLAR" 100;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+
+@utility font-text {
+  font-family: var(--font-commissioner), ui-sans-serif, system-ui, sans-serif;
+  font-variation-settings: "FLAR" 0;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
+/* ---------------------------------------------------------------------------
+   Overlay motion (docs/PLAN.md 4.5)
+
+   Quick feedback only: sheets, dialogs, menus and toasts enter and leave
+   within the calm and quick durations. Radix keeps an element mounted until its
+   exit animation ends, so leaving is animated as well as arriving. The global
+   reduced-motion rule above collapses all of these to an instant change.
+--------------------------------------------------------------------------- */
+
+@keyframes vitrine-fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes vitrine-fade-out { from { opacity: 1 } to { opacity: 0 } }
+
+@keyframes vitrine-pop-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98) }
+  to { opacity: 1; transform: none }
+}
+@keyframes vitrine-pop-out {
+  from { opacity: 1; transform: none }
+  to { opacity: 0; transform: translateY(4px) scale(0.98) }
+}
+
+@keyframes vitrine-sheet-in-right { from { transform: translateX(100%) } to { transform: none } }
+@keyframes vitrine-sheet-out-right { from { transform: none } to { transform: translateX(100%) } }
+@keyframes vitrine-sheet-in-bottom { from { transform: translateY(100%) } to { transform: none } }
+@keyframes vitrine-sheet-out-bottom { from { transform: none } to { transform: translateY(100%) } }
+
+@utility animate-overlay {
+  &[data-state="open"] { animation: vitrine-fade-in var(--duration-calm) var(--ease-standard) }
+  &[data-state="closed"] { animation: vitrine-fade-out var(--duration-quick) var(--ease-standard) }
+}
+
+@utility animate-pop {
+  &[data-state="open"], &[data-state="delayed-open"], &[data-state="instant-open"] {
+    animation: vitrine-pop-in var(--duration-quick) var(--ease-standard);
+  }
+  &[data-state="closed"] { animation: vitrine-pop-out var(--duration-instant) var(--ease-standard) }
+}
+
+@utility animate-sheet-right {
+  &[data-state="open"] { animation: vitrine-sheet-in-right var(--duration-calm) var(--ease-standard) }
+  &[data-state="closed"] { animation: vitrine-sheet-out-right var(--duration-quick) var(--ease-standard) }
+}
+
+@utility animate-sheet-bottom {
+  &[data-state="open"] { animation: vitrine-sheet-in-bottom var(--duration-calm) var(--ease-standard) }
+  &[data-state="closed"] { animation: vitrine-sheet-out-bottom var(--duration-quick) var(--ease-standard) }
+}
+
+/* The window light (4.5, moment 1): a soft band of Lumen crossing the hero
+   plinth once, settling within 1.2s. Pure CSS, so the home page ships no
+   animation library for it. `forwards` leaves it at its invisible end state. */
+@keyframes vitrine-window-light {
+  0% { transform: translateX(-60%); opacity: 0 }
+  20% { opacity: 0.85 }
+  70% { opacity: 0.85 }
+  100% { transform: translateX(260%); opacity: 0 }
+}
+
+.window-light {
+  background: linear-gradient(100deg, transparent, var(--color-lumen), transparent);
+  filter: blur(38px);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  animation: vitrine-window-light 1.2s var(--ease-standard) 1 forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .window-light {
+    display: none;
+  }
+}
+
+/* The one soft shadow sheets and dialogs are allowed (4.2). Tiles get none. */
+@utility shadow-sheet {
+  box-shadow:
+    0 0 0 1px var(--color-hairline),
+    0 24px 48px -12px color-mix(in oklab, var(--color-dusk) 22%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+   Shared-element morph, tile to product hero (docs/PLAN.md 4.5)
+
+   One object moving rather than two swapping: the photograph travels from its
+   place in the grid to the hero plinth. The blur hides interpolation artefacts
+   mid-flight. `::view-transition-*` pseudo-elements are not matched by the
+   universal selector in the reduced-motion rule, so they are switched off here
+   explicitly — otherwise reduced motion would silently still morph.
+--------------------------------------------------------------------------- */
+
+::view-transition-group(.morph) {
+  animation-duration: var(--duration-calm);
+  animation-timing-function: var(--ease-standard);
+}
+
+::view-transition-image-pair(.morph) {
+  animation-name: vitrine-via-blur;
+}
+
+/* No whole-page crossfade underneath the morph. By default the browser fades
+   the old page out while the new one fades in, so mid-flight the old grid sits
+   on top of the new product page and the two layouts overlap. Swapping the page
+   instantly leaves one thing moving: the photograph, flying into an empty hero
+   slot. Only navigations that morph a product start a view transition at all —
+   every other `<ViewTransition>` is `default="none"` — so this affects nothing
+   else. */
+::view-transition-old(root) {
+  display: none;
+}
+
+::view-transition-new(root) {
+  animation: none;
+}
+
+@keyframes vitrine-via-blur {
+  35% { filter: blur(2px) }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Listing filters: a disclosure on small screens, always open on large ones.
+   A closed <details> hides its content through ::details-content; from the
+   large breakpoint that is overridden and the summary hidden, so one piece of
+   markup serves both layouts. */
+@media (min-width: 64rem) {
+  .listing-filters > summary {
+    display: none;
+  }
+  .listing-filters::details-content {
+    content-visibility: visible;
+  }
+}

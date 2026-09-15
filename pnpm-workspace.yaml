@@ -1,0 +1,15 @@
+# Not a monorepo definition (ADR-001: single package, no workspaces).
+# pnpm 12 uses this file to record which dependencies may run install scripts.
+#
+# There is deliberately no `minimumReleaseAgeExclude` here. pnpm offers to add
+# one when a package is newer than the supply-chain policy allows; taking that
+# offer turns the check off for those packages permanently. The project instead
+# pins to versions that have aged past the cutoff (see the journal, 2026-09-12).
+allowBuilds:
+  esbuild: true            # links the platform binary used by tsup and vitest
+  msgpackr-extract: true   # native accelerator for BullMQ job payloads
+  "@sentry/cli": true      # source map upload during the production build
+  sharp: true              # image processing: specimen images now, worker in Phase 3
+  unrs-resolver: true      # resolver used by the Next.js ESLint config
+  "@parcel/watcher": true  # file watching for the next-intl plugin
+  "@swc/core": true        # next-intl message extraction

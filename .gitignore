@@ -1,0 +1,65 @@
+# =============================================================================
+# Vitrine — only application source code is tracked.
+# =============================================================================
+
+# --- Dependencies and build output -------------------------------------------
+node_modules/
+.next/
+dist/
+out/
+build/
+*.tsbuildinfo
+
+# --- Test and tooling output -------------------------------------------------
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# --- Secrets -----------------------------------------------------------------
+# Values live only in Railway variables. .env.example holds names, never values.
+.env
+.env.*
+!.env.example
+
+# --- Editor and OS noise -----------------------------------------------------
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# --- Python research project (offline evaluations) ---------------------------
+research/.venv/
+research/data/
+research/**/output/
+__pycache__/
+*.pyc
+
+# =============================================================================
+# Not part of the application codebase
+# =============================================================================
+
+# --- Claude Code: agent instructions, skills, settings, local state ----------
+.claude/
+CLAUDE.md
+AGENTS.md
+.mcp.json
+
+# --- Capstone planning and report material -----------------------------------
+# The master plan, architecture decision records, development journal,
+# evaluations, references, schedule, deviations, account notes, screenshots.
+docs/
+
+# --- All markdown ------------------------------------------------------------
+# Documentation and write-ups are kept out of the tracked source tree.
+*.md
+
+# --- Dataset cache -----------------------------------------------------------
+# ABO metadata downloaded by scripts/fetch-specimen-images.mjs (12 MB).
+.abo-cache/
+
+# --- Local stack -------------------------------------------------------------
+# PGlite data, local storage and the generated storage signing secret.
+.local/
