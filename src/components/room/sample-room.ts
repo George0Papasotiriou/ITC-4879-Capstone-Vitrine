@@ -7,8 +7,8 @@
  * Drawn sample room with known camera geometry for trying and testing room placement.
  */
 
-import { focalFromFov, intrinsics, projectPoint, A4_SHEET, type Point2, type Pose } from "@/lib/vision/camera";
-import type { Mat3, Vec3 } from "@/lib/vision/linalg";
+import { cameraCentre, focalFromFov, intrinsics, projectPoint, A4_SHEET, type Point2, type Pose } from "@/lib/vision/camera";
+import { add3, dot3, invert3, mulMat3Vec, scale3, sub3, transpose3, type Mat3, type Vec3 } from "@/lib/vision/linalg";
 import { lookAtPose } from "@/lib/vision/synthetic";
 
 /**
@@ -108,4 +108,43 @@ export function drawSampleRoom(ctx: CanvasRenderingContext2D) {
     sheetWorld.map(([x, y]) => [x, y, 0] as Vec3),
     "#f7f7f4",
   );
+}
+
+/**
+ * The exact depth of the drawn room, pixel by pixel: the distance from the
+ * camera to the floor or to the wall along each ray, in metres.
+ *
+ * This is what a depth model estimates from a photograph, here known exactly
+ * because the room was drawn with a known camera. It lets the paper-free mode
+ * be used, and tested end to end, without a model: the geometry that follows is
+ * the same code either way, and its answer can be checked against the camera
+ * the room was drawn with.
+ */
+export function sampleRoomDepth(): { data: Float32Array; width: number; height: number } {
+  const { K, pose } = sampleRoomGeometry();
+  const centre = cameraCentre(pose);
+  const Kinv = invert3(K);
+  const Rt = transpose3(pose.R);
+  const forward: Vec3 = [pose.R[6], pose.R[7], pose.R[8]];
+  const data = new Float32Array(SAMPLE_WIDTH * SAMPLE_HEIGHT);
+
+  for (let v = 0; v < SAMPLE_HEIGHT; v += 1) {
+    for (let u = 0; u < SAMPLE_WIDTH; u += 1) {
+      const direction = mulMat3Vec(Rt, mulMat3Vec(Kinv, [u, v, 1]));
+      let nearest = Infinity;
+      // The floor, Z = 0.
+      if (Math.abs(direction[2]) > 1e-12) {
+        const s = -centre[2] / direction[2];
+        if (s > 0) nearest = Math.min(nearest, s);
+      }
+      // The wall across the room, above the floor.
+      if (Math.abs(direction[1]) > 1e-12) {
+        const s = (WALL_Y - centre[1]) / direction[1];
+        if (s > 0 && add3(centre, scale3(direction, s))[2] >= 0) nearest = Math.min(nearest, s);
+      }
+      if (!Number.isFinite(nearest)) continue;
+      data[v * SAMPLE_WIDTH + u] = dot3(forward, sub3(add3(centre, scale3(direction, nearest)), centre));
+    }
+  }
+  return { data, width: SAMPLE_WIDTH, height: SAMPLE_HEIGHT };
 }

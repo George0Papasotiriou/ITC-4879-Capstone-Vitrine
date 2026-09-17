@@ -31,7 +31,14 @@ export type SceneInput = {
   /** Where the loupe looks, while a finger or the keyboard marker is placing a corner. */
   loupe: Point2 | null;
   marker: Point2 | null;
-  camera: { K: Mat3; pose: Pose; sheet: readonly Point2[] } | null;
+  /**
+   * `sheet` is the paper method's rectangle, drawn until the piece is placed;
+   * the paper-free mode has no sheet, so the grid is centred on `gridCentre`
+   * instead — the spot the piece will stand on.
+   */
+  camera: { K: Mat3; pose: Pose; sheet: readonly Point2[] | null; gridCentre: Point2 } | null;
+  /** Pixels the paper-free mode found to be floor, drawn as a light wash so the shopper can see what it read. */
+  floorPixels: readonly Point2[] | null;
   product: { placement: Placement; mode: "stand" | "lie"; cutout: Cutout | null; outline: boolean } | null;
 };
 
@@ -44,9 +51,10 @@ export function drawScene(ctx: CanvasRenderingContext2D, scene: SceneInput) {
   ctx.clearRect(0, 0, width, height);
   ctx.drawImage(scene.photo, 0, 0, width, height);
 
+  if (scene.floorPixels !== null && scene.product === null) drawFloorWash(ctx, scene.floorPixels, scene.width, scene.height);
   if (scene.camera !== null) {
-    drawFloorGrid(ctx, scene.camera.K, scene.camera.pose, scene.camera.sheet, r);
-    if (scene.product === null) drawSheet(ctx, scene.camera.K, scene.camera.pose, scene.camera.sheet, r);
+    drawFloorGrid(ctx, scene.camera.K, scene.camera.pose, scene.camera.gridCentre, r);
+    if (scene.product === null && scene.camera.sheet !== null) drawSheet(ctx, scene.camera.K, scene.camera.pose, scene.camera.sheet, r);
   }
   if (scene.camera !== null && scene.product !== null) {
     drawProduct(ctx, scene.camera.K, scene.camera.pose, scene.product, r);
@@ -133,9 +141,8 @@ function drawLoupe(ctx: CanvasRenderingContext2D, photo: CanvasImageSource, [x, 
  * short pieces so the parts behind the camera can be skipped, and fades with
  * distance from the sheet so it reads as lying on the floor.
  */
-function drawFloorGrid(ctx: CanvasRenderingContext2D, K: Mat3, pose: Pose, sheet: readonly Point2[], r: number) {
-  const cx = sheet.reduce((sum, p) => sum + p[0], 0) / sheet.length;
-  const cy = sheet.reduce((sum, p) => sum + p[1], 0) / sheet.length;
+function drawFloorGrid(ctx: CanvasRenderingContext2D, K: Mat3, pose: Pose, centre: Point2, r: number) {
+  const [cx, cy] = centre;
   const extent = 2;
   const step = 0.25;
   const pieces = 16;
@@ -162,6 +169,21 @@ function drawFloorGrid(ctx: CanvasRenderingContext2D, K: Mat3, pose: Pose, sheet
       }
     }
   }
+}
+
+/**
+ * The floor the paper-free mode read, as a wash of light dots on the pixels it
+ * accepted. A shopper cannot check a plane equation, but they can see at a
+ * glance whether the shop thinks the sofa is floor.
+ */
+function drawFloorWash(ctx: CanvasRenderingContext2D, pixels: readonly Point2[], width: number, height: number) {
+  // The dots are sized to the sampling grid, so they read as a continuous wash
+  // however densely the depth map was sampled.
+  const step = Math.max(2, Math.round(Math.max(width, height) / 256));
+  ctx.save();
+  ctx.fillStyle = "rgba(245, 181, 68, 0.22)";
+  for (const [x, y] of pixels) ctx.fillRect(x - step / 2, y - step / 2, step, step);
+  ctx.restore();
 }
 
 function drawSheet(ctx: CanvasRenderingContext2D, K: Mat3, pose: Pose, sheet: readonly Point2[], r: number) {

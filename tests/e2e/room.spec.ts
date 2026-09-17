@@ -151,3 +151,71 @@ test("product pages link to the room only for pieces that can be placed", async 
   await page.goto("/en/p/modern-wall-sconce-with-bulb-b07hk85jkq", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("link", { name: "See it in your room" })).toHaveCount(0);
 });
+
+/**
+ * The paper-free mode (ADR-014). The drawn room's depth is known exactly, so
+ * this exercises the whole flow — choose the method, measure, judge, place —
+ * and checks the geometry against the camera the room was drawn with: 1.4 m up.
+ */
+test("@smoke a shopper can place a piece without a sheet of paper", async ({ page }) => {
+  await page.goto(`/en/room?product=${SOFA}`, { waitUntil: "domcontentloaded" });
+
+  // Choose the paper-free method, then the sample room.
+  const withoutPaper = page.locator('[data-agent-id="room:method-depth"]');
+  await expect(async () => {
+    await withoutPaper.check({ timeout: 2_000 });
+    await expect(withoutPaper).toBeChecked({ timeout: 1_000 });
+  }).toPass();
+  await page.getByRole("button", { name: "Try the sample room" }).click();
+
+  const scan = page.locator('[data-agent-id="room:scan"]');
+  await expect(scan.getByText("Floor found")).toBeVisible({ timeout: 20_000 });
+  // The sample room was drawn from 1.4 m above the floor, and nothing was marked by hand.
+  await expect(scan.getByText("Camera about 1.4 m above the floor")).toBeVisible();
+  await expect(scan.getByText(/Floor in view: [5-9]\d%|Floor in view: 100%/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Place it" }).click();
+  await expect(page.getByRole("heading", { name: "Move it into place" })).toBeVisible();
+  const readout = page.locator('[data-agent-id="room:readout"]');
+  await expect(readout.getByText("233 × 102 × 93 cm")).toBeVisible();
+  await expect(readout.getByText(/About \d\.\d m from the camera/)).toBeVisible();
+
+  // Back to the floor, and the height can be corrected by hand.
+  await page.getByRole("button", { name: "Back to the floor" }).click();
+  const height = page.locator('[data-agent-id="room:camera-height"]');
+  await expect(height).toBeVisible();
+  await height.fill("1.8");
+  await expect(page.locator('[data-agent-id="room:scan"]').getByText("Camera about 1.8 m above the floor")).toBeVisible();
+});
+
+test("the paper-free mode and the sheet method can be swapped without losing the photo", async ({ page }) => {
+  await openSample(page);
+  // Started with the sheet method: switch to measuring instead.
+  await page.getByRole("button", { name: "Without paper" }).click();
+  await expect(page.getByRole("heading", { name: "Finding the floor" })).toBeVisible();
+  await expect(page.locator('[data-agent-id="room:scan"]').getByText("Floor found")).toBeVisible({ timeout: 20_000 });
+
+  // And back again: the sheet stage is waiting, with no corners marked.
+  await page.getByRole("button", { name: "Use a sheet of paper instead" }).click();
+  await expect(page.getByRole("heading", { name: "Mark the four corners of the sheet" })).toBeVisible();
+  await expect(page.getByText("0 of 4 corners marked")).toBeVisible();
+});
+
+test("a real photo says the measurement model is not installed, and offers the sheet", async ({ page }) => {
+  await page.goto(`/en/room?product=${SOFA}`, { waitUntil: "domcontentloaded" });
+  const withoutPaper = page.locator('[data-agent-id="room:method-depth"]');
+  await expect(async () => {
+    await withoutPaper.check({ timeout: 2_000 });
+    await expect(withoutPaper).toBeChecked({ timeout: 1_000 });
+  }).toPass();
+
+  const png = await sharp({ create: { width: 900, height: 675, channels: 3, background: { r: 150, g: 120, b: 90 } } })
+    .png()
+    .toBuffer();
+  await page.locator('input[type="file"]').setInputFiles({ name: "room.png", mimeType: "image/png", buffer: png });
+
+  const error = page.locator('[data-agent-id="room:scan-error"]');
+  await expect(error).toContainText("not installed in this shop yet", { timeout: 20_000 });
+  await page.getByRole("button", { name: "Use a sheet of paper instead" }).click();
+  await expect(page.getByRole("heading", { name: "Mark the four corners of the sheet" })).toBeVisible();
+});

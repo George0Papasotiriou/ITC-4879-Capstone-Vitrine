@@ -48,7 +48,7 @@ import {
 } from "@/lib/vision/camera";
 import { refineCorners } from "@/lib/vision/corners";
 import { dot3, type Vec3 } from "@/lib/vision/linalg";
-import { gaussian, measureSizeError, randomScene, renderSheet, withTapNoise } from "@/lib/vision/synthetic";
+import { gaussian, measureDepthSizeError, measureSizeError, randomScene, renderSheet, withTapNoise } from "@/lib/vision/synthetic";
 
 const OUT_DIR = "docs/report/evaluations";
 const round = (value: number, digits = 2) => Number(value.toFixed(digits));
@@ -209,6 +209,46 @@ function latency() {
   return { solves: 500, p50Ms: percentile(timings, 0.5), p95Ms: percentile(timings, 0.95) };
 }
 
+
+/**
+ * The paper-free method (ADR-014) over the same kind of scenes: what the floor
+ * from a depth map costs in drawn size, as the depth model's error grows, and
+ * how often the shop refuses the photo rather than guess.
+ */
+function depthTable() {
+  const rows: { label: string; noise: number; holes: number; metric: boolean; heightError: number; clutter: boolean }[] = [
+    { label: "exact depth", noise: 0, holes: 0, metric: true, heightError: 0, clutter: false },
+    { label: "exact depth, furniture in the room", noise: 0, holes: 0, metric: true, heightError: 0, clutter: true },
+    { label: "2% depth error", noise: 0.02, holes: 0.05, metric: true, heightError: 0, clutter: true },
+    { label: "5% depth error", noise: 0.05, holes: 0.05, metric: true, heightError: 0, clutter: true },
+    { label: "10% depth error", noise: 0.1, holes: 0.05, metric: true, heightError: 0, clutter: true },
+    { label: "relative depth, height guessed exactly", noise: 0.05, holes: 0.05, metric: false, heightError: 0, clutter: true },
+    { label: "relative depth, height 10% out", noise: 0.05, holes: 0.05, metric: false, heightError: 0.1, clutter: true },
+    { label: "relative depth, height 20% out", noise: 0.05, holes: 0.05, metric: false, heightError: 0.2, clutter: true },
+  ];
+  return rows.map((row) => ({ ...row, ...measureDepthSizeError({ scenes: 150, seed: 31, noise: row.noise, holes: row.holes, metric: row.metric, heightError: row.heightError, clutter: row.clutter }) }));
+}
+
+
+/**
+ * How strict should the flatness test be? Too tight and photos from an ordinary
+ * model are all refused; too loose and the shop draws pieces on planes that are
+ * not the floor. Swept here, on a model with 5% depth error, so the constant in
+ * depth.ts can point at a measurement.
+ */
+function thresholdSweep() {
+  return [0.03, 0.05, 0.08, 0.12, 0.2, 0.4].map((maxRelativeRms) => ({
+    maxRelativeRms,
+    ...measureDepthSizeError({ scenes: 150, seed: 31, noise: 0.05, holes: 0.05, clutter: true, maxRelativeRms }),
+  }));
+}
+
+function depthLatency() {
+  const started = performance.now();
+  measureDepthSizeError({ scenes: 40, seed: 5, noise: 0.03, holes: 0.05, clutter: true });
+  return { scenes: 40, msPerScene: (performance.now() - started) / 40 };
+}
+
 async function main() {
   const report = {
     generatedAt: new Date().toISOString(),
@@ -218,10 +258,13 @@ async function main() {
     focal: focalTable(),
     corners: cornerChain(),
     ransac: ransacTable(),
+    depth: depthTable(),
+    thresholds: thresholdSweep(),
+    depthLatency: depthLatency(),
     latency: latency(),
   };
 
-  const { exactness: ex, noise, distance, focal, corners, ransac, latency: lat } = report;
+  const { exactness: ex, noise, distance, focal, corners, ransac, depth, thresholds, depthLatency: depthMs, latency: lat } = report;
   const md = `# E4 (synthetic part): room geometry
 
 Generated ${report.generatedAt} by \`scripts/evaluate-room-geometry.ts\`. Every scene
@@ -302,11 +345,39 @@ tilted more than 25° from the expected floor normal are never considered, which
 that failure. The automatic (depth) mode will take the expected normal from the phone's
 motion sensors when available and from the image's down axis otherwise.
 
-## 7. Latency
+## 7. Placing without the sheet of paper (ADR-014)
+
+The same question, measured the same way, with the floor coming from a depth map
+instead of four taps: 320 × 240 depth, the model's error proportional to distance,
+5% of pixels without a reading, and — where marked — a table and a box standing on
+the floor for the floor finder to reject. A photo the method refuses is not a size
+error: the shop draws nothing and offers the sheet instead.
+
+| Depth | Mean size error | p50 | p90 | Over 25% wrong | Refused | Scenes measured |
+|---|---|---|---|---|---|---|
+${depth.map((row) => `| ${row.label} | ${Number.isNaN(row.mean) ? "—" : pct(row.mean)} | ${Number.isNaN(row.p50) ? "—" : pct(row.p50)} | ${Number.isNaN(row.p90) ? "—" : pct(row.p90)} | ${Number.isNaN(row.badlyWrongShare) ? "—" : pct(row.badlyWrongShare, 0)} | ${pct(row.refusedShare, 0)} | ${row.count} |`).join("\n")}
+
+Reading it: with a metric model the size error is the model's own error, roughly one
+for one — a model 5% out in depth draws a sofa about 5% wrong — because the camera
+height and the floor's orientation both come from the same distances. With a relative
+model the scale comes from how high the camera was held, and the error follows that
+guess just as directly, which is why the page asks and lets it be corrected.
+
+Choosing the flatness threshold, on a model with 5% depth error: it decides how
+many photos are refused and how wrong the accepted ones are. The shop uses 0.12.
+
+| Flatness allowed | Refused | Mean size error | p90 | Scenes measured |
+|---|---|---|---|---|
+${thresholds.map((row) => `| ${pct(row.maxRelativeRms, 0)} of the room distance | ${pct(row.refusedShare, 0)} | ${Number.isNaN(row.mean) ? "—" : pct(row.mean)} | ${Number.isNaN(row.p90) ? "—" : pct(row.p90)} | ${row.count} |`).join("\n")}
+
+Geometry only: ${round(depthMs.msPerScene)} ms per photo for the floor (${depthMs.scenes} photos, 320 × 240), on top of
+whatever the model itself takes.
+
+## 8. Latency
 
 Tap method (both labellings, DLT, pose, refinement): p50 ${round(lat.p50Ms, 3)} ms, p95 ${round(lat.p95Ms, 3)} ms over ${lat.solves} solves.
 
-## Limits
+## 9. Limits
 
 - Synthetic taps have Gaussian noise; real taps have biases (a finger lands consistently
   on one side of a corner). Snapping removes most of that where edges are visible.

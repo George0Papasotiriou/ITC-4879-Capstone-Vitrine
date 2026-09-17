@@ -12,9 +12,12 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 
+import { loadDepthModel, sampleDepthSource, type DepthSource } from "@/components/room/depth-estimator";
 import { drawScene, type Cutout } from "@/components/room/draw-scene";
 import { drawSampleRoom, SAMPLE_HEIGHT, SAMPLE_WIDTH, sampleRoomGeometry } from "@/components/room/sample-room";
 import { Button } from "@/components/ui/button";
+import { seededRandom } from "@/lib/reco/simulate";
+import { defaultSpot, floorFromDepth, judgeFloor, type DepthMap, type FloorFromDepth } from "@/lib/vision/depth";
 import {
   A4_SHEET,
   cameraCentre,
@@ -51,12 +54,18 @@ export type PlaceableProduct = {
 };
 
 type Photo = { canvas: HTMLCanvasElement; width: number; height: number; gray: GrayImage; focal35: number | null; sample: boolean };
-type Stage = "photo" | "corners" | "place";
+type Stage = "photo" | "corners" | "scan" | "place";
+/** The two ways to give the photograph a size: the sheet of paper, or a depth model (ADR-014). */
+type Method = "paper" | "depth";
+type Measured = { map: DepthMap; metric: boolean; ms: number };
+type ScanFailure = "not_installed" | "unsupported_output" | "no_webassembly" | "failed";
 
 /** Working resolution: enough for sub-pixel corners, small enough for a phone's memory. */
 const MAX_SIDE = 2048;
 const SHEETS: Record<"a4" | "letter", Sheet> = { a4: A4_SHEET, letter: { width: 0.2159, length: 0.2794 } };
 const ROTATION_STEP = Math.PI / 12;
+/** Furthest a piece can be dropped, metres: past this a room photo says nothing reliable. */
+const MAX_PLACEMENT_DISTANCE = 10;
 
 function toCanvas(source: CanvasImageSource, width: number, height: number) {
   const canvas = document.createElement("canvas");
@@ -95,10 +104,18 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
   const helpId = useId();
   const lensId = useId();
   const sheetId = useId();
+  const methodId = useId();
+  const heightId = useId();
+  const depthSource = useRef<DepthSource | null>(null);
 
   const [stage, setStage] = useState<Stage>("photo");
+  const [method, setMethod] = useState<Method>("paper");
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [photoError, setPhotoError] = useState(false);
+  const [measured, setMeasured] = useState<Measured | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanFailure, setScanFailure] = useState<ScanFailure | null>(null);
+  const [heightOverride, setHeightOverride] = useState<number | null>(null);
   const [taps, setTaps] = useState<Point2[]>([]);
   const [loupe, setLoupe] = useState<Point2 | null>(null);
   const [marker, setMarker] = useState<Point2 | null>(null);
@@ -113,6 +130,7 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
   const dragging = useRef<{ kind: "new" } | { kind: "tap"; index: number } | { kind: "product" } | null>(null);
 
   const number = useCallback((value: number, digits = 1) => new Intl.NumberFormat(locale, { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(value), [locale]);
+  const percent = useCallback((value: number) => new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(value), [locale]);
 
   // The product photo, with its white studio background removed.
   useEffect(() => {
@@ -143,6 +161,25 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
 
   const K = useMemo(() => (photo === null ? null : intrinsics(focalFromFov(fov, Math.max(photo.width, photo.height)), photo.width, photo.height)), [photo, fov]);
 
+  /**
+   * The paper-free mode's floor. The depth map is measured once per photo; the
+   * geometry is re-solved whenever the shopper corrects the camera height, which
+   * is cheap (RANSAC over a sampled grid) and keeps the drawing live under the
+   * slider. The random generator is seeded so the same photo always gives the
+   * same answer — a shopper who measures twice should not see two sizes.
+   */
+  const floor = useMemo((): FloorFromDepth | null => {
+    if (measured === null || K === null) return null;
+    const assumed = heightOverride ?? 1.4;
+    return floorFromDepth(measured.map, K, {
+      metric: measured.metric && heightOverride === null,
+      cameraHeight: assumed,
+      random: seededRandom(1),
+    });
+  }, [measured, K, heightOverride]);
+
+  const verdict = useMemo(() => (measured === null ? null : judgeFloor(floor)), [measured, floor]);
+
   const solved = useMemo(() => {
     if (photo === null || K === null || taps.length !== 4) return null;
     const searchRadius = Math.max(6, Math.round((12 * Math.max(photo.width, photo.height)) / MAX_SIDE));
@@ -154,17 +191,22 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
     return { solution, chosen, height } as const;
   }, [photo, K, taps, sheetKind, flipped]);
 
-  const camera = useMemo(
-    () => (solved?.chosen !== undefined && K !== null ? { K, pose: solved.chosen.pose, sheet: solved.chosen.world } : null),
-    [solved, K],
-  );
+  const camera = useMemo(() => {
+    if (K === null) return null;
+    if (method === "depth") {
+      return floor !== null && verdict?.ok === true ? { K, pose: floor.pose, sheet: null } : null;
+    }
+    return solved?.chosen !== undefined ? { K, pose: solved.chosen.pose, sheet: solved.chosen.world } : null;
+  }, [solved, K, method, floor, verdict]);
 
-  // Until the shopper moves it, the product stands on the sheet: they put the
-  // sheet where the piece would go. Only their moves are state.
+  // Until the shopper moves it, the product stands where the measurement put it:
+  // on the sheet, which they laid where the piece would go, or — with no sheet —
+  // on the floor a couple of metres ahead. Only their moves are state.
   const placement = useMemo((): Placement | null => {
     if (camera === null) return null;
-    const x = camera.sheet.reduce((sum, p) => sum + p[0], 0) / 4;
-    const y = camera.sheet.reduce((sum, p) => sum + p[1], 0) / 4;
+    const spot = camera.sheet === null ? defaultSpot(floor!, { width: product.dims.w / 100, focal: camera.K[0], imageWidth: photo?.width }) : null;
+    const x = spot?.x ?? camera.sheet!.reduce((sum, p) => sum + p[0], 0) / 4;
+    const y = spot?.y ?? camera.sheet!.reduce((sum, p) => sum + p[1], 0) / 4;
     // Front towards the camera: the box's front face looks along its local −y
     // axis, which after turning by θ is (sin θ, −cos θ); set that to the floor
     // direction from the piece to the camera, as a product photo is taken.
@@ -176,7 +218,7 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
       depth: product.dims.d / 100,
       height: product.mode === "lie" ? 0.005 : product.dims.h / 100,
     };
-  }, [camera, moved, product]);
+  }, [camera, moved, product, floor, photo]);
 
   const distance = camera !== null && placement !== null ? Math.hypot(cameraCentre(camera.pose)[0] - placement.x, cameraCentre(camera.pose)[1] - placement.y) : null;
 
@@ -192,6 +234,47 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
     return () => observer.disconnect();
   }, [photo, stage]);
 
+  /**
+   * Measuring the room, once per photo, on this device. The drawn sample room
+   * knows its own depth exactly; a real photograph needs the model, and when
+   * that is not installed the page says so and offers the sheet of paper.
+   */
+  const measure = useCallback(async (current: Photo) => {
+    setScanning(true);
+    setScanFailure(null);
+    setMeasured(null);
+    try {
+      if (current.sample) {
+        const source = sampleDepthSource();
+        const map = await source.estimate({ data: new Uint8ClampedArray(0), width: current.width, height: current.height });
+        setMeasured({ map, metric: source.metric, ms: source.lastMs ?? 0 });
+        return;
+      }
+      if (depthSource.current === null) {
+        const loaded = await loadDepthModel();
+        if (!loaded.ok) {
+          setScanFailure(loaded.reason);
+          return;
+        }
+        depthSource.current = loaded.source;
+      }
+      const source = depthSource.current;
+      const context = current.canvas.getContext("2d", { willReadFrequently: true })!;
+      const { data } = context.getImageData(0, 0, current.width, current.height);
+      const map = await source.estimate({ data, width: current.width, height: current.height });
+      setMeasured({ map, metric: source.metric, ms: source.lastMs ?? 0 });
+    } catch {
+      setScanFailure("failed");
+    } finally {
+      setScanning(false);
+    }
+  }, []);
+
+  // Someone using a screen reader hears the result rather than seeing the floor
+  // light up, so the live region reads the measurement whenever there is one.
+  const liveMessage =
+    stage === "scan" && floor !== null && verdict?.ok === true ? t("announceFloor", { height: number(floor.cameraHeight) }) : announcement;
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas === null || photo === null || stage === "photo") return;
@@ -203,20 +286,37 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
       taps,
       loupe: stage === "corners" ? loupe : null,
       marker: stage === "corners" ? marker : null,
-      camera,
+      camera: camera === null ? null : { ...camera, gridCentre: placement === null ? [0, 0] : [placement.x, placement.y] },
+      floorPixels: stage === "scan" && floor !== null ? floor.floorPixels : null,
       product: stage === "place" && placement !== null ? { placement, mode: product.mode, cutout, outline } : null,
     });
   });
 
-  const reset = (next: Photo | null) => {
+  const reset = (next: Photo | null, nextMethod: Method = method) => {
     setPhoto(next);
+    setMethod(nextMethod);
     setTaps([]);
     setFlipped(false);
     setMoved(null);
     setMarker(null);
     setLoupe(null);
-    setStage(next === null ? "photo" : "corners");
+    setMeasured(null);
+    setScanFailure(null);
+    setHeightOverride(null);
+    setStage(next === null ? "photo" : nextMethod === "depth" ? "scan" : "corners");
     if (next !== null) setFov(next.focal35 !== null ? fovFrom35mm(next.focal35) : next.sample ? sampleRoomGeometry().fovDegrees : DEFAULT_FOV_DEGREES);
+    // Measuring starts from the action that asked for it, not from a render:
+    // the shopper pressed something, and the work begins.
+    if (next !== null && nextMethod === "depth") void measure(next);
+  };
+
+  /** Switching method keeps the photo: the shopper measures the same room another way. */
+  const switchMethod = (nextMethod: Method) => {
+    if (photo === null) {
+      setMethod(nextMethod);
+      return;
+    }
+    reset(photo, nextMethod);
   };
 
   const onFile = async (file: File | undefined) => {
@@ -238,6 +338,11 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
     if (camera === null) return;
     const point = floorPointAt(camera.K, camera.pose, pixel);
     if (point === null) return;
+    // Just below the horizon a pixel means "very far away", and a few pixels
+    // higher means twice as far: beyond a room's depth the answer is noise, and
+    // the piece would be a speck. Drops out there are ignored.
+    const centre = cameraCentre(camera.pose);
+    if (Math.hypot(point[0] - centre[0], point[1] - centre[1]) > MAX_PLACEMENT_DISTANCE) return;
     setMoved({ x: point[0], y: point[1], rotation: placement?.rotation ?? 0 });
   };
 
@@ -365,7 +470,7 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
 
   const steps: { id: Stage; label: string }[] = [
     { id: "photo", label: t("steps.photo") },
-    { id: "corners", label: t("steps.corners") },
+    method === "depth" ? { id: "scan", label: t("steps2Scan") } : { id: "corners", label: t("steps.corners") },
     { id: "place", label: t("steps.place") },
   ];
   const stageIndex = steps.findIndex((step) => step.id === stage);
@@ -394,13 +499,41 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
       </ol>
 
       <p aria-live="polite" aria-atomic="true" className="sr-only">
-        {announcement}
+        {liveMessage}
       </p>
 
       {stage === "photo" ? (
         <section className="bg-dusk text-glass rounded-plinth flex flex-col gap-5 px-6 py-10 md:px-10 md:py-14" data-agent-id="room:photo">
           <h2 className="font-display text-2xl">{t("photoTitle")}</h2>
-          <p className="text-mist max-w-[60ch]">{t("photoHelp")}</p>
+          <p className="text-mist max-w-[60ch]">{method === "depth" ? t("photoHelpFree") : t("photoHelp")}</p>
+
+          <fieldset className="flex flex-col gap-3" data-agent-id="room:method">
+            <legend className="mb-2 font-medium">{t("methodLabel")}</legend>
+            {(["paper", "depth"] as const).map((option) => (
+              <label
+                key={option}
+                className={cn(
+                  "rounded-plinth flex cursor-pointer gap-3 border p-4 transition-colors",
+                  method === option ? "border-glass bg-glass/10" : "border-mist/40 hover:border-mist",
+                )}
+              >
+                <input
+                  type="radio"
+                  name={methodId}
+                  value={option}
+                  checked={method === option}
+                  onChange={() => setMethod(option)}
+                  className="accent-lumen mt-1 size-5 shrink-0"
+                  data-agent-id={`room:method-${option}`}
+                />
+                <span className="flex flex-col gap-1">
+                  <span className="font-medium">{option === "paper" ? t("methodPaper") : t("methodFree")}</span>
+                  <span className="text-mist text-sm">{option === "paper" ? t("methodPaperHelp") : t("methodFreeHelp")}</span>
+                </span>
+              </label>
+            ))}
+          </fieldset>
+
           <div className="flex flex-wrap gap-3">
             <input
               id={`${helpId}-file`}
@@ -462,7 +595,108 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
           </div>
 
           <aside className="flex flex-col gap-5" aria-labelledby={`${helpId}-title`}>
-            {stage === "corners" ? (
+            {stage === "scan" ? (
+              <>
+                <h2 id={`${helpId}-title`} className="font-display text-2xl">
+                  {t("scanTitle")}
+                </h2>
+                <div id={helpId} className="text-slate flex flex-col gap-2 text-sm">
+                  <p>{t("scanHelp")}</p>
+                  {photo?.sample ? <p>{t("scanSample")}</p> : null}
+                </div>
+
+                {scanning ? (
+                  <p className="text-dusk text-sm font-medium" data-agent-id="room:scanning">
+                    {t("scanWorking")}
+                  </p>
+                ) : null}
+
+                {scanFailure !== null ? (
+                  <p role="alert" className="text-danger text-sm" data-agent-id="room:scan-error">
+                    {scanFailure === "not_installed"
+                      ? t("scanNotInstalled")
+                      : scanFailure === "no_webassembly" || scanFailure === "unsupported_output"
+                        ? t("scanUnsupported")
+                        : t("scanFailed")}
+                  </p>
+                ) : null}
+
+                {verdict !== null && !verdict.ok ? (
+                  <p role="alert" className="text-danger text-sm" data-agent-id="room:scan-error">
+                    {verdict.reason === "little_floor"
+                      ? t("scanLittleFloor")
+                      : verdict.reason === "rough_floor"
+                        ? t("scanRoughFloor")
+                        : verdict.reason === "steep"
+                          ? t("scanSteep")
+                          : t("scanNoFloor")}
+                  </p>
+                ) : null}
+
+                {floor !== null && verdict?.ok === true ? (
+                  <div className="flex flex-col gap-2 text-sm" data-agent-id="room:scan">
+                    <p className="text-success font-medium">{t("scanReady")}</p>
+                    <p className="text-slate tabular">{t("cameraHeight", { height: number(floor.cameraHeight) })}</p>
+                    <p className="text-slate tabular">{t("scanFloorShare", { share: percent(floor.coverage) })}</p>
+                    {measured !== null && measured.ms > 0 ? <p className="text-slate tabular">{t("scanTook", { seconds: number(measured.ms / 1000) })}</p> : null}
+                  </div>
+                ) : null}
+
+                {floor !== null ? (
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor={heightId} className="flex items-baseline justify-between text-sm font-medium">
+                      {t("heightLabel")}
+                      <span className="tabular text-slate font-normal">{t("heightValue", { height: number(floor.cameraHeight, 2) })}</span>
+                    </label>
+                    <input
+                      id={heightId}
+                      type="range"
+                      min={0.5}
+                      max={2.5}
+                      step={0.05}
+                      value={Number(floor.cameraHeight.toFixed(2))}
+                      onChange={(event) => {
+                        setHeightOverride(Number(event.currentTarget.value));
+                        setMoved(null);
+                      }}
+                      className="accent-dusk h-11 w-full cursor-pointer"
+                      aria-describedby={`${heightId}-hint`}
+                      data-agent-id="room:camera-height"
+                    />
+                    <p id={`${heightId}-hint`} className="text-slate text-xs">
+                      {measured?.metric === true && heightOverride === null ? t("heightHelpMetric") : t("heightHelpAssumed")}
+                    </p>
+                  </div>
+                ) : null}
+
+                <p className="text-slate text-xs">{t("accuracyNote")}</p>
+
+                <div className="flex flex-wrap gap-3">
+                  {verdict?.ok === true ? (
+                    <Button onClick={() => setStage("place")} data-agent-id="action:room-place">
+                      {t("placeProduct")}
+                    </Button>
+                  ) : null}
+                  {measured !== null || scanFailure !== null ? (
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setHeightOverride(null);
+                        if (photo !== null) void measure(photo);
+                      }}
+                    >
+                      {t("scanAgain")}
+                    </Button>
+                  ) : null}
+                  <Button variant="secondary" onClick={() => switchMethod("paper")} data-agent-id="action:room-use-paper">
+                    {t("scanUsePaper")}
+                  </Button>
+                  <Button variant="tertiary" onClick={() => reset(null)}>
+                    {t("newPhoto")}
+                  </Button>
+                </div>
+              </>
+            ) : stage === "corners" ? (
               <>
                 <h2 id={`${helpId}-title`} className="font-display text-2xl">
                   {t("cornersTitle")}
@@ -549,6 +783,9 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                   <Button variant="secondary" onClick={removeLastTap} aria-disabled={taps.length === 0 || undefined}>
                     {t("undoCorner")}
                   </Button>
+                  <Button variant="tertiary" onClick={() => switchMethod("depth")} data-agent-id="action:room-no-paper">
+                    {t("methodFree")}
+                  </Button>
                   <Button variant="tertiary" onClick={() => reset(null)}>
                     {t("newPhoto")}
                   </Button>
@@ -593,8 +830,8 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                 ) : null}
                 <div className="flex flex-wrap gap-3">
                   <Button onClick={save}>{t("save")}</Button>
-                  <Button variant="secondary" onClick={() => setStage("corners")}>
-                    {t("backToCorners")}
+                  <Button variant="secondary" onClick={() => setStage(method === "depth" ? "scan" : "corners")}>
+                    {method === "depth" ? t("backToScan") : t("backToCorners")}
                   </Button>
                   <Button variant="tertiary" onClick={() => reset(null)}>
                     {t("newPhoto")}
