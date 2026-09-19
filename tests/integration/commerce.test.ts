@@ -283,11 +283,11 @@ describe.skipIf(url === undefined || url === "")("commerce", () => {
       expect(order.items[0]!.unitPrice.cents).toBe(a.priceCents);
     });
 
-    it("refuses delivery outside the EU and to places outside the EU VAT area, reserving nothing", async () => {
+    it("refuses countries the shop does not deliver to and places outside the EU VAT area, reserving nothing", async () => {
       const a = pick(8);
       await setStock(a.id, 5);
       const cartId = await cartWith([[a.id, 1]]);
-      expect(await checkout(cartId, { address: { ...ADDRESS, postcode: "90210", country: "US" } })).toEqual({ ok: false, reason: "not_deliverable" });
+      expect(await checkout(cartId, { address: { ...ADDRESS, postcode: "01310-100", country: "BR" } })).toEqual({ ok: false, reason: "not_deliverable" });
       expect(await checkout(cartId, { address: { ...ADDRESS, city: "Las Palmas", postcode: "35001", country: "ES" } })).toEqual({
         ok: false,
         reason: "outside_vat_area",
@@ -295,6 +295,48 @@ describe.skipIf(url === undefined || url === "")("commerce", () => {
       });
       expect(await stockOf(a.id)).toBe(5);
       expect(await store.itemCount(cartId)).toBe(1);
+    });
+
+    it("exports to Switzerland without VAT, leaving the import VAT to be paid on delivery (docs/adr/015)", async () => {
+      const a = pick(12);
+      await setStock(a.id, 5);
+      const result = await checkout(await cartWith([[a.id, 1]]), {
+        address: { ...ADDRESS, city: "Zürich", postcode: "8001", country: "CH" },
+      });
+      if (!result.ok) throw new Error(result.reason);
+      const order = (await store.readOrder(result.orderId))!;
+      expect(order.vatCountry).toBe("CH");
+      expect(order.vatRatePerMille).toBe(0);
+      expect(order.vat.cents).toBe(0);
+      // The price without Greek VAT, and export delivery to the rest of Europe.
+      expect(order.items[0]!.unitPrice.cents).toBe(localizeCents(a.priceCents, "CH"));
+      expect(order.total.cents).toBe(order.subtotal.cents + order.shipping.cents);
+    });
+
+    it("collects UK VAT itself on a small parcel to the United Kingdom", async () => {
+      // The cheapest specimen piece is well under £135.
+      const cheapest = [...variants.values()].sort((x, y) => x.priceCents - y.priceCents)[0]!;
+      await setStock(cheapest.id, 5);
+      const result = await checkout(await cartWith([[cheapest.id, 1]]), {
+        address: { ...ADDRESS, city: "London", postcode: "SW1A 1AA", country: "GB" },
+      });
+      if (!result.ok) throw new Error(result.reason);
+      const order = (await store.readOrder(result.orderId))!;
+      expect(order.vatCountry).toBe("GB");
+      expect(order.vatRatePerMille).toBe(200);
+      expect(order.vat.cents).toBe(includedVat(order.total.cents, 200));
+    });
+
+    it("keeps the state on an address in the United States", async () => {
+      const a = pick(13);
+      await setStock(a.id, 5);
+      const result = await checkout(await cartWith([[a.id, 1]]), {
+        address: { ...ADDRESS, city: "Springfield", postcode: "62701", country: "US", region: "IL" },
+      });
+      if (!result.ok) throw new Error(result.reason);
+      const order = (await store.readOrder(result.orderId))!;
+      expect(order.address).toMatchObject({ city: "Springfield", postcode: "62701", country: "US", region: "IL" });
+      expect(order.vatRatePerMille).toBe(0);
     });
 
     it("shows a cart in the browsing country's prices without changing what is stored", async () => {

@@ -9,7 +9,8 @@
 
 import { DEFAULT_CURRENCY, money, type Money } from "@/lib/commerce/money";
 import { divideRounded } from "@/lib/commerce/pricing-math";
-import { BASE_COUNTRY, isEuCountry, localizeCents, vatRatePerMille } from "@/lib/commerce/vat";
+import { exportTax, EXPORT_COUNTRIES, isExportCountry, type ExportTax } from "@/lib/commerce/exports";
+import { BASE_COUNTRY, isEuCountry, localizeAtRate, VAT_RATES_PER_MILLE, vatRatePerMille } from "@/lib/commerce/vat";
 
 export { divideRounded };
 
@@ -35,7 +36,7 @@ export const MAX_QUANTITY_PER_LINE = 10;
 export const MAX_LINES = 50;
 
 export type ShippingMethodId = "standard" | "express";
-export type ShippingZone = "domestic" | "cyprus" | "eu";
+export type ShippingZone = "domestic" | "cyprus" | "eu" | "europe" | "world";
 
 export type ShippingMethod = {
   id: ShippingMethodId;
@@ -65,13 +66,32 @@ export const SHIPPING_RATES: Readonly<Record<ShippingZone, Readonly<Record<Shipp
     standard: { id: "standard", baseCents: 2_490, freeFromBaseCents: 50_000, days: [5, 9] },
     express: { id: "express", baseCents: 4_990, freeFromBaseCents: null, days: [2, 4] },
   },
+  // Exports (docs/adr/015), set by their price without VAT: none is in them.
+  europe: {
+    standard: { id: "standard", baseCents: fromNet(3_990), freeFromBaseCents: fromNet(80_000), days: [6, 12] },
+    express: { id: "express", baseCents: fromNet(7_990), freeFromBaseCents: null, days: [3, 5] },
+  },
+  world: {
+    standard: { id: "standard", baseCents: fromNet(7_990), freeFromBaseCents: null, days: [10, 20] },
+    express: { id: "express", baseCents: fromNet(14_990), freeFromBaseCents: null, days: [4, 7] },
+  },
 };
 
-/** Where the shop delivers: the EU. Null for anywhere else. */
+/**
+ * A stored-terms amount from a price without VAT. Export rates are set by what
+ * the customer pays, which carries no Greek VAT; everything in the shop is
+ * stored with it, so the conversion is written once, here.
+ */
+function fromNet(netCents: number): number {
+  return divideRounded(netCents * (1000 + VAT_RATES_PER_MILLE[BASE_COUNTRY]), 1000);
+}
+
+/** Where the shop delivers: the EU, and the export countries in exports.ts. Null for anywhere else. */
 export function shippingZone(country: string): ShippingZone | null {
   if (country === BASE_COUNTRY) return "domestic";
   if (country === "CY") return "cyprus";
-  return isEuCountry(country) ? "eu" : null;
+  if (isEuCountry(country)) return "eu";
+  return isExportCountry(country) ? EXPORT_COUNTRIES[country].zone : null;
 }
 
 export function shippingMethod(country: string, method: ShippingMethodId): ShippingMethod | null {
@@ -104,8 +124,10 @@ export type Totals = {
   total: Money;
   /** The VAT contained in the total. */
   vat: Money;
-  /** Tenths of a percent: 240 for 24%, 255 for 25.5%, 0 outside the EU. */
+  /** The tax the shop charges, tenths of a percent: 240 for 24%, 255 for 25.5%, 0 for an export taxed on delivery. */
   vatRatePerMille: number;
+  /** For a delivery outside the EU: who charges the destination's tax, and at what rate. Null inside the EU. */
+  exportTax: ExportTax | null;
   /** False when the shop does not deliver to the country. */
   deliverable: boolean;
   /** How much more to spend for free standard delivery; null when already free or not applicable. */
@@ -129,29 +151,37 @@ export function priceCart(
   { shipping = "standard", country = BASE_COUNTRY, currency = DEFAULT_CURRENCY }: { shipping?: ShippingMethodId; country?: string; currency?: string } = {},
 ): Totals {
   if (lines.length > MAX_LINES) throw new PricingError(`A cart holds at most ${MAX_LINES} lines`);
-  const priced = lines.map((line) => {
+  for (const line of lines) {
     if (!Number.isSafeInteger(line.unitCents) || line.unitCents < 0) throw new PricingError("Unit prices must be non-negative integer cents");
     if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > MAX_QUANTITY_PER_LINE) {
       throw new PricingError(`Quantities must be whole numbers from 1 to ${MAX_QUANTITY_PER_LINE}`);
     }
+  }
+
+  const baseSubtotal = lines.reduce((sum, line) => sum + line.unitCents * line.quantity, 0);
+  // The rate the shop charges: the destination's VAT inside the EU; for an
+  // export, the destination's tax only where the shop must collect it
+  // (exports.ts), and otherwise none, because the customer pays it on delivery.
+  // The export threshold is judged on the goods before any tax, delivery excluded.
+  const exportRegime = isExportCountry(country) ? exportTax(country, localizeAtRate(baseSubtotal, 0)) : null;
+  const rate = exportRegime === null ? vatRatePerMille(country) : exportRegime.collectedBy === "seller" ? exportRegime.ratePerMille : 0;
+
+  const priced = lines.map((line) => {
     // Convert the unit price, then multiply: the line always equals quantity × the unit price shown.
-    const localUnitCents = localizeCents(line.unitCents, country);
+    const localUnitCents = localizeAtRate(line.unitCents, rate);
     return { ...line, localUnitCents, lineCents: localUnitCents * line.quantity };
   });
-
-  const baseSubtotal = priced.reduce((sum, line) => sum + line.unitCents * line.quantity, 0);
   const subtotalCents = priced.reduce((sum, line) => sum + line.lineCents, 0);
   const method = shippingMethod(country, shipping);
   // Free delivery is decided on stored prices, so it does not flip with rounding between countries.
   const free = method !== null && method.freeFromBaseCents !== null && baseSubtotal >= method.freeFromBaseCents;
-  const shippingCents = priced.length === 0 || method === null || free ? 0 : localizeCents(method.baseCents, country);
+  const shippingCents = priced.length === 0 || method === null || free ? 0 : localizeAtRate(method.baseCents, rate);
   const totalCents = subtotalCents + shippingCents;
-  const rate = vatRatePerMille(country);
 
   const standard = shippingMethod(country, "standard");
   const freeFrom = standard?.freeFromBaseCents ?? null;
   const remaining =
-    priced.length > 0 && freeFrom !== null && baseSubtotal < freeFrom ? Math.max(1, localizeCents(freeFrom, country) - subtotalCents) : null;
+    priced.length > 0 && freeFrom !== null && baseSubtotal < freeFrom ? Math.max(1, localizeAtRate(freeFrom, rate) - subtotalCents) : null;
 
   return {
     country,
@@ -162,6 +192,7 @@ export function priceCart(
     total: money(totalCents, currency),
     vat: money(includedVat(totalCents, rate), currency),
     vatRatePerMille: rate,
+    exportTax: exportRegime,
     deliverable: method !== null,
     freeShippingRemaining: remaining === null ? null : money(remaining, currency),
   };

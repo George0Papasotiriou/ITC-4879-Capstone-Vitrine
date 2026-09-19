@@ -97,7 +97,9 @@
     "lastOrder": "View your last order",
     "items": "{count, plural, one {# item} other {# items}}",
     "vatIncludedCountry": "Includes {amount} VAT ({rate}% for {country})",
-    "noDelivery": "We deliver within the EU. Prices here are shown without VAT; choose an EU delivery address at checkout."
+    "noDelivery": "We do not deliver to this country yet. Prices are shown without VAT; at checkout, choose an address in a country we deliver to.",
+    "exportTaxIncluded": "Includes {amount} {tax, select, vat {VAT} gst {GST} consumption {consumption tax} other {sales tax}} ({rate}% for {country}), which we collect on an order of this size",
+    "exportTaxOnDelivery": "No VAT charged: an export to {country}. {tax, select, vat {Import VAT at {rate}%} gst {GST at {rate}%} consumption {Consumption tax at {rate}%} other {Local sales tax}} and any duties are paid on delivery."
   },
   "account": {
     "title": "Account",
@@ -351,6 +353,8 @@
     "steps2Scan": "Find the floor",
     "scanTitle": "Finding the floor",
     "scanWorking": "Measuring the room on your device…",
+    "scanDownloading": "Getting the measuring tool ready, once only: {done} of {total} MB",
+    "scanDownloadingLabel": "Download of the measuring tool",
     "scanHelp": "The photo stays on your device. Nothing is uploaded, and the measurement runs here.",
     "scanReady": "Floor found",
     "scanFloorShare": "Floor in view: {share}",
@@ -364,11 +368,13 @@
     "scanNotInstalled": "Placing without paper needs a measurement model that is not installed in this shop yet. The sheet of paper works today, and the sample room below shows the paper-free mode.",
     "scanUnsupported": "This device cannot run the measurement. Use a sheet of paper instead.",
     "scanFailed": "The measurement could not be loaded. Use a sheet of paper instead.",
+    "scanIntegrity": "The measuring tool did not match the shop's own copy, so it was not used. Try again, or use a sheet of paper.",
     "scanSample": "This is the drawn room, so its depth is known exactly: what you see is the geometry, without a model's error.",
     "heightLabel": "How high was the camera?",
     "heightValue": "{height} m",
     "heightHelpMetric": "Measured from the photo. Adjust it if you know better; everything is drawn to this height.",
     "heightHelpAssumed": "This model measures shapes but not their size, so the size comes from how high you held the camera. Roughly right is enough.",
+    "heightUnusual": "That is not the height a phone is usually held at. If you took the photo holding your phone, set the height yourself.",
     "accuracyNote": "Placing without paper is an estimate. For a piece you are about to buy, check it with a sheet of paper.",
     "announceFloor": "Floor found, camera {height} metres up.",
     "cornersProgress": "{count} of 4 corners marked",
@@ -453,7 +459,16 @@
     "errorNotDeliverable": "We deliver within the EU only.",
     "errorOutsideVatArea": "We cannot deliver {place, select, canary_islands {to the Canary Islands} ceuta_melilla {to Ceuta or Melilla} mount_athos {to Mount Athos} livigno_campione {to Livigno or Campione d’Italia} busingen_heligoland {to Büsingen or Heligoland} french_overseas {to the French overseas departments} aland {to the Åland Islands} other {to this address}} yet: it is outside the EU VAT area.",
     "deliveryCountryNote": "Prices updated for delivery to {country}, including {rate}% VAT.",
-    "expressDays": "Express, {from}–{to} working days"
+    "expressDays": "Express, {from}–{to} working days",
+    "countriesEu": "European Union",
+    "countriesExport": "Beyond the EU",
+    "deliveryExportNote": "Prices updated for delivery to {country}: an export, shown without VAT.",
+    "deliverySellerTaxNote": "Prices updated for delivery to {country}, including {rate}% {tax, select, vat {VAT} gst {GST} consumption {consumption tax} other {sales tax}}.",
+    "regionUS": "State",
+    "regionCA": "Province or territory",
+    "regionAU": "State or territory",
+    "regionChoose": "Choose one",
+    "errorRegion": "Choose the state or province of this address."
   },
   "order": {
     "title": "Order {number}",
@@ -509,12 +524,13 @@
     "keepLink": "Keep this page's address: without an account, it is how you come back to your order.",
     "continueShopping": "Continue shopping",
     "releasedNote": "This order was released because it was not paid in time. Your cart is empty; add the pieces again to order them.",
-    "vatCharged": "Includes {amount} VAT ({rate}% for {country})"
+    "vatCharged": "Includes {amount} VAT ({rate}% for {country})",
+    "vatExport": "No VAT charged: an export to {country}. Import tax and any duties are paid on delivery."
   },
   "region": {
     "loading": "Finding your country",
     "vatIncludedFor": "Prices for {country} include {rate}% VAT.",
-    "noVatFor": "Prices for {country} are shown without VAT. We deliver within the EU.",
+    "noVatFor": "Prices for {country} are shown without VAT. We do not deliver there yet.",
     "footerEu": "Prices for {country}, including {rate}% VAT",
     "footerOutside": "Prices for {country}, without VAT",
     "change": "Change country",
@@ -522,12 +538,15 @@
     "dialogBody": "Prices include the VAT of the country you choose. At checkout, VAT always follows the delivery address.",
     "country": "Country",
     "eu": "European Union",
-    "elsewhere": "Outside the EU",
+    "elsewhere": "Elsewhere, no delivery yet",
     "vatPreview": "Prices will include {rate}% VAT for {country}.",
-    "noVatPreview": "Prices will be shown without VAT. We deliver within the EU only.",
+    "noVatPreview": "Prices will be shown without VAT. We do not deliver to {country} yet.",
     "save": "Show these prices",
     "saved": "Prices are now shown for {country}",
     "failed": "The country could not be changed. Try again.",
-    "heading": "Prices and VAT"
+    "heading": "Prices and VAT",
+    "exportFor": "Prices for {country} are shown without VAT. We deliver there: import tax is added at checkout or paid on delivery.",
+    "beyondEu": "Beyond the EU, with delivery",
+    "exportPreview": "Prices will be shown without VAT. We deliver to {country}: import tax is settled at checkout or on delivery."
   }
 }

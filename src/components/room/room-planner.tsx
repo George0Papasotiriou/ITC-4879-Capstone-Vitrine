@@ -58,7 +58,7 @@ type Stage = "photo" | "corners" | "scan" | "place";
 /** The two ways to give the photograph a size: the sheet of paper, or a depth model (ADR-014). */
 type Method = "paper" | "depth";
 type Measured = { map: DepthMap; metric: boolean; ms: number };
-type ScanFailure = "not_installed" | "unsupported_output" | "no_webassembly" | "failed";
+type ScanFailure = "not_installed" | "unsupported_output" | "no_webassembly" | "integrity" | "failed";
 
 /** Working resolution: enough for sub-pixel corners, small enough for a phone's memory. */
 const MAX_SIDE = 2048;
@@ -115,6 +115,8 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
   const [measured, setMeasured] = useState<Measured | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanFailure, setScanFailure] = useState<ScanFailure | null>(null);
+  /** Bytes of the measuring model downloaded so far, the first time it is used. */
+  const [download, setDownload] = useState<{ received: number; total: number } | null>(null);
   const [heightOverride, setHeightOverride] = useState<number | null>(null);
   const [taps, setTaps] = useState<Point2[]>([]);
   const [loupe, setLoupe] = useState<Point2 | null>(null);
@@ -251,7 +253,8 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
         return;
       }
       if (depthSource.current === null) {
-        const loaded = await loadDepthModel();
+        const loaded = await loadDepthModel((received, total) => setDownload({ received, total }));
+        setDownload(null);
         if (!loaded.ok) {
           setScanFailure(loaded.reason);
           return;
@@ -605,7 +608,14 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                   {photo?.sample ? <p>{t("scanSample")}</p> : null}
                 </div>
 
-                {scanning ? (
+                {scanning && download !== null && download.received < download.total ? (
+                  <div className="flex flex-col gap-2" data-agent-id="room:downloading">
+                    <p className="text-dusk text-sm font-medium">
+                      {t("scanDownloading", { done: number(download.received / 1_048_576, 0), total: number(download.total / 1_048_576, 0) })}
+                    </p>
+                    <progress className="accent-dusk h-2 w-full" value={download.received} max={download.total} aria-label={t("scanDownloadingLabel")} />
+                  </div>
+                ) : scanning ? (
                   <p className="text-dusk text-sm font-medium" data-agent-id="room:scanning">
                     {t("scanWorking")}
                   </p>
@@ -617,7 +627,9 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                       ? t("scanNotInstalled")
                       : scanFailure === "no_webassembly" || scanFailure === "unsupported_output"
                         ? t("scanUnsupported")
-                        : t("scanFailed")}
+                        : scanFailure === "integrity"
+                          ? t("scanIntegrity")
+                          : t("scanFailed")}
                   </p>
                 ) : null}
 
@@ -637,6 +649,11 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                   <div className="flex flex-col gap-2 text-sm" data-agent-id="room:scan">
                     <p className="text-success font-medium">{t("scanReady")}</p>
                     <p className="text-slate tabular">{t("cameraHeight", { height: number(floor.cameraHeight) })}</p>
+                    {heightOverride === null && (floor.cameraHeight < 0.8 || floor.cameraHeight > 2) ? (
+                      <p className="text-dusk" data-agent-id="room:height-unusual">
+                        {t("heightUnusual")}
+                      </p>
+                    ) : null}
                     <p className="text-slate tabular">{t("scanFloorShare", { share: percent(floor.coverage) })}</p>
                     {measured !== null && measured.ms > 0 ? <p className="text-slate tabular">{t("scanTook", { seconds: number(measured.ms / 1000) })}</p> : null}
                   </div>

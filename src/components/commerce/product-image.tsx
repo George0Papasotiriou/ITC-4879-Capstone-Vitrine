@@ -57,6 +57,8 @@ export function ProductImage({
       sizes={sizes}
       {...(loading === "lazy" ? {} : { loading: "eager" as const, fetchPriority: "high" as const })}
       className="object-contain"
+      // Read by the plinth: a studio shot is blended into it, a scene is not.
+      data-ground={image.studio === false ? "scene" : "studio"}
     />
   );
 }

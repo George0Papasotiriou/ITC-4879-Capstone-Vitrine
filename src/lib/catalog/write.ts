@@ -106,15 +106,33 @@ export async function archiveExcluded(db: CatalogDatabase, source: "abo" | "caps
   return rows.length;
 }
 
-export type WriteSummary = { products: number; media: number; brands: number };
+export type WriteSummary = {
+  products: number;
+  media: number;
+  brands: number;
+  /** Products that did not exist before this write: new to the shop. */
+  inserted: number;
+};
+
+export type UpsertOptions = {
+  batchSize?: number;
+  /**
+   * Leave the stock of products that already exist alone. A fixture's stock is
+   * where a new product starts; once the shop is selling, stock belongs to the
+   * orders (reservations, cancellations, returns). A deploy that syncs the
+   * catalogue must add new products and refresh their descriptions without
+   * quietly putting back what customers have bought.
+   */
+  preserveStock?: boolean;
+};
 
 export async function upsertCatalog(
   db: CatalogDatabase,
   products: readonly ProductInput[],
-  { batchSize = 100 }: { batchSize?: number } = {},
+  { batchSize = 100, preserveStock = false }: UpsertOptions = {},
 ): Promise<WriteSummary> {
   const categoryIds = await upsertCategories(db);
-  const summary: WriteSummary = { products: 0, media: 0, brands: 0 };
+  const summary: WriteSummary = { products: 0, media: 0, brands: 0, inserted: 0 };
 
   for (let start = 0; start < products.length; start += batchSize) {
     const batch = products.slice(start, start + batchSize);
@@ -123,6 +141,13 @@ export async function upsertCatalog(
       const brands = [...new Set(batch.map((product) => product.brand).filter((brand): brand is string => brand !== null))];
       const brandIds = await upsertBrands(tx, brands);
       summary.brands += brandIds.size;
+
+      const existing = await tx
+        .select({ source: schema.products.source, sourceId: schema.products.sourceId })
+        .from(schema.products)
+        .where(inArray(schema.products.sourceId, batch.map((product) => product.sourceId)));
+      const known = new Set(existing.map((row) => `${row.source}:${row.sourceId}`));
+      summary.inserted += batch.filter((product) => !known.has(`${product.source}:${product.sourceId}`)).length;
 
       const rows = await tx
         .insert(schema.products)
@@ -201,7 +226,10 @@ export async function upsertCatalog(
         )
         .onConflictDoUpdate({
           target: schema.productVariants.sku,
-          set: { ...excluded(schema.productVariants, ["colorLabel", "stock"]), updatedAt: sql`now()` },
+          set: {
+            ...excluded(schema.productVariants, preserveStock ? ["colorLabel"] : ["colorLabel", "stock"]),
+            updatedAt: sql`now()`,
+          },
         });
 
       summary.products += rows.length;

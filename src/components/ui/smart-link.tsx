@@ -28,16 +28,24 @@ export function SmartLink({
   href,
   children,
   scroll,
+  document = false,
   ...props
 }: {
   href: string;
   children: ReactNode;
   /** Routes only: `false` keeps the scroll position, as filter links should. */
   scroll?: boolean;
+  /**
+   * Load the destination as a new document instead of navigating inside the
+   * app. For pages whose response headers matter, such as the cross-origin
+   * isolated room page: headers apply to a document's first load only. The
+   * caller passes the full localised path (`/el/room?…`), since it is used as is.
+   */
+  document?: boolean;
 } & Omit<ComponentPropsWithoutRef<"a">, "href" | "children">) {
   const isRoute = href.startsWith("/") && !href.startsWith("//");
 
-  if (!isRoute) {
+  if (!isRoute || document) {
     return (
       <a href={href} {...props}>
         {children}

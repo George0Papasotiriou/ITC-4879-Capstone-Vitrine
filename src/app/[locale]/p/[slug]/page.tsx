@@ -179,7 +179,7 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/p/[sl
           <div className="mt-8 flex flex-col gap-3">
             <AddToCart productId={product.id} inStock={product.inStock} agentId={`action:add-to-cart:${product.id}`} />
             {roomPlacement(product.kind, product.dimsCm) === null ? null : (
-              <ButtonLink href={`/room?product=${product.slug}`} variant="secondary" data-agent-id={`action:see-in-room:${product.id}`}>
+              <ButtonLink href={`/${locale}/room?product=${product.slug}`} document variant="secondary" data-agent-id={`action:see-in-room:${product.id}`}>
                 {t("seeInYourRoom")}
               </ButtonLink>
             )}

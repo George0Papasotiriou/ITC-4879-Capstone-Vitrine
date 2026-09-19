@@ -10,6 +10,7 @@
 import { describe, expect, it } from "vitest";
 
 import { checkoutSchema, fieldErrors, normalisePostcode } from "@/lib/commerce/checkout-input";
+import { DELIVERY_COUNTRIES } from "@/lib/commerce/exports";
 import { EU_COUNTRIES } from "@/lib/commerce/vat";
 
 const valid = {
@@ -51,8 +52,8 @@ describe("checkout input", () => {
     expect(fieldErrors(result.error)).toMatchObject({ email: "email", name: "required", postcode: "postcode", phone: "phone" });
   });
 
-  it("never accepts prices, totals, or countries outside the EU", () => {
-    const outside = checkoutSchema.safeParse({ ...valid, country: "US" });
+  it("never accepts prices, totals, or countries the shop does not deliver to", () => {
+    const outside = checkoutSchema.safeParse({ ...valid, country: "BR", postcode: "01310-100" });
     expect(outside.success).toBe(false);
     if (!outside.success) expect(fieldErrors(outside.error).country).toBe("country");
     const withExtra = checkoutSchema.safeParse({ ...valid, totalCents: 1 });
@@ -105,5 +106,48 @@ describe("postcodes in every EU country", () => {
     expect(normalisePostcode("IE", "B02 X285")).toBeNull(); // B is not used in Eircodes
     expect(normalisePostcode("PT", "1100")).toBeNull(); // the full seven digits are required
     expect(normalisePostcode("MT", "1117")).toBeNull();
+  });
+});
+
+describe("postcodes and regions beyond the EU (docs/adr/015)", () => {
+  it.each([
+    ["GB", "sw1a1aa", "SW1A 1AA"],
+    ["GB", "M1 1AE", "M1 1AE"],
+    ["CH", "CH-8001", "8001"],
+    ["LI", "9490", "9490"],
+    ["NO", "0150", "0150"],
+    ["IS", "101", "101"],
+    ["US", "62701", "62701"],
+    ["US", "627011234", "62701-1234"],
+    ["CA", "h2x1y4", "H2X 1Y4"],
+    ["AU", "2000", "2000"],
+    ["NZ", "6011", "6011"],
+    ["JP", "1000001", "100-0001"],
+  ] as const)("%s accepts %s and writes %s", (country, input, written) => {
+    expect(normalisePostcode(country, input)).toBe(written);
+  });
+
+  it("refuses what those posts never issue", () => {
+    expect(normalisePostcode("LI", "8001")).toBeNull(); // a Swiss postcode is not a Liechtenstein one
+    expect(normalisePostcode("CA", "D2X 1Y4")).toBeNull(); // D is never used in Canada
+    expect(normalisePostcode("GB", "12345")).toBeNull();
+    expect(normalisePostcode("CH", "0800")).toBeNull();
+    for (const country of DELIVERY_COUNTRIES) expect(normalisePostcode(country, "??"), country).toBeNull();
+  });
+
+  it("asks for the state in the United States, and keeps it off European addresses", () => {
+    const us = { ...valid, country: "US", city: "Springfield", postcode: "62701" };
+    const missing = checkoutSchema.safeParse(us);
+    expect(missing.success).toBe(false);
+    if (!missing.success) expect(fieldErrors(missing.error).region).toBe("region");
+
+    const wrong = checkoutSchema.safeParse({ ...us, region: "ZZ" });
+    expect(wrong.success).toBe(false);
+
+    const ok = checkoutSchema.safeParse({ ...us, region: "il" });
+    expect(ok.success && ok.data.region).toBe("IL");
+
+    const greek = checkoutSchema.safeParse({ ...valid, region: "IL" });
+    expect(greek.success && greek.data.region).toBeUndefined();
   });
 });

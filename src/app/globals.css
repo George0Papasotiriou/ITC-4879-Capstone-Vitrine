@@ -114,6 +114,11 @@
   .on-plinth {
     mix-blend-mode: multiply;
   }
+  /* A photograph that is a scene, not a studio shot on white, keeps its own
+     colours: multiplying a rug in a sunlit room into the plinth only muddies it. */
+  .on-plinth:has(> [data-ground="scene"], > * > [data-ground="scene"]) {
+    mix-blend-mode: normal;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

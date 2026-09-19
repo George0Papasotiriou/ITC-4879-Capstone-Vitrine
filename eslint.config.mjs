@@ -39,6 +39,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Build output: the bundled worker is generated, not authored.
     "dist/**",
+    // The browser depth model's runtime, copied from onnxruntime-web (ADR-014).
+    "public/models/**",
+    // The Python research environment, whose packages ship JavaScript of their own.
+    "research/.venv/**",
     "coverage/**",
     "playwright-report/**",
     "test-results/**",

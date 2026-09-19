@@ -18,13 +18,15 @@ import { requireLocale } from "@/i18n/params";
 import { priceCart, shippingMethod } from "@/lib/commerce/pricing";
 import { currentRegion } from "@/lib/commerce/region";
 import { commerce, currentCartId } from "@/lib/commerce/server";
-import { BASE_COUNTRY, EU_COUNTRIES, isEuCountry, type EuCountry } from "@/lib/commerce/vat";
+import { DELIVERY_COUNTRIES, isDeliveryCountry, type DeliveryCountry } from "@/lib/commerce/exports";
+import { BASE_COUNTRY } from "@/lib/commerce/vat";
 
 /**
  * Checkout (Phase 5 step 3, docs/adr/013).
  *
  * VAT and delivery follow the delivery address, so the server prices the cart
- * for every EU country and both delivery methods: 54 small quotes, computed
+ * for every country the shop delivers to and both delivery methods: 74 small
+ * quotes (27 EU countries and 10 exports, docs/adr/015), computed
  * here from database prices, which let the form update the summary the moment
  * the country or method changes, with no arithmetic in the browser. The order
  * itself is priced again inside the order transaction. The delivery country
@@ -65,7 +67,7 @@ export default async function CheckoutPage({ params }: PageProps<"/[locale]/chec
   }
 
   const quotes = Object.fromEntries(
-    EU_COUNTRIES.map((country) => {
+    DELIVERY_COUNTRIES.map((country) => {
       const quote = (method: "standard" | "express") => {
         const totals = priceCart(lines, { shipping: method, country });
         return {
@@ -76,11 +78,14 @@ export default async function CheckoutPage({ params }: PageProps<"/[locale]/chec
           days: shippingMethod(country, method)!.days,
         };
       };
-      return [country, { vatRatePerMille: priceCart([], { country }).vatRatePerMille, standard: quote("standard"), express: quote("express") }];
+      // Who collects the tax depends on the basket (an export under the UK
+      // limit is taxed by the shop), and is the same for both delivery methods.
+      const { vatRatePerMille, exportTax } = priceCart(lines, { country });
+      return [country, { vatRatePerMille, exportTax, standard: quote("standard"), express: quote("express") }];
     }),
-  ) as Record<EuCountry, CountryQuote>;
+  ) as Record<DeliveryCountry, CountryQuote>;
 
-  const startCountry: EuCountry = isEuCountry(region.country) ? region.country : BASE_COUNTRY;
+  const startCountry: DeliveryCountry = isDeliveryCountry(region.country) ? region.country : BASE_COUNTRY;
   const itemCount = lines.reduce((sum, line) => sum + line.quantity, 0);
 
   return (

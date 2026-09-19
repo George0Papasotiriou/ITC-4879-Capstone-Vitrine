@@ -34,7 +34,7 @@ export async function POST(request: Request): Promise<Response> {
     cartId,
     locale: input.locale,
     email: input.email,
-    address: { name: input.name, line1: input.line1, line2: input.line2, city: input.city, postcode: input.postcode, country: input.country, phone: input.phone },
+    address: { name: input.name, line1: input.line1, line2: input.line2, city: input.city, postcode: input.postcode, country: input.country, region: input.region, phone: input.phone },
     shipping: input.shipping,
     idempotencyKey: input.idempotencyKey,
     paymentProvider: PAYMENT_PROVIDER,

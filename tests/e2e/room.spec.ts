@@ -7,6 +7,8 @@
  * End-to-end room placement flow with the sample room.
  */
 
+import { existsSync } from "node:fs";
+
 import { expect, test, type Page } from "@playwright/test";
 import sharp from "sharp";
 
@@ -24,6 +26,20 @@ async function toPage(page: Page, [x, y]: [number, number]) {
   const box = (await page.locator('canvas[data-agent-id="room:stage"]').boundingBox())!;
   const scale = box.width / SAMPLE_WIDTH;
   return { x: box.x + x * scale, y: box.y + y * scale };
+}
+
+/**
+ * Picks the paper-free method once React owns the form. Before hydration a
+ * click ticks the radio in the raw HTML and React then puts back its own
+ * choice, so the test waits for something only React does: the photo advice
+ * changes to the paper-free wording.
+ */
+async function chooseWithoutPaper(page: Page) {
+  const withoutPaper = page.locator('[data-agent-id="room:method-depth"]');
+  await expect(async () => {
+    await withoutPaper.check({ timeout: 2_000 });
+    await expect(page.getByText("Nothing to print, nothing to lay out.")).toBeVisible({ timeout: 1_000 });
+  }).toPass();
 }
 
 async function openSample(page: Page) {
@@ -161,11 +177,7 @@ test("@smoke a shopper can place a piece without a sheet of paper", async ({ pag
   await page.goto(`/en/room?product=${SOFA}`, { waitUntil: "domcontentloaded" });
 
   // Choose the paper-free method, then the sample room.
-  const withoutPaper = page.locator('[data-agent-id="room:method-depth"]');
-  await expect(async () => {
-    await withoutPaper.check({ timeout: 2_000 });
-    await expect(withoutPaper).toBeChecked({ timeout: 1_000 });
-  }).toPass();
+  await chooseWithoutPaper(page);
   await page.getByRole("button", { name: "Try the sample room" }).click();
 
   const scan = page.locator('[data-agent-id="room:scan"]');
@@ -202,12 +214,10 @@ test("the paper-free mode and the sheet method can be swapped without losing the
 });
 
 test("a real photo says the measurement model is not installed, and offers the sheet", async ({ page }) => {
+  // Whatever this machine has installed, this test is about a shop without the model.
+  await page.route("**/models/depth/manifest.json", (route) => route.fulfill({ status: 404, body: "" }));
   await page.goto(`/en/room?product=${SOFA}`, { waitUntil: "domcontentloaded" });
-  const withoutPaper = page.locator('[data-agent-id="room:method-depth"]');
-  await expect(async () => {
-    await withoutPaper.check({ timeout: 2_000 });
-    await expect(withoutPaper).toBeChecked({ timeout: 1_000 });
-  }).toPass();
+  await chooseWithoutPaper(page);
 
   const png = await sharp({ create: { width: 900, height: 675, channels: 3, background: { r: 150, g: 120, b: 90 } } })
     .png()
@@ -218,4 +228,29 @@ test("a real photo says the measurement model is not installed, and offers the s
   await expect(error).toContainText("not installed in this shop yet", { timeout: 20_000 });
   await page.getByRole("button", { name: "Use a sheet of paper instead" }).click();
   await expect(page.getByRole("heading", { name: "Mark the four corners of the sheet" })).toBeVisible();
+});
+
+/**
+ * The real model, on a real room: a furnished room from the catalogue's own
+ * rug photography. It only runs where the model is installed (pnpm depth-model;
+ * the files are not in the repository), and checks what can be checked without
+ * a tape measure: the floor is found, and the camera is at a believable height.
+ */
+test("the installed measuring model finds the floor in a real room photograph", async ({ page }) => {
+  test.skip(!existsSync("public/models/depth/manifest.json"), "the depth model is not installed on this machine");
+  test.slow();
+  await page.goto(`/en/room?product=${SOFA}`, { waitUntil: "domcontentloaded" });
+  // The room page is cross-origin isolated, so the model can use several threads.
+  expect(await page.evaluate(() => crossOriginIsolated)).toBe(true);
+  await chooseWithoutPaper(page);
+
+  await page.locator('input[type="file"]').setInputFiles("public/products/b0714mjlpx.webp");
+  const scan = page.locator('[data-agent-id="room:scan"]');
+  await expect(scan.getByText("Floor found")).toBeVisible({ timeout: 120_000 });
+  const height = Number((await scan.getByText(/Camera about [\d.]+ m above the floor/).innerText()).match(/[\d.]+/)![0]);
+  expect(height).toBeGreaterThan(1);
+  expect(height).toBeLessThan(3);
+
+  await page.getByRole("button", { name: "Place it" }).click();
+  await expect(page.locator('[data-agent-id="room:readout"]').getByText("233 × 102 × 93 cm")).toBeVisible();
 });

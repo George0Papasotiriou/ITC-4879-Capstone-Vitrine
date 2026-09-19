@@ -21,6 +21,8 @@ import { formatMoney } from "@/lib/commerce/money";
 import { RegionNote } from "@/components/commerce/region-control";
 import { currentRegion } from "@/lib/commerce/region";
 import { commerce, currentCartId, lastOrder, orderPath } from "@/lib/commerce/server";
+import { countryNames } from "@/lib/commerce/country-names";
+import { taxKey } from "@/lib/commerce/exports";
 import { formatVatRate } from "@/lib/commerce/vat";
 
 /**
@@ -44,7 +46,7 @@ export default async function CartPage({ params }: PageProps<"/[locale]/cart">) 
   const store = await commerce();
   const region = await currentRegion();
   const view = await store.viewCart(await currentCartId(), locale, { country: region.country });
-  const countryName = new Intl.DisplayNames([locale], { type: "region" }).of(region.country) ?? region.country;
+  const countryName = countryNames(locale).inSentence(region.country);
   const previous = await lastOrder();
 
   if (view.lines.length === 0) {
@@ -129,7 +131,16 @@ export default async function CartPage({ params }: PageProps<"/[locale]/cart">) 
           </dl>
           {totals.deliverable ? (
             <p className="text-slate -mt-2 text-xs" data-agent-id="cart:vat">
-              {t("vatIncludedCountry", { amount: formatMoney(totals.vat, locale), rate: formatVatRate(totals.vatRatePerMille, locale), country: countryName })}
+              {totals.exportTax === null
+                ? t("vatIncludedCountry", { amount: formatMoney(totals.vat, locale), rate: formatVatRate(totals.vatRatePerMille, locale), country: countryName })
+                : totals.exportTax.collectedBy === "seller"
+                  ? t("exportTaxIncluded", {
+                      amount: formatMoney(totals.vat, locale),
+                      rate: formatVatRate(totals.exportTax.ratePerMille, locale),
+                      country: countryName,
+                      tax: taxKey(totals.exportTax.taxName),
+                    })
+                  : t("exportTaxOnDelivery", { rate: formatVatRate(totals.exportTax.ratePerMille, locale), country: countryName, tax: taxKey(totals.exportTax.taxName) })}
             </p>
           ) : (
             <p className="text-dusk text-sm">{t("noDelivery")}</p>

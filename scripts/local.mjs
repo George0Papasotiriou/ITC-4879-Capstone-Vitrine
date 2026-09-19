@@ -26,9 +26,10 @@
  * The database is PGlite: PostgreSQL 18 compiled to WebAssembly, with pgvector,
  * pg_trgm and unaccent, served over the normal PostgreSQL wire protocol, so the
  * app, drizzle-kit and psql connect to it exactly as they would to a server. Its
- * data lives in `.local/pgdata` and survives restarts. On first start the
- * database is seeded with the specimen catalogue; `pnpm catalog import-abo`
- * adds the full import.
+ * data lives in `.local/pgdata` and survives restarts. Every start syncs the
+ * catalogue from the repository — the specimen and the collection — exactly as
+ * Railway's pre-deploy step does, adding new products and leaving stock alone;
+ * the in-memory test database (--ephemeral) gets the 25 specimen products only.
  *
  * Jobs and storage use the inline and local drivers (see src/env.ts). No `.env`
  * file is read or written: the environment is passed to the processes started
@@ -216,7 +217,10 @@ async function main() {
 
   if (seedOnStart) {
     const code =
-      (await run(TSX, ["scripts/catalog.ts", "seed", "--if-empty"], env)) ||
+      // The shop gets the whole catalogue, synced on every start like a Railway
+      // deploy; the throwaway test database gets the 25 specimen products only,
+      // so the end-to-end tests always run against the same shelves.
+      (await run(TSX, ["scripts/catalog.ts", "seed", ...(ephemeral ? ["--if-empty"] : ["--collection", "--sync"])], env)) ||
       // Content-based neighbour lists, so recommendations work from the first view.
       (await run(TSX, ["scripts/reco.ts", "rebuild", "--if-empty"], env));
     if (code !== 0) {

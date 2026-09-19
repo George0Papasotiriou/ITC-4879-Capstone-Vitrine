@@ -29,7 +29,19 @@ import type { DimensionsCm } from "@/lib/db/schema";
 
 type Sql = postgres.Sql;
 
-export type CatalogImage = { src: string; width: number; height: number; alt: string };
+export type CatalogImage = {
+  src: string;
+  width: number;
+  height: number;
+  alt: string;
+  /**
+   * A studio shot on a white ground, which the plinth blends away so the piece
+   * appears to stand on it. False for photographs sold as they are — a rug in a
+   * room, a framed print edge to edge — which are shown without blending.
+   * Absent means studio: every image before the collection was one.
+   */
+  studio?: boolean;
+};
 
 export type ProductCard = {
   id: string;
@@ -109,6 +121,7 @@ function image(row: ImageRow | undefined, locale: string): CatalogImage | null {
     width: row.width ?? 1100,
     height: row.height ?? 1100,
     alt: locale === "el" ? (row.altEl ?? row.altEn) : row.altEn,
+    studio: row.whiteGround,
   };
 }
 

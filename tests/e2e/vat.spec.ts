@@ -122,15 +122,59 @@ test("a shopper can choose another country, and the choice is remembered", async
   await expect(page.locator("footer")).toContainText("Prices for Sweden, including 25% VAT");
 });
 
-test("a visitor from outside the EU sees prices without VAT and is told delivery is EU-only", async ({ browser }) => {
+test("a visitor from a country the shop exports to sees prices without VAT, and is told how import tax works", async ({ browser }) => {
   const context = await browser.newContext({ extraHTTPHeaders: { [E2E_COUNTRY_HEADER]: "US" } });
   const page = await context.newPage();
   await page.goto(LAMP, { waitUntil: "domcontentloaded" });
   const detail = page.locator('[data-agent-id^="product-detail:"]');
   // €94.00 / 1.24 = €75.81.
   await expect(detail.getByText("€75.81")).toBeVisible();
-  await expect(detail.locator('[data-agent-id="region:note"]')).toContainText("shown without VAT. We deliver within the EU.");
+  await expect(detail.locator('[data-agent-id="region:note"]')).toContainText("We deliver there: import tax is added at checkout or paid on delivery.");
   await context.close();
+});
+
+test("a visitor from a country the shop does not deliver to is told so", async ({ browser }) => {
+  const context = await browser.newContext({ extraHTTPHeaders: { [E2E_COUNTRY_HEADER]: "BR" } });
+  const page = await context.newPage();
+  await page.goto(LAMP, { waitUntil: "domcontentloaded" });
+  const detail = page.locator('[data-agent-id^="product-detail:"]');
+  await expect(detail.getByText("€75.81")).toBeVisible();
+  await expect(detail.locator('[data-agent-id="region:note"]')).toContainText("We do not deliver there yet.");
+  await context.close();
+});
+
+test.describe("delivery beyond the EU (docs/adr/015)", () => {
+  test.use({ extraHTTPHeaders: { [E2E_COUNTRY_HEADER]: "CH" } });
+
+  test("checks out to Switzerland without VAT, and to the United States with a state", async ({ page }) => {
+    await addLampToCart(page);
+    await page.goto("/en/checkout", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('[data-agent-id="action:place-order"]')).toBeEnabled();
+    const country = page.locator('[data-agent-id="checkout:country"]');
+    await expect(country).toHaveValue("CH");
+    // €75.81 without VAT, plus €39.90 export delivery to the rest of Europe.
+    await expect(page.locator('[data-agent-id="checkout:totals"]')).toContainText("€115.71");
+    await expect(page.locator('[data-agent-id="checkout:vat"]')).toContainText("No VAT charged: an export to Switzerland. Import VAT at 8.1% and any duties are paid on delivery.");
+
+    // The United States needs a state, which appears with the country.
+    await expect(async () => {
+      await country.selectOption("US");
+      await expect(page.locator('[data-agent-id="checkout:region"]')).toBeVisible({ timeout: 1_500 });
+    }).toPass();
+    await page.getByLabel("Email").fill("sam@example.com");
+    await page.getByLabel("Full name").fill("Sam Taylor");
+    await page.getByLabel("Street and number").fill("1 Main Street");
+    await page.getByLabel("City").fill("Springfield");
+    await page.getByLabel("Postcode").fill("62701");
+    await page.locator('[data-agent-id="action:place-order"]').click();
+    await expect(page.getByText("Choose the state or province of this address.")).toBeVisible();
+
+    await page.locator('[data-agent-id="checkout:region"]').selectOption("IL");
+    await page.locator('[data-agent-id="action:place-order"]').click();
+    await expect(page).toHaveURL(/\/en\/orders\/[0-9a-f-]{36}\?t=/, { timeout: 15_000 });
+    await expect(page.locator("address")).toContainText("Springfield, IL 62701, US");
+    await expect(page.locator('[data-agent-id="order:vat"]')).toContainText("No VAT charged: an export to the United States.");
+  });
 });
 
 test("the Greek storefront writes rates the Greek way", async ({ browser }) => {

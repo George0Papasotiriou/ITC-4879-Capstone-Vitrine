@@ -100,9 +100,17 @@ const BASE_RATE = VAT_RATES_PER_MILLE[BASE_COUNTRY];
 
 /** The price of a catalogue item for shoppers in `country`, from its stored Greek price. */
 export function localizeCents(baseCents: number, country: string): number {
-  const rate = vatRatePerMille(country);
-  if (rate === BASE_RATE) return baseCents;
-  return divideRounded(baseCents * (1000 + rate), 1000 + BASE_RATE);
+  return localizeAtRate(baseCents, vatRatePerMille(country));
+}
+
+/**
+ * The same conversion at an explicit tax rate, for orders whose rate is not the
+ * country's alone: an export to the United Kingdom is taxed at 20% when the
+ * shop collects UK VAT, and at nothing when the customer pays it on delivery.
+ */
+export function localizeAtRate(baseCents: number, ratePerMille: number): number {
+  if (ratePerMille === BASE_RATE) return baseCents;
+  return divideRounded(baseCents * (1000 + ratePerMille), 1000 + BASE_RATE);
 }
 
 /**

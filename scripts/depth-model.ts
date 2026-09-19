@@ -22,13 +22,17 @@
  */
 
 import { existsSync } from "node:fs";
-import { copyFile, mkdir, readdir, readFile, stat } from "node:fs/promises";
+import { copyFile, mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const DIR = path.join("public", "models", "depth");
 const RUNTIME_PACKAGE = "onnxruntime-web";
-/** What the browser needs from that package: the loader and the WebAssembly it fetches beside it. */
-const RUNTIME_PATTERN = /^ort(\.min\.js|\.wasm|-wasm.*\.(wasm|mjs|js))$/;
+/**
+ * What the browser needs from that package: the WebAssembly-only build (the model
+ * runs on the WebAssembly backend) and the module and binary it loads from the
+ * same folder.
+ */
+const RUNTIME_FILES = ["ort.wasm.min.js", "ort-wasm-simd-threaded.wasm", "ort-wasm-simd-threaded.mjs"];
 const MEGABYTE = 1_048_576;
 
 const command = process.argv[2] ?? "plan";
@@ -65,9 +69,9 @@ shop — the browser loads these files from public/models/depth at run time, onl
     return;
   }
   await mkdir(DIR, { recursive: true });
-  const files = (await readdir(source)).filter((file) => RUNTIME_PATTERN.test(file));
-  if (files.length === 0) {
-    console.log(`No runtime files matched in ${source}; list its contents and update RUNTIME_PATTERN.`);
+  const files = RUNTIME_FILES.filter((file) => existsSync(path.join(source, file)));
+  if (files.length !== RUNTIME_FILES.length) {
+    console.log(`Expected ${RUNTIME_FILES.join(", ")} in ${source}; the package layout has changed, so update RUNTIME_FILES.`);
     process.exitCode = 1;
     return;
   }
@@ -105,10 +109,43 @@ Nothing has been downloaded by this command.
   await check();
 }
 
+/**
+ * Real room photographs, prepared exactly as the browser prepares them
+ * (src/lib/vision/depth-image.ts letterbox), for the conversion script to test
+ * each compression of the model against the original. Defaults to the rug
+ * listings whose main photograph is a furnished room, which are real indoor
+ * scenes with a floor: the kind of picture the model will be given.
+ */
+async function inputs(files: string[]): Promise<void> {
+  const { default: sharp } = await import("sharp");
+  const { letterbox } = await import("@/lib/vision/depth-image");
+  let chosen = files;
+  if (chosen.length === 0) {
+    const fixture = JSON.parse(await readFile("src/lib/catalog/fixtures/collection.json", "utf8")) as {
+      products: { category: string; media: { src: string; whiteGround: boolean }[] }[];
+    };
+    chosen = fixture.products
+      .filter((product) => product.category === "rugs" && product.media[0]?.whiteGround === false)
+      .slice(0, 6)
+      .map((product) => path.join("public", product.media[0]!.src));
+  }
+  const outDir = path.join(".local", "depth-verify");
+  await mkdir(outDir, { recursive: true });
+  for (const file of chosen) {
+    const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const box = letterbox(data, info.width, info.height, 518);
+    const target = path.join(outDir, `${path.basename(file).replace(/\.[a-z]+$/i, "")}.f32`);
+    await writeFile(target, Buffer.from(box.tensor.buffer, box.tensor.byteOffset, box.tensor.byteLength));
+    console.log(`  ${target}  from ${file} (${info.width} × ${info.height})`);
+  }
+  console.log(`Prepared ${chosen.length} photographs for the conversion to be checked against.`);
+}
+
 if (command === "check") await check();
 else if (command === "runtime") await runtime();
+else if (command === "inputs") await inputs(process.argv.slice(3));
 else if (command === "plan") await plan();
 else {
-  console.error("Usage: pnpm depth-model [plan | check | runtime]");
+  console.error("Usage: pnpm depth-model [plan | check | runtime | inputs [photos...]]");
   process.exitCode = 1;
 }

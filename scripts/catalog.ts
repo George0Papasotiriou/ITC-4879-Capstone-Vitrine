@@ -4,7 +4,7 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * Catalogue command line: seed fixtures, import Amazon Berkeley Objects products and rebuild the specimen fixture.
+ * Catalogue command line: seed and sync fixtures, import Amazon Berkeley Objects products, rebuild the specimen and collection fixtures.
  */
 
 /**
@@ -18,6 +18,15 @@
  *       Select products from Amazon Berkeley Objects listings, fetch their
  *       photography into storage, and write them to the database. --dry-run
  *       prints the selection and the download volume and fetches no images.
+ *
+ *   pnpm catalog seed --collection --sync
+ *       The shop's catalogue, locally and in Railway's pre-deploy step: the
+ *       specimen and the collection, new products added, stock left alone.
+ *
+ *   pnpm catalog collection-fixture [--dry-run] [--per-category 17] [--images 2]
+ *       Rebuild src/lib/catalog/fixtures/collection.json and its photographs in
+ *       public/products/ from ABO listings. Both are committed, so a push
+ *       carries new products to Railway.
  *
  *   pnpm catalog specimen-fixture
  *       Rebuild src/lib/catalog/fixtures/specimen.json from the ABO metadata for
@@ -37,6 +46,7 @@ import { gunzipSync } from "node:zlib";
 import { count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import sharp from "sharp";
 
 import {
   ABO_ATTRIBUTION,
@@ -48,7 +58,7 @@ import {
   type RejectionReason,
 } from "@/lib/catalog/abo";
 import { catalogFixtureSchema, type MediaInput, type ProductInput } from "@/lib/catalog/input";
-import { catalogImageKey, hasWhiteGround, webMaster } from "@/lib/catalog/photography";
+import { catalogImageKey, hasWhiteGround, webMaster, type WebMaster } from "@/lib/catalog/photography";
 import { CATEGORIES, type CategorySlug } from "@/lib/catalog/taxonomy";
 import { archiveExcluded, upsertCatalog, type CatalogDatabase } from "@/lib/catalog/write";
 import * as schema from "@/lib/db/schema";
@@ -58,7 +68,10 @@ import { storage } from "@/lib/storage";
 
 const CACHE = ".abo-cache";
 const SPECIMEN_FIXTURE = "src/lib/catalog/fixtures/specimen.json";
+const COLLECTION_FIXTURE = "src/lib/catalog/fixtures/collection.json";
 const IMPORT_OUTPUT = ".local/catalog/abo-import.json";
+/** Categories sold by their photograph as it is, where a white studio ground is not expected. */
+const FLAT_CATEGORIES = new Set<CategorySlug>(["rugs", "wall-decor"]);
 /** Originals smaller than this look soft on a large product page. */
 const MIN_IMAGE_EDGE = 800;
 
@@ -152,11 +165,31 @@ function describeReasons(reasons: Map<RejectionReason, number>): string {
 /* Commands                                                                   */
 /* -------------------------------------------------------------------------- */
 
-async function seed(options: { fixture: string; ifEmpty: boolean }): Promise<void> {
-  const fixture = catalogFixtureSchema.parse(JSON.parse(await readFile(options.fixture, "utf8")));
-  await withDatabase(async (db) => {
-    // Runs on every start (the local stack seeds with --if-empty), so a newly
-    // excluded listing leaves an existing database without a manual step.
+/**
+ * Writes one or more fixtures into the database.
+ *
+ * `--if-empty` is for the test stack: seed a fresh database once, never touch
+ * one that has data. `--sync` is for the shop, locally and on every Railway
+ * deploy: add products the repository has and the database does not, refresh
+ * the descriptions and photographs of the rest, and leave their stock alone —
+ * stock belongs to the orders once the shop is selling. A push that adds
+ * products to a fixture therefore puts them on sale with the next deploy.
+ */
+async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boolean }): Promise<void> {
+  const products: ProductInput[] = [];
+  const seen = new Set<string>();
+  for (const file of options.fixtures) {
+    const fixture = catalogFixtureSchema.parse(JSON.parse(await readFile(file, "utf8")));
+    for (const product of fixture.products) {
+      const key = `${product.source}:${product.sourceId}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      products.push(product);
+    }
+  }
+  const inserted = await withDatabase(async (db) => {
+    // Runs on every start, so a newly excluded listing leaves an existing
+    // database without a manual step.
     const archived = await archiveExcluded(db, "abo", [...EXCLUDED_ABO_ITEMS.keys()]);
     if (archived > 0) out(`[catalog] archived ${archived} excluded product(s)`);
 
@@ -164,13 +197,26 @@ async function seed(options: { fixture: string; ifEmpty: boolean }): Promise<voi
       const [row] = await db.select({ n: count() }).from(schema.products);
       if ((row?.n ?? 0) > 0) {
         out(`[catalog] ${row?.n} products already present; seed skipped`);
-        return;
+        return 0;
       }
     }
     const started = Date.now();
-    const summary = await upsertCatalog(db, fixture.products);
-    out(`[catalog] seeded ${summary.products} products, ${summary.media} media from ${options.fixture} in ${Date.now() - started} ms`);
+    const summary = await upsertCatalog(db, products, { preserveStock: options.sync });
+    out(
+      `[catalog] ${options.sync ? "synced" : "seeded"} ${summary.products} products (${summary.inserted} new), ${summary.media} media from ${options.fixtures.join(" + ")} in ${Date.now() - started} ms`,
+    );
+    return summary.inserted;
   });
+  // New products need neighbour lists before they can be recommended.
+  if (inserted > 0 && options.sync) {
+    const connection = postgres(process.env.DATABASE_URL as string, { max: 2, onnotice: () => {} });
+    try {
+      const stats = await createTasteGraph(connection).rebuild();
+      out(`[catalog] taste graph rebuilt for the new products: ${stats.neighbourRows} neighbour rows in ${stats.elapsedMs} ms`);
+    } finally {
+      await connection.end();
+    }
+  }
 }
 
 async function pool<T>(items: readonly T[], concurrency: number, work: (item: T) => Promise<void>): Promise<void> {
@@ -363,6 +409,193 @@ function toProductInput(draft: AboProductDraft, media: MediaInput[]): ProductInp
  * enriched with their full ABO metadata. Deterministic and offline once the
  * metadata is cached, so the tests always run on the same catalogue.
  */
+/**
+ * The collection: the shop's catalogue beyond the 25 specimen products, built
+ * from ABO listings and committed to the repository — the fixture in
+ * src/lib/catalog/fixtures/collection.json and its photographs in
+ * public/products/ — so that a git push carries the products to Railway, where
+ * the pre-deploy step syncs them into the database (`seed --collection --sync`).
+ *
+ * The selection is deterministic: in each category, the richest listings first
+ * (3D model, 360° spin, dimensions, selling points), ties broken by id, and a
+ * product is accepted only if its main photograph has the white studio ground
+ * the product pages and the room cutouts need. A rerun picks the same products
+ * and reuses photographs already on disk, so it is cheap and changes nothing
+ * unless the data or the rules did.
+ *
+ * The tests keep running on the specimen fixture alone, so they stay
+ * deterministic however large the collection grows.
+ */
+async function collectionFixture(options: { dryRun: boolean; files: string[]; perCategory: number; images: number }): Promise<void> {
+  const specimen = new Set(SPECIMEN_CATALOG.map((product) => product.id));
+  out(`Collection: listings files ${options.files.join(", ")}, ${options.perCategory} per category, ${options.images} photographs each`);
+  const index = await imageIndex();
+  const candidates = new Map<CategorySlug, AboProductDraft[]>();
+  const seenTitles = new Set<string>();
+  for await (const raw of listings(options.files)) {
+    const result = parseAboListing(raw);
+    if (!result.ok) continue;
+    const draft = result.product;
+    if (specimen.has(draft.sourceId)) continue;
+    const main = index.get(draft.mainImageId);
+    if (main === undefined || Math.max(main.width, main.height) < MIN_IMAGE_EDGE) continue;
+    const titleKey = `${draft.brand ?? ""}|${draft.titleEn.toLowerCase()}`;
+    if (seenTitles.has(titleKey)) continue;
+    seenTitles.add(titleKey);
+    const list = candidates.get(draft.category) ?? [];
+    list.push(draft);
+    candidates.set(draft.category, list);
+  }
+  for (const list of candidates.values()) list.sort((a, b) => richness(b) - richness(a) || a.sourceId.localeCompare(b.sourceId));
+
+  let planned = 0;
+  for (const category of CATEGORIES) {
+    const available = candidates.get(category.slug)?.length ?? 0;
+    planned += Math.min(available, options.perCategory);
+    out(`  ${category.slug.padEnd(11)} ${String(available).padStart(4)} eligible, up to ${Math.min(available, options.perCategory)} taken`);
+  }
+  const images = planned * options.images;
+  out(`  about ${planned} products, ${images} photographs: ≈ ${Math.round(images * 0.35)} MB to download, ≈ ${Math.round(images * 0.055)} MB kept in public/products`);
+  if (options.dryRun) {
+    out("--dry-run: nothing downloaded, nothing written.");
+    return;
+  }
+
+  const outDir = path.join("public", "products");
+  await mkdir(outDir, { recursive: true });
+  const fileFor = (sourceId: string, position: number) => `${sourceId.toLowerCase()}${position === 0 ? "" : `-${String.fromCharCode(97 + position)}`}.webp`;
+
+  async function original(imageId: string): Promise<Buffer | null> {
+    const info = index.get(imageId);
+    if (info === undefined) return null;
+    const response = await fetch(`${ABO_BUCKET}/images/original/${info.path}`);
+    return response.ok ? Buffer.from(await response.arrayBuffer()) : null;
+  }
+
+  const products: ProductInput[] = [];
+  let rejectedGround = 0;
+  let failed = 0;
+  for (const category of CATEGORIES) {
+    const queue = candidates.get(category.slug) ?? [];
+    let taken = 0;
+    // Fetch a few at a time, but accept strictly in the sorted order, so the
+    // result does not depend on which download happened to finish first.
+    for (let start = 0; start < queue.length && taken < options.perCategory; start += 6) {
+      const batch = queue.slice(start, start + 6);
+      const mains = await Promise.all(
+        batch.map(async (draft) => {
+          const file = path.join(outDir, fileFor(draft.sourceId, 0));
+          if (existsSync(file)) return { draft, bytes: await readFile(file), cached: true };
+          return { draft, bytes: await original(draft.mainImageId).catch(() => null), cached: false };
+        }),
+      );
+      for (const { draft, bytes, cached } of mains) {
+        if (taken >= options.perCategory) break;
+        if (bytes === null) {
+          failed += 1;
+          continue;
+        }
+        // The verdict is always taken on the web master — the file that ships —
+        // never on the original download. A rerun reads that master back from
+        // disk, so it reaches the same verdict; judging the original first and
+        // the re-encoded copy later let a few borderline photographs flip.
+        const main = cached ? await readMaster(bytes) : await compactMaster(bytes);
+        // Furniture must be photographed on white: the room page cuts it out of
+        // that ground. Rugs and wall art are flat and are sold by their photograph
+        // as it is — a rug in a room, a framed print edge to edge — so for them
+        // the listing's own main photograph is accepted and recorded truthfully
+        // as not a studio shot, which the plinth then shows without blending.
+        const studio = await hasWhiteGround(main.body);
+        if (!studio && !FLAT_CATEGORIES.has(category.slug)) {
+          rejectedGround += 1;
+          continue;
+        }
+        const imageIds = [
+          draft.mainImageId,
+          ...draft.otherImageIds.filter((id) => {
+            const info = index.get(id);
+            return info !== undefined && Math.max(info.width, info.height) >= MIN_IMAGE_EDGE;
+          }),
+        ].slice(0, options.images);
+        const media: MediaInput[] = [];
+        const label = draft.brand === null ? draft.titleEn : `${draft.titleEn} by ${draft.brand}`;
+        for (const [position, imageId] of imageIds.entries()) {
+          const name = fileFor(draft.sourceId, position);
+          const target = path.join(outDir, name);
+          let master: WebMaster;
+          if (position === 0) {
+            master = main;
+          } else if (existsSync(target)) {
+            master = await readMaster(await readFile(target));
+          } else {
+            const source = await original(imageId).catch(() => null);
+            if (source === null) continue;
+            master = await compactMaster(source);
+          }
+          if (!existsSync(target)) await writeFile(target, master.body);
+          media.push({
+            kind: "image",
+            src: `/products/${name}`,
+            width: master.width,
+            height: master.height,
+            bytes: master.body.byteLength,
+            altEn: position === 0 ? label : `${label}, view ${position + 1}`,
+            whiteGround: position === 0 ? studio : await hasWhiteGround(master.body),
+          });
+        }
+        if (media.length === 0) {
+          failed += 1;
+          continue;
+        }
+        products.push(toProductInput(draft, media));
+        taken += 1;
+      }
+    }
+    out(`  ${category.slug.padEnd(11)} ${taken} accepted`);
+  }
+
+  products.sort((a, b) => a.category.localeCompare(b.category) || a.sourceId.localeCompare(b.sourceId));
+  const fixture = {
+    version: 1,
+    description: `The shop's collection beyond the specimen products: ${products.length} Amazon Berkeley Objects listings (CC BY-NC 4.0), photographs in public/products. Rebuilt by \`pnpm catalog collection-fixture\`.`,
+    products,
+  };
+  catalogFixtureSchema.parse(fixture);
+  await writeFile(COLLECTION_FIXTURE, `${JSON.stringify(fixture, null, 2)}\n`);
+  out(`  ${products.length} products written to ${COLLECTION_FIXTURE}; ${rejectedGround} photographs without a white ground, ${failed} could not be fetched`);
+}
+
+
+/** A photograph that ships in public/: read back with its size, so a rerun describes it exactly as before. */
+async function readMaster(body: Buffer): Promise<WebMaster> {
+  const meta = await sharp(body).metadata();
+  return { body, width: meta.width ?? 0, height: meta.height ?? 0, contentType: "image/webp" };
+}
+
+/**
+ * The web master, kept small enough to live in the repository. Studio shots on
+ * white compress to about 50 KB; a detailed room photograph behind a rug can
+ * reach 600 KB at the same quality, so heavy ones are re-encoded a little
+ * softer, and only if that is not enough, a little smaller. None drops below
+ * the 900 px a product page needs at twice the density of a phone.
+ */
+async function compactMaster(original: Buffer): Promise<WebMaster> {
+  const LIMIT = 220 * 1024;
+  let master = await webMaster(original);
+  if (master.body.byteLength <= LIMIT) return master;
+  for (const [edge, quality] of [[1100, 72], [1000, 68], [900, 64]] as const) {
+    const { data, info } = await sharp(original)
+      .rotate()
+      .resize(edge, edge, { fit: "inside", withoutEnlargement: true })
+      .flatten({ background: "#ffffff" })
+      .webp({ quality })
+      .toBuffer({ resolveWithObject: true });
+    master = { body: data, width: info.width, height: info.height, contentType: "image/webp" };
+    if (data.byteLength <= LIMIT) break;
+  }
+  return master;
+}
+
 async function specimenFixture(): Promise<void> {
   const wanted = new Map(SPECIMEN_CATALOG.map((product) => [product.id, product]));
   const products: ProductInput[] = [];
@@ -420,17 +653,23 @@ async function main(): Promise<void> {
     options: {
       fixture: { type: "string", default: SPECIMEN_FIXTURE },
       "if-empty": { type: "boolean", default: false },
+      collection: { type: "boolean", default: false },
+      sync: { type: "boolean", default: false },
       "dry-run": { type: "boolean", default: false },
       files: { type: "string", default: "0" },
-      "per-category": { type: "string", default: "48" },
-      images: { type: "string", default: "3" },
+      "per-category": { type: "string" },
+      images: { type: "string" },
       concurrency: { type: "string", default: "6" },
     },
   });
 
   switch (command) {
     case "seed":
-      return seed({ fixture: values.fixture, ifEmpty: values["if-empty"] });
+      return seed({
+        fixtures: values.collection ? [values.fixture, COLLECTION_FIXTURE] : [values.fixture],
+        ifEmpty: values["if-empty"],
+        sync: values.sync,
+      });
     case "import-abo": {
       const files =
         values.files === "all" ? [..."0123456789abcdef"] : values.files.split(",").map((file) => file.trim().toLowerCase());
@@ -438,15 +677,22 @@ async function main(): Promise<void> {
       return importAbo({
         dryRun: values["dry-run"],
         files,
-        perCategory: Math.max(1, Number.parseInt(values["per-category"], 10)),
-        images: Math.min(8, Math.max(1, Number.parseInt(values.images, 10))),
+        perCategory: Math.max(1, Number.parseInt(values["per-category"] ?? "48", 10)),
+        images: Math.min(8, Math.max(1, Number.parseInt(values.images ?? "3", 10))),
         concurrency: Math.min(16, Math.max(1, Number.parseInt(values.concurrency, 10))),
       });
     }
+    case "collection-fixture":
+      return collectionFixture({
+        dryRun: values["dry-run"],
+        files: values.files.split(",").map((file) => file.trim().toLowerCase()),
+        perCategory: Math.max(1, Number.parseInt(values["per-category"] ?? "17", 10)),
+        images: Math.min(4, Math.max(1, Number.parseInt(values.images ?? "2", 10))),
+      });
     case "specimen-fixture":
       return specimenFixture();
     default:
-      out("Usage: pnpm catalog <seed|import-abo|specimen-fixture> [options]");
+      out("Usage: pnpm catalog <seed|import-abo|collection-fixture|specimen-fixture> [options]");
       process.exitCode = 1;
   }
 }

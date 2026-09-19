@@ -407,6 +407,8 @@ export type ShippingAddress = {
   postcode: string;
   /** ISO 3166-1 alpha-2. */
   country: string;
+  /** State, province or territory code, where the country needs one (US, CA, AU). */
+  region?: string;
   phone?: string;
 };
 

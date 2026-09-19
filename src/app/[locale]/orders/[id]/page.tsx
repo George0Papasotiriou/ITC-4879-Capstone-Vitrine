@@ -14,6 +14,9 @@ import { getTranslations } from "next-intl/server";
 import { OrderActions } from "@/components/commerce/order-actions";
 import { ButtonLink } from "@/components/ui/button";
 import { requireLocale } from "@/i18n/params";
+import { localityLine } from "@/lib/commerce/address";
+import { countryNames } from "@/lib/commerce/country-names";
+import { isExportCountry } from "@/lib/commerce/exports";
 import { formatMoney } from "@/lib/commerce/money";
 import { availableEvents } from "@/lib/commerce/order-state";
 import { formatVatRate } from "@/lib/commerce/vat";
@@ -113,11 +116,14 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
               </div>
             </dl>
             <p className="text-slate mt-1 text-xs" data-agent-id="order:vat">
-              {t("vatCharged", {
-                amount: formatMoney(order.vat, locale),
-                rate: formatVatRate(order.vatRatePerMille, locale),
-                country: new Intl.DisplayNames([locale], { type: "region" }).of(order.vatCountry) ?? order.vatCountry,
-              })}
+              {order.vatRatePerMille === 0 && isExportCountry(order.vatCountry)
+                ? // An export taxed on delivery: the shop charged no tax, and says who will.
+                  t("vatExport", { country: countryNames(locale).inSentence(order.vatCountry) })
+                : t("vatCharged", {
+                    amount: formatMoney(order.vat, locale),
+                    rate: formatVatRate(order.vatRatePerMille, locale),
+                    country: countryNames(locale).inSentence(order.vatCountry),
+                  })}
             </p>
           </section>
 
@@ -154,7 +160,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                 </>
               )}
               <br />
-              {order.address.postcode} {order.address.city}, {order.address.country}
+              {localityLine(order.address)}
             </address>
           </div>
           <div>

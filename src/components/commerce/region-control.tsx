@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { DialogContent, DialogRoot, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { useRouter } from "@/i18n/navigation";
+import { countryNames } from "@/lib/commerce/country-names";
+import { EXPORT_COUNTRY_CODES, isDeliveryCountry, isExportCountry } from "@/lib/commerce/exports";
 import { EU_COUNTRIES, formatVatRate, isEuCountry, vatRatePerMille } from "@/lib/commerce/vat";
 
 /**
@@ -29,22 +31,22 @@ import { EU_COUNTRIES, formatVatRate, isEuCountry, vatRatePerMille } from "@/lib
 
 export const REGION_EVENT = "vitrine:region";
 
-/** Countries outside the EU that people commonly shop from here; any detected country is added too. */
-const ELSEWHERE = ["AL", "AU", "CA", "CH", "GB", "IL", "IS", "JP", "ME", "MK", "NO", "RS", "TR", "UA", "US"];
+/**
+ * Countries the shop does not deliver to yet, that people commonly shop from:
+ * listed so they can see prices without VAT. Any detected country is added.
+ */
+const ELSEWHERE = ["AE", "AL", "BA", "BR", "CN", "IL", "IN", "KR", "ME", "MK", "MX", "RS", "SG", "TR", "UA", "ZA"];
 
 type RegionState = { country: string; source: "choice" | "location" | "default"; vatRatePerMille: number; inEu: boolean };
 
 function useCountryNames(locale: string) {
-  return useMemo(() => {
-    const names = new Intl.DisplayNames([locale], { type: "region" });
-    return (code: string) => names.of(code) ?? code;
-  }, [locale]);
+  return useMemo(() => countryNames(locale), [locale]);
 }
 
 export function RegionDialog({ country, children }: { country: string; children: React.ReactNode }) {
   const t = useTranslations("region");
   const locale = useLocale();
-  const name = useCountryNames(locale);
+  const { name, inSentence } = useCountryNames(locale);
   const router = useRouter();
   const toast = useToast();
   const selectId = useId();
@@ -54,7 +56,8 @@ export function RegionDialog({ country, children }: { country: string; children:
 
   const sortByName = (codes: readonly string[]) => [...codes].sort((a, b) => name(a).localeCompare(name(b), locale));
   const eu = sortByName(EU_COUNTRIES);
-  const elsewhere = sortByName([...new Set([...ELSEWHERE, ...(isEuCountry(country) ? [] : [country])])]);
+  const exports = sortByName(EXPORT_COUNTRY_CODES);
+  const elsewhere = sortByName([...new Set([...ELSEWHERE, ...(isDeliveryCountry(country) ? [] : [country])])]);
 
   const save = () =>
     startTransition(async () => {
@@ -70,7 +73,7 @@ export function RegionDialog({ country, children }: { country: string; children:
       setOpen(false);
       window.dispatchEvent(new Event(REGION_EVENT));
       router.refresh();
-      toast({ title: t("saved", { country: name(choice) }), tone: "success" });
+      toast({ title: t("saved", { country: inSentence(choice) }), tone: "success" });
     });
 
   return (
@@ -101,6 +104,13 @@ export function RegionDialog({ country, children }: { country: string; children:
                   </option>
                 ))}
               </optgroup>
+              <optgroup label={t("beyondEu")}>
+                {exports.map((code) => (
+                  <option key={code} value={code}>
+                    {name(code)}
+                  </option>
+                ))}
+              </optgroup>
               <optgroup label={t("elsewhere")}>
                 {elsewhere.map((code) => (
                   <option key={code} value={code}>
@@ -111,8 +121,10 @@ export function RegionDialog({ country, children }: { country: string; children:
             </select>
             <p className="text-slate text-sm" aria-live="polite">
               {isEuCountry(choice)
-                ? t("vatPreview", { rate: formatVatRate(vatRatePerMille(choice), locale), country: name(choice) })
-                : t("noVatPreview", { country: name(choice) })}
+                ? t("vatPreview", { rate: formatVatRate(vatRatePerMille(choice), locale), country: inSentence(choice) })
+                : isExportCountry(choice)
+                  ? t("exportPreview", { country: inSentence(choice) })
+                  : t("noVatPreview", { country: inSentence(choice) })}
             </p>
           </div>
           <div className="flex justify-end gap-3">
@@ -130,11 +142,15 @@ export function RegionDialog({ country, children }: { country: string; children:
 export function RegionNote({ country, className }: { country: string; className?: string }) {
   const t = useTranslations("region");
   const locale = useLocale();
-  const name = useCountryNames(locale);
+  const { inSentence } = useCountryNames(locale);
   const inEu = isEuCountry(country);
   return (
     <p className={className} data-agent-id="region:note">
-      {inEu ? t("vatIncludedFor", { rate: formatVatRate(vatRatePerMille(country), locale), country: name(country) }) : t("noVatFor", { country: name(country) })}{" "}
+      {inEu
+        ? t("vatIncludedFor", { rate: formatVatRate(vatRatePerMille(country), locale), country: inSentence(country) })
+        : isExportCountry(country)
+          ? t("exportFor", { country: inSentence(country) })
+          : t("noVatFor", { country: inSentence(country) })}{" "}
       <RegionDialog country={country}>
         <button type="button" className="text-dusk cursor-pointer underline underline-offset-4">
           {t("change")}
@@ -148,7 +164,7 @@ export function RegionNote({ country, className }: { country: string; className?
 export function RegionFooter() {
   const t = useTranslations("region");
   const locale = useLocale();
-  const name = useCountryNames(locale);
+  const { inSentence } = useCountryNames(locale);
   const [region, setRegion] = useState<RegionState | null>(null);
 
   useEffect(() => {
@@ -173,8 +189,8 @@ export function RegionFooter() {
     <div className="flex flex-col items-start gap-2 text-sm">
       <p className="text-slate">
         {region.inEu
-          ? t("footerEu", { country: name(region.country), rate: formatVatRate(region.vatRatePerMille, locale) })
-          : t("footerOutside", { country: name(region.country) })}
+          ? t("footerEu", { country: inSentence(region.country), rate: formatVatRate(region.vatRatePerMille, locale) })
+          : t("footerOutside", { country: inSentence(region.country) })}
       </p>
       <RegionDialog country={region.country}>
         <button type="button" className="text-dusk cursor-pointer underline underline-offset-4" data-agent-id="action:change-region">

@@ -75,6 +75,34 @@ describe.skipIf(url === undefined || url === "")("catalogue", () => {
     expect(variant?.stock).toBe(0);
   });
 
+  it("syncs a deploy without putting back stock that customers bought, and counts only new products as new", async () => {
+    // The shop has been selling: the first product is down to 2 in stock.
+    const sold = fixture[1]!;
+    await connection`
+      UPDATE product_variants v SET stock = 2 FROM products p WHERE p.id = v.product_id AND p.source_id = ${sold.sourceId}
+    `;
+    // The next deploy carries a new product and a corrected title for an existing one.
+    const newcomer: ProductInput = { ...fixture[2]!, sourceId: "SYNC-NEW-1", slug: "sync-new-product-1", media: [] };
+    const retitled = { ...sold, titleEn: `${sold.titleEn} (revised)` };
+    const summary = await upsertCatalog(db, [retitled, newcomer], { preserveStock: true });
+
+    expect(summary.inserted).toBe(1);
+    const [row] = await connection<{ stock: number; title_en: string }[]>`
+      SELECT v.stock, p.title_en FROM product_variants v JOIN products p ON p.id = v.product_id WHERE p.source_id = ${sold.sourceId}
+    `;
+    // The description follows the repository; the stock follows the orders.
+    expect(row).toEqual({ stock: 2, title_en: `${sold.titleEn} (revised)` });
+    const [added] = await connection<{ stock: number }[]>`
+      SELECT v.stock FROM product_variants v JOIN products p ON p.id = v.product_id WHERE p.source_id = 'SYNC-NEW-1'
+    `;
+    // A new product starts with the fixture's stock.
+    expect(added?.stock).toBe(newcomer.stock);
+
+    // Put the shelves back as the later tests expect them.
+    await connection`DELETE FROM products WHERE source_id = 'SYNC-NEW-1'`;
+    await upsertCatalog(db, fixture);
+  });
+
   it("builds the weighted search vector with English and Greek stems", async () => {
     const rows = await connection<{ title_en: string; rank: number }[]>`
       SELECT title_en, ts_rank_cd(search_tsv, query) AS rank

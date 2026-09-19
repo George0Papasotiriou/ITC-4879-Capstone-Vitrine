@@ -31,6 +31,32 @@ const nextConfig: NextConfig = {
     // uploads go straight to the bucket with presigned URLs (Phase 9).
     serverActions: { bodySizeLimit: "2mb" },
   },
+
+  /**
+   * Cross-origin isolation for the pages that run the depth model (ADR-014).
+   * It lets WebAssembly share memory between threads, so the model runs on
+   * several cores instead of one. Only these pages: isolation refuses any
+   * cross-origin resource that has not opted in, which the payment form's
+   * frames (Stripe) will need to be. Links to the room page load it as a new
+   * document, since isolation only applies from a document's first load.
+   */
+  async headers() {
+    const isolated = [
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+      { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
+    ];
+    return [
+      { source: "/:locale(en|el)/room", headers: isolated },
+      { source: "/:locale(en|el)/lab/:path*", headers: isolated },
+      // The model's runtime starts workers from these files. A worker started by
+      // an isolated page must be isolated itself, or the browser refuses to run
+      // it: without this, threads hang and the background worker never starts.
+      {
+        source: "/models/:path*",
+        headers: [...isolated, { key: "Cross-Origin-Resource-Policy", value: "same-origin" }],
+      },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);

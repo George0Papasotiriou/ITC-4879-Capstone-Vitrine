@@ -89,6 +89,8 @@ export function Button({
 
 type ButtonLinkProps = CommonProps & {
   href: string;
+  /** Load as a new document (see SmartLink): the href is then used as is, locale included. */
+  document?: boolean;
 } & Omit<ComponentPropsWithoutRef<"a">, "className" | "children" | "href">;
 
 /** The same surface rendered as a link, for navigation rather than an action.

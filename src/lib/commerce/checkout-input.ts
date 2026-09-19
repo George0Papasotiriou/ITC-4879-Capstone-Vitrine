@@ -9,7 +9,8 @@
 
 import { z } from "zod";
 
-import { EU_COUNTRIES, type EuCountry } from "@/lib/commerce/vat";
+import { DELIVERY_COUNTRIES, type DeliveryCountry } from "@/lib/commerce/exports";
+import { needsRegion, normaliseRegion } from "@/lib/commerce/regions";
 
 /**
  * What the checkout form may send (Zod at the boundary, CLAUDE.md conventions).
@@ -17,8 +18,9 @@ import { EU_COUNTRIES, type EuCountry } from "@/lib/commerce/vat";
  * the database. Errors are reported per field as stable codes, which the form
  * turns into sentences in the shopper's language.
  *
- * Delivery is within the EU (docs/adr/013), so the country is one of the 27
- * member states, and the postcode is checked against that country's format.
+ * Delivery is to the EU (docs/adr/013) and to the export countries
+ * (docs/adr/015); the postcode is checked against the country's own format, and
+ * the United States, Canada and Australia also need their state or province.
  */
 
 /**
@@ -26,7 +28,7 @@ import { EU_COUNTRIES, type EuCountry } from "@/lib/commerce/vat";
  * the country prefixes some people write, such as "LV-" or "L-", removed).
  * Where a format has a customary separator it is restored for storage.
  */
-const POSTCODES: Record<EuCountry, { pattern: RegExp; format?: (compact: string) => string; strip?: RegExp }> = {
+const POSTCODES: Record<DeliveryCountry, { pattern: RegExp; format?: (compact: string) => string; strip?: RegExp }> = {
   AT: { pattern: /^\d{4}$/ },
   BE: { pattern: /^\d{4}$/ },
   BG: { pattern: /^\d{4}$/ },
@@ -55,10 +57,23 @@ const POSTCODES: Record<EuCountry, { pattern: RegExp; format?: (compact: string)
   SE: { pattern: /^\d{5}$/, strip: /^SE-?/, format: (c) => `${c.slice(0, 3)} ${c.slice(3)}` },
   SI: { pattern: /^\d{4}$/, strip: /^SI-?/ },
   SK: { pattern: /^\d{5}$/, format: (c) => `${c.slice(0, 3)} ${c.slice(3)}` },
+  // Beyond the EU (docs/adr/015).
+  // UK: an outward code (area and district) and an inward code (sector digit and unit letters).
+  GB: { pattern: /^[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}$/, format: (c) => `${c.slice(0, -3)} ${c.slice(-3)}` },
+  CH: { pattern: /^[1-9]\d{3}$/, strip: /^CH-?/ },
+  LI: { pattern: /^94(8[5-9]|9[0-8])$/, strip: /^(FL|LI)-?/ },
+  NO: { pattern: /^\d{4}$/, strip: /^NO-?/ },
+  IS: { pattern: /^\d{3}$/, strip: /^IS-?/ },
+  US: { pattern: /^\d{5}(\d{4})?$/, format: (c) => (c.length === 9 ? `${c.slice(0, 5)}-${c.slice(5)}` : c) },
+  // Canada: letter-digit-letter, digit-letter-digit, without the letters Canada Post never uses.
+  CA: { pattern: /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z]\d[ABCEGHJ-NPRSTV-Z]\d$/, format: (c) => `${c.slice(0, 3)} ${c.slice(3)}` },
+  AU: { pattern: /^\d{4}$/ },
+  NZ: { pattern: /^\d{4}$/ },
+  JP: { pattern: /^\d{7}$/, format: (c) => `${c.slice(0, 3)}-${c.slice(3)}` },
 };
 
 /** The postcode in its customary written form, or null when it does not fit the country's format. */
-export function normalisePostcode(country: EuCountry, input: string): string | null {
+export function normalisePostcode(country: DeliveryCountry, input: string): string | null {
   const rule = POSTCODES[country];
   let compact = input.trim().toUpperCase().replace(/\s+/g, "");
   if (rule.strip !== undefined) compact = compact.replace(rule.strip, "");
@@ -77,7 +92,8 @@ export const checkoutSchema = z
     line2: z.string().trim().max(160, "too_long").optional().transform((value) => (value === "" ? undefined : value)),
     city: trimmed(80),
     postcode: z.string().trim().max(12, "too_long"),
-    country: z.enum(EU_COUNTRIES as [EuCountry, ...EuCountry[]], "country"),
+    country: z.enum(DELIVERY_COUNTRIES as [DeliveryCountry, ...DeliveryCountry[]], "country"),
+    region: z.string().trim().max(40, "too_long").optional(),
     phone: z
       .string()
       .trim()
@@ -91,14 +107,22 @@ export const checkoutSchema = z
   })
   .superRefine((value, ctx) => {
     if (normalisePostcode(value.country, value.postcode) === null) ctx.addIssue({ code: "custom", path: ["postcode"], message: "postcode" });
+    if (needsRegion(value.country) && normaliseRegion(value.country, value.region ?? "") === null) {
+      ctx.addIssue({ code: "custom", path: ["region"], message: "region" });
+    }
   })
-  .transform((value) => ({ ...value, postcode: normalisePostcode(value.country, value.postcode) ?? value.postcode }));
+  .transform((value) => ({
+    ...value,
+    postcode: normalisePostcode(value.country, value.postcode) ?? value.postcode,
+    // Kept only where an address needs it, so a stray value never prints on a European label.
+    region: needsRegion(value.country) ? (normaliseRegion(value.country, value.region ?? "") ?? undefined) : undefined,
+  }));
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
-export type CheckoutFieldError = "required" | "email" | "postcode" | "phone" | "too_long" | "country";
+export type CheckoutFieldError = "required" | "email" | "postcode" | "phone" | "too_long" | "country" | "region";
 
-const CODES: readonly CheckoutFieldError[] = ["required", "email", "postcode", "phone", "too_long", "country"];
+const CODES: readonly CheckoutFieldError[] = ["required", "email", "postcode", "phone", "too_long", "country", "region"];
 
 /** The first error code per field, for showing next to that field. */
 export function fieldErrors(error: z.ZodError): Record<string, CheckoutFieldError> {

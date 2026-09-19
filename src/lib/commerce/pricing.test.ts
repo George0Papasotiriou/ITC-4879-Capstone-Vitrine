@@ -131,16 +131,67 @@ describe("pricing a cart", () => {
     expect(priceCart([{ unitCents: threshold - 1, quantity: 1 }], { country: "HU" }).shipping.cents).toBeGreaterThan(0);
   });
 
-  it("uses Greece as domestic, Cyprus by sea, the rest of the EU by road, and nothing outside the EU", () => {
+  it("uses Greece as domestic, Cyprus by sea, the EU by road, exports by zone, and nothing elsewhere", () => {
     expect(shippingZone("GR")).toBe("domestic");
     expect(shippingZone("CY")).toBe("cyprus");
     expect(shippingZone("SE")).toBe("eu");
-    expect(shippingZone("US")).toBeNull();
-    const abroad = priceCart([{ unitCents: 12_400, quantity: 1 }], { country: "US" });
-    expect(abroad.deliverable).toBe(false);
-    expect(abroad.subtotal.cents).toBe(10_000);
-    expect(abroad.shipping.cents).toBe(0);
-    expect(abroad.vat.cents).toBe(0);
+    expect(shippingZone("CH")).toBe("europe");
+    expect(shippingZone("US")).toBe("world");
+    expect(shippingZone("BR")).toBeNull();
+    const nowhere = priceCart([{ unitCents: 12_400, quantity: 1 }], { country: "BR" });
+    expect(nowhere.deliverable).toBe(false);
+    expect(nowhere.subtotal.cents).toBe(10_000);
+    expect(nowhere.shipping.cents).toBe(0);
+    expect(nowhere.vat.cents).toBe(0);
+  });
+
+  describe("exports (docs/adr/015)", () => {
+    it("charges no VAT on an export whose tax is paid on delivery, and says so", () => {
+      // €124.00 in Greece is €100.00 before VAT; Switzerland taxes it at the border.
+      const swiss = priceCart([{ unitCents: 12_400, quantity: 1 }], { country: "CH" });
+      expect(swiss.deliverable).toBe(true);
+      expect(swiss.subtotal.cents).toBe(10_000);
+      expect(swiss.vat.cents).toBe(0);
+      expect(swiss.vatRatePerMille).toBe(0);
+      expect(swiss.exportTax).toEqual({ collectedBy: "on_delivery", ratePerMille: 81, taxName: "VAT" });
+      // Export delivery is priced without VAT: €39.90 standard to the rest of Europe.
+      expect(swiss.shipping.cents).toBe(3_990);
+      expect(swiss.total.cents).toBe(13_990);
+    });
+
+    it("collects UK VAT itself on a basket up to the £135 limit, and not above it", () => {
+      // €100.00 of goods: within the limit, so the shop charges 20% UK VAT, on delivery too.
+      const small = priceCart([{ unitCents: 12_400, quantity: 1 }], { country: "GB" });
+      expect(small.exportTax?.collectedBy).toBe("seller");
+      expect(small.vatRatePerMille).toBe(200);
+      expect(small.subtotal.cents).toBe(12_000);
+      expect(small.shipping.cents).toBe(4_788); // €39.90 + 20%
+      expect(small.vat.cents).toBe(includedVat(small.total.cents, 200));
+
+      // €200.00 of goods: above the limit, so UK VAT is paid on import and the shop charges none.
+      const large = priceCart([{ unitCents: 24_800, quantity: 1 }], { country: "GB" });
+      expect(large.exportTax?.collectedBy).toBe("on_delivery");
+      expect(large.vatRatePerMille).toBe(0);
+      expect(large.subtotal.cents).toBe(20_000);
+      expect(large.vat.cents).toBe(0);
+    });
+
+    it("judges the UK limit on the goods alone, not on the delivery", () => {
+      // €160.00 of goods is at the limit even though delivery takes the total well past it.
+      const atLimit = priceCart([{ unitCents: 19_840, quantity: 1 }], { country: "GB", shipping: "express" });
+      expect(atLimit.exportTax?.collectedBy).toBe("seller");
+      const justAbove = priceCart([{ unitCents: 19_841, quantity: 1 }], { country: "GB" });
+      expect(justAbove.exportTax?.collectedBy).toBe("on_delivery");
+    });
+
+    it("ships the rest of the world without a free-delivery threshold", () => {
+      const us = priceCart([{ unitCents: 124_000, quantity: 1 }], { country: "US" });
+      expect(us.shipping.cents).toBe(7_990);
+      expect(us.freeShippingRemaining).toBeNull();
+      // The rest of Europe ships free from €800 of goods.
+      const norway = priceCart([{ unitCents: 99_200, quantity: 1 }], { country: "NO" });
+      expect(norway.shipping.cents).toBe(0);
+    });
   });
 
   it("keeps every line equal to quantity × the unit price shown, in every country", () => {

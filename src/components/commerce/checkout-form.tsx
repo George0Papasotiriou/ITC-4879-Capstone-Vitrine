@@ -6,7 +6,7 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * Checkout form: contact, EU delivery address, delivery method and live VAT totals.
+ * Checkout form: contact, delivery address in the EU or an export country, delivery method and live tax totals.
  */
 
 import { useLocale, useTranslations } from "next-intl";
@@ -16,13 +16,16 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/choice";
 import { Field } from "@/components/ui/field";
 import type { CheckoutFieldError } from "@/lib/commerce/checkout-input";
+import { countryNames } from "@/lib/commerce/country-names";
 import { formatMoney, money } from "@/lib/commerce/money";
-import { EU_COUNTRIES, formatVatRate, type EuCountry, type OutsideVatAreaPlace } from "@/lib/commerce/vat";
+import { EXPORT_COUNTRY_CODES, taxKey, type DeliveryCountry, type ExportTax } from "@/lib/commerce/exports";
+import { ADDRESS_REGIONS, needsRegion } from "@/lib/commerce/regions";
+import { EU_COUNTRIES, formatVatRate, type OutsideVatAreaPlace } from "@/lib/commerce/vat";
 
 /**
  * The checkout form (Phase 5 step 3, docs/adr/013).
  *
- * The server sends the cart already priced for every EU delivery country and
+ * The server sends the cart already priced for every delivery country and
  * both delivery methods, so changing either updates the summary instantly with
  * no arithmetic in the browser, and the shopper sees the VAT of the country the
  * goods will go to before placing the order. On submit the server validates
@@ -33,7 +36,7 @@ import { EU_COUNTRIES, formatVatRate, type EuCountry, type OutsideVatAreaPlace }
  */
 
 type MethodQuote = { subtotalCents: number; shippingCents: number; totalCents: number; vatCents: number; days: [number, number] };
-export type CountryQuote = { vatRatePerMille: number; standard: MethodQuote; express: MethodQuote };
+export type CountryQuote = { vatRatePerMille: number; exportTax: ExportTax | null; standard: MethodQuote; express: MethodQuote };
 
 const subscribeNever = () => () => {};
 
@@ -51,8 +54,8 @@ export function CheckoutForm({
 }: {
   idempotencyKey: string;
   currency: string;
-  quotes: Record<EuCountry, CountryQuote>;
-  startCountry: EuCountry;
+  quotes: Record<DeliveryCountry, CountryQuote>;
+  startCountry: DeliveryCountry;
   /** The country prices were shown for while browsing; a different delivery country is pointed out. */
   browsingCountry: string;
 }) {
@@ -60,8 +63,9 @@ export function CheckoutForm({
   const tc = useTranslations("cart");
   const locale = useLocale();
   const countryId = useId();
+  const regionId = useId();
   const [shipping, setShipping] = useState<"standard" | "express">("standard");
-  const [country, setCountry] = useState<EuCountry>(startCountry);
+  const [country, setCountry] = useState<DeliveryCountry>(startCountry);
   const [errors, setErrors] = useState<Record<string, CheckoutFieldError>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -71,21 +75,27 @@ export function CheckoutForm({
   // details can never end up in a URL (browser history, server logs, referrers).
   const hydrated = useHydrated();
 
-  const names = useMemo(() => new Intl.DisplayNames([locale], { type: "region" }), [locale]);
-  const countryName = (code: string) => names.of(code) ?? code;
-  const countries = useMemo(() => [...EU_COUNTRIES].sort((a, b) => countryName(a).localeCompare(countryName(b), locale)), [locale]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { name: countryName, inSentence } = useMemo(() => countryNames(locale), [locale]);
+  const byName = (list: readonly DeliveryCountry[]) => [...list].sort((a, b) => countryName(a).localeCompare(countryName(b), locale));
+  const euCountries = useMemo(() => byName(EU_COUNTRIES), [locale]); // eslint-disable-line react-hooks/exhaustive-deps
+  const exportCountries = useMemo(() => byName(EXPORT_COUNTRY_CODES), [locale]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const format = (cents: number) => formatMoney(money(cents, currency), locale);
   const quote = quotes[country];
   const chosen = quote[shipping];
   const rate = formatVatRate(quote.vatRatePerMille, locale);
+  const exportTax = quote.exportTax;
+  const exportRate = exportTax === null ? "" : formatVatRate(exportTax.ratePerMille, locale);
+  const regionOptions = needsRegion(country) ? ADDRESS_REGIONS[country] : null;
+  const regionLabel = country === "US" ? t("regionUS") : country === "CA" ? t("regionCA") : t("regionAU");
 
   const errorText = (field: string) => {
     const code = errors[field];
     if (code === undefined) return undefined;
     if (code === "email") return t("errorEmail");
-    if (code === "postcode") return t("errorPostcodeCountry", { country: countryName(country) });
+    if (code === "postcode") return t("errorPostcodeCountry", { country: inSentence(country) });
     if (code === "country") return t("errorCountry");
+    if (code === "region") return t("errorRegion");
     return t("errorRequired");
   };
 
@@ -159,20 +169,33 @@ export function CheckoutForm({
               name="country"
               autoComplete="country"
               value={country}
-              onChange={(event) => setCountry(event.currentTarget.value as EuCountry)}
+              onChange={(event) => setCountry(event.currentTarget.value as DeliveryCountry)}
               aria-describedby={country === browsingCountry ? undefined : `${countryId}-note`}
               className="border-hairline text-dusk hover:border-dusk/35 rounded-plinth h-11 w-full cursor-pointer border bg-white px-3 transition-colors"
               data-agent-id="checkout:country"
             >
-              {countries.map((code) => (
-                <option key={code} value={code}>
-                  {countryName(code)}
-                </option>
-              ))}
+              <optgroup label={t("countriesEu")}>
+                {euCountries.map((code) => (
+                  <option key={code} value={code}>
+                    {countryName(code)}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label={t("countriesExport")}>
+                {exportCountries.map((code) => (
+                  <option key={code} value={code}>
+                    {countryName(code)}
+                  </option>
+                ))}
+              </optgroup>
             </select>
             {country === browsingCountry ? null : (
               <p id={`${countryId}-note`} className="text-dusk text-sm" aria-live="polite">
-                {t("deliveryCountryNote", { country: countryName(country), rate })}
+                {exportTax === null
+                  ? t("deliveryCountryNote", { country: inSentence(country), rate })
+                  : exportTax.collectedBy === "seller"
+                    ? t("deliverySellerTaxNote", { country: inSentence(country), rate: exportRate, tax: taxKey(exportTax.taxName) })
+                    : t("deliveryExportNote", { country: inSentence(country) })}
               </p>
             )}
           </div>
@@ -183,6 +206,39 @@ export function CheckoutForm({
             <Field label={t("city")} name="city" autoComplete="address-level2" required error={errorText("city")} />
             <Field label={t("postcode")} name="postcode" autoComplete="postal-code" required error={errorText("postcode")} />
           </div>
+          {regionOptions === null ? null : (
+            <div className="flex flex-col gap-2">
+              <label htmlFor={regionId} className="text-sm font-medium">
+                {regionLabel}
+              </label>
+              <select
+                key={country}
+                id={regionId}
+                name="region"
+                autoComplete="address-level1"
+                required
+                defaultValue=""
+                aria-invalid={errors.region === undefined ? undefined : true}
+                aria-describedby={errors.region === undefined ? undefined : `${regionId}-error`}
+                className="border-hairline text-dusk hover:border-dusk/35 rounded-plinth h-11 w-full cursor-pointer border bg-white px-3 transition-colors"
+                data-agent-id="checkout:region"
+              >
+                <option value="" disabled>
+                  {t("regionChoose")}
+                </option>
+                {regionOptions.map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              {errors.region === undefined ? null : (
+                <p id={`${regionId}-error`} className="text-danger text-sm">
+                  {errorText("region")}
+                </p>
+              )}
+            </div>
+          )}
           <Field label={t("phone")} name="phone" type="tel" autoComplete="tel" hint={t("phoneHint")} error={errorText("phone")} />
         </fieldset>
 
@@ -228,7 +284,11 @@ export function CheckoutForm({
           </div>
         </dl>
         <p className="text-slate -mt-2 text-xs" data-agent-id="checkout:vat">
-          {tc("vatIncludedCountry", { amount: format(chosen.vatCents), rate, country: countryName(country) })}
+          {exportTax === null
+            ? tc("vatIncludedCountry", { amount: format(chosen.vatCents), rate, country: inSentence(country) })
+            : exportTax.collectedBy === "seller"
+              ? tc("exportTaxIncluded", { amount: format(chosen.vatCents), rate: exportRate, country: inSentence(country), tax: taxKey(exportTax.taxName) })
+              : tc("exportTaxOnDelivery", { rate: exportRate, country: inSentence(country), tax: taxKey(exportTax.taxName) })}
         </p>
         <p className="text-slate text-sm">{t("testNotice")}</p>
         <Button type="submit" disabled={!hydrated} aria-disabled={pending || undefined} data-agent-id="action:place-order">
