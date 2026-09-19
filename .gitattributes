@@ -1,0 +1,12 @@
+# Vitrine — AI-native e-shop (ITC 4949 Capstone)
+# Copyright (c) 2026 George Papasotiriou. All rights reserved.
+# Author: George Papasotiriou <g.papasotiriou@acg.edu>
+# Project started: 2026-09-12
+#
+# How git stores files whose bytes must never change: the depth model is checked
+# against its SHA-256 before the browser uses it, so no line-ending conversion or
+# diffing may touch it, nor the product photographs.
+
+*.onnx binary
+*.wasm binary
+*.webp binary

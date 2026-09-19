@@ -36,6 +36,13 @@
       "when": 1789399779955,
       "tag": "0004_vat_by_country",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789816618389,
+      "tag": "0005_accounts",
+      "breakpoints": true
     }
   ]
 }

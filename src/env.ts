@@ -80,6 +80,26 @@ const rawSchema = z.object({
   COOKIE_SECRET: optionalString.pipe(z.string().min(32).optional()),
 
   /**
+   * Accounts (docs/adr/016). BETTER_AUTH_SECRET signs and encrypts sessions,
+   * two-factor secrets and verification tokens: required in production, and
+   * `pnpm local` generates one. Rotating it signs everyone out.
+   * GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET turn on "Continue with Google";
+   * both or neither.
+   */
+  BETTER_AUTH_SECRET: optionalString.pipe(z.string().min(32).optional()),
+  GOOGLE_CLIENT_ID: optionalString,
+  GOOGLE_CLIENT_SECRET: optionalString,
+
+  /**
+   * Email (docs/adr/016). With RESEND_API_KEY, emails go out through Resend as
+   * well as into the outbox; without it they are only kept in the outbox, which
+   * the local stack shows. EMAIL_FROM must be an address on a domain verified in
+   * Resend.
+   */
+  RESEND_API_KEY: optionalString,
+  EMAIL_FROM: z.string().min(3).default("Vitrine <onboarding@resend.dev>"),
+
+  /**
    * Prices by country (docs/adr/013). GEOIP_DATABASE: path to an IP-to-country
    * database, preferably the compiled `.bin` that `pnpm geoip update` writes next
    * to the DB-IP Lite CSV (loads in milliseconds; the CSV takes seconds and is
@@ -136,6 +156,10 @@ const serverSchema = rawSchema
     }
 
     if (raw.NODE_ENV === "production") require("COOKIE_SECRET", "in production to sign cart cookies and order links (at least 32 characters)");
+    if (raw.NODE_ENV === "production") require("BETTER_AUTH_SECRET", "in production to sign sessions (at least 32 characters)");
+    if ((raw.GOOGLE_CLIENT_ID === undefined) !== (raw.GOOGLE_CLIENT_SECRET === undefined)) {
+      ctx.addIssue({ code: "custom", path: ["GOOGLE_CLIENT_SECRET"], message: "Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, or neither." });
+    }
 
     const standIns = [
       jobsDriver === "inline" ? "JOBS_DRIVER=inline" : null,

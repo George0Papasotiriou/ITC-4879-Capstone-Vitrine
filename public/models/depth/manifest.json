@@ -1,0 +1,30 @@
+{
+  "name": "Depth Anything V2 Metric (indoor, small)",
+  "source": "depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf",
+  "licence": "Apache-2.0",
+  "model": "depth-anything-v2-metric-indoor-small.onnx",
+  "runtime": "ort.wasm.min.js",
+  "inputSize": 518,
+  "output": "metric_depth",
+  "inputName": "pixel_values",
+  "outputName": "predicted_depth",
+  "providers": [
+    "wasm"
+  ],
+  "compression": "int8-weights-block32",
+  "measured": {
+    "medianDepthChange": 0.00132,
+    "p95DepthChange": 0.00538,
+    "realRooms": 6,
+    "cpuMsPerImage": 1486
+  },
+  "sha256": "15d3de6ce80c55bdd9cb8b588450d4ffb9b8422d2c5e9148843687870c1267ac",
+  "bytes": 38081873,
+  "canonicalFocal": 598.1,
+  "trainingCamera": {
+    "dataset": "Hypersim",
+    "width": 1024,
+    "height": 768,
+    "fovDegrees": 60
+  }
+}

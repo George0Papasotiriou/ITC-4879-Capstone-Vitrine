@@ -39,11 +39,15 @@ function database(): IpCountryIndex | null {
   const file = databaseFile();
   if (file === null) return null;
   try {
-    const { mtimeMs } = statSync(file);
+    // The file lives wherever GEOIP_DATABASE points (a volume in production): it is
+    // read at run time and must not be traced into the build output.
+    const { mtimeMs } = statSync(/* turbopackIgnore: true */ file);
     // Reload after `pnpm geoip update` replaces the file; otherwise keep the parsed index.
     if (loaded !== undefined && loaded.path === file && loaded.mtimeMs === mtimeMs) return loaded.index;
     const started = Date.now();
-    const index = file.endsWith(".bin") ? IpCountryIndex.fromBinary(readFileSync(file)) : IpCountryIndex.fromCsv(readFileSync(file, "utf8"));
+    const index = file.endsWith(".bin")
+      ? IpCountryIndex.fromBinary(readFileSync(/* turbopackIgnore: true */ file))
+      : IpCountryIndex.fromCsv(readFileSync(/* turbopackIgnore: true */ file, "utf8"));
     loaded = { index, path: file, mtimeMs };
     logger.info({ geoip: { ranges: index.size, ms: Date.now() - started, format: file.endsWith(".bin") ? "binary" : "csv" } }, "IP country database loaded");
     return index;

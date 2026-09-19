@@ -70,7 +70,7 @@ describe.skipIf(url === undefined || url === "")("commerce", () => {
   });
 
   beforeEach(async () => {
-    await connection`TRUNCATE carts, orders CASCADE`;
+    await connection`TRUNCATE carts, orders, users CASCADE`;
   });
 
   afterAll(async () => {
@@ -414,6 +414,97 @@ describe.skipIf(url === undefined || url === "")("commerce", () => {
       expect(await store.orderForToken(order.orderId, order.accessToken!)).not.toBeNull();
       expect(await store.orderForToken(order.orderId, "wrong-token")).toBeNull();
       expect(await store.orderForToken(uuidv7(), order.accessToken!)).toBeNull();
+    });
+  });
+
+  describe("accounts (docs/adr/016)", () => {
+    const newUser = async (email: string) => {
+      const id = uuidv7();
+      await connection`INSERT INTO users (id, name, email, email_verified) VALUES (${id}, 'Test Shopper', ${email}, true)`;
+      return id;
+    };
+
+    it("turns the guest cart into the account's cart on sign-in, and keeps it from the next guest on that browser", async () => {
+      const a = pick(0);
+      await setStock(a.id, 20);
+      const guest = await cartWith([[a.id, 2]]);
+      const userId = await newUser("cart-owner@example.com");
+
+      expect(await store.claimCart(userId, guest)).toBe(guest);
+      expect((await store.viewCart(guest, "en")).lines.map((line) => line.quantity)).toEqual([2]);
+      // Signed out, the same cookie no longer opens it.
+      expect(await store.guestCart(guest)).toBeNull();
+      // Signed in again, with no guest cart, the account's cart comes back.
+      expect(await store.claimCart(userId, null)).toBe(guest);
+    });
+
+    it("adds a guest cart's lines to the account's own cart, capped per line, and deletes the guest cart", async () => {
+      const a = pick(0);
+      const b = pick(1);
+      await setStock(a.id, 20);
+      await setStock(b.id, 20);
+      const userId = await newUser("merge@example.com");
+      const owned = (await store.changeLine(null, a.id, 7, "add", userId)) as { ok: true; cartId: string };
+      const guest = await cartWith([
+        [a.id, 5],
+        [b.id, 1],
+      ]);
+
+      expect(await store.claimCart(userId, guest)).toBe(owned.cartId);
+      const view = await store.viewCart(owned.cartId, "en");
+      expect(view.lines.map((line) => [line.variantId, line.quantity])).toEqual([
+        [a.id, 10],
+        [b.id, 1],
+      ]);
+      expect(await store.viewCart(guest, "en")).toMatchObject({ lines: [] });
+      const [row] = await connection<{ count: number }[]>`SELECT count(*)::int AS count FROM carts WHERE id = ${guest}`;
+      expect(row?.count).toBe(0);
+    });
+
+    it("never merges another account's cart", async () => {
+      const a = pick(0);
+      await setStock(a.id, 20);
+      const first = await newUser("first@example.com");
+      const second = await newUser("second@example.com");
+      const theirs = (await store.changeLine(null, a.id, 1, "add", first)) as { ok: true; cartId: string };
+      expect(await store.claimCart(second, theirs.cartId)).toBeNull();
+      expect(await store.claimCart(first, null)).toBe(theirs.cartId);
+    });
+
+    it("lists an account's orders: those placed signed in, and guest orders only under a confirmed address", async () => {
+      const a = pick(0);
+      await setStock(a.id, 20);
+      const userId = await newUser("history@example.com");
+      const signedIn = await checkout(await cartWith([[a.id, 1]]), { userId, email: "history@example.com" });
+      const asGuest = await checkout(await cartWith([[a.id, 2]]), { email: "History@Example.com" });
+      const someoneElse = await checkout(await cartWith([[a.id, 1]]), { email: "other@example.com" });
+      if (!signedIn.ok || !asGuest.ok || !someoneElse.ok) throw new Error("checkout failed");
+
+      const confirmed = await store.ordersForOwner({ userId, verifiedEmail: "history@example.com" });
+      expect(confirmed.map((order) => order.id).sort()).toEqual([signedIn.orderId, asGuest.orderId].sort());
+      expect(confirmed.find((order) => order.id === asGuest.orderId)?.itemCount).toBe(2);
+
+      const unconfirmed = await store.ordersForOwner({ userId, verifiedEmail: null });
+      expect(unconfirmed.map((order) => order.id)).toEqual([signedIn.orderId]);
+
+      expect(await store.orderForOwner(asGuest.orderId, { userId, verifiedEmail: "history@example.com" })).not.toBeNull();
+      expect(await store.orderForOwner(asGuest.orderId, { userId, verifiedEmail: null })).toBeNull();
+      expect(await store.orderForOwner(someoneElse.orderId, { userId, verifiedEmail: "history@example.com" })).toBeNull();
+    });
+
+    it("keeps an order when its account is deleted, and deletes the account's cart", async () => {
+      const a = pick(0);
+      await setStock(a.id, 20);
+      const userId = await newUser("leaving@example.com");
+      const order = await checkout(await cartWith([[a.id, 1]]), { userId });
+      const cart = (await store.changeLine(null, a.id, 1, "add", userId)) as { ok: true; cartId: string };
+      if (!order.ok) throw new Error("checkout failed");
+
+      await connection`DELETE FROM users WHERE id = ${userId}`;
+      const [kept] = await connection<{ user_id: string | null }[]>`SELECT user_id FROM orders WHERE id = ${order.orderId}`;
+      expect(kept).toEqual({ user_id: null });
+      const [row] = await connection<{ count: number }[]>`SELECT count(*)::int AS count FROM carts WHERE id = ${cart.cartId}`;
+      expect(row?.count).toBe(0);
     });
   });
 });

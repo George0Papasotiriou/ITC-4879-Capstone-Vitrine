@@ -8,7 +8,7 @@
  */
 
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { OrderActions } from "@/components/commerce/order-actions";
@@ -20,13 +20,18 @@ import { isExportCountry } from "@/lib/commerce/exports";
 import { formatMoney } from "@/lib/commerce/money";
 import { availableEvents } from "@/lib/commerce/order-state";
 import { formatVatRate } from "@/lib/commerce/vat";
-import { commerce, PAYMENT_PROVIDER } from "@/lib/commerce/server";
+import { currentUser, signInPath } from "@/lib/auth/session";
+import { commerce, orderOwner, PAYMENT_PROVIDER } from "@/lib/commerce/server";
+import type { OrderView } from "@/lib/commerce/store";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * A guest's order (Phase 5 step 4), reached through the link with its secret
- * token. A wrong id or token is a plain 404. The page never leaks the token:
- * no referrer is sent from it, and search engines are told to stay away.
+ * An order (Phase 5 step 4), reached one of two ways: a guest's link with its
+ * secret token, or, without a token, by the signed-in account it belongs to
+ * (docs/adr/016). A wrong id or token is a plain 404; with no token and no
+ * session the page asks to sign in first, without saying whether the order
+ * exists. The page never leaks the token: no referrer is sent from it, and
+ * search engines are told to stay away.
  *
  * An unpaid order whose payment window has passed is expired on the way in, so
  * the page never offers to pay for pieces that are back on sale.
@@ -41,13 +46,17 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/orders/[
 export default async function OrderPage({ params, searchParams }: PageProps<"/[locale]/orders/[id]">) {
   const locale = await requireLocale(params);
   const { id } = await params;
-  const token = (await searchParams).t;
-  if (typeof token !== "string" || !/^[0-9a-f-]{36}$/.test(id)) notFound();
+  const given = (await searchParams).t;
+  const token = typeof given === "string" ? given : null;
+  if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
 
   const store = await commerce();
-  if ((await store.orderForToken(id, token)) === null) notFound();
+  const user = token === null ? await currentUser() : null;
+  if (token === null && user === null) redirect(signInPath(locale, `/${locale}/orders/${id}`));
+  const read = (): Promise<OrderView | null> => (token !== null ? store.orderForToken(id, token) : store.orderForOwner(id, orderOwner(user!)));
+  if ((await read()) === null) notFound();
   await store.expireIfDue(id);
-  const order = (await store.orderForToken(id, token))!;
+  const order = (await read())!;
 
   const t = await getTranslations("order");
   const tc = await getTranslations("cart");

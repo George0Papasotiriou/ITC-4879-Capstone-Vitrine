@@ -99,6 +99,7 @@ async function environment() {
     LOCAL_STORAGE_DIR: path.join(LOCAL_DIR, ephemeral ? "storage-ephemeral" : "storage"),
     LOCAL_STORAGE_SECRET: await localSecret("storage-secret"),
     COOKIE_SECRET: await localSecret("cookie-secret"),
+    BETTER_AUTH_SECRET: await localSecret("auth-secret"),
     PORT: String(appPort),
   };
   // A stray SKIP_ENV_VALIDATION would hide exactly the misconfiguration this

@@ -10,7 +10,8 @@
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 
-import { createCommerceStore, type CommerceStore } from "@/lib/commerce/store";
+import { currentUser, type CurrentUser } from "@/lib/auth/session";
+import { createCommerceStore, type CommerceStore, type OrderOwner } from "@/lib/commerce/store";
 import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
 import { sql } from "@/lib/db/client";
 import { serverEnv } from "@/env";
@@ -55,9 +56,28 @@ const cookieOptions = () => ({
   maxAge: SIXTY_DAYS,
 });
 
-export async function currentCartId(): Promise<string | null> {
+/**
+ * The shopper's cart and who owns it. Signed in, it is the account's cart,
+ * which takes in whatever the browser collected as a guest (store.claimCart).
+ * Signed out, it is the cookie's cart, but only while that is still a guest
+ * cart. Nothing here writes a cookie, so pages can call it while rendering.
+ */
+export async function currentCart(): Promise<{ cartId: string | null; userId: string | null }> {
   const jar = await cookies();
-  return verifySignedValue(jar.get(CART_COOKIE)?.value, secret());
+  const cookieCart = verifySignedValue(jar.get(CART_COOKIE)?.value, secret());
+  const store = await commerce();
+  const user = await currentUser();
+  if (user === null) return { cartId: await store.guestCart(cookieCart), userId: null };
+  return { cartId: await store.claimCart(user.id, cookieCart), userId: user.id };
+}
+
+/** The account asking about orders; its address counts only once confirmed (store.orderForOwner). */
+export function orderOwner(user: CurrentUser): OrderOwner {
+  return { userId: user.id, verifiedEmail: user.emailVerified ? user.email.toLowerCase() : null };
+}
+
+export async function currentCartId(): Promise<string | null> {
+  return (await currentCart()).cartId;
 }
 
 export async function rememberCart(cartId: string): Promise<void> {

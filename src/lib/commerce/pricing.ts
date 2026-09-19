@@ -49,9 +49,10 @@ export type ShippingMethod = {
 };
 
 /**
- * Flat rates by zone. Defaults for George to confirm (docs/adr/012, 013):
- * furniture ships from Athens, so Greece is domestic, Cyprus is a sea
- * shipment, and the rest of the EU goes by road freight.
+ * Flat rates by zone (docs/adr/012, 013, 015): furniture ships from Athens, so
+ * Greece is domestic, Cyprus is a sea shipment, and the rest of the EU goes by
+ * road freight. The two export zones were confirmed by George on 2026-09-19;
+ * the three EU zones are still defaults for him to confirm.
  */
 export const SHIPPING_RATES: Readonly<Record<ShippingZone, Readonly<Record<ShippingMethodId, ShippingMethod>>>> = {
   domestic: {

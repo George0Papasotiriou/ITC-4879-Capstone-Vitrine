@@ -10,7 +10,7 @@
 import { z } from "zod";
 
 import { routing } from "@/i18n/routing";
-import { commerce, currentCartId, rememberCart } from "@/lib/commerce/server";
+import { commerce, currentCart, currentCartId, rememberCart } from "@/lib/commerce/server";
 import type { CartView } from "@/lib/commerce/store";
 import { MAX_QUANTITY_PER_LINE } from "@/lib/commerce/pricing";
 import { currentRegion } from "@/lib/commerce/region";
@@ -77,7 +77,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return Response.json({ ok: false, reason: "invalid_request" }, { status: 400 });
   const input = parsed.data;
   const store = await commerce();
-  const cartId = await currentCartId();
+  const { cartId, userId } = await currentCart();
 
   let variantId = input.variantId ?? null;
   if (input.action === "add" && variantId === null && input.productId !== undefined) {
@@ -85,12 +85,13 @@ export async function POST(request: Request): Promise<Response> {
   }
   if (variantId === null) return Response.json({ ok: false, reason: "not_found" }, { status: 404 });
 
-  const change = await store.changeLine(cartId, variantId, input.quantity, input.action);
+  const change = await store.changeLine(cartId, variantId, input.quantity, input.action, userId);
   if (!change.ok) {
     const status = change.reason === "not_found" ? 404 : 409;
     return Response.json({ ok: false, reason: change.reason }, { status });
   }
-  if (change.cartId !== cartId) await rememberCart(change.cartId);
+  // A guest's new cart is remembered by cookie; an account's is found by its owner.
+  if (change.cartId !== cartId && userId === null) await rememberCart(change.cartId);
 
   // A cart addition is a strong taste signal, recorded only for shoppers who opted in.
   if (input.action === "add" && input.sessionId !== undefined) {

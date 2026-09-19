@@ -13,4 +13,4 @@ allowBuilds:
   unrs-resolver: true      # resolver used by the Next.js ESLint config
   "@parcel/watcher": true  # file watching for the next-intl plugin
   "@swc/core": true        # next-intl message extraction
-  protobufjs: set this to true or false
+  protobufjs: false        # via onnxruntime-web; its postinstall only prints a version-scheme warning

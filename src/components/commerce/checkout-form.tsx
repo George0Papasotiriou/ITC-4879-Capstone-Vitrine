@@ -10,11 +10,12 @@
  */
 
 import { useLocale, useTranslations } from "next-intl";
-import { useId, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
+import { useId, useMemo, useRef, useState, useTransition } from "react";
 
 import { Button, ButtonLink } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/choice";
 import { Field } from "@/components/ui/field";
+import { useHydrated } from "@/components/ui/use-hydrated";
 import type { CheckoutFieldError } from "@/lib/commerce/checkout-input";
 import { countryNames } from "@/lib/commerce/country-names";
 import { formatMoney, money } from "@/lib/commerce/money";
@@ -38,19 +39,13 @@ import { EU_COUNTRIES, formatVatRate, type OutsideVatAreaPlace } from "@/lib/com
 type MethodQuote = { subtotalCents: number; shippingCents: number; totalCents: number; vatCents: number; days: [number, number] };
 export type CountryQuote = { vatRatePerMille: number; exportTax: ExportTax | null; standard: MethodQuote; express: MethodQuote };
 
-const subscribeNever = () => () => {};
-
-/** False in the server render and during hydration, true once React owns the form. */
-function useHydrated(): boolean {
-  return useSyncExternalStore(subscribeNever, () => true, () => false);
-}
-
 export function CheckoutForm({
   idempotencyKey,
   currency,
   quotes,
   startCountry,
   browsingCountry,
+  contact,
 }: {
   idempotencyKey: string;
   currency: string;
@@ -58,6 +53,8 @@ export function CheckoutForm({
   startCountry: DeliveryCountry;
   /** The country prices were shown for while browsing; a different delivery country is pointed out. */
   browsingCountry: string;
+  /** A signed-in shopper's email and name, to start from (docs/adr/016); still editable. */
+  contact?: { email: string; name: string };
 }) {
   const t = useTranslations("checkout");
   const tc = useTranslations("cart");
@@ -155,7 +152,7 @@ export function CheckoutForm({
 
         <fieldset className="flex flex-col gap-5">
           <legend className="font-display mb-4 text-xl">{t("contact")}</legend>
-          <Field label={t("email")} name="email" type="email" autoComplete="email" inputMode="email" required hint={t("emailHint")} error={errorText("email")} />
+          <Field label={t("email")} name="email" type="email" autoComplete="email" inputMode="email" required hint={t("emailHint")} error={errorText("email")} defaultValue={contact?.email} />
         </fieldset>
 
         <fieldset className="flex flex-col gap-5">
@@ -199,7 +196,7 @@ export function CheckoutForm({
               </p>
             )}
           </div>
-          <Field label={t("name")} name="name" autoComplete="name" required error={errorText("name")} />
+          <Field label={t("name")} name="name" autoComplete="name" required error={errorText("name")} defaultValue={contact?.name} />
           <Field label={t("line1")} name="line1" autoComplete="address-line1" required error={errorText("line1")} />
           <Field label={t("line2")} name="line2" autoComplete="address-line2" error={errorText("line2")} />
           <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_10rem]">

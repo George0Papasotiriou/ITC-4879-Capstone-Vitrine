@@ -22,7 +22,7 @@
     "depth-model": "tsx scripts/depth-model.ts",
     "geoip": "tsx scripts/geoip.ts",
     "worker:dev": "tsx watch src/worker/index.ts",
-    "build": "next build && pnpm build:worker",
+    "build": "tsx scripts/depth-model.ts build && next build && pnpm build:worker",
     "build:worker": "tsup",
     "start": "pnpm db:setup && next start",
     "start:app": "next start",
@@ -41,7 +41,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.1130.0",
     "@aws-sdk/s3-request-presigner": "3.1130.0",
+    "@better-auth/passkey": "1.7.5",
     "@sentry/nextjs": "10.74.0",
+    "better-auth": "1.7.5",
     "bullmq": "6.3.4",
     "clsx": "2.1.1",
     "drizzle-orm": "0.45.2",
@@ -55,6 +57,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwind-merge": "3.6.0",
+    "uqr": "0.1.3",
     "uuidv7": "1.2.1",
     "zod": "4.6.2"
   },

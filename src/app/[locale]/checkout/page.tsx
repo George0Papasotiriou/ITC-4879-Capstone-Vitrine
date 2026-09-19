@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/ui/states";
 import { requireLocale } from "@/i18n/params";
 import { priceCart, shippingMethod } from "@/lib/commerce/pricing";
 import { currentRegion } from "@/lib/commerce/region";
+import { currentUser } from "@/lib/auth/session";
 import { commerce, currentCartId } from "@/lib/commerce/server";
 import { DELIVERY_COUNTRIES, isDeliveryCountry, type DeliveryCountry } from "@/lib/commerce/exports";
 import { BASE_COUNTRY } from "@/lib/commerce/vat";
@@ -88,6 +89,8 @@ export default async function CheckoutPage({ params }: PageProps<"/[locale]/chec
   const startCountry: DeliveryCountry = isDeliveryCountry(region.country) ? region.country : BASE_COUNTRY;
   const itemCount = lines.reduce((sum, line) => sum + line.quantity, 0);
 
+  const user = await currentUser();
+
   return (
     <main className="mx-auto w-full max-w-[1440px] px-6 py-10 md:px-10 md:py-16">
       <h1 className="font-display text-3xl">{t("title")}</h1>
@@ -99,6 +102,7 @@ export default async function CheckoutPage({ params }: PageProps<"/[locale]/chec
           quotes={quotes}
           startCountry={startCountry}
           browsingCountry={region.country}
+          contact={user === null ? undefined : { email: user.email, name: user.name }}
         />
       </div>
     </main>

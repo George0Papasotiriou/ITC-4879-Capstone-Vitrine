@@ -75,6 +75,8 @@ export type CartChange =
 
 export type PlaceOrderInput = {
   cartId: string;
+  /** The signed-in account placing it, if any (docs/adr/016). */
+  userId?: string | null;
   locale: string;
   email: string;
   address: ShippingAddress;
@@ -113,6 +115,20 @@ export type OrderView = {
   items: { title: string; sku: string; imageSrc: string | null; unitPrice: Money; quantity: number; line: Money; productSlug: string | null }[];
   events: { from: OrderStatus | null; to: OrderStatus; event: string; actor: Actor; at: Date }[];
 };
+
+/** One line of an account's order history. */
+export type OrderSummary = {
+  id: string;
+  number: string;
+  status: OrderStatus;
+  total: Money;
+  createdAt: Date;
+  itemCount: number;
+  imageSrc: string | null;
+};
+
+/** Who is asking about an order when they hold no guest link: an account, with its address only if confirmed. */
+export type OrderOwner = { userId: string; verifiedEmail: string | null };
 
 export type ApplyEventResult =
   | { ok: true; from: OrderStatus; to: OrderStatus; effects: SideEffect[] }
@@ -192,14 +208,61 @@ export function createCommerceStore(sql: Sql) {
     return row?.count ?? 0;
   }
 
-  async function ensureCart(tx: Tx, cartId: string | null): Promise<string> {
+  async function ensureCart(tx: Tx, cartId: string | null, ownerId: string | null): Promise<string> {
     if (cartId !== null) {
       const [existing] = await tx<{ id: string }[]>`SELECT id FROM carts WHERE id = ${cartId}`;
       if (existing !== undefined) return existing.id;
     }
     const id = uuidv7();
-    await tx`INSERT INTO carts (id) VALUES (${id})`;
+    await tx`INSERT INTO carts (id, user_id) VALUES (${id}, ${ownerId})`;
     return id;
+  }
+
+  /**
+   * The cart of a guest holding this cookie, if it is still a guest cart. Once
+   * a cart belongs to an account it is only reachable by signing in: signing
+   * out must not leave the account's cart open to whoever uses the browser next.
+   */
+  async function guestCart(cartId: string | null): Promise<string | null> {
+    if (cartId === null) return null;
+    const [row] = await sql<{ id: string }[]>`SELECT id FROM carts WHERE id = ${cartId} AND user_id IS NULL`;
+    return row?.id ?? null;
+  }
+
+  /**
+   * An account's cart, taking in the guest cart the browser held before
+   * signing in (docs/PLAN.md Phase 5 step 2). With no account cart yet, the
+   * guest cart simply becomes it. Otherwise its lines are added to the
+   * account's, each capped at the per-line maximum, and the guest cart is
+   * deleted. Locked, so two tabs signing in at once cannot merge twice.
+   */
+  async function claimCart(userId: string, guestCartId: string | null): Promise<string | null> {
+    return sql.begin(async (tx) => {
+      const [owned] = await tx<{ id: string }[]>`SELECT id FROM carts WHERE user_id = ${userId} FOR UPDATE`;
+      const [guest] =
+        guestCartId === null ? [] : await tx<{ id: string }[]>`SELECT id FROM carts WHERE id = ${guestCartId} AND user_id IS NULL FOR UPDATE`;
+      if (guest === undefined) return owned?.id ?? null;
+      if (owned === undefined) {
+        await tx`UPDATE carts SET user_id = ${userId}, updated_at = now() WHERE id = ${guest.id}`;
+        return guest.id;
+      }
+      const lines = await tx<{ variant_id: string; quantity: number }[]>`SELECT variant_id, quantity FROM cart_items WHERE cart_id = ${guest.id} ORDER BY created_at`;
+      for (const line of lines) {
+        const [counted] = await tx<{ lines: number; has: boolean }[]>`
+          SELECT count(*)::int AS lines, bool_or(variant_id = ${line.variant_id}) AS has FROM cart_items WHERE cart_id = ${owned.id}
+        `;
+        if (!(counted?.has ?? false) && (counted?.lines ?? 0) >= MAX_LINES) continue;
+        await tx`
+          INSERT INTO cart_items (id, cart_id, variant_id, quantity)
+          VALUES (${uuidv7()}, ${owned.id}, ${line.variant_id}, ${Math.min(line.quantity, MAX_QUANTITY_PER_LINE)})
+          ON CONFLICT (cart_id, variant_id) DO UPDATE
+            SET quantity = LEAST(cart_items.quantity + excluded.quantity, ${MAX_QUANTITY_PER_LINE}), updated_at = now()
+        `;
+      }
+      await tx`DELETE FROM carts WHERE id = ${guest.id}`;
+      await tx`UPDATE carts SET updated_at = now() WHERE id = ${owned.id}`;
+      return owned.id;
+    });
   }
 
   /**
@@ -207,7 +270,7 @@ export function createCommerceStore(sql: Sql) {
    * at the stock and at the per-line maximum, and the caller learns the cap.
    * Setting 0 removes the line.
    */
-  async function changeLine(cartId: string | null, variantId: string, quantity: number, mode: "add" | "set"): Promise<CartChange> {
+  async function changeLine(cartId: string | null, variantId: string, quantity: number, mode: "add" | "set", ownerId: string | null = null): Promise<CartChange> {
     return sql.begin(async (tx) => {
       const [variant] = await tx<{ stock: number; active: boolean }[]>`
         SELECT v.stock, (p.status = 'active') AS active
@@ -216,7 +279,7 @@ export function createCommerceStore(sql: Sql) {
       `;
       if (variant === undefined || !variant.active) return { ok: false, reason: "not_found" } as const;
 
-      const id = await ensureCart(tx, cartId);
+      const id = await ensureCart(tx, cartId, ownerId);
       const [current] = await tx<{ quantity: number }[]>`SELECT quantity FROM cart_items WHERE cart_id = ${id} AND variant_id = ${variantId}`;
       const wanted = mode === "add" ? (current?.quantity ?? 0) + quantity : quantity;
 
@@ -301,11 +364,11 @@ export function createCommerceStore(sql: Sql) {
         INSERT INTO orders (
           id, number, status, locale, email, shipping_address, shipping_method, currency,
           subtotal_cents, shipping_cents, total_cents, vat_cents, vat_rate_per_mille, vat_country, payment_provider,
-          idempotency_key, access_token_hash, payment_expires_at, created_at, updated_at
+          idempotency_key, access_token_hash, user_id, payment_expires_at, created_at, updated_at
         ) VALUES (
           ${orderId}, ${number}, 'pending_payment', ${input.locale}, ${input.email.toLowerCase()}, ${JSON.stringify(input.address)}::text::jsonb, ${input.shipping}, ${totals.total.currency},
           ${totals.subtotal.cents}, ${totals.shipping.cents}, ${totals.total.cents}, ${totals.vat.cents}, ${totals.vatRatePerMille}, ${country}, ${input.paymentProvider},
-          ${input.idempotencyKey}, ${hashToken(accessToken)}, ${expires.toISOString()}::timestamptz, ${now.toISOString()}::timestamptz, ${now.toISOString()}::timestamptz
+          ${input.idempotencyKey}, ${hashToken(accessToken)}, ${input.userId ?? null}, ${expires.toISOString()}::timestamptz, ${now.toISOString()}::timestamptz, ${now.toISOString()}::timestamptz
         )
       `;
       for (const [index, line] of lines.entries()) {
@@ -384,6 +447,41 @@ export function createCommerceStore(sql: Sql) {
     return readOrder(orderId);
   }
 
+  /**
+   * An order for its account: placed while signed in, or placed as a guest
+   * with the address the account has confirmed. An unconfirmed address proves
+   * nothing, so it opens nothing.
+   */
+  async function orderForOwner(orderId: string, owner: OrderOwner): Promise<OrderView | null> {
+    const [row] = await sql<{ id: string }[]>`
+      SELECT id FROM orders
+      WHERE id = ${orderId} AND (user_id = ${owner.userId} OR (${owner.verifiedEmail}::text IS NOT NULL AND email = ${owner.verifiedEmail}))
+    `;
+    return row === undefined ? null : readOrder(orderId);
+  }
+
+  /** An account's orders, newest first, by the same rule as orderForOwner. */
+  async function ordersForOwner(owner: OrderOwner, limit = 50): Promise<OrderSummary[]> {
+    const rows = await sql<{ id: string; number: string; status: OrderStatus; total_cents: number; currency: string; created_at: Date; item_count: number; image_src: string | null }[]>`
+      SELECT o.id, o.number, o.status, o.total_cents, o.currency, o.created_at,
+             (SELECT COALESCE(sum(i.quantity), 0)::int FROM order_items i WHERE i.order_id = o.id) AS item_count,
+             (SELECT i.image_src FROM order_items i WHERE i.order_id = o.id ORDER BY i.created_at, i.sku LIMIT 1) AS image_src
+      FROM orders o
+      WHERE o.user_id = ${owner.userId} OR (${owner.verifiedEmail}::text IS NOT NULL AND o.email = ${owner.verifiedEmail})
+      ORDER BY o.created_at DESC, o.id DESC
+      LIMIT ${limit}
+    `;
+    return rows.map((row) => ({
+      id: row.id,
+      number: row.number,
+      status: row.status,
+      total: money(row.total_cents, row.currency),
+      createdAt: new Date(row.created_at),
+      itemCount: row.item_count,
+      imageSrc: row.image_src,
+    }));
+  }
+
   async function readOrder(orderId: string): Promise<OrderView | null> {
     type OrderRow = {
       id: string;
@@ -449,7 +547,21 @@ export function createCommerceStore(sql: Sql) {
     };
   }
 
-  return { viewCart, itemCount, changeLine, defaultVariant, placeOrder, applyEvent, expireIfDue, orderForToken, readOrder };
+  return {
+    viewCart,
+    itemCount,
+    changeLine,
+    defaultVariant,
+    guestCart,
+    claimCart,
+    placeOrder,
+    applyEvent,
+    expireIfDue,
+    orderForToken,
+    orderForOwner,
+    ordersForOwner,
+    readOrder,
+  };
 }
 
 class UnavailableError extends Error {

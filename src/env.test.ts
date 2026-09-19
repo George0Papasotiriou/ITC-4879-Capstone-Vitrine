@@ -23,7 +23,8 @@ const base = {
   DATABASE_URL: "postgres://postgres:postgres@127.0.0.1:5433/postgres",
 };
 const localSecret = { LOCAL_STORAGE_SECRET: "x".repeat(32) };
-const cookieSecret = { COOKIE_SECRET: "c".repeat(32) };
+// Production needs both signing secrets; tests about one of them remove it explicitly.
+const cookieSecret = { COOKIE_SECRET: "c".repeat(32), BETTER_AUTH_SECRET: "a".repeat(32) };
 const s3 = {
   S3_ENDPOINT: "https://bucket.example.com",
   S3_BUCKET: "vitrine",
@@ -118,5 +119,18 @@ describe("the production guard", () => {
     expect(missing.error?.issues.map((issue) => issue.path.join("."))).toContain("COOKIE_SECRET");
     expect(parseEnvironment({ ...production, COOKIE_SECRET: "short" }).success).toBe(false);
     expect(parseEnvironment({ ...base, ...localSecret }).success).toBe(true);
+  });
+
+  it("requires an auth secret of at least 32 characters in production (docs/adr/016)", () => {
+    const production = { ...base, ...s3, NODE_ENV: "production", REDIS_URL: "redis://redis.internal:6379", COOKIE_SECRET: "c".repeat(32) };
+    const missing = parseEnvironment(production);
+    expect(missing.error?.issues.map((issue) => issue.path.join("."))).toEqual(["BETTER_AUTH_SECRET"]);
+    expect(parseEnvironment({ ...production, BETTER_AUTH_SECRET: "short" }).success).toBe(false);
+    expect(parseEnvironment({ ...production, BETTER_AUTH_SECRET: "a".repeat(32) }).success).toBe(true);
+  });
+
+  it("takes Google sign-in credentials as a pair or not at all", () => {
+    expect(parseEnvironment({ ...base, ...localSecret, GOOGLE_CLIENT_ID: "id" }).success).toBe(false);
+    expect(parseEnvironment({ ...base, ...localSecret, GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "secret" }).success).toBe(true);
   });
 });

@@ -33,7 +33,8 @@ export function OrderActions({
   paid,
 }: {
   orderId: string;
-  token: string;
+  /** The guest link's token; null when the signed-in owner is looking (the server checks the session instead). */
+  token: string | null;
   /** The total, already formatted. */
   amount: string;
   canTestPay: boolean;
@@ -51,7 +52,7 @@ export function OrderActions({
       const response = await fetch(`/api/orders/${orderId}/events`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token, action }),
+        body: JSON.stringify(token === null ? { action } : { token, action }),
       }).catch(() => null);
       const result = (await response?.json().catch(() => null)) as { ok: boolean } | null;
       setConfirming(false);

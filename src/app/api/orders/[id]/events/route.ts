@@ -10,7 +10,8 @@
 import { z } from "zod";
 
 import type { OrderEventType } from "@/lib/commerce/order-state";
-import { commerce, PAYMENT_PROVIDER } from "@/lib/commerce/server";
+import { currentUser } from "@/lib/auth/session";
+import { commerce, orderOwner, PAYMENT_PROVIDER } from "@/lib/commerce/server";
 
 /**
  * What a guest can do to their own order, holding its link token.
@@ -26,7 +27,8 @@ import { commerce, PAYMENT_PROVIDER } from "@/lib/commerce/server";
 export const runtime = "nodejs";
 
 const bodySchema = z.object({
-  token: z.string().min(16).max(128),
+  /** The guest link's token; without it the signed-in owner's session is checked. */
+  token: z.string().min(16).max(128).optional(),
   action: z.enum(["cancel", "test_pay", "test_decline"]),
 });
 
@@ -42,7 +44,10 @@ export async function POST(request: Request, { params }: RouteContext<"/api/orde
   if (!z.uuid().safeParse(id).success || !parsed.success) return Response.json({ ok: false, reason: "invalid_request" }, { status: 400 });
 
   const store = await commerce();
-  const order = await store.orderForToken(id, parsed.data.token);
+  const token = parsed.data.token;
+  const user = token === undefined ? await currentUser() : null;
+  const order =
+    token !== undefined ? await store.orderForToken(id, token) : user === null ? null : await store.orderForOwner(id, orderOwner(user));
   // The same answer for a wrong id and a wrong token: nothing to learn by guessing.
   if (order === null) return Response.json({ ok: false, reason: "not_found" }, { status: 404 });
 

@@ -8,7 +8,7 @@
  */
 
 import { checkoutSchema, fieldErrors } from "@/lib/commerce/checkout-input";
-import { commerce, currentCartId, lastOrder, orderPath, PAYMENT_PROVIDER, rememberOrder } from "@/lib/commerce/server";
+import { commerce, currentCart, lastOrder, orderPath, PAYMENT_PROVIDER, rememberOrder } from "@/lib/commerce/server";
 
 /**
  * Places an order from the guest's cart (Phase 5 step 3).
@@ -26,12 +26,13 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return Response.json({ ok: false, reason: "invalid", fields: fieldErrors(parsed.error) }, { status: 422 });
   const input = parsed.data;
 
-  const cartId = await currentCartId();
+  const { cartId, userId } = await currentCart();
   if (cartId === null) return Response.json({ ok: false, reason: "empty_cart" }, { status: 409 });
 
   const store = await commerce();
   const result = await store.placeOrder({
     cartId,
+    userId,
     locale: input.locale,
     email: input.email,
     address: { name: input.name, line1: input.line1, line2: input.line2, city: input.city, postcode: input.postcode, country: input.country, region: input.region, phone: input.phone },

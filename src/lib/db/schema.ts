@@ -31,6 +31,7 @@ import { uuidv7 } from "uuidv7";
 
 // Relative, not "@/": drizzle-kit loads this file without the TypeScript path aliases.
 import { ORDER_STATUSES } from "../commerce/order-state";
+import { ROLES } from "../auth/roles";
 
 /**
  * Database schema.
@@ -367,14 +368,21 @@ export const itemNeighbors = pgTable(
 
 /**
  * A cart is only its lines. Guests hold it by a signed cookie with its id
- * (src/lib/commerce/cart-cookie.ts); it is merged into an account on sign-in
- * once accounts exist. Prices are never stored here: every view reads current
- * prices and stock, so a cart can never show a stale price.
+ * (src/lib/commerce/server.ts); a signed-in shopper's cart belongs to their
+ * account, and a guest cart is merged into it on sign-in. Prices are never
+ * stored here: every view reads current prices and stock, so a cart can never
+ * show a stale price.
  */
-export const carts = pgTable("carts", {
-  id: id(),
-  ...timestamps,
-});
+export const carts = pgTable(
+  "carts",
+  {
+    id: id(),
+    /** The owner, once signed in; null for a guest cart. One cart per account. */
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("carts_user_key").on(t.userId)],
+);
 
 export const cartItems = pgTable(
   "cart_items",
@@ -446,6 +454,12 @@ export const orders = pgTable(
     paymentReference: text("payment_reference"),
     /** Sent by the checkout form; a repeated submission returns the same order. */
     idempotencyKey: text("idempotency_key").notNull(),
+    /**
+     * The account that placed it, when signed in. Null for a guest order; a guest
+     * order also appears in the account whose verified email it was placed with.
+     * Kept (set null) if the account is deleted: the order is a legal record.
+     */
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
     /** SHA-256 of the secret in the guest's order link; the secret itself is never stored. */
     accessTokenHash: text("access_token_hash").notNull(),
     paidAt: timestamp("paid_at", { withTimezone: true }),
@@ -459,6 +473,7 @@ export const orders = pgTable(
     uniqueIndex("orders_idempotency_key").on(t.idempotencyKey),
     index("orders_status_idx").on(t.status, t.createdAt),
     index("orders_email_idx").on(t.email),
+    index("orders_user_idx").on(t.userId, t.createdAt),
     check("orders_amounts_nonnegative", sql`${t.subtotalCents} >= 0 AND ${t.shippingCents} >= 0 AND ${t.vatCents} >= 0`),
     check("orders_total_adds_up", sql`${t.totalCents} = ${t.subtotalCents} + ${t.shippingCents}`),
     check("orders_vat_rate_range", sql`${t.vatRatePerMille} BETWEEN 0 AND 300`),
@@ -508,6 +523,170 @@ export const orderEvents = pgTable(
   },
   (t) => [index("order_events_order_idx").on(t.orderId, t.createdAt)],
 );
+
+/* -------------------------------------------------------------------------- */
+/* Accounts (Phase 5, Better Auth, docs/adr/016)                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The tables Better Auth needs for email and password, email verification,
+ * passkeys, TOTP two-factor and roles. The field list comes from Better Auth
+ * itself (`getAuthTables` for this configuration), not from memory; the
+ * property names are the ones it reads and writes, and the columns follow this
+ * schema's conventions (snake_case, plural table names, UUIDv7 ids, timestamptz).
+ */
+export const users = pgTable(
+  "users",
+  {
+    id: id(),
+    name: text("name").notNull(),
+    /** Stored lower-case by Better Auth; unique. */
+    email: text("email").notNull(),
+    emailVerified: boolean("email_verified").notNull().default(false),
+    image: text("image"),
+    twoFactorEnabled: boolean("two_factor_enabled").default(false),
+    /** One of ROLES (src/lib/auth/roles.ts), or several joined by commas, as Better Auth stores them. */
+    role: text("role").notNull().default("customer"),
+    banned: boolean("banned").default(false),
+    banReason: text("ban_reason"),
+    banExpires: timestamp("ban_expires", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("users_email_key").on(t.email),
+    // Better Auth lower-cases addresses; the check makes sure nothing else writes one that is not.
+    check("users_email_lowercase", sql`${t.email} = lower(${t.email})`),
+    check("users_role_known", sql`${t.role} ~ ${sql.raw(`'^(${ROLES.join("|")})(,(${ROLES.join("|")}))*$'`)}`),
+  ],
+);
+
+/**
+ * A signed-in browser. The token is what the session cookie carries; the
+ * address and browser are kept so the account page can show "where you are
+ * signed in" and let the owner sign a device out.
+ */
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: id(),
+    token: text("token").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    /** Set when staff act as this customer (admin plugin). */
+    impersonatedBy: uuid("impersonated_by").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("sessions_token_key").on(t.token), index("sessions_user_idx").on(t.userId)],
+);
+
+/** A way to sign in: the password (provider "credential") or an outside provider such as Google. */
+export const accounts = pgTable(
+  "accounts",
+  {
+    id: id(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
+    scope: text("scope"),
+    /** A scrypt hash, never the password. */
+    password: text("password"),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("accounts_provider_key").on(t.providerId, t.accountId), index("accounts_user_idx").on(t.userId)],
+);
+
+/** Short-lived tokens: email verification and password reset links, and passkey challenges. */
+export const verifications = pgTable(
+  "verifications",
+  {
+    id: id(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (t) => [index("verifications_identifier_idx").on(t.identifier)],
+);
+
+/** TOTP two-factor: the shared secret and the one-time backup codes, both encrypted by Better Auth. */
+export const twoFactors = pgTable(
+  "two_factors",
+  {
+    id: id(),
+    secret: text("secret").notNull(),
+    backupCodes: text("backup_codes").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    verified: boolean("verified").default(true),
+    failedVerificationCount: integer("failed_verification_count").default(0),
+    lockedUntil: timestamp("locked_until", { withTimezone: true }),
+  },
+  (t) => [index("two_factors_user_idx").on(t.userId), index("two_factors_secret_idx").on(t.secret)],
+);
+
+/** A passkey (WebAuthn credential): only its public key is stored. */
+export const passkeys = pgTable(
+  "passkeys",
+  {
+    id: id(),
+    name: text("name"),
+    publicKey: text("public_key").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    credentialID: text("credential_id").notNull(),
+    counter: integer("counter").notNull(),
+    deviceType: text("device_type").notNull(),
+    backedUp: boolean("backed_up").notNull(),
+    transports: text("transports"),
+    aaguid: text("aaguid"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index("passkeys_user_idx").on(t.userId), uniqueIndex("passkeys_credential_key").on(t.credentialID)],
+);
+
+/**
+ * Every email the shop sends, as sent (docs/adr/016). Until an email provider
+ * is connected this IS the delivery: the local outbox page shows it, and the
+ * end-to-end tests follow verification links from it. Rows hold one-time links,
+ * so they are readable only on the local stack or by an admin, and are deleted
+ * after a week.
+ */
+export const emailOutbox = pgTable(
+  "email_outbox",
+  {
+    id: id(),
+    toAddress: text("to_address").notNull(),
+    /** verify_email, reset_password, order_confirmation, … */
+    kind: text("kind").notNull(),
+    locale: text("locale").notNull(),
+    subject: text("subject").notNull(),
+    textBody: text("text_body").notNull(),
+    htmlBody: text("html_body").notNull(),
+    /** "outbox" when only stored here; "resend" when also handed to Resend. */
+    transport: text("transport").notNull(),
+    providerId: text("provider_id"),
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("email_outbox_to_idx").on(t.toAddress, t.createdAt), index("email_outbox_created_idx").on(t.createdAt)],
+);
+
+export type User = typeof users.$inferSelect;
+export type Session = typeof sessions.$inferSelect;
+export type EmailOutboxRow = typeof emailOutbox.$inferSelect;
 
 export type Cart = typeof carts.$inferSelect;
 export type CartItem = typeof cartItems.$inferSelect;
