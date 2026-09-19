@@ -92,6 +92,10 @@ export function isPrivateAddress(ip: ParsedIp): boolean {
   return loopback || (first & 0xfe00) === 0xfc00 || (first & 0xffc0) === 0xfe80 || (ip.high === 0n && ip.low === 0n);
 }
 
+const BINARY_MAGIC = "VGEO";
+const BINARY_VERSION = 1;
+const LITTLE_ENDIAN = new Uint8Array(new Uint16Array([1]).buffer)[0] === 1;
+
 export class IpCountryIndex {
   private constructor(
     private readonly v4Start: Uint32Array,
@@ -159,6 +163,80 @@ export class IpCountryIndex {
       Uint16Array.from(v6, (row) => row[4]),
       countries,
     );
+  }
+
+  /**
+   * The index as one block of bytes, so a server can load it instead of the CSV.
+   *
+   * Parsing DB-IP's 717,000-range CSV takes about four seconds and 200 MB of
+   * short-lived strings at start-up; the typed arrays it ends as are 8 MB. This
+   * writes those arrays as they are, after a small header, and `fromBinary`
+   * copies them back: a read and a few memory copies instead of 717,000 lines of
+   * text parsing. Little-endian throughout, as every server this runs on is.
+   *
+   *   bytes 0–3    "VGEO"               a file of the wrong kind is refused
+   *   4–7          format version, 1
+   *   8–19         IPv4 ranges, IPv6 ranges, countries (u32 each)
+   *   20…          countries, two ASCII letters each
+   *   then, each starting on an 8-byte boundary:
+   *                IPv4 starts (u32), ends (u32), country numbers (u16)
+   *                IPv6 starts and ends (u64 high, u64 low), country numbers (u16)
+   */
+  toBinary(): Uint8Array {
+    const align = (offset: number) => Math.ceil(offset / 8) * 8;
+    const v4 = this.v4Start.length;
+    const v6 = this.v6Country.length;
+    const layout: [ArrayBufferView, number][] = [];
+    let offset = align(20 + 2 * this.countries.length);
+    for (const array of [this.v4Start, this.v4End, this.v4Country, this.v6Start, this.v6End, this.v6Country]) {
+      offset = align(offset);
+      layout.push([array, offset]);
+      offset += array.byteLength;
+    }
+    const bytes = new Uint8Array(offset);
+    const header = new DataView(bytes.buffer);
+    bytes.set([...BINARY_MAGIC].map((letter) => letter.charCodeAt(0)), 0);
+    header.setUint32(4, BINARY_VERSION, true);
+    header.setUint32(8, v4, true);
+    header.setUint32(12, v6, true);
+    header.setUint32(16, this.countries.length, true);
+    this.countries.forEach((code, index) => bytes.set([code.charCodeAt(0), code.charCodeAt(1)], 20 + 2 * index));
+    for (const [array, at] of layout) bytes.set(new Uint8Array(array.buffer, array.byteOffset, array.byteLength), at);
+    return bytes;
+  }
+
+  /** The index written by `toBinary`. Throws on a file of the wrong kind, version or length. */
+  static fromBinary(bytes: Uint8Array): IpCountryIndex {
+    if (!LITTLE_ENDIAN) throw new Error("The binary IP database is little-endian; use the CSV on this machine");
+    const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const magic = String.fromCharCode(...bytes.subarray(0, 4));
+    if (bytes.byteLength < 20 || magic !== BINARY_MAGIC) throw new Error("Not a Vitrine IP database");
+    const version = header.getUint32(4, true);
+    if (version !== BINARY_VERSION) throw new Error(`IP database format ${version}, expected ${BINARY_VERSION}`);
+    const v4 = header.getUint32(8, true);
+    const v6 = header.getUint32(12, true);
+    const countryCount = header.getUint32(16, true);
+    const countries = Array.from({ length: countryCount }, (_, index) => String.fromCharCode(bytes[20 + 2 * index]!, bytes[21 + 2 * index]!));
+
+    const align = (offset: number) => Math.ceil(offset / 8) * 8;
+    let offset = align(20 + 2 * countryCount);
+    // Copies, not views: the file's buffer need not start on the boundary a typed array needs.
+    const take = <T>(Kind: { new (buffer: ArrayBuffer): T; BYTES_PER_ELEMENT: number }, length: number): T => {
+      offset = align(offset);
+      const byteLength = length * Kind.BYTES_PER_ELEMENT;
+      if (offset + byteLength > bytes.byteLength) throw new Error("The IP database file is truncated");
+      // `new Uint8Array(view)` copies; `slice` would not on a Node Buffer, whose slice is a view.
+      const copy = new Uint8Array(bytes.subarray(offset, offset + byteLength));
+      offset += byteLength;
+      return new Kind(copy.buffer);
+    };
+    const v4Start = take(Uint32Array, v4);
+    const v4End = take(Uint32Array, v4);
+    const v4Country = take(Uint16Array, v4);
+    const v6Start = take(BigUint64Array, 2 * v6);
+    const v6End = take(BigUint64Array, 2 * v6);
+    const v6Country = take(Uint16Array, v6);
+    return new IpCountryIndex(v4Start, v4End, v4Country, v6Start, v6End, v6Country, countries);
   }
 
   lookup(address: string): string | null {

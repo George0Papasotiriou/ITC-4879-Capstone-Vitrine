@@ -79,6 +79,13 @@ export type DepthManifest = {
   /** SHA-256 of the model file, hex: checked before the model is used. */
   sha256?: string;
   bytes?: number;
+  /**
+   * The focal length, in pixels of the model's input, that its metric distances
+   * assume: its training camera (598 for Depth Anything V2 Metric Indoor, from
+   * Hypersim). Lets the geometry correct the distances for the photo's own lens
+   * (`DepthMap.focal`). Absent for a model that is told the lens or is not metric.
+   */
+  canonicalFocal?: number;
 };
 
 /** Bytes received so far and in total, while the model downloads for the first time. */
@@ -287,7 +294,8 @@ async function load(onProgress?: DownloadProgress): Promise<LoadDepthModel> {
         const values = output.data instanceof Float32Array ? output.data : Float32Array.from(output.data);
         const depth = depthToPhoto(values, box, image.width, image.height);
         this.lastMs = performance.now() - started;
-        return depth;
+        // The training camera's focal length, carried from model pixels to photo pixels.
+        return manifest.canonicalFocal === undefined ? depth : { ...depth, focal: manifest.canonicalFocal * box.scale };
       },
       dispose() {
         void session.release?.();

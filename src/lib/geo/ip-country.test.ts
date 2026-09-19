@@ -110,6 +110,32 @@ describe("country lookup", () => {
   });
 });
 
+describe("the compiled database", () => {
+  const index = IpCountryIndex.fromCsv(CSV);
+  const probes = ["5.54.0.0", "5.55.255.255", "2.16.3.4", "31.14.200.1", "1.0.1.0", "2a02:585:1234::1", "2600:1f18::1", "2a02:588::1"];
+
+  it("reads back to the same answers", () => {
+    const back = IpCountryIndex.fromBinary(index.toBinary());
+    expect(back.size).toBe(index.size);
+    for (const probe of probes) expect(back.lookup(probe)).toBe(index.lookup(probe));
+  });
+
+  it("reads from a Node buffer that starts part-way into a larger one", () => {
+    // What readFileSync can hand back: a view into a shared pool, not aligned for 32-bit reads.
+    const bytes = index.toBinary();
+    const pool = Buffer.alloc(bytes.byteLength + 3);
+    pool.set(bytes, 3);
+    const back = IpCountryIndex.fromBinary(pool.subarray(3));
+    for (const probe of probes) expect(back.lookup(probe)).toBe(index.lookup(probe));
+  });
+
+  it("refuses a file of the wrong kind or cut short", () => {
+    const bytes = index.toBinary();
+    expect(() => IpCountryIndex.fromBinary(new TextEncoder().encode("1.0.0.0,1.0.0.255,AU\n".repeat(4)))).toThrow("Not a Vitrine IP database");
+    expect(() => IpCountryIndex.fromBinary(bytes.subarray(0, bytes.byteLength - 8))).toThrow("truncated");
+  });
+});
+
 describe("client address from proxy headers", () => {
   const headers = (entries: Record<string, string>) => ({ get: (name: string) => entries[name] ?? null });
 

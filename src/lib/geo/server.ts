@@ -22,21 +22,30 @@ import { logger } from "@/lib/log";
  */
 
 export const DEFAULT_GEOIP_PATH = path.join(".local", "geoip", "dbip-country-lite.csv");
+/** The same database compiled by `pnpm geoip update` (or `compile`): loads in milliseconds instead of seconds. */
+export const DEFAULT_GEOIP_BINARY = path.join(".local", "geoip", "dbip-country-lite.bin");
 
 let loaded: { index: IpCountryIndex | null; path: string | null; mtimeMs: number } | undefined;
 
-function database(): IpCountryIndex | null {
+/** The file to read: the configured one, else the compiled copy, else the CSV. */
+function databaseFile(): string | null {
   const configured = serverEnv().GEOIP_DATABASE;
-  const file = configured ?? (existsSync(DEFAULT_GEOIP_PATH) ? DEFAULT_GEOIP_PATH : null);
+  if (configured !== undefined) return configured;
+  if (existsSync(DEFAULT_GEOIP_BINARY)) return DEFAULT_GEOIP_BINARY;
+  return existsSync(DEFAULT_GEOIP_PATH) ? DEFAULT_GEOIP_PATH : null;
+}
+
+function database(): IpCountryIndex | null {
+  const file = databaseFile();
   if (file === null) return null;
   try {
     const { mtimeMs } = statSync(file);
     // Reload after `pnpm geoip update` replaces the file; otherwise keep the parsed index.
     if (loaded !== undefined && loaded.path === file && loaded.mtimeMs === mtimeMs) return loaded.index;
     const started = Date.now();
-    const index = IpCountryIndex.fromCsv(readFileSync(file, "utf8"));
+    const index = file.endsWith(".bin") ? IpCountryIndex.fromBinary(readFileSync(file)) : IpCountryIndex.fromCsv(readFileSync(file, "utf8"));
     loaded = { index, path: file, mtimeMs };
-    logger.info({ geoip: { ranges: index.size, ms: Date.now() - started } }, "IP country database loaded");
+    logger.info({ geoip: { ranges: index.size, ms: Date.now() - started, format: file.endsWith(".bin") ? "binary" : "csv" } }, "IP country database loaded");
     return index;
   } catch (error) {
     logger.warn({ err: error, geoip: { file } }, "IP country database could not be read; prices default to Greece");

@@ -81,7 +81,9 @@ const rawSchema = z.object({
 
   /**
    * Prices by country (docs/adr/013). GEOIP_DATABASE: path to an IP-to-country
-   * CSV (`pnpm geoip update` fetches DB-IP Lite). GEO_COUNTRY_HEADER: a request
+   * database, preferably the compiled `.bin` that `pnpm geoip update` writes next
+   * to the DB-IP Lite CSV (loads in milliseconds; the CSV takes seconds and is
+   * still accepted). GEO_COUNTRY_HEADER: a request
    * header that already carries the country, set only behind a CDN that
    * overwrites it (Cloudflare: cf-ipcountry). Both optional; without them prices
    * are shown for Greece until the shopper chooses a country.

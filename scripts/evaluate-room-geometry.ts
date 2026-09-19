@@ -342,8 +342,11 @@ ${ransac.map((row) => `| ${pct(row.outlierShare, 0)} | ${row.prior ? "yes" : "no
 When the wall has more points than the floor, the largest plane is the wall: RANSAC
 answers "the biggest plane", not "the floor". With the gravity prior, candidate planes
 tilted more than 25° from the expected floor normal are never considered, which removes
-that failure. The automatic (depth) mode will take the expected normal from the phone's
-motion sensors when available and from the image's down axis otherwise.
+that failure on this test. The automatic (depth) mode does not rely on it, though: on
+real room photos a prior wide enough for a tilted phone made RANSAC return bands of
+wall cut at the edge of the allowed tilt (E4, web photos). It fits the room's planes
+freely instead and chooses the floor among the ones parallel to the most level
+(section 7).
 
 ## 7. Placing without the sheet of paper (ADR-014)
 

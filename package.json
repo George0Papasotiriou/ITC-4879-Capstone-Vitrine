@@ -18,6 +18,7 @@
     "evals:stylist": "node scripts/local.mjs run scripts/evaluate-stylist.ts",
     "evals:room": "tsx scripts/evaluate-room-geometry.ts",
     "evals:room-real": "tsx scripts/evaluate-room-real.ts",
+    "evals:room-web": "tsx scripts/evaluate-room-web.ts",
     "depth-model": "tsx scripts/depth-model.ts",
     "geoip": "tsx scripts/geoip.ts",
     "worker:dev": "tsx watch src/worker/index.ts",

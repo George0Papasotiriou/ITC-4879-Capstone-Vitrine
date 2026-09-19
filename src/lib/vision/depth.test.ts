@@ -163,6 +163,65 @@ describe("floorFromDepth on exact depth", () => {
     expect(error).toBeLessThan(0.13);
   });
 
+  it("finds a thin strip of floor under a wall that fills most of the photo", () => {
+    // Camera level, 1 m up, a wall 2.5 m ahead: the floor is the bottom tenth of the picture.
+    // With RANSAC restricted to near-level planes, bands of this wall cut at the limit won instead.
+    const pose = lookAtPose([0, -1.5, 1], [0, 1, 1]);
+    const depth = renderDepth(K, pose, WIDTH, HEIGHT, { wallY: 1 });
+    const floor = floorFromDepth(depth, K, { random: seededRandom(17) })!;
+    expect(floor).not.toBeNull();
+    expect(floor.tiltDegrees).toBeLessThan(2);
+    // The foot of the wall sits inside the floor's inlier band; it is the wall's, and stays out.
+    expect(floor.cameraHeight).toBeCloseTo(1, 2);
+    expect(sizeErrorAt([160, 225], { K, pose }, { K, pose: floor.pose })!).toBeLessThan(0.01);
+  });
+
+  it("does not take a wall leaning away from the camera for the floor", () => {
+    // A monocular model often draws the top of the back wall further away than its foot, which
+    // makes the wall look like a floor tilted 65° — inside the tilt limit, and 3.2 m from the
+    // camera, further than the real floor 1.2 m below. Only planes parallel to the most level one
+    // may be the floor, so the wall is never a candidate. Drawn directly: level camera, floor
+    // y = 1.2, wall meeting it 3 m ahead and leaning back by 25°.
+    const h = 1.2;
+    const D = 3;
+    const lean = Math.tan((25 * Math.PI) / 180);
+    const data = new Float32Array(WIDTH * HEIGHT);
+    for (let v = 0; v < HEIGHT; v += 1) {
+      for (let u = 0; u < WIDTH; u += 1) {
+        const ry = (v + 0.5 - K[5]) / K[4];
+        const toFloor = ry > 0 ? h / ry : Infinity;
+        const toWall = (D + h * lean) / (1 + ry * lean);
+        data[v * WIDTH + u] = Math.min(toFloor, toWall > 0 && toWall * ry <= h ? toWall : Infinity);
+      }
+    }
+    const floor = floorFromDepth({ data, width: WIDTH, height: HEIGHT }, K, { random: seededRandom(19) })!;
+    expect(floor).not.toBeNull();
+    expect(floor.cameraHeight).toBeCloseTo(h, 2);
+    expect(floor.tiltDegrees).toBeLessThan(2);
+  });
+
+  it("corrects a metric model's distances for the lens that took the photo", () => {
+    // A model trained with a 47° lens, shown a photo from a 69° phone camera, answers as if its
+    // own camera had taken it: every distance is too long by f_model / f_photo, about 1.59.
+    const { pose, centre } = scene();
+    const truth = renderDepth(K, pose, WIDTH, HEIGHT, { wallY: 3 });
+    const modelFocal = focalFromFov(47, WIDTH);
+    const stretch = modelFocal / K[0];
+    const model = { ...truth, data: truth.data.map((z) => z * stretch) as Float32Array };
+
+    // Told which lens its distances assume, the geometry puts the room back at its true depth.
+    const corrected = floorFromDepth({ ...model, focal: modelFocal }, K, { random: seededRandom(31) })!;
+    expect(corrected.lensFactor).toBeCloseTo(1 / stretch, 9);
+    expect(corrected.cameraHeight).toBeCloseTo(centre[2], 2);
+    expect(sizeErrorAt([160, 200], { K, pose }, { K, pose: corrected.pose })!).toBeLessThan(0.02);
+
+    // Not told, the room is 1.6 times too deep and a piece is drawn about a third too small.
+    const uncorrected = floorFromDepth(model, K, { random: seededRandom(31) })!;
+    expect(uncorrected.lensFactor).toBe(1);
+    expect(uncorrected.cameraHeight).toBeGreaterThan(centre[2] * 1.3);
+    expect(sizeErrorAt([160, 200], { K, pose }, { K, pose: uncorrected.pose })!).toBeGreaterThan(0.25);
+  });
+
   it("returns nothing for an empty or tiny depth map", () => {
     expect(floorFromDepth({ data: new Float32Array(16), width: 4, height: 4 }, K)).toBeNull();
     expect(judgeFloor(null)).toEqual({ ok: false, reason: "no_floor" });

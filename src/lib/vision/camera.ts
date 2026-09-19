@@ -530,6 +530,14 @@ export type Plane = { normal: Vec3; d: number };
  * wall. With `expectedNormal` (the camera's down direction, from the phone's
  * motion sensors or simply the image's down axis for an upright photo), planes
  * tilted more than `maxAngleDegrees` from it are never considered.
+ *
+ * SPEED. A depth map gives some 65,000 points, and counting all of them for
+ * each of up to 2,000 trials is 130 million distance tests per plane — two
+ * seconds on a phone's main thread for the six planes of a room. So each trial
+ * is scored on a fixed random subset of `scoreSample` points, and only the
+ * winner is counted in full. The share of inliers read off 4,096 points has a
+ * binomial standard error of √(w(1 − w)/n) ≤ 0.8%, far below the difference
+ * between a floor and anything that competes with it.
  */
 export function fitPlaneRansac(
   points: readonly Vec3[],
@@ -540,22 +548,41 @@ export function fitPlaneRansac(
     random = Math.random,
     expectedNormal,
     maxAngleDegrees = 25,
-  }: { threshold: number; confidence?: number; maxIterations?: number; random?: () => number; expectedNormal?: Vec3; maxAngleDegrees?: number },
+    scoreSample = 4_096,
+  }: {
+    threshold: number;
+    confidence?: number;
+    maxIterations?: number;
+    random?: () => number;
+    expectedNormal?: Vec3;
+    maxAngleDegrees?: number;
+    scoreSample?: number;
+  },
 ): { plane: Plane; inliers: number[]; iterations: number } | null {
   if (points.length < 3) return null;
   const minCosine = Math.cos((maxAngleDegrees * Math.PI) / 180);
-  let best: { plane: Plane; inliers: number[] } | null = null;
+  // The scoring subset: a partial Fisher–Yates shuffle, so every point is equally likely.
+  let scored: readonly Vec3[] = points;
+  if (points.length > scoreSample) {
+    const order = Array.from(points.keys());
+    for (let i = 0; i < scoreSample; i += 1) {
+      const j = i + Math.floor(random() * (order.length - i));
+      [order[i], order[j]] = [order[j]!, order[i]!];
+    }
+    scored = order.slice(0, scoreSample).map((index) => points[index]!);
+  }
+  let best: { plane: Plane; count: number } | null = null;
   let needed = maxIterations;
   let iterations = 0;
 
   while (iterations < Math.min(needed, maxIterations)) {
     iterations += 1;
-    const i = Math.floor(random() * points.length);
-    const j = Math.floor(random() * points.length);
-    const k = Math.floor(random() * points.length);
+    const i = Math.floor(random() * scored.length);
+    const j = Math.floor(random() * scored.length);
+    const k = Math.floor(random() * scored.length);
     if (i === j || j === k || i === k) continue;
-    const a = points[i]!;
-    const normalRaw = cross3(sub3(points[j]!, a), sub3(points[k]!, a));
+    const a = scored[i]!;
+    const normalRaw = cross3(sub3(scored[j]!, a), sub3(scored[k]!, a));
     const length = norm3(normalRaw);
     if (length < 1e-12) continue;
     const normal = scale3(normalRaw, 1 / length);
@@ -563,24 +590,28 @@ export function fitPlaneRansac(
     if (expectedNormal !== undefined && Math.abs(dot3(normal, expectedNormal)) < minCosine) continue;
     const d = -dot3(normal, a);
 
-    const inliers: number[] = [];
-    points.forEach((p, index) => {
-      if (Math.abs(dot3(normal, p) + d) <= threshold) inliers.push(index);
-    });
-    if (best === null || inliers.length > best.inliers.length) {
-      best = { plane: { normal, d }, inliers };
-      const w = inliers.length / points.length;
+    let count = 0;
+    for (const p of scored) if (Math.abs(dot3(normal, p) + d) <= threshold) count += 1;
+    if (best === null || count > best.count) {
+      best = { plane: { normal, d }, count };
+      const w = count / scored.length;
       needed = w >= 1 ? 1 : Math.ceil(Math.log(1 - confidence) / Math.log(1 - w ** 3));
     }
   }
-  if (best === null || best.inliers.length < 3) return null;
+  if (best === null || best.count < 3) return null;
 
-  const plane = refitPlane(best.inliers.map((index) => points[index]!));
-  const inliers: number[] = [];
-  points.forEach((p, index) => {
-    if (Math.abs(dot3(plane.normal, p) + plane.d) <= threshold) inliers.push(index);
-  });
-  return { plane, inliers, iterations };
+  // The winner, counted on every point, then refitted to them all by least squares.
+  const inliersOf = (plane: Plane) => {
+    const found: number[] = [];
+    points.forEach((p, index) => {
+      if (Math.abs(dot3(plane.normal, p) + plane.d) <= threshold) found.push(index);
+    });
+    return found;
+  };
+  const first = inliersOf(best.plane);
+  if (first.length < 3) return null;
+  const plane = refitPlane(first.map((index) => points[index]!));
+  return { plane, inliers: inliersOf(plane), iterations };
 }
 
 /** Least-squares plane: centroid and the covariance eigenvector with the smallest eigenvalue. */

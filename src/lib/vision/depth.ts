@@ -37,9 +37,10 @@ import {
  * part that decides whether a sofa is drawn at the right size:
  *
  *   1. Back-project a grid of pixels to 3D points in camera coordinates.
- *   2. Find the floor among them (RANSAC with a gravity prior, camera.ts), and
- *      prefer the LOWEST strong horizontal plane, because a table top is
- *      horizontal too and the floor is the one underneath it.
+ *   2. Fit the room's big planes (RANSAC, camera.ts), keep the ones close to
+ *      level, and prefer the LOWEST strong one among those parallel to the most
+ *      level, because a table top is horizontal too and the floor is the one
+ *      underneath it.
  *   3. Turn that plane into the same kind of pose the paper method produces, so
  *      everything downstream — dragging, the grid, the true-scale product — is
  *      unchanged.
@@ -63,6 +64,24 @@ export type DepthMap = {
   data: ArrayLike<number>;
   width: number;
   height: number;
+  /**
+   * The focal length, in this map's pixels, that its distances assume — set by
+   * a metric model that cannot be told which lens took the photo. Absent when
+   * the distances are true for any lens (the drawn sample room, a test scene).
+   *
+   * WHY IT MATTERS. A single-image metric model judges distance mostly by how
+   * big familiar things look, and it learned what "big" means from one camera:
+   * Depth Anything V2 Metric Indoor was fine-tuned on Hypersim, rendered at 60°
+   * and resized so that lens is about 598 px on its 518 px input. Shown a photo
+   * from any other lens, it answers as if that camera had taken it, so every
+   * distance is off by the ratio of the two focal lengths — a phone's 69° main
+   * camera makes the room look 1.6 times deeper than it is, and a sofa placed
+   * in it 37% too small. Undoing that is Metric3D's "canonical camera"
+   * transformation (Yin et al., ICCV 2023): multiply each distance by
+   * f_photo / f_model. `sampleDepth` does it, so everything downstream sees the
+   * room at its true depth for the lens in K.
+   */
+  focal?: number;
 };
 
 export type FloorFromDepthOptions = {
@@ -90,6 +109,8 @@ export type FloorFromDepth = {
   cameraHeight: number;
   /** Factor applied to the depth map to make it metric (1 when it already was). */
   scale: number;
+  /** Factor applied for the photo's lens, f_photo / f_model (1 when the map did not say; see `DepthMap.focal`). */
+  lensFactor: number;
   /** Share of the sampled points lying on the floor plane. */
   floorShare: number;
   /** Share of the sampled points in the lower third of the photo that lie on the floor. */
@@ -104,7 +125,7 @@ export type FloorFromDepth = {
   planeRmsRelative: number;
   /** How far the camera was tilted from level, degrees: 0 looking at the horizon, 90 straight down. */
   tiltDegrees: number;
-  /** The floor plane in camera coordinates, before scaling. */
+  /** The floor plane in camera coordinates, after the lens factor and before scaling. */
   plane: Plane;
   /** Sampled points on the floor, in image coordinates: drawn as the "floor found" overlay. */
   floorPixels: [number, number][];
@@ -112,16 +133,28 @@ export type FloorFromDepth = {
 
 type Sample = { point: Vec3; u: number; v: number };
 
-/** Back-projects a grid of pixels, keeping where each came from. p = z · K⁻¹·(u, v, 1) / (K⁻¹·(u, v, 1))_z. */
+/**
+ * How much a map's distances must be stretched for the lens in K: f_photo /
+ * f_model when the map says which lens its distances assume, 1 otherwise.
+ */
+export function lensFactor(depth: DepthMap, K: Mat3): number {
+  return depth.focal === undefined || !(depth.focal > 0) ? 1 : K[0] / depth.focal;
+}
+
+/**
+ * Back-projects a grid of pixels, keeping where each came from.
+ * p = z · λ · K⁻¹·(u, v, 1) / (K⁻¹·(u, v, 1))_z, with λ the lens factor above.
+ */
 export function sampleDepth(depth: DepthMap, K: Mat3, stride: number): Sample[] {
   const Kinv = invert3(K);
+  const lens = lensFactor(depth, K);
   const out: Sample[] = [];
   for (let v = 0; v < depth.height; v += stride) {
     for (let u = 0; u < depth.width; u += stride) {
       const z = depth.data[v * depth.width + u];
       if (z === undefined || !(z > 0) || !Number.isFinite(z)) continue;
       const ray = mulMat3Vec(Kinv, [u, v, 1]);
-      out.push({ point: scale3(ray, z / ray[2]), u, v });
+      out.push({ point: scale3(ray, (z * lens) / ray[2]), u, v });
     }
   }
   return out;
@@ -133,6 +166,14 @@ export function sampleDepth(depth: DepthMap, K: Mat3, stride: number): Sample[] 
  * candidate floor against, and the tilt is measured from it.
  */
 const CAMERA_UP: Vec3 = [0, -1, 0];
+
+/**
+ * How far apart two planes' normals may be and still count as the same
+ * direction: a table top and the floor under it, each fitted to a noisy depth
+ * map. A wall is 90° from the floor; the steepest plane the tilt limit lets
+ * through a level photo is still 60° or more away from it.
+ */
+const PARALLEL_DEGREES = 20;
 
 /**
  * A pose from a floor plane in camera coordinates.
@@ -209,33 +250,61 @@ export function floorFromDepth(depth: DepthMap, K: Mat3, options: FloorFromDepth
   const median = depths[Math.floor(depths.length / 2)]!;
   const threshold = Math.max(1e-6, 0.015 * median);
 
-  type Candidate = { plane: Plane; inliers: Sample[]; distance: number };
+  type Candidate = { plane: Plane; inliers: Sample[]; distance: number; up: Vec3; tilt: number };
   const candidates: Candidate[] = [];
+  /** Every plane fitted, candidate or not: the walls among them keep their points out of the floor below. */
+  const fitted: { plane: Plane; up: Vec3 }[] = [];
   let remaining = samples;
-  // Five rounds, not three: a wall, a ceiling and two tables can each take a
-  // round before the floor is reached, and a floor missed is a sofa drawn at a
-  // table's scale.
-  for (let round = 0; round < 5 && remaining.length >= 64; round += 1) {
-    const fit = fitPlaneRansac(
-      remaining.map((sample) => sample.point),
-      { threshold, random, expectedNormal: CAMERA_UP, maxAngleDegrees: maxTiltDegrees },
-    );
+  /*
+   * The room's big planes, one after another, each on the points the previous
+   * ones did not claim — walls included, on purpose. An earlier version told
+   * RANSAC to consider only planes within the tilt limit, to reach the floor
+   * sooner. Forbidden the back wall, it returned the steepest plane it was
+   * allowed instead: a band of wall points cut at exactly the limit, which held
+   * more points than a strip of floor and took round after round (evaluation E4,
+   * web photos: the floor was never reached in the wardrobe and bookcase photos).
+   * Fitted freely, a wall comes out as a wall and is simply not a candidate.
+   * Six rounds: two walls, a ceiling and two table tops can each take one before
+   * the floor, and a floor missed is a sofa drawn at a table's scale.
+   */
+  for (let round = 0; round < 6 && remaining.length >= 64; round += 1) {
+    const fit = fitPlaneRansac(remaining.map((sample) => sample.point), { threshold, random });
     if (fit === null) break;
     const inlierSet = new Set(fit.inliers);
     const inliers = remaining.filter((_, index) => inlierSet.has(index));
     remaining = remaining.filter((_, index) => !inlierSet.has(index));
     // The normal pointing back at the camera must point upwards: a ceiling's points down.
     const up = scale3(fit.plane.normal, fit.plane.d >= 0 ? 1 : -1);
-    if (angleDegrees(up, CAMERA_UP) <= maxTiltDegrees) {
-      candidates.push({ plane: fit.plane, inliers, distance: Math.abs(fit.plane.d) });
+    const tilt = angleDegrees(up, CAMERA_UP);
+    fitted.push({ plane: fit.plane, up });
+    if (tilt <= maxTiltDegrees) {
+      candidates.push({ plane: fit.plane, inliers, distance: Math.abs(fit.plane.d), up, tilt });
     }
   }
   if (candidates.length === 0) return null;
 
-  // The floor is the lowest plane that still holds a real share of the picture.
-  const strongest = Math.max(...candidates.map((candidate) => candidate.inliers.length));
-  const floor = candidates
-    .filter((candidate) => candidate.inliers.length >= Math.max(0.3 * strongest, 0.04 * samples.length))
+  /*
+   * The floor is the lowest plane that still holds a real share of the picture —
+   * but only among the horizontal ones, and "horizontal" is decided by the planes
+   * themselves, not by the tilt limit alone. A photo taken slightly upwards sees
+   * the back wall within the limit (pitched up 20°, the wall reads as a floor
+   * tilted 70°), and a monocular model often leans walls towards the camera,
+   * which does the same. That wall is two or three metres away, further than
+   * the floor is below the camera, so "lowest" alone would pick it.
+   *
+   * Every horizontal surface in a room is parallel to the floor, so the candidate
+   * closest to level fixes which way is up, and only planes parallel to it — the
+   * floor and table tops, never a wall — compete to be the lowest.
+   */
+  // "A real share" is judged among the horizontal planes only: a strip of floor under a
+  // wall that fills the photo is small next to the wall, and it is still the floor.
+  const minimum = 0.04 * samples.length;
+  const level = candidates.filter((candidate) => candidate.inliers.length >= minimum).sort((a, b) => a.tilt - b.tilt)[0];
+  if (level === undefined) return null;
+  const horizontal = candidates.filter((candidate) => angleDegrees(candidate.up, level.up) <= PARALLEL_DEGREES);
+  const strongest = Math.max(...horizontal.map((candidate) => candidate.inliers.length));
+  const floor = horizontal
+    .filter((candidate) => candidate.inliers.length >= Math.max(0.3 * strongest, minimum))
     .sort((a, b) => b.distance - a.distance)[0];
   if (floor === undefined) return null;
 
@@ -252,12 +321,23 @@ export function floorFromDepth(depth: DepthMap, K: Mat3, options: FloorFromDepth
    * stays well inside the 40 cm that separates a floor from a table top, so a
    * wider band does not start swallowing the furniture, and the plane is refitted
    * on the points it ends up with.
+   *
+   * Where a wall meets the floor, the foot of the wall lies inside that band. A
+   * point nearer to a wall than to the floor is the wall's, and stays out: left
+   * in, a few rows of wall tilted the floor enough to put the camera 7% too high
+   * when the wall leans (the unit test with a wall leaning back by 25°).
    */
+  const walls = fitted.filter((other) => angleDegrees(other.up, level.up) > PARALLEL_DEGREES).map((other) => other.plane);
+  const distanceTo = (surface: Plane, point: Vec3) => Math.abs(dot3(surface.normal, point) + surface.d);
+  const within = (surface: Plane, width: number) => (sample: Sample) => {
+    const own = distanceTo(surface, sample.point);
+    return own <= width && walls.every((wall) => distanceTo(wall, sample.point) >= own);
+  };
   let plane = refitPlane(floor.inliers.map((sample) => sample.point));
   let band = threshold;
   let onFloor = floor.inliers;
   for (let pass = 0; pass < 3; pass += 1) {
-    onFloor = samples.filter((sample) => Math.abs(dot3(plane.normal, sample.point) + plane.d) <= band);
+    onFloor = samples.filter(within(plane, band));
     if (onFloor.length < 32) return null;
     plane = refitPlane(onFloor.map((sample) => sample.point));
     const scatter = Math.sqrt(
@@ -267,7 +347,7 @@ export function floorFromDepth(depth: DepthMap, K: Mat3, options: FloorFromDepth
     if (wider <= band * 1.05) break;
     band = wider;
   }
-  onFloor = samples.filter((sample) => Math.abs(dot3(plane.normal, sample.point) + plane.d) <= band);
+  onFloor = samples.filter(within(plane, band));
   if (onFloor.length < 32) return null;
 
   const rawHeight = Math.abs(plane.d);
@@ -286,6 +366,7 @@ export function floorFromDepth(depth: DepthMap, K: Mat3, options: FloorFromDepth
     pose: solved.pose,
     cameraHeight: solved.height,
     scale,
+    lensFactor: lensFactor(depth, K),
     floorShare: onFloor.length / samples.length,
     coverage: lower.length === 0 ? 0 : lowerFloor.length / lower.length,
     planeRms,

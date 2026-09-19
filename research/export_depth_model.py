@@ -39,6 +39,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import time
 from pathlib import Path
 
@@ -46,6 +47,15 @@ MODEL_ID = "depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf"
 # The backbone works in 14-pixel patches: 518 = 37 x 14, the size the model was trained at.
 INPUT_SIZE = 518
 FILENAME = "depth-anything-v2-metric-indoor-small.onnx"
+# The camera the metric head learned distances from. Hypersim renders at 1024 x 768
+# with a 60 degree horizontal field of view, and fine-tuning resized its short side
+# to the input size, so on the model's input that lens is 512 / tan(30 deg) x 518 / 768
+# = 598 px. The model answers as if every photo came from it; the app corrects the
+# distances for the photo's own lens (src/lib/vision/depth.ts, DepthMap.focal).
+TRAINING_CAMERA = {"dataset": "Hypersim", "width": 1024, "height": 768, "fovDegrees": 60}
+CANONICAL_FOCAL = round(
+    (TRAINING_CAMERA["width"] / 2) / math.tan(math.radians(TRAINING_CAMERA["fovDegrees"] / 2))
+    * INPUT_SIZE / min(TRAINING_CAMERA["width"], TRAINING_CAMERA["height"]), 1)
 VERIFY_DIR = Path(".local/depth-verify")
 
 # The accuracy budget for compression, as relative change in depth against the
@@ -242,6 +252,8 @@ def export(out: Path, choice: str) -> None:
         },
         "sha256": sha256(target),
         "bytes": target.stat().st_size,
+        "canonicalFocal": CANONICAL_FOCAL,
+        "trainingCamera": TRAINING_CAMERA,
     }
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     (work / "comparison.json").write_text(
