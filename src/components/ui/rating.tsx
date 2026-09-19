@@ -14,9 +14,11 @@ import { cn } from "@/lib/ui/cn";
 /**
  * Rating (docs/PLAN.md 4.4, 2.6)
  *
- * Displays the Bayesian average computed on the server, which pulls items with
- * very few reviews toward the catalogue mean so a single five-star review does
- * not outrank a well-reviewed product.
+ * Displays an average and the number of verified reviews behind it. Product
+ * pages give it the plain mean, which is what shoppers expect to see; ranking
+ * in search uses the Bayesian average instead (src/lib/search/rerank.ts), so a
+ * single five-star review cannot outrank a well-reviewed product
+ * (docs/adr/017).
  *
  * The stars are decorative; the accessible name carries the number, because a
  * screen reader should hear "4.6 out of 5, 38 reviews", not "star star star".
@@ -74,6 +76,21 @@ export function Rating({
       </span>
       <span className="text-slate" aria-hidden="true">
         ({count.toLocaleString(locale)})
+      </span>
+    </span>
+  );
+}
+
+/**
+ * One review's stars, whole numbers only. Decorative again: the accessible
+ * name says the number of stars.
+ */
+export function ReviewStars({ rating, label, className }: { rating: number; label: string; className?: string }) {
+  return (
+    <span role="img" aria-label={label} className={cn("relative inline-block leading-none", className)} style={{ width: "5.25rem", height: "1rem" }}>
+      <Stars className="text-hairline" />
+      <span className="absolute inset-0 overflow-hidden" style={{ width: `${(Math.min(5, Math.max(0, rating)) / 5) * 100}%` }} aria-hidden="true">
+        <Stars className="text-dusk" />
       </span>
     </span>
   );

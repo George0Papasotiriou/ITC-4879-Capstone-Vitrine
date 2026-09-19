@@ -33,11 +33,18 @@ import { z } from "zod";
 const ROUTE_ALLOWLIST: readonly RegExp[] = [
   /^\/$/,
   /^\/design$/,
+  /^\/c$/, // the whole collection
   /^\/c\/[a-z0-9-]{1,64}$/, // category
   /^\/p\/[a-z0-9-]{1,96}$/, // product
   /^\/search$/,
   /^\/cart$/,
   /^\/account(?:\/[a-z0-9-]{1,32})?$/,
+  // Checkout only opens the page: the shopper reviews and pays there themselves (CLAUDE.md rule 5).
+  /^\/checkout$/,
+  /^\/room$/,
+  /^\/stylist$/,
+  /^\/taste$/,
+  /^\/(?:shipping|privacy|contact|credits)$/,
 ];
 
 export function isAllowedRoute(href: string): boolean {

@@ -11,8 +11,13 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 
 import { currentUser, type CurrentUser } from "@/lib/auth/session";
-import { createCommerceStore, type CommerceStore, type OrderOwner } from "@/lib/commerce/store";
-import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
+import { createOrderNotifier, type OrderNotifier } from "@/lib/commerce/notify";
+import type { SideEffect } from "@/lib/commerce/order-state";
+import { createReviewStore, type ReviewStore } from "@/lib/commerce/review-store";
+import { createCommerceStore, type CommerceStore, type OrderOwner, type OrderView } from "@/lib/commerce/store";
+import { orderLinkToken, signValue, verifySignedValue } from "@/lib/commerce/tokens";
+import { appMailer } from "@/lib/email/server";
+import { logger } from "@/lib/log";
 import { sql } from "@/lib/db/client";
 import { serverEnv } from "@/env";
 
@@ -37,7 +42,22 @@ let store: CommerceStore | undefined;
 
 export async function commerce(): Promise<CommerceStore> {
   await connection();
-  return (store ??= createCommerceStore(sql));
+  // Order links are derived from the order id and the secret, so emails can rebuild them later.
+  return (store ??= createCommerceStore(sql, { orderToken: (orderId) => orderLinkToken(orderId, secret()) }));
+}
+
+let notifier: OrderNotifier | undefined;
+
+/** Sends the customer the emails an order transition calls for (payment confirmed, shipped, …). */
+export async function notifyOrder(orderId: string, effects: readonly SideEffect[]): Promise<void> {
+  notifier ??= createOrderNotifier({
+    store: await commerce(),
+    mailer: appMailer(),
+    appUrl: serverEnv().APP_URL,
+    secret: secret(),
+    log: (message) => logger.error({ orderEmail: true }, message),
+  });
+  await notifier.notify(orderId, effects);
 }
 
 function secret(): string {
@@ -69,6 +89,30 @@ export async function currentCart(): Promise<{ cartId: string | null; userId: st
   const user = await currentUser();
   if (user === null) return { cartId: await store.guestCart(cookieCart), userId: null };
   return { cartId: await store.claimCart(user.id, cookieCart), userId: user.id };
+}
+
+let reviewStore: ReviewStore | undefined;
+
+export async function reviewsStore(): Promise<ReviewStore> {
+  await connection();
+  return (reviewStore ??= createReviewStore(sql));
+}
+
+/**
+ * The order a request may see: through the guest link's token when it brings
+ * one, otherwise as the signed-in account it belongs to. Null for anything
+ * else, whatever the reason, so guessing ids or tokens teaches nothing.
+ */
+export async function accessibleOrder(orderId: string, token: string | null | undefined): Promise<{ order: OrderView; user: CurrentUser | null } | null> {
+  const store = await commerce();
+  if (token !== null && token !== undefined) {
+    const order = await store.orderForToken(orderId, token);
+    return order === null ? null : { order, user: await currentUser() };
+  }
+  const user = await currentUser();
+  if (user === null) return null;
+  const order = await store.orderForOwner(orderId, orderOwner(user));
+  return order === null ? null : { order, user };
 }
 
 /** The account asking about orders; its address counts only once confirmed (store.orderForOwner). */

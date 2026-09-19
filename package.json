@@ -15,6 +15,8 @@
     "local:db": "node scripts/local.mjs db",
     "catalog": "node scripts/local.mjs catalog",
     "reco": "node scripts/local.mjs run scripts/reco.ts",
+    "accounts": "node scripts/local.mjs run scripts/accounts.ts",
+    "orders": "node scripts/local.mjs run scripts/orders.ts",
     "evals:stylist": "node scripts/local.mjs run scripts/evaluate-stylist.ts",
     "evals:room": "tsx scripts/evaluate-room-geometry.ts",
     "evals:room-real": "tsx scripts/evaluate-room-real.ts",
@@ -39,10 +41,14 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@ai-sdk/google": "4.0.75",
+    "@ai-sdk/openai": "4.0.70",
+    "@ai-sdk/react": "4.0.109",
     "@aws-sdk/client-s3": "3.1130.0",
     "@aws-sdk/s3-request-presigner": "3.1130.0",
     "@better-auth/passkey": "1.7.5",
     "@sentry/nextjs": "10.74.0",
+    "ai": "7.0.106",
     "better-auth": "1.7.5",
     "bullmq": "6.3.4",
     "clsx": "2.1.1",

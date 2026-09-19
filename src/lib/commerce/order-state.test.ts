@@ -39,7 +39,7 @@ const EXPECTED: [OrderStatus, OrderEventType, OrderStatus, Actor[], SideEffect[]
   ["paid", "cancel", "cancelled", ["customer", "staff"], ["release_stock", "issue_refund", "email_order_cancelled"]],
   ["packed", "ship", "shipped", ["staff"], ["email_order_shipped"]],
   ["shipped", "deliver", "delivered", ["staff", "system"], ["email_order_delivered"]],
-  ["delivered", "request_return", "return_requested", ["customer", "staff"], []],
+  ["delivered", "request_return", "return_requested", ["customer", "staff"], ["email_return_requested"]],
   ["cancelled", "refund", "refunded", ["system"], ["email_refunded"]],
   ["return_requested", "receive_return", "returned", ["staff"], ["restock_returned", "email_return_received"]],
   ["returned", "refund", "refunded", ["staff", "system"], ["issue_refund", "email_refunded"]],

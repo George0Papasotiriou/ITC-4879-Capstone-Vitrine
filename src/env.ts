@@ -89,6 +89,17 @@ const rawSchema = z.object({
   BETTER_AUTH_SECRET: optionalString.pipe(z.string().min(32).optional()),
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
+  /**
+   * Comma-separated addresses that become admins once they sign in with the
+   * address confirmed (docs/adr/016): how the first admin exists in production.
+   * Not a secret.
+   */
+  ADMIN_EMAILS: optionalString.transform((value) =>
+    (value ?? "")
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter((email) => email !== ""),
+  ),
 
   /**
    * Email (docs/adr/016). With RESEND_API_KEY, emails go out through Resend as
@@ -110,6 +121,29 @@ const rawSchema = z.object({
    */
   GEOIP_DATABASE: optionalString,
   GEO_COUNTRY_HEADER: optionalString.pipe(z.string().regex(/^[a-z0-9-]+$/).optional()),
+
+  /**
+   * AI (docs/PLAN.md Part 3, docs/adr/019). AI_PROVIDER picks where the models
+   * come from: "google" (Gemini, the backbone), or "demo", a scripted stand-in
+   * that answers without any key, labelled as a demo in the interface. Unset, it
+   * is "google" when a Gemini key is present, "demo" on the local stack, and
+   * "off" otherwise (a deployment without a key hides the AI features rather
+   * than failing). Keys are secrets and are pasted into the host by George.
+   */
+  AI_PROVIDER: z.enum(["google", "demo", "off"]).optional(),
+  GOOGLE_GENERATIVE_AI_API_KEY: optionalString,
+  /** Only for the voice alternative (OpenAI realtime). */
+  OPENAI_API_KEY: optionalString,
+  VOICE_PROVIDER: z.enum(["google", "openai"]).default("google"),
+  /** Virtual try-on (Phase 9). Without it try-on runs in demo mode or not at all. */
+  FASHN_API_KEY: optionalString,
+  /** The whole shop's AI spend per day, in euros; past it, AI features pause until midnight UTC. */
+  AI_DAILY_BUDGET_EUR: z.coerce.number().min(0).max(1000).default(3),
+  /** "1" turns every AI feature off at once; the shop falls back to classic search and hides the Concierge. */
+  AI_KILL_SWITCH: z
+    .enum(["0", "1"])
+    .optional()
+    .transform((value) => value === "1"),
 
   /** Observability. Optional so local development works without accounts. */
   SENTRY_DSN: optionalString,
@@ -133,6 +167,7 @@ function resolveDrivers(raw: Raw) {
   return {
     jobsDriver: raw.JOBS_DRIVER ?? (raw.REDIS_URL !== undefined ? "bullmq" : "inline"),
     storageDriver: raw.STORAGE_DRIVER ?? (raw.S3_ENDPOINT !== undefined ? "s3" : "local"),
+    aiMode: raw.AI_PROVIDER ?? (raw.GOOGLE_GENERATIVE_AI_API_KEY !== undefined ? "google" : raw.VITRINE_LOCAL || raw.NODE_ENV !== "production" ? "demo" : "off"),
   } as const;
 }
 
@@ -157,6 +192,7 @@ const serverSchema = rawSchema
 
     if (raw.NODE_ENV === "production") require("COOKIE_SECRET", "in production to sign cart cookies and order links (at least 32 characters)");
     if (raw.NODE_ENV === "production") require("BETTER_AUTH_SECRET", "in production to sign sessions (at least 32 characters)");
+    if (raw.AI_PROVIDER === "google") require("GOOGLE_GENERATIVE_AI_API_KEY", "by AI_PROVIDER=google");
     if ((raw.GOOGLE_CLIENT_ID === undefined) !== (raw.GOOGLE_CLIENT_SECRET === undefined)) {
       ctx.addIssue({ code: "custom", path: ["GOOGLE_CLIENT_SECRET"], message: "Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, or neither." });
     }

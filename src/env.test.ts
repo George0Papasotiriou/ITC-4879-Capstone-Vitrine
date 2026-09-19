@@ -133,4 +133,16 @@ describe("the production guard", () => {
     expect(parseEnvironment({ ...base, ...localSecret, GOOGLE_CLIENT_ID: "id" }).success).toBe(false);
     expect(parseEnvironment({ ...base, ...localSecret, GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "secret" }).success).toBe(true);
   });
+
+  it("picks the AI mode: Gemini with a key, the demo locally, off in a deployment without a key (docs/adr/019)", () => {
+    const production = { ...base, ...s3, ...cookieSecret, NODE_ENV: "production", REDIS_URL: "redis://redis.internal:6379" };
+    expect(parseEnvironment({ ...base, ...localSecret }).data?.aiMode).toBe("demo");
+    expect(parseEnvironment(production).data?.aiMode).toBe("off");
+    expect(parseEnvironment({ ...production, GOOGLE_GENERATIVE_AI_API_KEY: "key" }).data?.aiMode).toBe("google");
+    expect(parseEnvironment({ ...production, AI_PROVIDER: "demo" }).data?.aiMode).toBe("demo");
+    // Asking for Gemini without its key is a configuration error, not a silent fallback.
+    expect(parseEnvironment({ ...base, ...localSecret, AI_PROVIDER: "google" }).success).toBe(false);
+    expect(parseEnvironment({ ...base, ...localSecret, AI_KILL_SWITCH: "1" }).data?.AI_KILL_SWITCH).toBe(true);
+    expect(parseEnvironment({ ...base, ...localSecret }).data?.AI_DAILY_BUDGET_EUR).toBe(3);
+  });
 });

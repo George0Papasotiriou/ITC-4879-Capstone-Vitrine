@@ -10,6 +10,7 @@
 import { getTranslations } from "next-intl/server";
 
 import { CartCount } from "@/components/commerce/cart-count";
+import { ConciergeToggle } from "@/components/concierge/concierge-toggle";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/ui/cn";
 
@@ -41,14 +42,13 @@ export async function MobileBar() {
         <BarItem href="/search" agentId="nav:search" label={t("search")}>
           <SearchGlyph />
         </BarItem>
-        <BarItem
-          href="/concierge"
-          agentId="nav:concierge"
-          label={t("concierge")}
-          accent
-        >
-          <span className="bg-lumen block size-3 rounded-full" aria-hidden="true" />
-        </BarItem>
+        <li className="flex-1">
+          {/* Opens the Concierge as a sheet over the page; the conversation survives navigation. */}
+          <ConciergeToggle className="text-dusk relative flex h-14 w-full flex-col items-center justify-center gap-1">
+            <span className="bg-lumen block size-3 rounded-full" aria-hidden="true" />
+            <span className="text-[0.6875rem] leading-none">{t("concierge")}</span>
+          </ConciergeToggle>
+        </li>
         <BarItem href="/cart" agentId="nav:cart" label={t("cart")} after={<CartCount variant="bar" />}>
           <CartGlyph />
         </BarItem>

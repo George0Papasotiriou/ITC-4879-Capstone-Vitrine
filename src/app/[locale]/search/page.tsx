@@ -16,6 +16,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { SmartLink } from "@/components/ui/smart-link";
 import { EmptyState } from "@/components/ui/states";
 import { requireLocale } from "@/i18n/params";
+import { logSearch } from "@/lib/admin/server";
 import { getCardsByIds, runSearch } from "@/lib/catalog/server";
 import { CATEGORIES, isCategorySlug } from "@/lib/catalog/taxonomy";
 import { formatMoney, money } from "@/lib/commerce/money";
@@ -43,6 +44,13 @@ export async function generateMetadata({ searchParams }: PageProps<"/[locale]/se
 
 const MAX_QUERY_LENGTH = 200;
 
+/** Runs a search and says how long it took, for the search dashboard (docs/adr/018). */
+async function timedSearch(...args: Parameters<typeof runSearch>) {
+  const started = performance.now();
+  const result = await runSearch(...args);
+  return { result, tookMs: performance.now() - started };
+}
+
 export default async function SearchPage({ params, searchParams }: PageProps<"/[locale]/search">) {
   const locale = await requireLocale(params);
   const t = await getTranslations("search");
@@ -52,8 +60,20 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/[
   const query = (typeof search.q === "string" ? search.q : "").trim().slice(0, MAX_QUERY_LENGTH);
   const categoryParam = typeof search.category === "string" && isCategorySlug(search.category) ? search.category : null;
 
-  const result = query === "" ? null : await runSearch(query, { filters: categoryParam === null ? undefined : { categories: [categoryParam] } });
+  const timed = query === "" ? null : await timedSearch(query, { filters: categoryParam === null ? undefined : { categories: [categoryParam] } });
+  const result = timed?.result ?? null;
   const cards = result === null ? [] : await getCardsByIds(result.ids, locale);
+  if (result !== null) {
+    logSearch({
+      query,
+      locale,
+      results: result.ids.length,
+      relaxed: result.relaxed.length > 0,
+      corrected: result.corrections.length > 0,
+      tookMs: timed!.tookMs,
+      source: "page",
+    });
+  }
 
   const euro = (cents: number) => formatMoney(money(cents), locale, { hideDecimalsWhenWhole: true });
   const categoryName = (slug: string) => {

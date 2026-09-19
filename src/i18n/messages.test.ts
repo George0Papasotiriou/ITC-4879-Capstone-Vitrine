@@ -64,7 +64,17 @@ function placeholders(message: string): string[] {
 const english = flatten(en as Tree);
 const greek = flatten(el as Tree);
 
+/** Every key at every level, as written in the file. */
+function keysOf(tree: Tree): string[] {
+  return Object.entries(tree).flatMap(([key, value]) => [key, ...(typeof value === "string" ? [] : keysOf(value))]);
+}
+
 describe("message catalogues", () => {
+  it("never use a dot inside a key, which next-intl reads as nesting and refuses", () => {
+    expect(keysOf(en as Tree).filter((key) => key.includes("."))).toEqual([]);
+    expect(keysOf(el as Tree).filter((key) => key.includes("."))).toEqual([]);
+  });
+
   it("have exactly the same keys in English and Greek", () => {
     const onlyEnglish = [...english.keys()].filter((key) => !greek.has(key));
     const onlyGreek = [...greek.keys()].filter((key) => !english.has(key));

@@ -112,8 +112,8 @@ export type OrderView = {
   createdAt: Date;
   paymentExpiresAt: Date;
   deliveredAt: Date | null;
-  items: { title: string; sku: string; imageSrc: string | null; unitPrice: Money; quantity: number; line: Money; productSlug: string | null }[];
-  events: { from: OrderStatus | null; to: OrderStatus; event: string; actor: Actor; at: Date }[];
+  items: { id: string; title: string; sku: string; imageSrc: string | null; unitPrice: Money; quantity: number; line: Money; productSlug: string | null }[];
+  events: { from: OrderStatus | null; to: OrderStatus; event: string; actor: Actor; at: Date; reason: string | null; actorName: string | null }[];
 };
 
 /** One line of an account's order history. */
@@ -125,6 +125,31 @@ export type OrderSummary = {
   createdAt: Date;
   itemCount: number;
   imageSrc: string | null;
+};
+
+/** One row of the staff order desk. */
+export type DeskOrder = {
+  id: string;
+  number: string;
+  status: OrderStatus;
+  email: string;
+  name: string;
+  country: string;
+  total: Money;
+  itemCount: number;
+  createdAt: Date;
+};
+
+/** What an order email needs to know about its order. */
+export type OrderContact = {
+  id: string;
+  number: string;
+  status: OrderStatus;
+  email: string;
+  name: string;
+  locale: string;
+  userId: string | null;
+  accessTokenHash: string;
 };
 
 /** Who is asking about an order when they hold no guest link: an account, with its address only if confirmed. */
@@ -150,7 +175,12 @@ type LineRow = {
   image: { src: string; width: number | null; height: number | null; altEn: string; altEl: string | null } | null;
 };
 
-export function createCommerceStore(sql: Sql) {
+export type CommerceStoreOptions = {
+  /** How an order's link token is made; random by default, derived from a secret in the app (tokens.orderLinkToken). */
+  orderToken?: (orderId: string) => string;
+};
+
+export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptions = {}) {
   const lineColumns = sql`
     v.id AS variant_id, p.id AS product_id, p.slug, v.sku, p.title_en, p.title_el, p.kind,
     COALESCE(v.price_cents, p.price_cents) AS unit_cents, p.currency, ci.quantity, v.stock,
@@ -350,7 +380,7 @@ export function createCommerceStore(sql: Sql) {
         { shipping: input.shipping, country, currency: rows[0]!.currency },
       );
       const orderId = uuidv7();
-      const accessToken = newAccessToken();
+      const accessToken = orderToken?.(orderId) ?? newAccessToken();
       const expires = new Date(now.getTime() + PAYMENT_WINDOW_MINUTES * 60_000);
 
       let number = newOrderNumber();
@@ -396,7 +426,12 @@ export function createCommerceStore(sql: Sql) {
    * history row, and the database side effects (stock). Effects outside the
    * database (emails, refunds with a provider) are returned for the caller.
    */
-  async function applyEvent(orderId: string, type: OrderEventType, actor: Actor, { now = new Date(), reason = null as string | null } = {}): Promise<ApplyEventResult> {
+  async function applyEvent(
+    orderId: string,
+    type: OrderEventType,
+    actor: Actor,
+    { now = new Date(), reason = null as string | null, actorUserId = null as string | null } = {},
+  ): Promise<ApplyEventResult> {
     return sql.begin(async (tx) => {
       const [order] = await tx<{ status: OrderStatus; paid_at: Date | null; delivered_at: Date | null }[]>`
         SELECT status, paid_at, delivered_at FROM orders WHERE id = ${orderId} FOR UPDATE
@@ -404,7 +439,8 @@ export function createCommerceStore(sql: Sql) {
       if (order === undefined) return { ok: false, reason: "not_found" } as const;
 
       const result = transition(
-        { status: order.status, paid: order.paid_at !== null, deliveredAt: order.delivered_at },
+        // A Date, whatever the client returns: clients wrapped by Drizzle hand timestamps back as strings.
+        { status: order.status, paid: order.paid_at !== null, deliveredAt: order.delivered_at === null ? null : new Date(order.delivered_at) },
         { type, actor, at: now },
       );
       if (!result.ok) return { ok: false, reason: result.reason } as const;
@@ -419,8 +455,8 @@ export function createCommerceStore(sql: Sql) {
         WHERE id = ${orderId}
       `;
       await tx`
-        INSERT INTO order_events (id, order_id, from_status, to_status, event, actor, reason, created_at)
-        VALUES (${uuidv7()}, ${orderId}, ${result.from}, ${result.to}, ${type}, ${actor}, ${reason}, ${at}::timestamptz)
+        INSERT INTO order_events (id, order_id, from_status, to_status, event, actor, actor_user_id, reason, created_at)
+        VALUES (${uuidv7()}, ${orderId}, ${result.from}, ${result.to}, ${type}, ${actor}, ${actorUserId}, ${reason}, ${at}::timestamptz)
       `;
       if (result.effects.includes("release_stock") || result.effects.includes("restock_returned")) {
         await tx`
@@ -482,6 +518,63 @@ export function createCommerceStore(sql: Sql) {
     }));
   }
 
+  /**
+   * The order desk's rows: orders in the given statuses (all when null),
+   * optionally matching an order number or email, oldest or newest first.
+   */
+  async function deskOrders({
+    statuses,
+    query = null,
+    oldestFirst = false,
+    limit = 100,
+  }: {
+    statuses: readonly OrderStatus[] | null;
+    query?: string | null;
+    oldestFirst?: boolean;
+    limit?: number;
+  }): Promise<DeskOrder[]> {
+    const inStatus = statuses === null ? sql`TRUE` : sql`o.status::text = ANY(${[...statuses]}::text[])`;
+    // A typed "%" or "_" is a character to find, not a LIKE wildcard.
+    const term = query === null || query.trim() === "" ? null : `%${query.trim().replace(/[\\%_]/g, (character) => `\\${character}`)}%`;
+    const matches = term === null ? sql`TRUE` : sql`(o.number ILIKE ${term} OR o.email ILIKE ${term})`;
+    const direction = oldestFirst ? sql`ASC` : sql`DESC`;
+    const rows = await sql<{ id: string; number: string; status: OrderStatus; email: string; name: string | null; country: string | null; total_cents: number; currency: string; item_count: number; created_at: Date }[]>`
+      SELECT o.id, o.number, o.status, o.email, o.shipping_address->>'name' AS name, o.shipping_address->>'country' AS country,
+             o.total_cents, o.currency, o.created_at,
+             (SELECT COALESCE(sum(i.quantity), 0)::int FROM order_items i WHERE i.order_id = o.id) AS item_count
+      FROM orders o
+      WHERE ${inStatus} AND ${matches}
+      ORDER BY o.created_at ${direction}, o.id ${direction}
+      LIMIT ${limit}
+    `;
+    return rows.map((row) => ({
+      id: row.id,
+      number: row.number,
+      status: row.status,
+      email: row.email,
+      name: row.name ?? "",
+      country: row.country ?? "",
+      total: money(row.total_cents, row.currency),
+      itemCount: row.item_count,
+      createdAt: new Date(row.created_at),
+    }));
+  }
+
+  /** How many orders are in each status, for the desk's tabs. */
+  async function statusCounts(): Promise<Partial<Record<OrderStatus, number>>> {
+    const rows = await sql<{ status: OrderStatus; count: number }[]>`SELECT status, count(*)::int AS count FROM orders GROUP BY status`;
+    return Object.fromEntries(rows.map((row) => [row.status, row.count]));
+  }
+
+  async function orderContact(orderId: string): Promise<OrderContact | null> {
+    const [row] = await sql<{ id: string; number: string; status: OrderStatus; email: string; name: string | null; locale: string; user_id: string | null; access_token_hash: string }[]>`
+      SELECT id, number, status, email, shipping_address->>'name' AS name, locale, user_id, access_token_hash FROM orders WHERE id = ${orderId}
+    `;
+    return row === undefined
+      ? null
+      : { id: row.id, number: row.number, status: row.status, email: row.email, name: row.name ?? "", locale: row.locale, userId: row.user_id, accessTokenHash: row.access_token_hash };
+  }
+
   async function readOrder(orderId: string): Promise<OrderView | null> {
     type OrderRow = {
       id: string;
@@ -506,13 +599,15 @@ export function createCommerceStore(sql: Sql) {
     };
     const [order] = await sql<OrderRow[]>`SELECT * FROM orders WHERE id = ${orderId}`;
     if (order === undefined) return null;
-    const items = await sql<{ title: string; sku: string; image_src: string | null; unit_cents: number; quantity: number; line_cents: number; slug: string | null }[]>`
-      SELECT i.title, i.sku, i.image_src, i.unit_cents, i.quantity, i.line_cents, p.slug
+    const items = await sql<{ id: string; title: string; sku: string; image_src: string | null; unit_cents: number; quantity: number; line_cents: number; slug: string | null }[]>`
+      SELECT i.id, i.title, i.sku, i.image_src, i.unit_cents, i.quantity, i.line_cents, p.slug
       FROM order_items i LEFT JOIN products p ON p.id = i.product_id
       WHERE i.order_id = ${orderId} ORDER BY i.created_at, i.sku
     `;
-    const events = await sql<{ from_status: OrderStatus | null; to_status: OrderStatus; event: string; actor: Actor; created_at: Date }[]>`
-      SELECT from_status, to_status, event, actor, created_at FROM order_events WHERE order_id = ${orderId} ORDER BY created_at, id
+    const events = await sql<{ from_status: OrderStatus | null; to_status: OrderStatus; event: string; actor: Actor; created_at: Date; reason: string | null; actor_name: string | null }[]>`
+      SELECT e.from_status, e.to_status, e.event, e.actor, e.created_at, e.reason, u.name AS actor_name
+      FROM order_events e LEFT JOIN users u ON u.id = e.actor_user_id
+      WHERE e.order_id = ${orderId} ORDER BY e.created_at, e.id
     `;
     const m = (cents: number) => money(cents, order.currency);
     return {
@@ -535,6 +630,7 @@ export function createCommerceStore(sql: Sql) {
       paymentExpiresAt: new Date(order.payment_expires_at),
       deliveredAt: order.delivered_at === null ? null : new Date(order.delivered_at),
       items: items.map((item) => ({
+        id: item.id,
         title: item.title,
         sku: item.sku,
         imageSrc: item.image_src,
@@ -543,7 +639,15 @@ export function createCommerceStore(sql: Sql) {
         line: m(item.line_cents),
         productSlug: item.slug,
       })),
-      events: events.map((event) => ({ from: event.from_status, to: event.to_status, event: event.event, actor: event.actor, at: new Date(event.created_at) })),
+      events: events.map((event) => ({
+        from: event.from_status,
+        to: event.to_status,
+        event: event.event,
+        actor: event.actor,
+        at: new Date(event.created_at),
+        reason: event.reason,
+        actorName: event.actor_name,
+      })),
     };
   }
 
@@ -560,6 +664,9 @@ export function createCommerceStore(sql: Sql) {
     orderForToken,
     orderForOwner,
     ordersForOwner,
+    deskOrders,
+    statusCounts,
+    orderContact,
     readOrder,
   };
 }

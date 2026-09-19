@@ -29,7 +29,11 @@ import en from "../../../messages/en.json";
  */
 
 export type EmailLocale = "en" | "el";
-export type EmailKind = "verify_email" | "reset_password";
+export type EmailKind = "verify_email" | "reset_password" | `order_${OrderEmailKind}`;
+
+/** The order emails, one per customer-facing change in the order state machine (order-state.ts side effects). */
+export const ORDER_EMAIL_KINDS = ["confirmed", "shipped", "delivered", "cancelled", "refunded", "returnRequested", "returnReceived"] as const;
+export type OrderEmailKind = (typeof ORDER_EMAIL_KINDS)[number];
 
 export type EmailContent = { subject: string; text: string; html: string };
 
@@ -95,5 +99,24 @@ export function resetPassword(locale: EmailLocale, { name, url }: { name: string
     paragraphs: [t("reset.intro")],
     action: { label: t("reset.action"), url },
     after: [t("reset.expires"), t("reset.ignore")],
+  });
+}
+
+/**
+ * An order update: what happened, and a link to the order. For a guest the
+ * link is their private order link; for an order the link cannot be rebuilt
+ * for, it is the order page, which asks the owner to sign in.
+ */
+export function orderUpdate(
+  locale: EmailLocale,
+  { kind, name, number, url, signInNeeded }: { kind: OrderEmailKind; name: string; number: string; url: string; signInNeeded: boolean },
+): EmailContent {
+  const t = createTranslator({ locale, messages: MESSAGES[locale], namespace: "email" });
+  return render(locale, t(`order.${kind}.subject`, { number }), {
+    greeting: t("greeting", { name }),
+    paragraphs: [t(`order.${kind}.intro`, { number })],
+    action: { label: t("orderAction"), url },
+    // A delivered order is when a review is worth asking for (docs/adr/017).
+    after: [...(kind === "delivered" ? [t("orderReviewAsk")] : []), ...(signInNeeded ? [t("orderSignIn")] : [])],
   });
 }

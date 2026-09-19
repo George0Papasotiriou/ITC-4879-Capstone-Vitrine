@@ -7,90 +7,15 @@
  * End-to-end tests for accounts: sign-up by email link, sign-in, two-step sign-in, passkeys, reset, cart and orders.
  */
 
-import { createHmac, randomInt } from "node:crypto";
-
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+
+import { addLampToCart, fillAndSubmit, freshPage, linkFromOutbox, PASSWORD, signIn, signOut, signUpAndConfirm, totp, uniqueEmail } from "./support/accounts";
 
 /**
  * Accounts (docs/adr/016) as a shopper meets them, on the production build.
- * Emails are read from the local outbox (/en/lab/outbox), which is where they
- * arrive on the local stack. Each test is its own browser with its own client
- * address, so Better Auth's per-address rate limits (3 sign-ins in 10 s) apply
- * to each test as they would to one person.
+ * Helpers, and why each test gets its own browser, are in ./support/accounts.ts.
  */
-
-const PASSWORD = "correct horse battery";
-const LAMP = "/en/p/faux-wood-table-lamp-b07mbfd87n";
-
-/** A TEST-NET-3 address (RFC 5737), different for every browser. */
-const clientAddress = () => `203.0.113.${randomInt(1, 255)}`;
-const uniqueEmail = (label: string) => `${label}.${Date.now()}.${randomInt(1e6)}@example.com`;
-
-async function freshPage(browser: Browser): Promise<Page> {
-  const context = await browser.newContext({ extraHTTPHeaders: { "x-forwarded-for": clientAddress() } });
-  return context.newPage();
-}
-
-/** The newest link in the outbox for an address and kind of email. */
-async function linkFromOutbox(page: Page, address: string, kind: "verify_email" | "reset_password"): Promise<string> {
-  let link: string | null = null;
-  await expect(async () => {
-    await page.goto("/en/lab/outbox", { waitUntil: "domcontentloaded" });
-    const email = page.locator(`[data-agent-id="outbox:email:${kind}"]`).filter({ hasText: address }).first();
-    link = await email.locator('[data-agent-id="outbox:link"]').getAttribute("href", { timeout: 1_000 });
-    expect(link).toBeTruthy();
-  }).toPass({ timeout: 15_000 });
-  return link!;
-}
-
-async function fillAndSubmit(page: Page, fields: Record<string, string>, action: string) {
-  for (const [agentId, value] of Object.entries(fields)) await page.locator(`[data-agent-id="${agentId}"]`).fill(value);
-  // Submit buttons stay disabled until the form is hydrated; click() waits for that.
-  await page.locator(`[data-agent-id="${action}"]`).click();
-}
-
-/** Signs up through the form and confirms by the emailed link: the page ends signed in. */
-async function signUpAndConfirm(page: Page, email: string, name = "Eleni Papadopoulou") {
-  await page.goto("/en/account/sign-up", { waitUntil: "domcontentloaded" });
-  await fillAndSubmit(page, { "auth:name": name, "auth:email": email, "auth:password": PASSWORD }, "action:sign-up");
-  await expect(page.locator('[data-agent-id="auth:check-inbox"]')).toContainText(email);
-  await page.goto(await linkFromOutbox(page, email, "verify_email"));
-  await expect(page).toHaveURL(/\/en\/account\?verified=1$/);
-  await expect(page.locator('[data-agent-id="account:email"]')).toHaveText(`Signed in as ${email}`);
-}
-
-async function signIn(page: Page, email: string, password = PASSWORD) {
-  await page.goto("/en/account/sign-in", { waitUntil: "domcontentloaded" });
-  await fillAndSubmit(page, { "auth:email": email, "auth:password": password }, "action:sign-in");
-}
-
-async function signOut(page: Page) {
-  await page.locator('[data-agent-id="action:sign-out"]').click();
-  await expect(page).toHaveURL(/\/en$/);
-}
-
-/** RFC 6238 TOTP, as an authenticator app computes it. */
-function totp(secret: string, at = Date.now()): string {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  let bits = "";
-  for (const character of secret.replace(/[\s=]/g, "").toUpperCase()) bits += alphabet.indexOf(character).toString(2).padStart(5, "0");
-  const key = Buffer.from(bits.match(/.{8}/g)!.map((byte) => Number.parseInt(byte, 2)));
-  const counter = Buffer.alloc(8);
-  counter.writeBigUInt64BE(BigInt(Math.floor(at / 30_000)));
-  const hmac = createHmac("sha1", key).update(counter).digest();
-  const offset = hmac[19]! & 15;
-  return String((hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000).padStart(6, "0");
-}
-
-async function addLampToCart(page: Page) {
-  await page.goto(LAMP, { waitUntil: "domcontentloaded" });
-  const sheet = page.getByRole("dialog", { name: "Added to your cart" });
-  await expect(async () => {
-    if (!(await sheet.isVisible())) await page.locator('[data-agent-id^="action:add-to-cart:"]').click({ timeout: 2_000 });
-    await expect(sheet).toBeVisible({ timeout: 5_000 });
-  }).toPass({ timeout: 25_000 });
-}
 
 test("@smoke signs up, confirms the email by link, signs out and signs back in", async ({ browser }) => {
   const page = await freshPage(browser);

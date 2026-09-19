@@ -77,7 +77,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           )}
         </HeroPlinth>
 
-        <div className="lg:order-1">
+        <div className="min-w-0 lg:order-1">
           <p className="text-slate text-sm">{t("eyebrow")}</p>
           <h1 className="font-display mt-3 max-w-[14ch] text-4xl leading-[1.03] md:text-5xl">{t("headline")}</h1>
           <p className="text-slate mt-6 max-w-[52ch] text-lg">{t("intro")}</p>
@@ -88,10 +88,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <ButtonLink href="/c" variant="secondary">
               {t("browseCollection")}
             </ButtonLink>
-            <ButtonLink href="/stylist" variant="tertiary">
+            {/* Sentence-long links wrap on a phone instead of widening the page. */}
+            <ButtonLink href="/stylist" variant="tertiary" className="h-auto min-h-11 py-2 text-left whitespace-normal">
               {t("stylistLink")}
             </ButtonLink>
-            <ButtonLink href="/taste" variant="tertiary">
+            <ButtonLink href="/taste" variant="tertiary" className="h-auto min-h-11 py-2 text-left whitespace-normal">
               {t("tasteLink")}
             </ButtonLink>
           </div>

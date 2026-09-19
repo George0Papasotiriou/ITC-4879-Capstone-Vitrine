@@ -10,8 +10,9 @@
  */
 
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { useId, useState, type FormEvent } from "react";
 
+import { useConcierge } from "@/components/concierge/concierge-provider";
 import { cx as cn } from "@/lib/ui/cx";
 
 /**
@@ -21,15 +22,24 @@ import { cx as cn } from "@/lib/ui/cx";
  * into a header: the whole argument of the product is that describing what you
  * want should be the primary way in.
  *
- * Phase 2 builds the surface only. The microphone opens in Phase 7 and the
- * camera in Phase 9, so both are marked `disabled` with an honest reason rather
- * than pretending to work — a control that does nothing is worse than one that
- * says why.
+ * Typing and pressing Enter (or Send) opens the Concierge with the question
+ * (docs/adr/019). The microphone opens in Phase 7 and the camera in Phase 9;
+ * until then both are marked `disabled` with an honest reason rather than
+ * pretending to work — a control that does nothing is worse than one that says
+ * why.
  */
 export function ConciergePrompt({ className }: { className?: string }) {
   const t = useTranslations("home");
+  const c = useTranslations("concierge");
+  const { ask } = useConcierge();
   const [value, setValue] = useState("");
   const id = useId();
+  const submit = (event?: FormEvent) => {
+    event?.preventDefault();
+    if (value.trim() === "") return;
+    ask(value);
+    setValue("");
+  };
 
   return (
     <form
@@ -38,7 +48,8 @@ export function ConciergePrompt({ className }: { className?: string }) {
         "focus-within:border-dusk/35 transition-colors duration-quick ease-standard",
         className,
       )}
-      onSubmit={(event) => event.preventDefault()}
+      onSubmit={submit}
+      data-agent-id="home:prompt"
     >
       <label htmlFor={id} className="sr-only">
         {t("promptLabel")}
@@ -49,8 +60,13 @@ export function ConciergePrompt({ className }: { className?: string }) {
         rows={2}
         value={value}
         onChange={(event) => setValue(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && !event.shiftKey) submit(event);
+        }}
+        maxLength={2000}
         placeholder={t("promptPlaceholder")}
-        className="text-dusk placeholder:text-slate/80 min-h-14 flex-1 resize-none bg-transparent px-2 py-2 outline-none"
+        // min-w-0 lets the field give way to the buttons on a narrow phone instead of widening the page.
+        className="text-dusk placeholder:text-slate/80 min-h-14 min-w-0 flex-1 resize-none bg-transparent px-2 py-2 outline-none"
       />
 
       <div className="flex items-center gap-1">
@@ -60,6 +76,14 @@ export function ConciergePrompt({ className }: { className?: string }) {
         <PromptAction label={t("showPhoto")} note={t("comingSoon")}>
           <CameraGlyph />
         </PromptAction>
+        <button
+          type="submit"
+          disabled={value.trim() === ""}
+          className="bg-dusk text-glass rounded-plinth h-11 px-4 text-sm font-medium disabled:opacity-40"
+          data-agent-id="home:prompt-send"
+        >
+          {c("send")}
+        </button>
       </div>
     </form>
   );

@@ -9,10 +9,12 @@
 
 import { sql, type SQL } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   char,
   check,
   customType,
+  date,
   doublePrecision,
   foreignKey,
   index,
@@ -216,6 +218,13 @@ export const products = pgTable(
 
     /** Semantic search (A1) and content neighbours (A2); filled by the embedding job. */
     textEmbedding: vector("text_embedding", { dimensions: 768 }),
+
+    /**
+     * Set when staff edit the product (docs/adr/018). From then on the shop owns
+     * its text, prices and photos: the catalogue sync that runs on every deploy
+     * still adds new products, but leaves an edited one as staff left it.
+     */
+    staffEditedAt: timestamp("staff_edited_at", { withTimezone: true }),
 
     ...timestamps,
   },
@@ -518,6 +527,8 @@ export const orderEvents = pgTable(
     toStatus: orderStatus("to_status").notNull(),
     event: text("event").notNull(),
     actor: orderActor("actor").notNull(),
+    /** The person, when the actor is a customer or staff member with an account (docs/adr/016). */
+    actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
     reason: text("reason"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -683,6 +694,175 @@ export const emailOutbox = pgTable(
   },
   (t) => [index("email_outbox_to_idx").on(t.toAddress, t.createdAt), index("email_outbox_created_idx").on(t.createdAt)],
 );
+
+/* -------------------------------------------------------------------------- */
+/* Reviews (Phase 5 step 6, docs/adr/017)                                     */
+/* -------------------------------------------------------------------------- */
+
+export const reviewStatus = pgEnum("review_status", ["published", "hidden"]);
+
+/**
+ * A review is tied to the order line it reviews, which is what makes it
+ * "verified": it can only be written for a piece that was delivered, one per
+ * purchased line. It is published at once and counted in the product's
+ * rating_sum and rating_count in the same transaction; staff can hide it,
+ * which takes it out of both. The text is untrusted: it is only ever rendered
+ * as text, and never given to the Concierge as instructions.
+ */
+export const reviews = pgTable(
+  "reviews",
+  {
+    id: id(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    orderItemId: uuid("order_item_id")
+      .notNull()
+      .references(() => orderItems.id, { onDelete: "cascade" }),
+    /** The account that wrote it, when there is one; guests review from their order link. */
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    rating: integer("rating").notNull(),
+    title: text("title"),
+    body: text("body").notNull(),
+    /** "Eleni P.": first name and initial, from the delivery name. */
+    authorName: text("author_name").notNull(),
+    locale: text("locale").notNull(),
+    status: reviewStatus("status").notNull().default("published"),
+    moderationReason: text("moderation_reason"),
+    moderatedBy: uuid("moderated_by").references(() => users.id, { onDelete: "set null" }),
+    moderatedAt: timestamp("moderated_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("reviews_order_item_key").on(t.orderItemId),
+    index("reviews_product_idx").on(t.productId, t.status, t.createdAt),
+    index("reviews_status_idx").on(t.status, t.createdAt),
+    check("reviews_rating_range", sql`${t.rating} BETWEEN 1 AND 5`),
+    check("reviews_body_length", sql`char_length(${t.body}) BETWEEN 1 AND 4000`),
+  ],
+);
+
+export type Review = typeof reviews.$inferSelect;
+
+/* -------------------------------------------------------------------------- */
+/* Running the shop (Phase 11, docs/adr/018)                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Who changed what, for changes that keep no history of their own: product
+ * edits, stock, review moderation, roles. Order changes are not repeated here;
+ * `order_events` already records each one with the person behind it. Only the
+ * fields that changed are kept, before and after, written in the same
+ * transaction as the change itself. The actor's email is copied so the entry
+ * still reads after an account is deleted.
+ */
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: id(),
+    /** Null for the system (the ADMIN_EMAILS grant, a script without an account). */
+    actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+    actorEmail: text("actor_email"),
+    /** "product.update", "stock.set", "review.hide", "review.restore", "role.grant", "role.revoke". */
+    action: text("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    /** { field: { before, after } } for each field that changed. */
+    changes: jsonb("changes").$type<Record<string, { before: unknown; after: unknown }>>().notNull(),
+    /** Why, when the person had to say: a stock correction, a hidden review. */
+    reason: text("reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("audit_log_entity_idx").on(t.entityType, t.entityId, t.createdAt), index("audit_log_created_idx").on(t.createdAt)],
+);
+
+export const searchSource = pgEnum("search_source", ["page", "api"]);
+
+/**
+ * What people search for, for the search dashboard: top queries and the ones
+ * that find nothing. No user, session or address is kept, digit runs that
+ * could be a phone or card number are masked before the query is stored, and
+ * rows are deleted after 90 days (src/lib/search/analytics.ts).
+ */
+export const searchEvents = pgTable(
+  "search_events",
+  {
+    id: id(),
+    /** Folded (lower case, no accents) and masked. */
+    query: text("query").notNull(),
+    locale: text("locale").notNull(),
+    results: integer("results").notNull(),
+    /** Filters were dropped to find something. */
+    relaxed: boolean("relaxed").notNull().default(false),
+    /** A word was corrected for spelling. */
+    corrected: boolean("corrected").notNull().default(false),
+    tookMs: integer("took_ms").notNull(),
+    source: searchSource("source").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("search_events_occurred_idx").on(t.occurredAt), check("search_events_results_nonnegative", sql`${t.results} >= 0`)],
+);
+
+/* -------------------------------------------------------------------------- */
+/* AI usage, allowances and budgets (docs/PLAN.md 3.3, docs/adr/019)         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * One row per AI call: which feature, which model, what it used and what it
+ * cost, in millionths of a euro. The daily budget and the AI-spend dashboard
+ * read it. The actor is a key ("user:<id>" or "guest:<random id>"), never a
+ * name, address or message text; demo-mode calls are recorded too, with the
+ * "demo" provider and no cost, so they can be told apart.
+ */
+export const aiUsage = pgTable(
+  "ai_usage",
+  {
+    id: id(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+    feature: text("feature").notNull(),
+    provider: text("provider").notNull(),
+    model: text("model").notNull(),
+    /** Where the call came from: chat, voice, support, a job or a script. */
+    surface: text("surface").notNull(),
+    actorKey: text("actor_key"),
+    inputTokens: integer("input_tokens").notNull().default(0),
+    outputTokens: integer("output_tokens").notNull().default(0),
+    /** Images, seconds, minutes or calls, for models priced per unit. */
+    units: doublePrecision("units").notNull().default(0),
+    /** Null when the model's price is not confirmed (src/lib/ai/models.ts). */
+    costMicros: bigint("cost_micros", { mode: "number" }),
+  },
+  (t) => [
+    index("ai_usage_occurred_idx").on(t.occurredAt),
+    index("ai_usage_feature_idx").on(t.feature, t.occurredAt),
+    check("ai_usage_counts_nonnegative", sql`${t.inputTokens} >= 0 AND ${t.outputTokens} >= 0 AND ${t.units} >= 0 AND (${t.costMicros} IS NULL OR ${t.costMicros} >= 0)`),
+  ],
+);
+
+/**
+ * Each shopper's allowance for the day (UTC): Concierge turns taken and
+ * credits spent on costly actions. One row per actor and day, incremented only
+ * when still under the cap, in one statement, so two requests at once cannot
+ * both take the last turn.
+ */
+export const aiAllowances = pgTable(
+  "ai_allowances",
+  {
+    actorKey: text("actor_key").notNull(),
+    day: date("day", { mode: "string" }).notNull(),
+    turns: integer("turns").notNull().default(0),
+    credits: integer("credits").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.actorKey, t.day] }),
+    check("ai_allowances_nonnegative", sql`${t.turns} >= 0 AND ${t.credits} >= 0`),
+  ],
+);
+
+export type AuditLogRow = typeof auditLog.$inferSelect;
+export type AiUsageRow = typeof aiUsage.$inferSelect;
+export type SearchEvent = typeof searchEvents.$inferSelect;
 
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;

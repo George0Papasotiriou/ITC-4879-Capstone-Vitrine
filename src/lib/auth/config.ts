@@ -12,12 +12,15 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { admin, twoFactor } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { uuidv7 } from "uuidv7";
 
+import { auditRow } from "@/lib/admin/audit";
 import { ac, authRoles } from "@/lib/auth/access";
 import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "@/lib/auth/policy";
-import { accounts, passkeys, sessions, twoFactors, users, verifications } from "@/lib/db/schema";
+import { withRole } from "@/lib/auth/roles";
+import { accounts, auditLog, passkeys, sessions, twoFactors, users, verifications } from "@/lib/db/schema";
 import type * as schema from "@/lib/db/schema";
 import type { Mailer } from "@/lib/email/mailer";
 import { emailLocale, resetPassword, verifyEmail } from "@/lib/email/templates";
@@ -60,6 +63,12 @@ export type AuthDependencies = {
   google?: { clientId: string; clientSecret: string };
   /** Rate limiting; Better Auth enables it in production only unless told. */
   rateLimit?: boolean;
+  /**
+   * Addresses that become admins when they sign in with the address confirmed
+   * (ADMIN_EMAILS). How the first admin exists in production, where no one can
+   * run a script against the database.
+   */
+  adminEmails?: readonly string[];
   log?: (level: "debug" | "info" | "warn" | "error", message: string) => void;
 };
 
@@ -77,8 +86,29 @@ export function localeOfLink(url: string): "en" | "el" {
   }
 }
 
-export function createAuth({ db, mailer, secret, baseURL, google, rateLimit, log }: AuthDependencies) {
+export function createAuth({ db, mailer, secret, baseURL, google, rateLimit, adminEmails = [], log }: AuthDependencies) {
   const origin = new URL(baseURL);
+  const admins = new Set(adminEmails.map((email) => email.trim().toLowerCase()).filter((email) => email !== ""));
+
+  /**
+   * After every sign-in: an address on ADMIN_EMAILS, once confirmed, gets the
+   * admin role. Confirmation is the point — anyone can type an address into
+   * the sign-up form, only its owner can click the link sent to it.
+   */
+  const grantConfiguredAdmin = async (userId: string) => {
+    const [user] = await db.select({ email: users.email, emailVerified: users.emailVerified, role: users.role }).from(users).where(eq(users.id, userId));
+    if (user === undefined || !user.emailVerified || !admins.has(user.email)) return;
+    const role = withRole(user.role, "admin");
+    if (role === user.role) return;
+    // Recorded like any other role change, with the system as the actor (docs/adr/018).
+    await db.transaction(async (tx) => {
+      await tx.update(users).set({ role }).where(eq(users.id, userId));
+      await tx
+        .insert(auditLog)
+        .values(auditRow({ actor: null, action: "role.grant", entityType: "user", entityId: userId, changes: { role: { before: user.role, after: role } }, reason: "ADMIN_EMAILS" }));
+    });
+    log?.("info", "Admin role granted to an address listed in ADMIN_EMAILS");
+  };
 
   const deliver = (kind: string, to: string, send: () => ReturnType<Mailer["sendEmail"]>) =>
     send().catch((error: unknown) => log?.("error", `${kind} email could not be recorded: ${error instanceof Error ? error.message : String(error)}`));
@@ -99,6 +129,7 @@ export function createAuth({ db, mailer, secret, baseURL, google, rateLimit, log
     telemetry: { enabled: false },
     logger: log === undefined ? undefined : { level: "warn", log: (level, message) => log(level, message) },
     rateLimit: rateLimit === undefined ? undefined : { enabled: rateLimit },
+    databaseHooks: admins.size === 0 ? undefined : { session: { create: { after: async (session) => grantConfiguredAdmin(session.userId) } } },
 
     emailAndPassword: {
       enabled: true,

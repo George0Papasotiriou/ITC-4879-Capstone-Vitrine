@@ -35,6 +35,7 @@ export function auth(): Auth {
         env.GOOGLE_CLIENT_ID !== undefined && env.GOOGLE_CLIENT_SECRET !== undefined
           ? { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET }
           : undefined,
+      adminEmails: env.ADMIN_EMAILS,
       log: (level, message) => logger[level]({ auth: true }, message),
     });
   }

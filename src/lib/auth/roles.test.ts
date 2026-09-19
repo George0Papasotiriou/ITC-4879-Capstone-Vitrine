@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { can, isStaff, parseRoles, PERMISSIONS, ROLES, type Permission, type Role } from "@/lib/auth/roles";
+import { can, isStaff, parseRoles, PERMISSIONS, ROLES, withoutRole, withRole, type Permission, type Role } from "@/lib/auth/roles";
 
 /**
  * docs/PLAN.md Phase 5 asks for a role-matrix test. The expected table is
@@ -17,10 +17,10 @@ import { can, isStaff, parseRoles, PERMISSIONS, ROLES, type Permission, type Rol
  * may do what has to be made twice, deliberately.
  */
 const EXPECTED: Record<Role, Record<Permission, boolean>> = {
-  customer: { "orders:own": true, "orders:manage": false, "reviews:moderate": false, "catalog:edit": false, "users:manage": false, "outbox:read": false },
-  support: { "orders:own": true, "orders:manage": true, "reviews:moderate": true, "catalog:edit": false, "users:manage": false, "outbox:read": false },
-  merchandiser: { "orders:own": true, "orders:manage": false, "reviews:moderate": true, "catalog:edit": true, "users:manage": false, "outbox:read": false },
-  admin: { "orders:own": true, "orders:manage": true, "reviews:moderate": true, "catalog:edit": true, "users:manage": true, "outbox:read": true },
+  customer: { "orders:own": true, "orders:manage": false, "reviews:moderate": false, "catalog:edit": false, "users:manage": false, "outbox:read": false, "reports:read": false, "audit:read": false },
+  support: { "orders:own": true, "orders:manage": true, "reviews:moderate": true, "catalog:edit": false, "users:manage": false, "outbox:read": false, "reports:read": false, "audit:read": false },
+  merchandiser: { "orders:own": true, "orders:manage": false, "reviews:moderate": true, "catalog:edit": true, "users:manage": false, "outbox:read": false, "reports:read": true, "audit:read": false },
+  admin: { "orders:own": true, "orders:manage": true, "reviews:moderate": true, "catalog:edit": true, "users:manage": true, "outbox:read": true, "reports:read": true, "audit:read": true },
 };
 
 describe("role matrix", () => {
@@ -50,6 +50,16 @@ describe("parseRoles", () => {
     expect(parseRoles("admin,root")).toEqual(["admin"]);
     expect(parseRoles("")).toEqual(["customer"]);
     expect(parseRoles(null)).toEqual(["customer"]);
+  });
+
+  it("adds and removes a role, keeping the stored string tidy", () => {
+    expect(withRole("customer", "admin")).toBe("admin");
+    expect(withRole("support", "merchandiser")).toBe("support,merchandiser");
+    expect(withRole("merchandiser,support", "support")).toBe("support,merchandiser");
+    expect(withRole(null, "support")).toBe("support");
+    expect(withoutRole("support,merchandiser", "support")).toBe("merchandiser");
+    expect(withoutRole("admin", "admin")).toBe("customer");
+    expect(withoutRole("customer", "admin")).toBe("customer");
   });
 
   it("tells staff from customers", () => {

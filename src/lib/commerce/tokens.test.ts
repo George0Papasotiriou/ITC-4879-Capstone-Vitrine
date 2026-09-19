@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { hashToken, newAccessToken, newOrderNumber, signValue, tokenMatches, verifySignedValue } from "@/lib/commerce/tokens";
+import { hashToken, newAccessToken, newOrderNumber, orderLinkToken, signValue, tokenMatches, verifySignedValue } from "@/lib/commerce/tokens";
 
 const SECRET = "s".repeat(32);
 
@@ -56,5 +56,22 @@ describe("order numbers", () => {
     expect(newOrderNumber(() => new Uint8Array([0, 0, 0, 0, 0]))).toBe("VT-0000-0000");
     expect(newOrderNumber(() => new Uint8Array([255, 255, 255, 255, 255]))).toBe("VT-ZZZZ-ZZZZ");
     expect(newOrderNumber(() => new Uint8Array([0, 0, 0, 0, 33]))).toBe("VT-0000-0011");
+  });
+});
+
+describe("orderLinkToken", () => {
+  const secret = "s".repeat(40);
+  const id = "01890000-0000-7000-8000-000000000001";
+
+  it("gives the same link for the same order, so an email can rebuild it later", () => {
+    expect(orderLinkToken(id, secret)).toBe(orderLinkToken(id, secret));
+    expect(tokenMatches(orderLinkToken(id, secret), hashToken(orderLinkToken(id, secret)))).toBe(true);
+  });
+
+  it("differs for another order or another secret, and is 256 bits in URL-safe form", () => {
+    const token = orderLinkToken(id, secret);
+    expect(token).not.toBe(orderLinkToken("01890000-0000-7000-8000-000000000002", secret));
+    expect(token).not.toBe(orderLinkToken(id, "t".repeat(40)));
+    expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/);
   });
 });

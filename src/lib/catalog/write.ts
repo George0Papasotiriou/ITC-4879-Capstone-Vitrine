@@ -22,7 +22,9 @@ import * as schema from "@/lib/db/schema";
  * Products are matched on (source, source_id), so re-running an import
  * updates what changed and never duplicates a product; the product id — which
  * carts, orders and reviews will point at — survives every re-import. Media and
- * the default variant are replaced wholesale, because the importer owns them.
+ * the default variant are replaced wholesale, because the importer owns them,
+ * until staff edit the product: from then on the shop owns it and the import
+ * adds nothing to it but its variant's colour label (docs/adr/018).
  *
  * Each batch is one transaction: a failure part-way leaves earlier batches
  * written and the failing batch untouched, never half a product.
@@ -112,6 +114,8 @@ export type WriteSummary = {
   brands: number;
   /** Products that did not exist before this write: new to the shop. */
   inserted: number;
+  /** Products staff have edited, left as staff left them (docs/adr/018). */
+  keptStaffEdits: number;
 };
 
 export type UpsertOptions = {
@@ -132,7 +136,7 @@ export async function upsertCatalog(
   { batchSize = 100, preserveStock = false }: UpsertOptions = {},
 ): Promise<WriteSummary> {
   const categoryIds = await upsertCategories(db);
-  const summary: WriteSummary = { products: 0, media: 0, brands: 0, inserted: 0 };
+  const summary: WriteSummary = { products: 0, media: 0, brands: 0, inserted: 0, keptStaffEdits: 0 };
 
   for (let start = 0; start < products.length; start += batchSize) {
     const batch = products.slice(start, start + batchSize);
@@ -149,7 +153,7 @@ export async function upsertCatalog(
       const known = new Set(existing.map((row) => `${row.source}:${row.sourceId}`));
       summary.inserted += batch.filter((product) => !known.has(`${product.source}:${product.sourceId}`)).length;
 
-      const rows = await tx
+      await tx
         .insert(schema.products)
         .values(
           batch.map((product) => {
@@ -195,14 +199,24 @@ export async function upsertCatalog(
             ]),
             updatedAt: sql`now()`,
           },
-        })
-        .returning({ id: schema.products.id, sourceId: schema.products.sourceId, source: schema.products.source });
+          // Once staff have edited a product the shop owns its text, prices and
+          // photos; the sync leaves it alone (docs/adr/018).
+          setWhere: sql`${schema.products.staffEditedAt} IS NULL`,
+        });
 
+      // Read back every product in the batch, including those the sync left alone.
+      const rows = await tx
+        .select({ id: schema.products.id, source: schema.products.source, sourceId: schema.products.sourceId, staffEditedAt: schema.products.staffEditedAt })
+        .from(schema.products)
+        .where(inArray(schema.products.sourceId, batch.map((product) => product.sourceId)));
       const idFor = new Map(rows.map((row) => [`${row.source}:${row.sourceId}`, row.id]));
-      const productIds = rows.map((row) => row.id);
+      const edited = new Set(rows.filter((row) => row.staffEditedAt !== null).map((row) => row.id));
+      const refreshed = batch.filter((product) => !edited.has(idFor.get(`${product.source}:${product.sourceId}`)!));
+      summary.keptStaffEdits += batch.length - refreshed.length;
 
-      await tx.delete(schema.productMedia).where(inArray(schema.productMedia.productId, productIds));
-      const media = batch.flatMap((product) => {
+      const refreshedIds = refreshed.map((product) => idFor.get(`${product.source}:${product.sourceId}`)!);
+      if (refreshedIds.length > 0) await tx.delete(schema.productMedia).where(inArray(schema.productMedia.productId, refreshedIds));
+      const media = refreshed.flatMap((product) => {
         const productId = idFor.get(`${product.source}:${product.sourceId}`)!;
         const positions = new Map<string, number>();
         return product.media.map((item) => {
@@ -232,7 +246,7 @@ export async function upsertCatalog(
           },
         });
 
-      summary.products += rows.length;
+      summary.products += refreshed.length;
     });
   }
 

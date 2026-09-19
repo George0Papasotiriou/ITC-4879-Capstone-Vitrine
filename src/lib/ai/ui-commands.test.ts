@@ -29,6 +29,10 @@ describe("route allowlist", () => {
     expect(isAllowedRoute("/p/oak-lounge-chair")).toBe(true);
     expect(isAllowedRoute("/search?q=lamp")).toBe(true);
     expect(isAllowedRoute("/account/orders")).toBe(true);
+    expect(isAllowedRoute("/c")).toBe(true);
+    expect(isAllowedRoute("/checkout")).toBe(true);
+    expect(isAllowedRoute("/room?product=oak-lounge-chair")).toBe(true);
+    expect(isAllowedRoute("/stylist")).toBe(true);
   });
 
   it("rejects absolute URLs to another origin", () => {
@@ -48,6 +52,8 @@ describe("route allowlist", () => {
   it("rejects routes that merely start with an allowed prefix", () => {
     expect(isAllowedRoute("/cart/../admin")).toBe(false);
     expect(isAllowedRoute("/admin")).toBe(false);
+    expect(isAllowedRoute("/staff/orders")).toBe(false);
+    expect(isAllowedRoute("/checkout/pay")).toBe(false);
     expect(isAllowedRoute("/api/health")).toBe(false);
   });
 });

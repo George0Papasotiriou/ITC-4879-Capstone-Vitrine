@@ -32,6 +32,9 @@ export const E2E_PING_TOKEN = "local-e2e-ping-token-0001";
 /** Lets tests act as visitors from another country, as a CDN header would (docs/adr/013). */
 export const E2E_COUNTRY_HEADER = "x-vitrine-test-country";
 
+/** One admin per device project, made admin by ADMIN_EMAILS as production's first admin is (docs/adr/016). */
+export const E2E_ADMIN_EMAILS = { desktop: "desk-admin-desktop@vitrine.test", mobile: "desk-admin-mobile@vitrine.test" } as const;
+
 const baseURL = process.env.BASE_URL ?? `http://localhost:${LOCAL_PORT}`;
 
 export default defineConfig({
@@ -59,7 +62,12 @@ export default defineConfig({
           timeout: 120_000,
           stdout: "ignore",
           stderr: "pipe",
-          env: { DEV_PING_TOKEN: E2E_PING_TOKEN, LOG_LEVEL: "warn", GEO_COUNTRY_HEADER: E2E_COUNTRY_HEADER },
+          env: {
+            DEV_PING_TOKEN: E2E_PING_TOKEN,
+            LOG_LEVEL: "warn",
+            GEO_COUNTRY_HEADER: E2E_COUNTRY_HEADER,
+            ADMIN_EMAILS: Object.values(E2E_ADMIN_EMAILS).join(","),
+          },
         }
       : undefined,
 });

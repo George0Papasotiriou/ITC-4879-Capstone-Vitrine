@@ -20,6 +20,7 @@ import { TrackInterest } from "@/components/reco/track-interest";
 import { productTransitionName } from "@/components/commerce/product-tile";
 import { ButtonLink } from "@/components/ui/button";
 import { Price } from "@/components/ui/price";
+import { ProductReviews } from "@/components/commerce/product-reviews";
 import { Rating } from "@/components/ui/rating";
 import { SmartLink } from "@/components/ui/smart-link";
 import { serverEnv } from "@/env";
@@ -28,6 +29,7 @@ import { routing } from "@/i18n/routing";
 import { getCardsByIds, getFeatured, getProduct } from "@/lib/catalog/server";
 import { pairsWith } from "@/lib/reco/server";
 import { productJsonLd, serializeJsonLd } from "@/lib/catalog/structured-data";
+import { reviewsStore } from "@/lib/commerce/server";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
@@ -82,8 +84,10 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/p/[sl
   const related = neighbourCards.length > 0 ? neighbourCards : await getFeatured({ locale, limit: 4, category: product.category, excludeIds: [product.id] });
   const relatedTitle = neighbours.source === "behavior" && neighbourCards.length > 0 ? t("pairsWith") : t("moreLikeThis");
 
+  const reviews = await (await reviewsStore()).productReviews(product.id, { limit: 10 });
   const origin = serverEnv().APP_URL;
   const jsonLd = productJsonLd(product, {
+    reviews,
     origin,
     url: new URL(`/${locale}/p/${product.slug}`, origin).toString(),
     categoryUrl: new URL(`/${locale}/c/${product.category}`, origin).toString(),
@@ -222,6 +226,8 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/p/[sl
           )}
         </div>
       </div>
+
+      <ProductReviews summary={reviews.summary} reviews={reviews.reviews} locale={locale} />
 
       {related.length === 0 ? null : (
         <section className="border-hairline mt-20 border-t pt-10">

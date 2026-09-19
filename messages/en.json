@@ -19,7 +19,8 @@
     "openMenu": "Open the menu",
     "closeMenu": "Close the menu",
     "concierge": "Concierge",
-    "openConcierge": "Open the Concierge"
+    "openConcierge": "Open the Concierge",
+    "conciergePage": "Concierge"
   },
   "home": {
     "eyebrow": "New this season",
@@ -142,7 +143,88 @@
     "actionsListLabel": "Concierge actions",
     "announceFailed": "{caption}. That did not work.",
     "announceUndoable": "{caption}. You can undo this.",
-    "announceUndone": "Undone: {caption}"
+    "announceUndone": "Undone: {caption}",
+    "open": "Ask the Concierge",
+    "close": "Close the Concierge",
+    "panelLabel": "Concierge",
+    "demoBadge": "Demo",
+    "demoExplain": "Demo mode: answers come from simple rules until the shop's AI key is added. Everything it does is real: searches, the cart and the page.",
+    "send": "Send",
+    "newChat": "New conversation",
+    "intro": "Ask for anything in the shop: a piece, a look, a set within a budget, or where your order is.",
+    "suggestionsLabel": "Try asking",
+    "suggestions": {
+      "home": {
+        "s1": "A reading corner under €600",
+        "s2": "Show me oak coffee tables",
+        "s3": "Where is my order?"
+      },
+      "product": {
+        "s1": "What goes with this?",
+        "s2": "Compare this with similar pieces",
+        "s3": "Add this to my cart"
+      },
+      "listing": {
+        "s1": "Only what is in stock, under €300",
+        "s2": "Compare the first two",
+        "s3": "Show me something in walnut"
+      },
+      "cart": {
+        "s1": "I'm ready to check out",
+        "s2": "What goes with what's in my cart?"
+      },
+      "other": {
+        "s1": "Show me linen lamps",
+        "s2": "A living room set for €1,500"
+      }
+    },
+    "working": "Working on it…",
+    "searched": "Searched for “{query}”",
+    "found": "{count, plural, =0 {Nothing found} one {# piece found} other {# pieces found}}",
+    "added": "Added {title}",
+    "updated": "{title}: {quantity} in the cart",
+    "removed": "Removed {title}",
+    "cartRefused": "That could not be added: it may be out of stock.",
+    "undoFailed": "That could not be undone: the cart has changed since.",
+    "compareTitle": "Side by side",
+    "compare": {
+      "product": "Product",
+      "price": "Price",
+      "size": "Size (W × D × H)",
+      "materials": "Materials",
+      "rating": "Rating",
+      "stock": "Stock"
+    },
+    "inStock": "In stock",
+    "outOfStock": "Out of stock",
+    "noRating": "No reviews yet",
+    "bundleTitle": "Set {number}",
+    "bundleTotal": "Total {total}, {left} left of your budget",
+    "noBundle": "No complete set fits that budget.",
+    "ordersTitle": "Your orders",
+    "noOrders": "No orders found.",
+    "orderLine": "{number} · {status}",
+    "approval": {
+      "checkoutTitle": "Open checkout?",
+      "checkoutBody": "You'll check your order and pay on the checkout page yourself. The Concierge never pays.",
+      "returnTitle": "Ask for a return of {number}?",
+      "returnBody": "The shop will arrange the collection and refund you once the order arrives back.",
+      "approve": "Yes, go ahead",
+      "decline": "No",
+      "approved": "Approved",
+      "declined": "Declined"
+    },
+    "errors": {
+      "turns": "You've used today's Concierge questions. They come back tomorrow; signing in gives you more.",
+      "credits": "That needs more credits than you have left today.",
+      "kill_switch": "The Concierge is paused for now. Search and browsing work as usual.",
+      "budget": "The Concierge is resting until tomorrow. Search and browsing work as usual.",
+      "off": "The Concierge isn't available on this shop yet.",
+      "slow_down": "That's a lot of questions at once. Wait a moment and try again.",
+      "too_long": "That message is too long. Try saying it in fewer words.",
+      "generic": "The Concierge couldn't answer that. Please try again."
+    },
+    "viewProduct": "View {title}"
   },
   "footer": {
     "shop": "Shop",
@@ -252,8 +334,10 @@
     "creditsGeo": "Finding your country for prices and VAT: <link>IP Geolocation by DB-IP</link>, the free “IP to Country Lite” database, licensed CC BY 4.0. It is kept on the shop's own server; your address is never sent to DB-IP.",
     "creditsDepthModel": "Placing a piece without paper uses {name}, licensed {licence}. It runs in your browser, on this shop’s own copy: your photo is never sent anywhere.",
     "creditsType": "Typeface: Commissioner, by Kostas Bartsokas, SIL Open Font License.",
-    "privacyLocation": "To show prices with the right VAT, the shop looks up the country of your internet address in a database kept on its own server. The address is used for that lookup only: it is not stored, not logged, and not sent to anyone. You can choose a different country at any time, and at checkout VAT always follows your delivery address.",
-    "privacyRoom": "In “See it in your room”, your photo is measured and drawn on your own device and never uploaded. The paper-free mode downloads a depth-estimation model to your browser the first time you use it; the model runs on your device, and your photo still never leaves it."
+    "privacyLocation": "To show prices with the right VAT, the shop looks up the country of your internet address in a database kept on its own server. For that lookup the address is not stored, not logged, and not sent to anyone. You can choose a different country at any time, and at checkout VAT always follows your delivery address.",
+    "privacyRoom": "In “See it in your room”, your photo is measured and drawn on your own device and never uploaded. The paper-free mode downloads a depth-estimation model to your browser the first time you use it; the model runs on your device, and your photo still never leaves it.",
+    "privacyAccount": "If you create an account, the shop keeps your name, your email address and a one-way hash of your password (never the password itself). For each device you sign in on it keeps the internet address and browser at sign-in, so the account page can show where you are signed in and let you sign a device out. Passkeys are stored as public keys only. Emails the shop sends you are kept for a week, then deleted. To have your account deleted, write to us from the contact page.",
+    "privacySearch": "Searches. To learn what people look for and what the shop is missing, we keep each search's words, language and number of results for 90 days, with nothing that identifies you: no account, no address, no cookie. Email addresses are dropped and long numbers are masked before anything is stored."
   },
   "stylist": {
     "title": "Budget Stylist",
@@ -581,7 +665,40 @@
       "action": "Choose a new password",
       "expires": "The link works for one hour and only once.",
       "ignore": "If you did not ask, ignore this email: your password stays as it is."
-    }
+    },
+    "orderAction": "View your order",
+    "orderSignIn": "Sign in to see the order in your account.",
+    "order": {
+      "confirmed": {
+        "subject": "Order {number} is confirmed",
+        "intro": "Thank you. Your payment went through and we are preparing order {number}."
+      },
+      "shipped": {
+        "subject": "Order {number} is on its way",
+        "intro": "Order {number} has left our workshop in Athens. The order page shows where it is going and what comes next."
+      },
+      "delivered": {
+        "subject": "Order {number} was delivered",
+        "intro": "Order {number} has been delivered. We hope it feels at home. If something is not right, you can ask for a return within 14 days."
+      },
+      "cancelled": {
+        "subject": "Order {number} is cancelled",
+        "intro": "Order {number} is cancelled. Any payment we took is refunded to the card it came from."
+      },
+      "refunded": {
+        "subject": "Order {number}: your refund",
+        "intro": "We have refunded the payment for order {number}. Banks usually take a few working days to show it."
+      },
+      "returnReceived": {
+        "subject": "Order {number}: return received",
+        "intro": "The pieces you sent back from order {number} have arrived. We are preparing your refund."
+      },
+      "returnRequested": {
+        "subject": "Order {number}: return requested",
+        "intro": "We have your request to return order {number}. Pack the pieces, in their original packaging if you still have it; our courier will contact you to collect them, and your refund follows once they arrive."
+      }
+    },
+    "orderReviewAsk": "Once it has settled in, you can review it from the order page, so others know what it is like to live with."
   },
   "auth": {
     "signInTitle": "Sign in",
@@ -703,5 +820,396 @@
     "openLink": "Open the link",
     "delivered": "Also sent through Resend",
     "failed": "Resend refused it: {error}"
+  },
+  "staff": {
+    "title": "Order desk",
+    "lede": "Orders grouped by what they need next. Queues are oldest first, so nobody waits behind a newer order.",
+    "views": {
+      "pack": "To pack",
+      "ship": "To ship",
+      "transit": "On the way",
+      "returns": "Returns",
+      "unpaid": "Awaiting payment",
+      "closed": "Closed",
+      "all": "All"
+    },
+    "viewsLabel": "Order queues",
+    "search": "Order number or email",
+    "searchAction": "Search",
+    "empty": "No orders here.",
+    "emptySearch": "No orders match “{query}”.",
+    "columns": {
+      "number": "Order",
+      "placed": "Placed",
+      "customer": "Customer",
+      "destination": "Deliver to",
+      "items": "Items",
+      "total": "Total",
+      "status": "Status"
+    },
+    "back": "All orders",
+    "customer": "Customer",
+    "deliverTo": "Deliver to",
+    "nextStep": "Next step",
+    "nothingToDo": "Nothing to do: this order is {status}.",
+    "reason": "Reason",
+    "reasonHint": "Kept in the order's history. The customer is emailed that the order is cancelled or refunded, without this note.",
+    "reasonRequired": "Say why before cancelling or refunding.",
+    "confirmAction": "{action} order {number}",
+    "keep": "Go back",
+    "moved": "Order {number}: {status}.",
+    "failed": "That did not work: the order may have changed meanwhile. The page shows its current state.",
+    "history": "History",
+    "by": "by {name}",
+    "actors": {
+      "customer": "customer",
+      "staff": "staff",
+      "system": "payment system"
+    },
+    "actions": {
+      "pack": "Mark packed",
+      "ship": "Mark shipped",
+      "deliver": "Mark delivered",
+      "request_return": "Open a return",
+      "receive_return": "Return received",
+      "refund": "Refund",
+      "cancel": "Cancel order"
+    },
+    "reviewsTitle": "Reviews",
+    "reviewsLede": "Every review, newest first. Hide one that breaks the rules (personal details, abuse, not about the piece); it leaves the product's rating at once, and can be restored.",
+    "reviewViews": {
+      "published": "Published",
+      "hidden": "Hidden",
+      "all": "All"
+    },
+    "reviewViewsLabel": "Review filters",
+    "reviewOf": "{product} · order {order}",
+    "hide": "Hide",
+    "restore": "Restore",
+    "hideReason": "Why hide it?",
+    "hideReasonHint": "Kept with the review for other staff. The author is not told.",
+    "hidden": "Review hidden.",
+    "restored": "Review restored.",
+    "hiddenBecause": "Hidden: {reason}",
+    "reviewsEmpty": "No reviews here."
+  },
+  "reviews": {
+    "heading": "Reviews",
+    "none": "No reviews yet. Reviews here come only from people who bought and received the piece.",
+    "outOf": "{average} out of 5",
+    "basedOn": "{count, plural, one {Based on # verified review} other {Based on # verified reviews}}",
+    "starsLabel": "{stars, plural, one {# star} other {# stars}}",
+    "starsShare": "{stars, plural, one {# star} other {# stars}}: {count}",
+    "verified": "Verified purchase",
+    "edited": "edited",
+    "inGreek": "Written in Greek",
+    "inEnglish": "Written in English",
+    "showing": "The {shown} newest of {count}.",
+    "yours": "Your reviews",
+    "yoursLede": "Tell others what these pieces are like to live with. Your review shows your first name and initial only.",
+    "write": "Review this piece",
+    "edit": "Edit your review",
+    "yourRating": "Your rating",
+    "title": "Title (optional)",
+    "body": "Your review",
+    "bodyHint": "What is it like to live with? At least {min} characters.",
+    "submit": "Publish review",
+    "saving": "Publishing…",
+    "saved": "Thank you. Your review is published.",
+    "updated": "Your review is updated.",
+    "hidden": "The shop has hidden this review. You can edit it; it stays hidden.",
+    "cancel": "Cancel",
+    "errorRating": "Choose from one to five stars.",
+    "errorShort": "Write at least {min} characters, so others can learn something from it.",
+    "errorLong": "Keep it under {max} characters.",
+    "errorFailed": "The review was not saved. Try again in a moment.",
+    "outOfFive": "out of 5"
+  },
+  "returns": {
+    "open": "Return this order",
+    "title": "Return this order",
+    "lede": "You can send this order back until {date}. Tell us why; the courier will contact you to collect it, and your refund follows once it arrives.",
+    "reason": "Why are you returning it?",
+    "reasons": {
+      "changed_mind": "I changed my mind",
+      "damaged": "It arrived damaged",
+      "not_as_described": "It is not as described",
+      "wrong_item": "I received the wrong item",
+      "other": "Another reason"
+    },
+    "note": "Anything else we should know? (optional)",
+    "submit": "Request the return",
+    "keep": "Keep the order",
+    "requested": "Return requested. We have emailed you what happens next.",
+    "failed": "The return was not requested. The page shows the order as it is now; try again or contact us.",
+    "chooseReason": "Choose a reason."
+  },
+  "admin": {
+    "desks": {
+      "title": "Staff desks",
+      "lede": "The work your role allows, in one place.",
+      "orders": {
+        "title": "Order desk",
+        "lede": "Pack, ship and deliver orders, and handle returns and refunds."
+      },
+      "reviews": {
+        "title": "Reviews to moderate",
+        "lede": "Hide or restore customer reviews."
+      },
+      "products": {
+        "title": "Products and stock",
+        "lede": "Edit words and prices, take pieces off sale, correct stock."
+      },
+      "dashboard": {
+        "title": "Dashboards",
+        "lede": "Sales, orders, returns, reviews and searches, with CSV exports."
+      },
+      "audit": {
+        "title": "Audit log",
+        "lede": "Who changed what in the catalogue, stock, reviews and roles."
+      }
+    },
+    "products": {
+      "title": "Products and stock",
+      "lede": "Search by title or SKU. An edited product keeps your changes when the catalogue is next imported.",
+      "search": "Title or SKU",
+      "searchAction": "Search",
+      "category": "Category",
+      "allCategories": "All categories",
+      "status": "Status",
+      "views": {
+        "all": "All",
+        "active": "On sale",
+        "archived": "Off sale",
+        "low": "Low stock"
+      },
+      "viewsLabel": "Product lists",
+      "columns": {
+        "product": "Product",
+        "category": "Category",
+        "price": "Price",
+        "stock": "Stock",
+        "status": "Status"
+      },
+      "statuses": {
+        "active": "On sale",
+        "archived": "Off sale",
+        "draft": "Draft"
+      },
+      "edited": "Edited by staff",
+      "empty": "No products here.",
+      "emptySearch": "No products match “{query}”.",
+      "showing": "{from}–{to} of {total}",
+      "previous": "Previous",
+      "next": "Next",
+      "pages": "Pages"
+    },
+    "edit": {
+      "back": "All products",
+      "title": "Edit {title}",
+      "viewInShop": "See it in the shop",
+      "editedNote": "Edited by staff on {date}. The catalogue import leaves this product as staff left it.",
+      "importedNote": "Not edited yet: the catalogue import still updates it. Your first save makes the shop its owner.",
+      "translation": {
+        "none": "No Greek text yet",
+        "machine": "Greek text machine-translated",
+        "reviewed": "Greek text checked by a person"
+      },
+      "words": "Words",
+      "prices": "Price",
+      "availability": "On sale",
+      "titleEn": "Title in English",
+      "titleEl": "Title in Greek",
+      "descriptionEn": "Description in English",
+      "descriptionEl": "Description in Greek",
+      "highlightsEn": "Selling points in English",
+      "highlightsEl": "Selling points in Greek",
+      "highlightsHint": "One per line, up to 12.",
+      "price": "Price in euros",
+      "priceHint": "The Greek price with VAT. Other countries' prices follow from it.",
+      "compareAt": "Earlier price in euros (optional)",
+      "compareAtHint": "Only a price the piece really sold at; the shop shows the saving.",
+      "statusActive": "On sale",
+      "statusActiveHint": "Shown in the shop and can be bought.",
+      "statusArchived": "Off sale",
+      "statusArchivedHint": "Hidden from the shop. Orders already placed are not affected.",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "saved": "Saved. The shop shows the change now.",
+      "nothingChanged": "Nothing changed.",
+      "failed": "That did not save. Check your connection and try again.",
+      "fixFields": "Some fields need attention; see the notes beside them.",
+      "errors": {
+        "required": "Write a title.",
+        "too_long": "That is too long.",
+        "invalid_price": "Write a price in euros, for example 129 or 129,90.",
+        "compare_not_above": "The earlier price has to be above the price.",
+        "too_many": "Up to 12 selling points.",
+        "line_too_long": "Keep each selling point under 300 characters."
+      },
+      "stock": {
+        "title": "Stock",
+        "lede": "Set the number you counted. Orders keep moving it as before.",
+        "current": "{count} in stock",
+        "count": "Counted",
+        "reason": "Why it changed",
+        "reasonHint": "For example: counted the shelf, damaged in the warehouse, delivery from the maker.",
+        "save": "Set stock",
+        "saved": "Stock set to {count}.",
+        "unchanged": "That is already the stock.",
+        "errors": {
+          "negative": "Stock cannot be below zero.",
+          "whole_number": "Use a whole number.",
+          "too_large": "That is more than the shop can hold.",
+          "reason_required": "Say why the stock changed.",
+          "too_long": "That is too long."
+        }
+      }
+    },
+    "dashboard": {
+      "title": "Dashboards",
+      "lede": "How the shop is doing. Sales count on the day they were paid; days are UTC.",
+      "periodLabel": "Period",
+      "periods": {
+        "7": "Last 7 days",
+        "30": "Last 30 days",
+        "90": "Last 90 days"
+      },
+      "exports": "Download",
+      "exportOrders": "Orders (CSV)",
+      "exportStock": "Stock (CSV)",
+      "sales": {
+        "title": "Sales",
+        "gross": "Sales",
+        "grossNote": "Paid orders, VAT and delivery included",
+        "net": "After refunds",
+        "orders": "Paid orders",
+        "average": "Average order",
+        "refunds": "Refunded",
+        "refundsNote": "{count, plural, =0 {No refunds} one {# refund} other {# refunds}}",
+        "vat": "VAT collected"
+      },
+      "byDay": {
+        "title": "Sales per day",
+        "day": "Day",
+        "value": "Sales",
+        "chartLabel": "Sales per day, highest {max}"
+      },
+      "statuses": {
+        "title": "Orders placed, by where they are now",
+        "status": "Status",
+        "count": "Orders"
+      },
+      "countries": {
+        "title": "Sales by country",
+        "country": "Country",
+        "orders": "Orders",
+        "sales": "Sales",
+        "vat": "VAT"
+      },
+      "products": {
+        "title": "Best sellers",
+        "product": "Product",
+        "units": "Pieces",
+        "sales": "Sales"
+      },
+      "funnel": {
+        "title": "From cart to delivery",
+        "lede": "Of the shoppers who started a cart in this period.",
+        "step": "Step",
+        "count": "Count",
+        "share": "Of the step before",
+        "steps": {
+          "carts": "Started a cart",
+          "placed": "Placed an order",
+          "paid": "Paid",
+          "delivered": "Delivered"
+        }
+      },
+      "returns": {
+        "title": "Returns",
+        "requested": "Asked to return",
+        "deliveries": "Delivered",
+        "rate": "Return rate",
+        "reason": "Reason",
+        "count": "Returns",
+        "unknown": "Other (older returns)"
+      },
+      "reviews": {
+        "title": "Reviews",
+        "published": "Published",
+        "average": "Average stars",
+        "hidden": "Hidden by staff"
+      },
+      "searches": {
+        "title": "Searches",
+        "total": "Searches",
+        "zeroShare": "Found nothing",
+        "top": "Most searched",
+        "zero": "Searched but not found",
+        "query": "Query",
+        "count": "Times",
+        "averageResults": "Results on average",
+        "privacy": "Queries are kept for 90 days without anything that identifies the person; numbers that could be a phone or card are masked."
+      },
+      "lowStock": {
+        "title": "Running out",
+        "product": "Product",
+        "sku": "SKU",
+        "stock": "Left",
+        "viewAll": "All low-stock products",
+        "none": "Nothing is running out."
+      },
+      "none": "—",
+      "empty": "Nothing in this period."
+    },
+    "audit": {
+      "title": "Audit log",
+      "lede": "Every change to products, stock, reviews and roles, newest first. Order changes are in each order's own history.",
+      "filterLabel": "Show",
+      "entities": {
+        "all": "Everything",
+        "product": "Products",
+        "variant": "Stock",
+        "review": "Reviews",
+        "user": "Roles"
+      },
+      "columns": {
+        "when": "When",
+        "who": "Who",
+        "what": "What",
+        "changes": "Changes"
+      },
+      "system": "System",
+      "actions": {
+        "product_update": "Edited a product",
+        "stock_set": "Set stock",
+        "review_hide": "Hid a review",
+        "review_restore": "Restored a review",
+        "role_grant": "Gave a role",
+        "role_revoke": "Took a role away"
+      },
+      "reason": "Reason: {reason}",
+      "empty": "Nothing recorded yet.",
+      "previous": "Newer",
+      "next": "Older",
+      "open": "Open",
+      "fields": {
+        "titleEn": "Title (English)",
+        "titleEl": "Title (Greek)",
+        "descriptionEn": "Description (English)",
+        "descriptionEl": "Description (Greek)",
+        "highlightsEn": "Selling points (English)",
+        "highlightsEl": "Selling points (Greek)",
+        "priceCents": "Price",
+        "compareAtCents": "Earlier price",
+        "status": "Status",
+        "translation": "Greek text",
+        "stock": "Stock",
+        "role": "Roles",
+        "moderationReason": "Reason shown to staff"
+      },
+      "empty_value": "empty"
+    }
   }
 }

@@ -73,6 +73,7 @@ export type SideEffect =
   | "email_order_cancelled"
   | "email_order_shipped"
   | "email_order_delivered"
+  | "email_return_requested"
   | "email_return_received"
   | "email_refunded"
   /** Record purchases for the Taste Graph (only for shoppers who opted in). */
@@ -105,7 +106,7 @@ export const TRANSITIONS: Readonly<Partial<Record<OrderStatus, Partial<Record<Or
     deliver: { to: "delivered", actors: ["staff", "system"], effects: ["email_order_delivered"] },
   },
   delivered: {
-    request_return: { to: "return_requested", actors: ["customer", "staff"], effects: [] },
+    request_return: { to: "return_requested", actors: ["customer", "staff"], effects: ["email_return_requested"] },
   },
   cancelled: {
     // Confirms the refund issued when a paid order was cancelled.

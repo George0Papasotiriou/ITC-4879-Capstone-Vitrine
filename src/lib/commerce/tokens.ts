@@ -47,6 +47,18 @@ export function newAccessToken(): string {
   return randomBytes(24).toString("base64url");
 }
 
+/**
+ * The token in an order's private link, derived from the order id and a
+ * server secret (HMAC-SHA256, 256 bits, URL-safe) instead of drawn at random.
+ * Just as unguessable without the secret, and it means an email written days
+ * later ("your order has shipped") can include the guest's link without the
+ * shop ever storing it: only its hash is kept, as before (docs/adr/016).
+ * Rotating the secret retires every guest link, as it already empties carts.
+ */
+export function orderLinkToken(orderId: string, secret: string): string {
+  return hmac(`order-link:${orderId}`, secret);
+}
+
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }

@@ -8,6 +8,8 @@
  */
 
 import type { ProductDetail } from "@/lib/catalog/queries";
+import type { PublicReview } from "@/lib/commerce/review-store";
+import type { RatingSummary } from "@/lib/commerce/reviews";
 import { minorUnitsPerMajor } from "@/lib/commerce/money";
 
 /**
@@ -18,8 +20,17 @@ import { minorUnitsPerMajor } from "@/lib/commerce/money";
  * markup can never disagree with the price on the page.
  */
 
-export function productJsonLd(product: ProductDetail, { url, origin, categoryUrl }: { url: string; origin: string; categoryUrl: string }) {
+/**
+ * With reviews, an AggregateRating and the newest few reviews are added (docs/adr/017):
+ * the same verified reviews the page shows, never an invented score. Without
+ * any, both are left out, as search engines require.
+ */
+export function productJsonLd(
+  product: ProductDetail,
+  { url, origin, categoryUrl, reviews }: { url: string; origin: string; categoryUrl: string; reviews?: { summary: RatingSummary; reviews: PublicReview[] } },
+) {
   const divisor = minorUnitsPerMajor(product.price.currency);
+  const rated = reviews !== undefined && reviews.summary.count > 0;
   return [
     {
       "@context": "https://schema.org",
@@ -40,6 +51,26 @@ export function productJsonLd(product: ProductDetail, { url, origin, categoryUrl
         availability: product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
         itemCondition: "https://schema.org/NewCondition",
       },
+      ...(rated
+        ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: reviews.summary.average.toFixed(1),
+              reviewCount: reviews.summary.count,
+              bestRating: 5,
+              worstRating: 1,
+            },
+            review: reviews.reviews.slice(0, 5).map((review) => ({
+              "@type": "Review",
+              reviewRating: { "@type": "Rating", ratingValue: review.rating, bestRating: 5, worstRating: 1 },
+              author: { "@type": "Person", name: review.authorName },
+              datePublished: review.createdAt.toISOString().slice(0, 10),
+              ...(review.title === null ? {} : { name: review.title }),
+              reviewBody: review.body,
+              inLanguage: review.locale,
+            })),
+          }
+        : {}),
     },
     {
       "@context": "https://schema.org",

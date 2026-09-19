@@ -13,8 +13,8 @@
  *
  * - customer: shops, sees their own orders and reviews.
  * - support: works the order desk (pack, ship, deliver, refund) and moderates reviews.
- * - merchandiser: edits the catalogue and moderates reviews.
- * - admin: everything, including roles, bans and the email outbox.
+ * - merchandiser: edits the catalogue, moderates reviews, reads the dashboards.
+ * - admin: everything, including roles, bans, the email outbox and the audit log.
  *
  * Authorization is always decided on the server from this table; what the
  * interface shows is a convenience, never the check (CLAUDE.md, proxy.ts).
@@ -30,6 +30,10 @@ export const PERMISSIONS = [
   "catalog:edit",
   "users:manage",
   "outbox:read",
+  /** Dashboards and CSV exports (docs/adr/018). */
+  "reports:read",
+  /** Who changed what: the audit log. */
+  "audit:read",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -37,7 +41,7 @@ export type Permission = (typeof PERMISSIONS)[number];
 export const GRANTS: Readonly<Record<Role, readonly Permission[]>> = {
   customer: ["orders:own"],
   support: ["orders:own", "orders:manage", "reviews:moderate"],
-  merchandiser: ["orders:own", "reviews:moderate", "catalog:edit"],
+  merchandiser: ["orders:own", "reviews:moderate", "catalog:edit", "reports:read"],
   admin: PERMISSIONS,
 };
 
@@ -60,6 +64,23 @@ export function parseRoles(stored: string | null | undefined): Role[] {
 
 export function can(roles: readonly Role[], permission: Permission): boolean {
   return roles.some((role) => GRANTS[role].includes(permission));
+}
+
+/**
+ * A stored role string with one role added or removed, in the order of ROLES
+ * and without duplicates: what `pnpm accounts grant` and ADMIN_EMAILS write.
+ * Removing the last role leaves "customer", never an empty string.
+ */
+export function withRole(stored: string | null | undefined, role: Role): string {
+  const roles = new Set<Role>(parseRoles(stored));
+  roles.add(role);
+  if (role !== "customer" && roles.size > 1) roles.delete("customer");
+  return ROLES.filter((known) => roles.has(known)).join(",");
+}
+
+export function withoutRole(stored: string | null | undefined, role: Role): string {
+  const roles = parseRoles(stored).filter((known) => known !== role);
+  return roles.length === 0 ? "customer" : ROLES.filter((known) => roles.includes(known)).join(",");
 }
 
 /** Staff are the people who can see other customers' data. */

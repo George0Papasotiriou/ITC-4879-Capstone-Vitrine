@@ -10,6 +10,7 @@
 import { z } from "zod";
 
 import { isLocale } from "@/i18n/routing";
+import { logSearch } from "@/lib/admin/server";
 import { getCardsByIds, runSearch } from "@/lib/catalog/server";
 import { CATEGORY_SLUGS, type CategorySlug } from "@/lib/catalog/taxonomy";
 import { loggerForRequest } from "@/lib/log";
@@ -30,6 +31,8 @@ const querySchema = z.object({
   locale: z.string().refine(isLocale).default("en"),
   category: z.enum(CATEGORY_SLUGS as [CategorySlug, ...CategorySlug[]]).optional(),
   limit: z.coerce.number().int().min(1).max(48).default(24),
+  /** Sent by search-as-you-type, whose keystrokes are not searches worth counting (docs/adr/018). */
+  instant: z.literal("1").optional(),
 });
 
 export async function GET(request: Request): Promise<Response> {
@@ -42,12 +45,23 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
-  const { q, locale, category, limit } = parsed.data;
+  const { q, locale, category, limit, instant } = parsed.data;
   const started = performance.now();
   const result = await runSearch(q, { limit, filters: category === undefined ? undefined : { categories: [category] } });
   const cards = await getCardsByIds(result.ids, locale);
   const tookMs = Math.round(performance.now() - started);
 
+  if (instant === undefined) {
+    logSearch({
+      query: q,
+      locale,
+      results: result.ids.length,
+      relaxed: result.relaxed.length > 0,
+      corrected: result.corrections.length > 0,
+      tookMs,
+      source: "api",
+    });
+  }
   loggerForRequest(request.headers).info(
     { search: { results: cards.length, tookMs, retrievers: result.retrieversUsed, relaxed: result.relaxed } },
     "search",

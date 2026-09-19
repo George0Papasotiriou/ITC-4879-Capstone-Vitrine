@@ -68,7 +68,8 @@ export type Executors = Partial<Record<UiCommand["type"], CommandExecutor>>;
 export type TimelineEntry = {
   id: string;
   caption: string;
-  type: UiCommand["type"];
+  /** A page command, or a change the Concierge made elsewhere (the cart). */
+  type: UiCommand["type"] | "cart";
   at: number;
   undo?: Undo;
   undone: boolean;
@@ -83,6 +84,8 @@ type SpotlightValue = {
   stop: () => void;
   skip: () => void;
   undo: (entryId: string) => Promise<void>;
+  /** Adds an action that did not go through the page (a cart change) to the timeline, with its undo. */
+  record: (entry: { caption: string; type: TimelineEntry["type"]; undo?: Undo }) => void;
   timeline: TimelineEntry[];
   clearTimeline: () => void;
   phase: Phase;
@@ -378,19 +381,28 @@ export function SpotlightProvider({
 
   const clearTimeline = useCallback(() => setTimeline([]), []);
 
+  const record = useCallback(
+    ({ caption: text, type, undo: back }: { caption: string; type: TimelineEntry["type"]; undo?: Undo }) => {
+      setTimeline((entries) => [...entries, { id: `${Date.now()}-${entries.length}`, caption: text, type, at: Date.now(), undo: back, undone: false }]);
+      setAnnouncement(back === undefined ? text : t("announceUndoable", { caption: text }));
+    },
+    [t],
+  );
+
   const value = useMemo<SpotlightValue>(
     () => ({
       run,
       stop,
       skip,
       undo,
+      record,
       timeline,
       clearTimeline,
       phase,
       isBusy: phase !== "idle",
       caption,
     }),
-    [run, stop, skip, undo, timeline, clearTimeline, phase, caption],
+    [run, stop, skip, undo, record, timeline, clearTimeline, phase, caption],
   );
 
   return (

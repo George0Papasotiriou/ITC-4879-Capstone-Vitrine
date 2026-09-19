@@ -199,6 +199,32 @@ describe.skipIf(url === undefined || url === "")("accounts", () => {
     await expect(connection`UPDATE users SET email = 'Staff@Example.com' WHERE email = 'staff@example.com'`).rejects.toThrow(/users_email_lowercase/);
   });
 
+  it("makes an ADMIN_EMAILS address an admin only once it has been confirmed", async () => {
+    const withAdmins = createAuth({
+      db: drizzle(connection, { schema }),
+      mailer,
+      secret: "s".repeat(40),
+      baseURL: BASE,
+      rateLimit: false,
+      adminEmails: ["Boss@Example.com"],
+    });
+    const role = async (email: string) => (await connection<{ role: string }[]>`SELECT role FROM users WHERE email = ${email}`)[0]?.role;
+
+    await call(withAdmins, "/sign-up/email", { body: { name: "Boss", email: "boss@example.com", password: PASSWORD, callbackURL: "/en/account" } });
+    await call(withAdmins, "/sign-up/email", { body: { name: "Clerk", email: "clerk@example.com", password: PASSWORD, callbackURL: "/en/account" } });
+    // Signed up but not confirmed: no session can exist yet, so nothing is granted.
+    expect(await role("boss@example.com")).toBe("customer");
+
+    for (const address of ["boss@example.com", "clerk@example.com"]) {
+      const [email] = await emailsTo(address);
+      const link = new URL(firstLink(email!.text)!);
+      const response = await call(withAdmins, `${link.pathname.replace("/api/auth", "")}${link.search}`);
+      expect(response.status).toBe(302);
+    }
+    expect(await role("boss@example.com")).toBe("admin");
+    expect(await role("clerk@example.com")).toBe("customer");
+  });
+
   it("limits sign-in attempts from one address: three in ten seconds, then 429", async () => {
     const limited = makeAuth(true);
     const attempt = (ip: string) => call(limited, "/sign-in/email", { body: { email: "nobody@example.com", password: "wrong password" }, ip });

@@ -15,6 +15,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { FormMessage } from "@/components/account/auth-forms";
 import { PasskeysPanel, PasswordPanel, SessionsPanel, SignOutButton, TwoFactorPanel, type PasskeyItem, type SessionItem } from "@/components/account/security";
 import { PersonalizationControl } from "@/components/reco/personalization-control";
+import { DeskLinks } from "@/components/staff/desk-links";
 import { ButtonLink } from "@/components/ui/button";
 import { SmartLink } from "@/components/ui/smart-link";
 import { requireLocale } from "@/i18n/params";
@@ -131,6 +132,7 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
           <FormMessage tone="info">{t("unverified")}</FormMessage>
         </div>
       ) : null}
+      <DeskLinks roles={user.roles} className="mt-8" />
 
       <section className="mt-12" aria-labelledby="orders-heading">
         <h2 id="orders-heading" className="font-display text-2xl">

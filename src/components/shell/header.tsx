@@ -12,6 +12,7 @@ import { getTranslations } from "next-intl/server";
 import { CartCount } from "@/components/commerce/cart-count";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/ui/cn";
+import { ConciergeToggle } from "@/components/concierge/concierge-toggle";
 
 /**
  * The header (docs/PLAN.md 4.3)
@@ -44,6 +45,14 @@ export async function Header({ className }: { className?: string }) {
         </Link>
 
         <nav aria-label={t("menu")} className="ml-auto flex items-center gap-1">
+          {/* On phones the Concierge opens from the bar at the bottom instead. */}
+          <ConciergeToggle
+            agentId="nav:concierge-panel"
+            className="text-dusk rounded-plinth duration-quick ease-standard hover:bg-dusk/[0.05] relative hidden h-11 items-center gap-2 px-3 transition-colors md:inline-flex"
+          >
+            <span className="bg-lumen size-2.5 rounded-full" aria-hidden="true" />
+            <span className="text-sm">{t("concierge")}</span>
+          </ConciergeToggle>
           <HeaderAction
             href="/search"
             agentId="nav:search"

@@ -39,6 +39,8 @@ export default async function PrivacyPage({ params }: PageProps<"/[locale]/priva
       <p>{t("privacyBody")}</p>
       <p>{t("privacyLocation")}</p>
       <p>{t("privacyRoom")}</p>
+      <p>{t("privacyAccount")}</p>
+      <p>{t("privacySearch")}</p>
     </InfoPage>
   );
 }

@@ -203,7 +203,7 @@ async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boole
     const started = Date.now();
     const summary = await upsertCatalog(db, products, { preserveStock: options.sync });
     out(
-      `[catalog] ${options.sync ? "synced" : "seeded"} ${summary.products} products (${summary.inserted} new), ${summary.media} media from ${options.fixtures.join(" + ")} in ${Date.now() - started} ms`,
+      `[catalog] ${options.sync ? "synced" : "seeded"} ${summary.products} products (${summary.inserted} new${summary.keptStaffEdits > 0 ? `, ${summary.keptStaffEdits} kept as staff edited them` : ""}), ${summary.media} media from ${options.fixtures.join(" + ")} in ${Date.now() - started} ms`,
     );
     return summary.inserted;
   });

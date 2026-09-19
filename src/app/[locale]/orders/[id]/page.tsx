@@ -11,7 +11,9 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { ItemReview } from "@/components/commerce/item-review";
 import { OrderActions } from "@/components/commerce/order-actions";
+import { ReturnRequest } from "@/components/commerce/return-request";
 import { ButtonLink } from "@/components/ui/button";
 import { requireLocale } from "@/i18n/params";
 import { localityLine } from "@/lib/commerce/address";
@@ -21,7 +23,8 @@ import { formatMoney } from "@/lib/commerce/money";
 import { availableEvents } from "@/lib/commerce/order-state";
 import { formatVatRate } from "@/lib/commerce/vat";
 import { currentUser, signInPath } from "@/lib/auth/session";
-import { commerce, orderOwner, PAYMENT_PROVIDER } from "@/lib/commerce/server";
+import { returnDeadline } from "@/lib/commerce/returns";
+import { commerce, orderOwner, PAYMENT_PROVIDER, reviewsStore } from "@/lib/commerce/server";
 import type { OrderView } from "@/lib/commerce/store";
 import { cn } from "@/lib/ui/cn";
 
@@ -64,7 +67,13 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   const time = new Intl.DateTimeFormat(locale, { timeStyle: "short" });
   const now = new Date();
   const snapshot = { status: order.status, paid: order.paid, deliveredAt: order.deliveredAt };
-  const canCancel = availableEvents(snapshot, "customer", now).includes("cancel");
+  const customerEvents = availableEvents(snapshot, "customer", now);
+  const canCancel = customerEvents.includes("cancel");
+  const canReturn = customerEvents.includes("request_return") && order.deliveredAt !== null;
+  // Reviews open once the order was delivered, returned or not (docs/adr/017).
+  const ownReviews = order.deliveredAt === null ? null : await (await reviewsStore()).orderReviews(order.id);
+  const tr = await getTranslations("reviews");
+  const dateOnly = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
   const canTestPay = order.status === "pending_payment" && order.paymentProvider === PAYMENT_PROVIDER;
   const released = order.events.some((event) => event.event === "payment_expired");
   const finished = order.status === "cancelled" || order.status === "refunded";
@@ -92,6 +101,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
       <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex flex-col gap-10">
           <OrderActions orderId={order.id} token={token} amount={formatMoney(order.total, locale)} canTestPay={canTestPay} canCancel={canCancel} paid={order.paid} />
+          {canReturn ? <ReturnRequest orderId={order.id} token={token} deadline={dateOnly.format(returnDeadline(order.deliveredAt!))} /> : null}
 
           <section aria-labelledby="items">
             <h2 id="items" className="font-display text-xl">
@@ -135,6 +145,24 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
                   })}
             </p>
           </section>
+
+          {ownReviews !== null ? (
+            <section aria-labelledby="your-reviews" data-agent-id="order:reviews">
+              <h2 id="your-reviews" className="font-display text-xl">
+                {tr("yours")}
+              </h2>
+              <p className="text-slate mt-2 max-w-[60ch] text-sm">{tr("yoursLede")}</p>
+              <ul className="border-hairline divide-hairline mt-4 divide-y border-y">
+                {order.items
+                  .filter((item) => item.productSlug !== null)
+                  .map((item) => (
+                    <li key={item.id} className="py-4">
+                      <ItemReview orderId={order.id} token={token} itemId={item.id} title={item.title} locale={locale} existing={ownReviews.get(item.id) ?? null} />
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          ) : null}
 
           <section aria-labelledby="history">
             <h2 id="history" className="font-display text-xl">

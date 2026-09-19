@@ -19,9 +19,12 @@ import { catalogFixtureSchema } from "@/lib/catalog/input";
 import { upsertCatalog } from "@/lib/catalog/write";
 import { PAYMENT_WINDOW_MINUTES } from "@/lib/commerce/order-state";
 import { includedVat, SHIPPING_RATES } from "@/lib/commerce/pricing";
+import { createOrderNotifier } from "@/lib/commerce/notify";
 import { createCommerceStore, type CommerceStore } from "@/lib/commerce/store";
+import { orderLinkToken } from "@/lib/commerce/tokens";
 import { localizeCents } from "@/lib/commerce/vat";
 import * as schema from "@/lib/db/schema";
+import { createMailer, firstLink } from "@/lib/email/mailer";
 
 /**
  * Carts, checkout and order events against the database: stock caps, the
@@ -70,7 +73,7 @@ describe.skipIf(url === undefined || url === "")("commerce", () => {
   });
 
   beforeEach(async () => {
-    await connection`TRUNCATE carts, orders, users CASCADE`;
+    await connection`TRUNCATE carts, orders, users, email_outbox CASCADE`;
   });
 
   afterAll(async () => {
@@ -505,6 +508,113 @@ describe.skipIf(url === undefined || url === "")("commerce", () => {
       expect(kept).toEqual({ user_id: null });
       const [row] = await connection<{ count: number }[]>`SELECT count(*)::int AS count FROM carts WHERE id = ${cart.cartId}`;
       expect(row?.count).toBe(0);
+    });
+  });
+
+  describe("order desk and order emails (docs/adr/016)", () => {
+    const SECRET = "c".repeat(40);
+
+    it("derives each order's link from its id, so it can be rebuilt without being stored", async () => {
+      const a = pick(0);
+      await setStock(a.id, 20);
+      const derived = createCommerceStore(connection, { orderToken: (orderId) => orderLinkToken(orderId, SECRET) });
+      const cartId = (await derived.changeLine(null, a.id, 1, "add")) as { ok: true; cartId: string };
+      const order = await derived.placeOrder({
+        cartId: cartId.cartId,
+        locale: "el",
+        email: "eleni@example.com",
+        address: ADDRESS,
+        shipping: "standard",
+        idempotencyKey: uuidv7(),
+        paymentProvider: "local_test",
+      });
+      if (!order.ok) throw new Error("checkout failed");
+      expect(order.accessToken).toBe(orderLinkToken(order.orderId, SECRET));
+      expect(await derived.orderForToken(order.orderId, orderLinkToken(order.orderId, SECRET))).not.toBeNull();
+    });
+
+    it("lists orders by queue, oldest first, finds them by number or email, and counts them", async () => {
+      const a = pick(0);
+      await setStock(a.id, 50);
+      const first = await checkout(await cartWith([[a.id, 1]]), { email: "first@example.com", now: new Date("2026-09-10T10:00:00Z") });
+      const second = await checkout(await cartWith([[a.id, 1]]), { email: "second@example.com", now: new Date("2026-09-11T10:00:00Z") });
+      const waiting = await checkout(await cartWith([[a.id, 1]]), { email: "waiting@example.com", now: new Date() });
+      if (!first.ok || !second.ok || !waiting.ok) throw new Error("checkout failed");
+      for (const order of [first, second]) await store.applyEvent(order.orderId, "payment_succeeded", "system");
+
+      const toPack = await store.deskOrders({ statuses: ["paid"], oldestFirst: true });
+      expect(toPack.map((order) => order.id)).toEqual([first.orderId, second.orderId]);
+      expect(toPack[0]).toMatchObject({ email: "first@example.com", name: "Eleni Papadopoulou", country: "GR", itemCount: 1 });
+
+      expect((await store.deskOrders({ statuses: null, query: "SECOND@example" })).map((order) => order.id)).toEqual([second.orderId]);
+      expect((await store.deskOrders({ statuses: null, query: second.number.slice(-4) })).map((order) => order.id)).toEqual([second.orderId]);
+      // A typed wildcard is a character, not "anything".
+      expect(await store.deskOrders({ statuses: null, query: "%" })).toEqual([]);
+
+      expect(await store.statusCounts()).toEqual({ paid: 2, pending_payment: 1 });
+    });
+
+    it("records which person moved an order, and why", async () => {
+      const a = pick(0);
+      await setStock(a.id, 20);
+      const staffId = uuidv7();
+      await connection`INSERT INTO users (id, name, email, email_verified, role) VALUES (${staffId}, 'Sofia Staff', 'sofia@vitrine.test', true, 'support')`;
+      const order = await checkout(await cartWith([[a.id, 1]]));
+      if (!order.ok) throw new Error("checkout failed");
+      await store.applyEvent(order.orderId, "payment_succeeded", "system");
+      await store.applyEvent(order.orderId, "cancel", "staff", { actorUserId: staffId, reason: "Customer phoned to cancel" });
+
+      const view = await store.readOrder(order.orderId);
+      expect(view?.events.at(-1)).toMatchObject({ event: "cancel", actor: "staff", actorName: "Sofia Staff", reason: "Customer phoned to cancel" });
+    });
+
+    it("emails the customer on payment and shipping, in the order's language, with the guest's own link", async () => {
+      const a = pick(0);
+      await setStock(a.id, 20);
+      const derived = createCommerceStore(connection, { orderToken: (orderId) => orderLinkToken(orderId, SECRET) });
+      const mailer = createMailer({ sql: connection, from: "Vitrine <test@example.com>" });
+      const notifier = createOrderNotifier({ store: derived, mailer, appUrl: "http://localhost:3000", secret: SECRET });
+      const cart = (await derived.changeLine(null, a.id, 1, "add")) as { ok: true; cartId: string };
+      const order = await derived.placeOrder({
+        cartId: cart.cartId,
+        locale: "el",
+        email: "Guest@Example.com",
+        address: ADDRESS,
+        shipping: "standard",
+        idempotencyKey: uuidv7(),
+        paymentProvider: "local_test",
+      });
+      if (!order.ok) throw new Error("checkout failed");
+
+      const paid = await derived.applyEvent(order.orderId, "payment_succeeded", "system");
+      if (!paid.ok) throw new Error("payment failed");
+      expect(await notifier.notify(order.orderId, paid.effects)).toEqual(["confirmed"]);
+      const packed = await derived.applyEvent(order.orderId, "pack", "staff");
+      // Packing is internal: no email.
+      expect(await notifier.notify(order.orderId, packed.ok ? packed.effects : [])).toEqual([]);
+      const shipped = await derived.applyEvent(order.orderId, "ship", "staff");
+      expect(await notifier.notify(order.orderId, shipped.ok ? shipped.effects : [])).toEqual(["shipped"]);
+
+      const emails = await mailer.recent({ to: "guest@example.com" });
+      expect(emails.map((email) => email.kind)).toEqual(["order_shipped", "order_confirmed"]);
+      expect(emails[0]!.subject).toBe(`Η παραγγελία ${order.number} είναι καθ’ οδόν`);
+      const link = new URL(firstLink(emails[0]!.text)!);
+      expect(link.pathname).toBe(`/el/orders/${order.orderId}`);
+      expect(await derived.orderForToken(order.orderId, link.searchParams.get("t")!)).not.toBeNull();
+    });
+
+    it("links to the order page without a token when the order's link cannot be rebuilt", async () => {
+      const a = pick(0);
+      await setStock(a.id, 20);
+      // An order placed with a random token (before links were derived).
+      const order = await checkout(await cartWith([[a.id, 1]]), { email: "older@example.com" });
+      if (!order.ok) throw new Error("checkout failed");
+      const mailer = createMailer({ sql: connection, from: "Vitrine <test@example.com>" });
+      const notifier = createOrderNotifier({ store, mailer, appUrl: "http://localhost:3000", secret: SECRET });
+      await notifier.notify(order.orderId, ["email_order_cancelled"]);
+      const [email] = await mailer.recent({ to: "older@example.com" });
+      expect(firstLink(email!.text)).toBe(`http://localhost:3000/en/orders/${order.orderId}`);
+      expect(email!.text).toContain("Sign in to see the order in your account.");
     });
   });
 });
