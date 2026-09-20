@@ -56,6 +56,23 @@ export function periodFor(days: PeriodDays, now = new Date()): Period {
   return { days, from, to: now, dayKeys: Array.from({ length: days }, (_, index) => dayKey(new Date(from.getTime() + index * DAY))) };
 }
 
+/**
+ * The seven whole UTC days ending on `endDay` (YYYY-MM-DD): the week the
+ * Monday report covers. Whole days, so the same week always gives the same
+ * figures however late the job runs.
+ */
+export function weekEnding(endDay: string): Period {
+  const end = Date.parse(`${endDay}T00:00:00.000Z`);
+  if (Number.isNaN(end)) throw new Error(`weekEnding needs a YYYY-MM-DD day, not "${endDay}".`);
+  const from = new Date(end - 6 * DAY);
+  return {
+    days: 7,
+    from,
+    to: new Date(end + DAY - 1),
+    dayKeys: Array.from({ length: 7 }, (_, index) => dayKey(new Date(from.getTime() + index * DAY))),
+  };
+}
+
 export function inPeriod(at: Date | null, period: Period): at is Date {
   return at !== null && at.getTime() >= period.from.getTime() && at.getTime() <= period.to.getTime();
 }

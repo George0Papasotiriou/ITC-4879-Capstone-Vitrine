@@ -14,6 +14,7 @@ import { getTranslations } from "next-intl/server";
 import { AddToCart } from "@/components/commerce/add-to-cart";
 import { RegionNote } from "@/components/commerce/region-control";
 import { currentRegion } from "@/lib/commerce/region";
+import { PriceWatch } from "@/components/commerce/price-watch";
 import { ProductGallery } from "@/components/commerce/product-gallery";
 import { ProductGrid } from "@/components/commerce/product-grid";
 import { TrackInterest } from "@/components/reco/track-interest";
@@ -29,7 +30,8 @@ import { routing } from "@/i18n/routing";
 import { getCardsByIds, getFeatured, getProduct } from "@/lib/catalog/server";
 import { pairsWith } from "@/lib/reco/server";
 import { productJsonLd, serializeJsonLd } from "@/lib/catalog/structured-data";
-import { reviewsStore } from "@/lib/commerce/server";
+import { priceWatches, reviewsStore } from "@/lib/commerce/server";
+import { currentUser } from "@/lib/auth/session";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
@@ -85,6 +87,9 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/p/[sl
   const relatedTitle = neighbours.source === "behavior" && neighbourCards.length > 0 ? t("pairsWith") : t("moreLikeThis");
 
   const reviews = await (await reviewsStore()).productReviews(product.id, { limit: 10 });
+  // A price watch belongs to an account, so the form only has a target to show for someone signed in.
+  const user = await currentUser();
+  const watch = user === null ? null : await (await priceWatches()).forProduct({ userId: user.id, productId: product.id });
   const origin = serverEnv().APP_URL;
   const jsonLd = productJsonLd(product, {
     reviews,
@@ -188,6 +193,15 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/p/[sl
               </ButtonLink>
             )}
           </div>
+
+          <PriceWatch
+            productId={product.id}
+            slug={product.slug}
+            priceCents={product.price.cents}
+            currency={product.price.currency}
+            targetCents={watch?.targetCents ?? null}
+            signedIn={user !== null}
+          />
 
           {product.translated ? null : <p className="text-slate mt-8 text-sm">{t("translationPending")}</p>}
 

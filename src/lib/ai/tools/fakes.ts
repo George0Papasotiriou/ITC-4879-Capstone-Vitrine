@@ -75,6 +75,11 @@ export function context(overrides: Partial<ToolServices> = {}, cartLines: Partia
       defaultVariant: async (productId) => (productId === LAMP ? LAMP_VARIANT : null),
       undoToken: (payload) => createUndoToken(payload, SECRET),
     },
+    watch: {
+      get: async () => null,
+      set: async () => ({ ok: true, watchId: "w1", created: true }),
+      remove: async () => true,
+    },
     orders: {
       mine: async () => [],
       byNumber: async () => null,

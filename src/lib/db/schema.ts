@@ -860,8 +860,59 @@ export const aiAllowances = pgTable(
   ],
 );
 
+/**
+ * A shopper waiting for a price to fall (docs/PLAN.md Phase 11 step 5). One
+ * watch per person per product; the nightly job emails them when the shop's
+ * price for their country reaches the target, and then rests that watch.
+ */
+export const priceWatches = pgTable(
+  "price_watches",
+  {
+    id: id(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    /** The price the shopper is waiting for, in cents of the shop's currency. */
+    targetCents: integer("target_cents").notNull(),
+    locale: text("locale").notNull().default("en"),
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("price_watches_person_product_key").on(t.userId, t.productId),
+    index("price_watches_product_idx").on(t.productId),
+    check("price_watches_target_positive", sql`${t.targetCents} > 0`),
+  ],
+);
+
+/**
+ * A report the worker produced (the weekly PDF): where the file is and the
+ * figures it was built from, so the admin page can list them without
+ * opening the files.
+ */
+export const reports = pgTable(
+  "reports",
+  {
+    id: id(),
+    kind: text("kind").notNull(),
+    periodStart: date("period_start", { mode: "string" }).notNull(),
+    periodEnd: date("period_end", { mode: "string" }).notNull(),
+    /** Key in the shop's storage; the admin page signs a short-lived link to it. */
+    storageKey: text("storage_key").notNull(),
+    bytes: integer("bytes").notNull().default(0),
+    summary: jsonb("summary").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("reports_kind_idx").on(t.kind, t.periodEnd)],
+);
+
 export type AuditLogRow = typeof auditLog.$inferSelect;
 export type AiUsageRow = typeof aiUsage.$inferSelect;
+export type PriceWatch = typeof priceWatches.$inferSelect;
+export type ReportRow = typeof reports.$inferSelect;
 export type SearchEvent = typeof searchEvents.$inferSelect;
 
 export type User = typeof users.$inferSelect;

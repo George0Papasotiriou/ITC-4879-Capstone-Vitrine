@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import { routing } from "@/i18n/routing";
 import { createRateLimiter } from "@/lib/ai/guardrails/rate-limit";
-import { aiActor, toolServices, toolUser, usageStore } from "@/lib/ai/server";
+import { aiActor, conciergeCart, toolServices, toolUser, usageStore } from "@/lib/ai/server";
 import { findTool, needsApproval, runTool } from "@/lib/ai/tools/registry";
 import { currentUser } from "@/lib/auth/session";
 import { clientAddress } from "@/lib/geo/ip-country";
@@ -52,7 +52,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const user = await currentUser();
   const locale = body.data.locale;
-  const ctx = { locale, surface: body.data.surface, user: toolUser(user), actor: await aiActor(user), services: await toolServices({ locale, user }), signal: request.signal };
+  const ctx = { locale, surface: body.data.surface, user: toolUser(user), actor: await aiActor(user), services: await toolServices({ locale, user, cart: await conciergeCart() }), signal: request.signal };
   const result = await runTool(tool, ctx, body.data.input);
   loggerForRequest(request.headers).info({ tool: { name: tool.name, surface: body.data.surface, ok: result.ok } }, "tool call");
   return result.ok ? Response.json({ ok: true, output: result.output }) : Response.json({ ok: false, reason: result.reason, issues: result.issues.slice(0, 5) }, { status: 422 });

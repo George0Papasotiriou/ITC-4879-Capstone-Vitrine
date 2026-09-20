@@ -22,7 +22,7 @@ import { cn } from "@/lib/ui/cn";
 
 const PAGE_SIZE = 50;
 const MONEY_FIELDS = new Set(["priceCents", "compareAtCents"]);
-const KNOWN_FIELDS = new Set(["titleEn", "titleEl", "descriptionEn", "descriptionEl", "highlightsEn", "highlightsEl", "priceCents", "compareAtCents", "status", "translation", "stock", "role", "moderationReason"]);
+const KNOWN_FIELDS = new Set(["titleEn", "titleEl", "descriptionEn", "descriptionEl", "highlightsEn", "highlightsEl", "priceCents", "compareAtCents", "status", "translation", "stock", "role", "moderationReason", "killSwitch", "dailyBudgetEur"]);
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/admin/audit">): Promise<Metadata> {
   const { locale } = await params;

@@ -17,10 +17,10 @@ import { uuidv7 } from "uuidv7";
  * entry, or an entry for a change that was rolled back.
  */
 
-export const AUDIT_ACTIONS = ["product.update", "stock.set", "review.hide", "review.restore", "role.grant", "role.revoke"] as const;
+export const AUDIT_ACTIONS = ["product.update", "stock.set", "review.hide", "review.restore", "role.grant", "role.revoke", "ai.settings"] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
-export const AUDIT_ENTITIES = ["product", "variant", "review", "user"] as const;
+export const AUDIT_ENTITIES = ["product", "variant", "review", "user", "setting"] as const;
 export type AuditEntity = (typeof AUDIT_ENTITIES)[number];
 
 export type AuditChanges = Record<string, { before: unknown; after: unknown }>;

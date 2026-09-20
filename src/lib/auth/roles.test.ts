@@ -17,10 +17,10 @@ import { can, isStaff, parseRoles, PERMISSIONS, ROLES, withoutRole, withRole, ty
  * may do what has to be made twice, deliberately.
  */
 const EXPECTED: Record<Role, Record<Permission, boolean>> = {
-  customer: { "orders:own": true, "orders:manage": false, "reviews:moderate": false, "catalog:edit": false, "users:manage": false, "outbox:read": false, "reports:read": false, "audit:read": false },
-  support: { "orders:own": true, "orders:manage": true, "reviews:moderate": true, "catalog:edit": false, "users:manage": false, "outbox:read": false, "reports:read": false, "audit:read": false },
-  merchandiser: { "orders:own": true, "orders:manage": false, "reviews:moderate": true, "catalog:edit": true, "users:manage": false, "outbox:read": false, "reports:read": true, "audit:read": false },
-  admin: { "orders:own": true, "orders:manage": true, "reviews:moderate": true, "catalog:edit": true, "users:manage": true, "outbox:read": true, "reports:read": true, "audit:read": true },
+  customer: { "orders:own": true, "orders:manage": false, "reviews:moderate": false, "catalog:edit": false, "users:manage": false, "outbox:read": false, "reports:read": false, "audit:read": false, "ai:manage": false, "reports:generate": false },
+  support: { "orders:own": true, "orders:manage": true, "reviews:moderate": true, "catalog:edit": false, "users:manage": false, "outbox:read": false, "reports:read": false, "audit:read": false, "ai:manage": false, "reports:generate": false },
+  merchandiser: { "orders:own": true, "orders:manage": false, "reviews:moderate": true, "catalog:edit": true, "users:manage": false, "outbox:read": false, "reports:read": true, "audit:read": false, "ai:manage": false, "reports:generate": false },
+  admin: { "orders:own": true, "orders:manage": true, "reviews:moderate": true, "catalog:edit": true, "users:manage": true, "outbox:read": true, "reports:read": true, "audit:read": true, "ai:manage": true, "reports:generate": true },
 };
 
 describe("role matrix", () => {

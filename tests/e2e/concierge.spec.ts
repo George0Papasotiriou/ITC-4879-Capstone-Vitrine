@@ -18,13 +18,16 @@ import { freshPage } from "./support/accounts";
  * commands are all real; only the choice of the next step is scripted.
  */
 
+// Each test runs several streamed turns against the shared test database.
+test.describe.configure({ timeout: 90_000 });
+
 async function openConcierge(page: Page) {
-  // The header button on wide screens, the bar at the bottom on phones.
+  // The button toggles, so it is pressed once, after the page has hydrated:
+  // clicking again before the panel appears would close it.
+  await page.locator("html[data-concierge-ready]").waitFor({ timeout: 30_000 });
   const toggle = page.locator('[data-agent-id="nav:concierge-panel"]:visible, [data-agent-id="nav:concierge"]:visible').first();
-  await expect(async () => {
-    await toggle.click({ timeout: 2_000 });
-    await expect(page.locator('[data-agent-id="concierge:dock"]')).toBeVisible({ timeout: 2_000 });
-  }).toPass({ timeout: 20_000 });
+  await toggle.click();
+  await expect(page.locator('[data-agent-id="concierge:dock"]')).toBeVisible({ timeout: 15_000 });
 }
 
 async function ask(page: Page, text: string) {
@@ -41,7 +44,8 @@ test("@smoke the Concierge adds a piece to the cart when asked, and its undo tak
   await ask(page, "add the faux wood table lamp to my cart");
 
   const log = page.locator('[data-agent-id="concierge:log"]');
-  await expect(log).toContainText("Added Faux Wood Table Lamp to your cart");
+  // The answer streams in; the tests share one database, so allow for a busy moment.
+  await expect(log).toContainText("Added Faux Wood Table Lamp to your cart", { timeout: 20_000 });
   await expect(page.locator('[data-agent-id="concierge:demo"]')).toBeVisible();
   expect(await itemsInCart(page)).toBe(1);
 
@@ -56,11 +60,11 @@ test("checkout asks first, and only opens the page where the shopper pays", asyn
   await page.goto("/en", { waitUntil: "domcontentloaded" });
   await openConcierge(page);
   await ask(page, "add the faux wood table lamp to my cart");
-  await expect(page.locator('[data-agent-id="concierge:log"]')).toContainText("Added Faux Wood Table Lamp");
+  await expect(page.locator('[data-agent-id="concierge:log"]')).toContainText("Added Faux Wood Table Lamp", { timeout: 20_000 });
 
   await ask(page, "I'm ready to check out");
   const approval = page.locator('[data-agent-id="concierge:approval:start_checkout"]');
-  await expect(approval).toContainText("Open checkout?");
+  await expect(approval).toContainText("Open checkout?", { timeout: 20_000 });
   // Nothing happens before the shopper says yes.
   await expect(page).toHaveURL(/\/en$/);
   await approval.locator('[data-agent-id="concierge:approve"]').click();
@@ -75,10 +79,10 @@ test("declining an approval leaves everything as it was", async ({ browser }) =>
   await page.goto("/en", { waitUntil: "domcontentloaded" });
   await openConcierge(page);
   await ask(page, "add the faux wood table lamp to my cart");
-  await expect(page.locator('[data-agent-id="concierge:log"]')).toContainText("Added Faux Wood Table Lamp");
+  await expect(page.locator('[data-agent-id="concierge:log"]')).toContainText("Added Faux Wood Table Lamp", { timeout: 20_000 });
   await ask(page, "check out please");
-  await page.locator('[data-agent-id="concierge:decline"]').click();
-  await expect(page.locator('[data-agent-id="concierge:log"]')).toContainText("Understood, I haven't done that.");
+  await page.locator('[data-agent-id="concierge:decline"]').click({ timeout: 20_000 });
+  await expect(page.locator('[data-agent-id="concierge:log"]')).toContainText("Understood, I haven't done that.", { timeout: 20_000 });
   await expect(page).toHaveURL(/\/en$/);
   await page.context().close();
 });
@@ -89,7 +93,7 @@ test("in Greek, it answers in Greek and shows products with the shop's prices", 
   await openConcierge(page);
   await ask(page, "Δείξε μου ξύλινα φωτιστικά");
   const card = page.locator('[data-agent-id^="concierge-product:"]').first();
-  await expect(card).toContainText("Faux Wood Table Lamp");
+  await expect(card).toContainText("Faux Wood Table Lamp", { timeout: 20_000 });
   await expect(card).toContainText("94,00");
   await expect(page.locator('[data-agent-id="concierge:log"]')).toContainText("Να ένα κομμάτι που ταιριάζει");
   await page.context().close();
@@ -100,7 +104,7 @@ test("the open Concierge passes the accessibility checks, and Escape closes it",
   await page.goto("/en", { waitUntil: "domcontentloaded" });
   await openConcierge(page);
   await ask(page, "show me table lamps");
-  await expect(page.locator('[data-agent-id^="concierge-product:"]').first()).toBeVisible();
+  await expect(page.locator('[data-agent-id^="concierge-product:"]').first()).toBeVisible({ timeout: 20_000 });
   const results = await new AxeBuilder({ page }).include('[data-agent-id="concierge:dock"]').withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
   expect(results.violations, results.violations.map((violation) => `${violation.id} (${violation.nodes[0]?.target.join(" ")})`).join(", ")).toEqual([]);
   await page.keyboard.press("Escape");

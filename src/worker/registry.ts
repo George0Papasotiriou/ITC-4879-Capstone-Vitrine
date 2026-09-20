@@ -9,7 +9,9 @@
 
 import type { JobName, JobPayloads } from "@/lib/jobs/types";
 import { processPing } from "@/worker/processors/ping";
+import { processPriceWatches } from "@/worker/processors/price-watches";
 import { processRebuildTasteGraph } from "@/worker/processors/rebuild-taste-graph";
+import { processWeeklyReport } from "@/worker/processors/weekly-report";
 
 /**
  * The job dispatch table, shared by both ways a job can run.
@@ -28,4 +30,6 @@ export type Processor<N extends JobName> = (payload: JobPayloads[N], jobId: stri
 export const processors: { [N in JobName]: Processor<N> } = {
   ping: processPing,
   "rebuild-taste-graph": processRebuildTasteGraph,
+  "price-watches": processPriceWatches,
+  "weekly-report": processWeeklyReport,
 };

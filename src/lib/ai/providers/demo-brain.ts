@@ -56,8 +56,9 @@ export function intentOf(text: string): Intent {
   if (/\border|παραγγελ/.test(t)) return "orders";
   if (/\b(check ?out|pay)\b|ολοκληρωσ|πληρωμ/.test(t)) return "checkout";
   if (/\b(compare|versus|vs)\b|συγκριν/.test(t)) return "compare";
-  if (/\b(add|put|buy)\b|προσθεσ|βαλε/.test(t)) return "add";
+  // A budget with a room or a set is a bundle, even when it says "put together".
   if (/\b(set|bundle|corner|budget)\b|σετ|γωνια/.test(t) && /\d/.test(t)) return "bundle";
+  if (/\b(add|put|buy)\b|προσθεσ|βαλε/.test(t)) return "add";
   if (/\bmy room\b|δωματιο μου/.test(t)) return "room";
   if (/\b(cart|basket)\b|καλαθι/.test(t)) return "cart";
   return "browse";

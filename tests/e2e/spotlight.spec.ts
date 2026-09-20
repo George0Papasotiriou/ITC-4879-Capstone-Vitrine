@@ -92,7 +92,8 @@ test("the caption is announced to screen readers, not only drawn on screen", asy
 }) => {
   await gotoDemo(page);
 
-  const liveRegion = page.locator('[aria-live="polite"]');
+  // The demo has its own Spotlight; the shop's Concierge has another in the layout.
+  const liveRegion = page.locator('[aria-live="polite"]').first();
   await demo(page).getByRole("button", { name: "Point at one product" }).click();
 
   // The same words a sighted user sees in the caption chip.

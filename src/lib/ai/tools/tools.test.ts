@@ -111,6 +111,27 @@ describe("account and sensitive tools", () => {
     expect(requests).toEqual([["o1", "damaged: Box crushed"]]);
   });
 
+  it("watches a price only for a signed-in shopper, and only below today's price", async () => {
+    const guest = context();
+    await expect(run("set_price_watch", { productId: LAMP, targetCents: 7900 }, guest.ctx)).resolves.toEqual({ ok: false, reason: "sign_in" });
+
+    const asked: unknown[] = [];
+    const signedIn = context({
+      watch: {
+        get: async () => null,
+        set: async (productId, targetCents) => (asked.push([productId, targetCents]), targetCents >= 9400 ? { ok: false, reason: "not_below_price" } : { ok: true, watchId: "w1", created: true }),
+        remove: async (productId) => (asked.push(["remove", productId]), true),
+      },
+    });
+    signedIn.ctx.user = { id: "u1", email: "a@b.gr", emailVerified: true, roles: ["customer"] };
+
+    await expect(run("set_price_watch", { productId: LAMP, targetCents: 7900 }, signedIn.ctx)).resolves.toEqual({ ok: true, watching: true, targetCents: 7900 });
+    await expect(run("set_price_watch", { productId: LAMP, targetCents: 9900 }, signedIn.ctx)).resolves.toEqual({ ok: false, reason: "not_below_price" });
+    await expect(run("set_price_watch", { productId: LAMP }, signedIn.ctx)).resolves.toEqual({ ok: false, reason: "needs_target" });
+    await expect(run("set_price_watch", { productId: LAMP, remove: true }, signedIn.ctx)).resolves.toEqual({ ok: true, watching: false, targetCents: null });
+    expect(asked).toEqual([[LAMP, 7900], [LAMP, 9900], ["remove", LAMP]]);
+  });
+
   it("opens checkout only with something in the cart, and never pays", async () => {
     await expect(run("start_checkout", {}, context().ctx)).resolves.toEqual({ ok: false, reason: "empty_cart" });
     const full = context({}, [{ variantId: LAMP_VARIANT, productId: LAMP, title: "Lamp", quantity: 2, available: true }]);

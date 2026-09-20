@@ -11,10 +11,13 @@ import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import { DayBars, Panel, ShareTable, Stat } from "@/components/admin/charts";
+import { GenerateReport } from "@/components/admin/generate-report";
 import { SmartLink } from "@/components/ui/smart-link";
 import { requireLocale } from "@/i18n/params";
 import { parsePeriod, periodFor, PERIODS } from "@/lib/admin/metrics";
-import { dashboards } from "@/lib/admin/server";
+import { dashboards, reports } from "@/lib/admin/server";
+import { can } from "@/lib/auth/roles";
+import { storage } from "@/lib/storage";
 import { requirePermission } from "@/lib/auth/session";
 import { countryNames } from "@/lib/commerce/country-names";
 import { formatMoney, money } from "@/lib/commerce/money";
@@ -34,10 +37,17 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/admin">)
 
 export default async function DashboardPage({ params, searchParams }: PageProps<"/[locale]/admin">) {
   const locale = await requireLocale(params);
-  await requirePermission(locale, `/${locale}/admin`, "reports:read");
+  const user = await requirePermission(locale, `/${locale}/admin`, "reports:read");
   const days = parsePeriod((await searchParams).days);
   const period = periodFor(days);
   const data = await (await dashboards()).overview(period, { locale });
+
+  // The weekly reports that have been built, each with a link that expires (docs/adr/020).
+  const stored = await (await reports()).list({ limit: 8 });
+  const files = await storage();
+  const storedReports = await Promise.all(
+    stored.map(async (report) => ({ ...report, url: await files.presignedDownloadUrl({ key: report.storageKey, expiresInSeconds: 15 * 60 }) })),
+  );
 
   const t = await getTranslations("admin.dashboard");
   const o = await getTranslations("order");
@@ -310,6 +320,40 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
               </SmartLink>
             </>
           )}
+        </Panel>
+        <Panel id="reports" title={t("reports.title")} lede={t("reports.lede")} className="lg:col-span-2">
+          {storedReports.length === 0 ? (
+            <p className="text-slate text-sm">{t("reports.empty")}</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[36rem] text-sm" data-agent-id="dashboard:reports-table">
+                <thead>
+                  <tr className="text-slate text-left">
+                    <th scope="col" className="py-2 pr-4 font-medium">{t("reports.week")}</th>
+                    <th scope="col" className="py-2 pr-4 text-right font-medium">{t("reports.sales")}</th>
+                    <th scope="col" className="py-2 pr-4 text-right font-medium">{t("reports.orders")}</th>
+                    <th scope="col" className="py-2 text-right font-medium">{t("reports.ai")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {storedReports.map((report) => (
+                    <tr key={report.id} className="border-hairline border-t">
+                      <th scope="row" className="py-2 pr-4 text-left font-normal">
+                        {/* A plain anchor: a signed link to a file, not a page to prefetch. */}
+                        <a href={report.url} className="text-dusk underline underline-offset-4" data-agent-id={`dashboard:report:${report.periodEnd}`}>
+                          {dayLabel(report.periodStart)} – {dayLabel(report.periodEnd)}
+                        </a>
+                      </th>
+                      <td className="tabular py-2 pr-4 text-right">{euro(report.summary.salesCents)}</td>
+                      <td className="tabular py-2 pr-4 text-right">{format.number(report.summary.orders)}</td>
+                      <td className="tabular py-2 text-right">{euro(Math.round(report.summary.aiMicros / 10_000))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {can(user.roles, "reports:generate") ? <GenerateReport /> : null}
         </Panel>
       </div>
     </main>

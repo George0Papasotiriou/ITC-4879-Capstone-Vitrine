@@ -16,7 +16,7 @@ import { createRateLimiter } from "@/lib/ai/guardrails/rate-limit";
 import { MODELS } from "@/lib/ai/models";
 import { CONCIERGE_PROMPT_VERSION, conciergeInstructions } from "@/lib/ai/prompts/concierge-v1";
 import { textModel } from "@/lib/ai/providers";
-import { aiActor, aiMode, approvalSecret, toolServices, toolUser, usageStore } from "@/lib/ai/server";
+import { aiActor, aiMode, approvalSecret, conciergeCart, toolServices, toolUser, usageStore } from "@/lib/ai/server";
 import { runTurn } from "@/lib/ai/surfaces/chat";
 import { currentUser } from "@/lib/auth/session";
 import { clientAddress } from "@/lib/geo/ip-country";
@@ -70,7 +70,9 @@ export async function POST(request: Request): Promise<Response> {
   const chosen = textModel(aiMode(), MODELS.concierge, { locale, apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY });
   if (chosen === null) return refuse("off", 503);
 
-  const ctx = { locale, surface: "chat" as const, user: toolUser(user), actor, services: await toolServices({ locale, user }) };
+  // Both cookies are written before the stream starts: nothing can be set once it has.
+  const cart = await conciergeCart();
+  const ctx = { locale, surface: "chat" as const, user: toolUser(user), actor, services: await toolServices({ locale, user, cart }) };
   const log = loggerForRequest(request.headers);
   const result = runTurn({
     model: chosen.model,

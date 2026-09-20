@@ -14,6 +14,7 @@ import type { Role } from "@/lib/auth/roles";
 import type { ProductCard, ProductDetail } from "@/lib/catalog/queries";
 import type { CartChange, CartView, OrderSummary, OrderView } from "@/lib/commerce/store";
 import type { RatingSummary } from "@/lib/commerce/reviews";
+import type { SetWatchResult } from "@/lib/commerce/price-watch-store";
 import type { PublicReview } from "@/lib/commerce/review-store";
 import type { StylistRequest, StylistResult } from "@/lib/stylist/stylist";
 
@@ -59,6 +60,12 @@ export type ToolServices = {
     defaultVariant(productId: string): Promise<string | null>;
     /** A signed token that puts the line back to `quantity` (src/lib/ai/tools/undo.ts). */
     undoToken(payload: { cartId: string; variantId: string; quantity: number }): string;
+  };
+  /** Price watches on one product, for the signed-in shopper (docs/adr/020). */
+  watch: {
+    get(productId: string): Promise<{ targetCents: number } | null>;
+    set(productId: string, targetCents: number): Promise<SetWatchResult>;
+    remove(productId: string): Promise<boolean>;
   };
   orders: {
     /** The signed-in shopper's orders, or the guest's most recent one. */

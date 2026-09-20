@@ -66,7 +66,33 @@
     "translationPending": "The description of this product is shown in English until it has been translated.",
     "breadcrumb": "Breadcrumb",
     "onSale": "Reduced",
-    "moreLikeThis": "More like this"
+    "moreLikeThis": "More like this",
+    "watch": {
+      "title": "Waiting for a better price?",
+      "lede": "Say what you would pay and we will email you once, the day it gets there.",
+      "signInLede": "Sign in and we will email you the day this piece reaches the price you name.",
+      "signIn": "Sign in to watch the price",
+      "start": "Tell me when the price drops",
+      "change": "Change the price I am waiting for",
+      "stop": "Stop watching",
+      "stopped": "No longer watching this price.",
+      "watching": "We will email you when it reaches {amount}.",
+      "target": "Email me at",
+      "targetHint": "Anything below {price}, today's price.",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saved": "Saved. We will email you at {amount}.",
+      "failed": "That did not save. Try again.",
+      "errors": {
+        "invalid": "Write an amount, like 399 or 399.50.",
+        "too_low": "Write at least €1.",
+        "not_below_price": "Write an amount below {price}, today's price.",
+        "not_found": "This piece is no longer for sale.",
+        "too_many": "You are already watching 20 pieces. Stop watching one first.",
+        "sign_in": "Sign in first, then set the price.",
+        "invalid_request": "That did not save. Try again."
+      }
+    }
   },
   "cart": {
     "title": "Cart",
@@ -125,7 +151,18 @@
     "roleCustomer": "customer",
     "roleSupport": "support",
     "roleMerchandiser": "merchandiser",
-    "roleAdmin": "admin"
+    "roleAdmin": "admin",
+    "watches": {
+      "title": "Prices you are watching",
+      "lede": "We email you once, the day a piece reaches the price you named.",
+      "empty": "You are not watching any prices. Open a piece you like and say what you would pay for it.",
+      "now": "Now {amount}",
+      "target": "Waiting for {amount}",
+      "reached": "It has reached your price",
+      "stop": "Stop watching",
+      "stopped": "No longer watching that price.",
+      "failed": "That did not work. Try again."
+    }
   },
   "concierge": {
     "title": "Concierge",
@@ -698,7 +735,21 @@
         "intro": "We have your request to return order {number}. Pack the pieces, in their original packaging if you still have it; our courier will contact you to collect them, and your refund follows once they arrive."
       }
     },
-    "orderReviewAsk": "Once it has settled in, you can review it from the order page, so others know what it is like to live with."
+    "orderReviewAsk": "Once it has settled in, you can review it from the order page, so others know what it is like to live with.",
+    "priceDrop": {
+      "subject": "{title} is now {price}",
+      "intro": "You asked us to tell you when {title} reached {target}. It is now {price}.",
+      "action": "See the piece",
+      "stock": "Stock is what it is: the price can change again, and so can what is left.",
+      "stop": "This was the one email for that watch. You can stop watching or set a new price in your account."
+    },
+    "report": {
+      "subject": "Vitrine report, {start} to {end}",
+      "intro": "The weekly report for {start} to {end} is ready: sales, returns, searches and what AI cost.",
+      "action": "Open the report (PDF)",
+      "expires": "The link works for seven days. After that, generate it again from the dashboard.",
+      "figures": "Sales {sales} across {orders} orders. AI cost {ai}."
+    }
   },
   "auth": {
     "signInTitle": "Sign in",
@@ -967,6 +1018,10 @@
       "audit": {
         "title": "Audit log",
         "lede": "Who changed what in the catalogue, stock, reviews and roles."
+      },
+      "ai": {
+        "title": "AI and spending",
+        "lede": "What the Concierge costs, and the switch that pauses every AI feature."
       }
     },
     "products": {
@@ -1161,7 +1216,20 @@
         "none": "Nothing is running out."
       },
       "none": "—",
-      "empty": "Nothing in this period."
+      "empty": "Nothing in this period.",
+      "reports": {
+        "title": "Weekly reports",
+        "lede": "A PDF of the week's figures, built every Monday morning and emailed to the admins. Links expire.",
+        "empty": "No report has been built yet.",
+        "week": "Week",
+        "sales": "Sales",
+        "orders": "Orders",
+        "ai": "AI",
+        "generate": "Generate now",
+        "generating": "Building it…",
+        "started": "Building the report. It appears here in a moment.",
+        "failed": "That did not start. Try again."
+      }
     },
     "audit": {
       "title": "Audit log",
@@ -1187,7 +1255,8 @@
         "review_hide": "Hid a review",
         "review_restore": "Restored a review",
         "role_grant": "Gave a role",
-        "role_revoke": "Took a role away"
+        "role_revoke": "Took a role away",
+        "ai_settings": "Changed an AI switch"
       },
       "reason": "Reason: {reason}",
       "empty": "Nothing recorded yet.",
@@ -1207,9 +1276,66 @@
         "translation": "Greek text",
         "stock": "Stock",
         "role": "Roles",
-        "moderationReason": "Reason shown to staff"
+        "moderationReason": "Reason shown to staff",
+        "killSwitch": "Pause all AI",
+        "dailyBudgetEur": "Daily budget (€)"
       },
       "empty_value": "empty"
+    },
+    "ai": {
+      "title": "AI and spending",
+      "lede": "Every AI call is recorded with what it used and what it cost. Demo answers are free and counted separately.",
+      "mode": "Mode",
+      "modes": {
+        "google": "Gemini ({model})",
+        "demo": "Demo: rules, no AI key",
+        "off": "Off: no AI key"
+      },
+      "today": "Spent today",
+      "todayNote": "of the {budget} daily budget",
+      "period": "Spent in this period",
+      "calls": "Calls",
+      "demoCalls": "Demo answers",
+      "unpriced": "Cost not yet confirmed",
+      "unpricedNote": "{count, plural, =0 {Every model's price is confirmed} one {# call used a model whose price is not confirmed} other {# calls used models whose prices are not confirmed}}",
+      "byDay": {
+        "title": "Spend per day",
+        "day": "Day",
+        "value": "Spend",
+        "chartLabel": "AI spend per day, highest {max}"
+      },
+      "byFeature": {
+        "title": "By feature",
+        "feature": "Feature",
+        "calls": "Calls",
+        "tokens": "Tokens",
+        "cost": "Cost"
+      },
+      "features": {
+        "concierge": "Concierge",
+        "support_chat": "Support chat",
+        "support_draft": "Support drafts",
+        "voice": "Voice",
+        "embedding": "Embeddings",
+        "snap": "Search by photo",
+        "try_on": "Try-on",
+        "animate": "Animate me",
+        "capsule_image": "Capsule photography",
+        "translation": "Greek copy"
+      },
+      "settings": "Switches",
+      "settingsLede": "Both changes take effect at once, for everyone, and are recorded in the audit log.",
+      "stop": "Pause all AI",
+      "resume": "Let AI run again",
+      "stopped": "Paused: no AI call is made. The Concierge answers that it is paused; search and browsing work as usual.",
+      "running": "Running: AI features answer as usual.",
+      "budget": "Daily budget in euros",
+      "budgetHint": "When the day's spend reaches it, AI features pause until midnight UTC.",
+      "budgetInvalid": "Write an amount between 0 and 1000.",
+      "save": "Save",
+      "saved": "Saved.",
+      "failed": "That did not save. Try again.",
+      "empty": "No AI calls in this period."
     }
   }
 }

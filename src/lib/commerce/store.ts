@@ -238,12 +238,21 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
     return row?.count ?? 0;
   }
 
-  async function ensureCart(tx: Tx, cartId: string | null, ownerId: string | null): Promise<string> {
+  /**
+   * The cart to write to. An id that does not exist gets a new cart, never the
+   * id it asked for: ids never come from the shopper.
+   *
+   * `adopt` is the one exception, for the Concierge (docs/adr/019): a chat
+   * answer is a stream, so the guest's cart cookie must be written before the
+   * first tool runs. That id is minted by the server in the same request and
+   * signed into the cookie, so the cart is created under it.
+   */
+  async function ensureCart(tx: Tx, cartId: string | null, ownerId: string | null, adopt = false): Promise<string> {
     if (cartId !== null) {
       const [existing] = await tx<{ id: string }[]>`SELECT id FROM carts WHERE id = ${cartId}`;
       if (existing !== undefined) return existing.id;
     }
-    const id = uuidv7();
+    const id = adopt && cartId !== null ? cartId : uuidv7();
     await tx`INSERT INTO carts (id, user_id) VALUES (${id}, ${ownerId})`;
     return id;
   }
@@ -300,7 +309,14 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
    * at the stock and at the per-line maximum, and the caller learns the cap.
    * Setting 0 removes the line.
    */
-  async function changeLine(cartId: string | null, variantId: string, quantity: number, mode: "add" | "set", ownerId: string | null = null): Promise<CartChange> {
+  async function changeLine(
+    cartId: string | null,
+    variantId: string,
+    quantity: number,
+    mode: "add" | "set",
+    ownerId: string | null = null,
+    { adoptCartId = false }: { adoptCartId?: boolean } = {},
+  ): Promise<CartChange> {
     return sql.begin(async (tx) => {
       const [variant] = await tx<{ stock: number; active: boolean }[]>`
         SELECT v.stock, (p.status = 'active') AS active
@@ -309,7 +325,7 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
       `;
       if (variant === undefined || !variant.active) return { ok: false, reason: "not_found" } as const;
 
-      const id = await ensureCart(tx, cartId, ownerId);
+      const id = await ensureCart(tx, cartId, ownerId, adoptCartId);
       const [current] = await tx<{ quantity: number }[]>`SELECT quantity FROM cart_items WHERE cart_id = ${id} AND variant_id = ${variantId}`;
       const wanted = mode === "add" ? (current?.quantity ?? 0) + quantity : quantity;
 

@@ -34,6 +34,10 @@ export const PERMISSIONS = [
   "reports:read",
   /** Who changed what: the audit log. */
   "audit:read",
+  /** The AI's switches: the kill switch and the daily budget (docs/adr/020). */
+  "ai:manage",
+  /** Building the weekly report out of turn, which emails every admin a link to it. */
+  "reports:generate",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 

@@ -14,6 +14,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 
 import { FormMessage } from "@/components/account/auth-forms";
 import { PasskeysPanel, PasswordPanel, SessionsPanel, SignOutButton, TwoFactorPanel, type PasskeyItem, type SessionItem } from "@/components/account/security";
+import { WatchList, type WatchItem } from "@/components/commerce/watch-list";
 import { PersonalizationControl } from "@/components/reco/personalization-control";
 import { DeskLinks } from "@/components/staff/desk-links";
 import { ButtonLink } from "@/components/ui/button";
@@ -24,7 +25,8 @@ import { isStaff, type Role } from "@/lib/auth/roles";
 import { auth } from "@/lib/auth/server";
 import { currentUser } from "@/lib/auth/session";
 import { formatMoney } from "@/lib/commerce/money";
-import { commerce, orderOwner } from "@/lib/commerce/server";
+import { commerce, orderOwner, priceWatches } from "@/lib/commerce/server";
+import { getCardsByIds } from "@/lib/catalog/server";
 import { currentActor } from "@/lib/reco/server";
 
 /**
@@ -89,11 +91,29 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
   const requestHeaders = await headers();
   const store = await commerce();
   const format = await getFormatter();
-  const [orders, passkeys, sessions] = await Promise.all([
+  const [orders, passkeys, sessions, watches] = await Promise.all([
     store.ordersForOwner(orderOwner(user)),
     auth().api.listPasskeys({ headers: requestHeaders }),
     auth().api.listSessions({ headers: requestHeaders }),
+    (await priceWatches()).forPerson(user.id),
   ]);
+  // The pieces themselves come from the catalogue, in this language and with this country's price.
+  const watchedCards = watches.length === 0 ? [] : await getCardsByIds(watches.map((watch) => watch.productId), locale);
+  const cardsById = new Map(watchedCards.map((card) => [card.id, card]));
+  const watchItems: WatchItem[] = watches.flatMap((watch) => {
+    const card = cardsById.get(watch.productId);
+    if (card === undefined) return [];
+    return [{
+      productId: card.id,
+      slug: card.slug,
+      title: card.title,
+      image: card.image,
+      priceCents: card.price.cents,
+      targetCents: watch.targetCents,
+      currency: card.price.currency,
+      reached: card.price.cents <= watch.targetCents,
+    }];
+  });
   const verified = (await searchParams).verified === "1";
 
   const passkeyItems: PasskeyItem[] = passkeys.map((passkey) => ({
@@ -168,6 +188,14 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="mt-16" aria-labelledby="watches-heading">
+        <h2 id="watches-heading" className="font-display text-2xl">
+          {t("watches.title")}
+        </h2>
+        <p className="text-slate mt-2 max-w-[60ch] text-sm">{t("watches.lede")}</p>
+        <WatchList items={watchItems} />
       </section>
 
       <section className="mt-16 flex flex-col gap-8" aria-labelledby="security-heading">

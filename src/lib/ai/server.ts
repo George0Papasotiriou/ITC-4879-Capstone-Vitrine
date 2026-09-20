@@ -11,6 +11,7 @@ import { randomUUID } from "node:crypto";
 
 import { cookies } from "next/headers";
 import { connection } from "next/server";
+import { uuidv7 } from "uuidv7";
 
 import { createUndoToken } from "@/lib/ai/tools/undo";
 import type { ToolServices, ToolUser } from "@/lib/ai/tools/types";
@@ -18,7 +19,7 @@ import { createUsageStore, type Actor, type UsageStore } from "@/lib/ai/usage";
 import type { CurrentUser } from "@/lib/auth/session";
 import { getCardsByIds, getProduct, runSearch } from "@/lib/catalog/server";
 import { currentRegion } from "@/lib/commerce/region";
-import { accessibleOrder, commerce, currentCart, lastOrder, notifyOrder, orderOwner, rememberCart, reviewsStore } from "@/lib/commerce/server";
+import { accessibleOrder, commerce, currentCart, lastOrder, notifyOrder, orderOwner, priceWatches, rememberCart, reviewsStore } from "@/lib/commerce/server";
 import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
 import { sql } from "@/lib/db/client";
 import { pairsWith, recommendationsForCurrentShopper } from "@/lib/reco/server";
@@ -76,12 +77,27 @@ export function toolUser(user: CurrentUser | null): ToolUser | null {
   return user === null ? null : { id: user.id, email: user.email, emailVerified: user.emailVerified, roles: user.roles };
 }
 
+/**
+ * The cart the Concierge will change, decided before the answer starts.
+ * A chat answer is a stream: once the first byte is sent, no cookie can be
+ * added, so a guest's cart id is minted and remembered here, and the cart row
+ * is created under that id when something is first added (docs/adr/019).
+ * Call it only where cookies may be written.
+ */
+export async function conciergeCart(): Promise<{ cartId: string | null; userId: string | null }> {
+  const current = await currentCart();
+  if (current.cartId !== null || current.userId !== null) return current;
+  const cartId = uuidv7();
+  await rememberCart(cartId);
+  return { cartId, userId: null };
+}
+
 /** The services the tools run against, for this shopper and this request. */
-export async function toolServices({ locale, user }: { locale: "en" | "el"; user: CurrentUser | null }): Promise<ToolServices> {
+export async function toolServices({ locale, user, cart: held }: { locale: "en" | "el"; user: CurrentUser | null; cart?: { cartId: string | null; userId: string | null } }): Promise<ToolServices> {
   const store = await commerce();
   const reviews = await reviewsStore();
   const { country } = await currentRegion();
-  const cart = async () => currentCart();
+  const cart = async () => held ?? (await currentCart());
 
   const myOrders = async () => {
     if (user !== null) return store.ordersForOwner(orderOwner(user), 20);
@@ -117,13 +133,23 @@ export async function toolServices({ locale, user }: { locale: "en" | "el"; user
       view: async () => store.viewCart((await cart()).cartId, locale, { country }),
       change: async (variantId, quantity, mode) => {
         const { cartId, userId } = await cart();
-        const result = await store.changeLine(cartId, variantId, quantity, mode, userId);
-        // A guest's new cart is remembered by cookie, exactly as the Add to cart button does.
-        if (result.ok && result.cartId !== cartId && userId === null) await rememberCart(result.cartId);
-        return result;
+        // The id was minted by this request and signed into the cookie, so the cart is created under it.
+        return store.changeLine(cartId, variantId, quantity, mode, userId, { adoptCartId: true });
       },
       defaultVariant: (productId) => store.defaultVariant(productId),
       undoToken: (payload) => createUndoToken(payload, secret()),
+    },
+    watch: {
+      get: async (productId) => {
+        if (user === null) return null;
+        const watch = await (await priceWatches()).forProduct({ userId: user.id, productId });
+        return watch === null ? null : { targetCents: watch.targetCents };
+      },
+      set: async (productId, targetCents) => {
+        if (user === null) return { ok: false, reason: "not_found" };
+        return (await priceWatches()).set({ userId: user.id, productId, targetCents, locale });
+      },
+      remove: async (productId) => (user === null ? false : (await priceWatches()).remove({ userId: user.id, productId })),
     },
     orders: {
       mine: myOrders,

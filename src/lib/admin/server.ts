@@ -13,6 +13,7 @@ import { listAudit } from "@/lib/admin/audit";
 import { createCatalogAdminStore, type CatalogAdminStore } from "@/lib/admin/catalog-store";
 import { createDashboardStore, type DashboardStore } from "@/lib/admin/dashboard-store";
 import { recordSearch, type SearchEventInput } from "@/lib/admin/search-events";
+import { createReportStore, type ReportStore } from "@/lib/report/store";
 import { sql } from "@/lib/db/client";
 import { logger } from "@/lib/log";
 
@@ -27,6 +28,13 @@ export async function catalogAdmin(): Promise<CatalogAdminStore> {
 export async function dashboards(): Promise<DashboardStore> {
   await connection();
   return (dashboardStore ??= createDashboardStore(sql));
+}
+
+let reportStore: ReportStore | undefined;
+
+export async function reports(): Promise<ReportStore> {
+  await connection();
+  return (reportStore ??= createReportStore(sql));
 }
 
 export async function auditEntries(options: Parameters<typeof listAudit>[1]) {

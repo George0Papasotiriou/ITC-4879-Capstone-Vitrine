@@ -29,7 +29,7 @@ import en from "../../../messages/en.json";
  */
 
 export type EmailLocale = "en" | "el";
-export type EmailKind = "verify_email" | "reset_password" | `order_${OrderEmailKind}`;
+export type EmailKind = "verify_email" | "reset_password" | "price_drop" | "weekly_report" | `order_${OrderEmailKind}`;
 
 /** The order emails, one per customer-facing change in the order state machine (order-state.ts side effects). */
 export const ORDER_EMAIL_KINDS = ["confirmed", "shipped", "delivered", "cancelled", "refunded", "returnRequested", "returnReceived"] as const;
@@ -118,5 +118,37 @@ export function orderUpdate(
     action: { label: t("orderAction"), url },
     // A delivered order is when a review is worth asking for (docs/adr/017).
     after: [...(kind === "delivered" ? [t("orderReviewAsk")] : []), ...(signInNeeded ? [t("orderSignIn")] : [])],
+  });
+}
+
+/**
+ * "The price you were waiting for": one email per watch, when the price
+ * reaches the shopper's target (docs/adr/020). The amounts are formatted by
+ * the caller, which knows the currency and the language.
+ */
+export function priceDrop(
+  locale: EmailLocale,
+  { name, title, price, target, url }: { name: string; title: string; price: string; target: string; url: string },
+): EmailContent {
+  const t = createTranslator({ locale, messages: MESSAGES[locale], namespace: "email" });
+  return render(locale, t("priceDrop.subject", { title, price }), {
+    greeting: t("greeting", { name }),
+    paragraphs: [t("priceDrop.intro", { title, price, target })],
+    action: { label: t("priceDrop.action"), url },
+    after: [t("priceDrop.stock"), t("priceDrop.stop")],
+  });
+}
+
+/** The weekly report: a link to the PDF in the shop's storage, not an attachment. */
+export function weeklyReport(
+  locale: EmailLocale,
+  { name, start, end, url, sales, orders, ai }: { name: string; start: string; end: string; url: string; sales: string; orders: number; ai: string },
+): EmailContent {
+  const t = createTranslator({ locale, messages: MESSAGES[locale], namespace: "email" });
+  return render(locale, t("report.subject", { start, end }), {
+    greeting: t("greeting", { name }),
+    paragraphs: [t("report.intro", { start, end }), t("report.figures", { sales, orders, ai })],
+    action: { label: t("report.action"), url },
+    after: [t("report.expires")],
   });
 }

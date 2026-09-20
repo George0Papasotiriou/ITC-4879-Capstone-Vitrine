@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { dayKey, funnel, parsePeriod, periodFor, returnReasonCode, salesByDay, salesSummary, share } from "@/lib/admin/metrics";
+import { dayKey, funnel, parsePeriod, periodFor, returnReasonCode, salesByDay, salesSummary, share, weekEnding } from "@/lib/admin/metrics";
 
 const NOW = new Date("2026-09-19T15:30:00Z");
 
@@ -30,6 +30,18 @@ describe("periods", () => {
 
   it("names days in UTC, whatever the time zone", () => {
     expect(dayKey(new Date("2026-09-18T23:59:59Z"))).toBe("2026-09-18");
+  });
+
+  it("covers seven whole days up to the end of the week it reports on", () => {
+    const week = weekEnding("2026-09-20");
+    expect(week.from.toISOString()).toBe("2026-09-14T00:00:00.000Z");
+    expect(week.to.toISOString()).toBe("2026-09-20T23:59:59.999Z");
+    expect(week.dayKeys).toHaveLength(7);
+    expect(week.dayKeys.at(-1)).toBe("2026-09-20");
+  });
+
+  it("refuses a day it cannot read", () => {
+    expect(() => weekEnding("last monday")).toThrow(/YYYY-MM-DD/);
   });
 });
 

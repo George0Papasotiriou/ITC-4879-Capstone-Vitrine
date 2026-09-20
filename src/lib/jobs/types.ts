@@ -20,6 +20,10 @@ export type JobPayloads = {
   ping: { requestedAt: string; note?: string };
   /** Phase 8: rebuild the Taste Graph's neighbour lists and popularity (A2). Nightly in production. */
   "rebuild-taste-graph": { requestedAt: string; reason: "schedule" | "manual" | "simulation" };
+  /** Phase 11: email the shoppers whose watched price has been reached (docs/adr/020). Nightly. */
+  "price-watches": { requestedAt: string; reason: "schedule" | "manual" };
+  /** Phase 11: build the weekly PDF report and email the admins a link to it. Mondays. */
+  "weekly-report": { requestedAt: string; reason: "schedule" | "manual"; /** Last day of the week to report on, YYYY-MM-DD; today when absent. */ endDay?: string };
 };
 
 export type JobName = keyof JobPayloads;
@@ -35,6 +39,8 @@ export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 export const JOB_QUEUE: Record<JobName, QueueName> = {
   ping: QUEUE_NAMES.default,
   "rebuild-taste-graph": QUEUE_NAMES.default,
+  "price-watches": QUEUE_NAMES.default,
+  "weekly-report": QUEUE_NAMES.default,
 };
 
 /**

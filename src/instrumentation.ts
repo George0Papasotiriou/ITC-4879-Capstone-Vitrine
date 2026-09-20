@@ -21,6 +21,23 @@ import type { Instrumentation } from "next";
  * Sentry is added at deployment (it needs an account and a DSN); this hook is
  * where it plugs in, and nothing else in the app needs to change when it does.
  */
+/**
+ * Recurring jobs (docs/adr/020). In production the worker service owns the
+ * clock through BullMQ; on the local stack there is no Redis and no worker, so
+ * the web process runs the schedules itself. Nothing is started during a
+ * build, which also bootstraps a server.
+ */
+export async function register(): Promise<void> {
+  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  if (process.env.NEXT_PHASE === "phase-production-build") return;
+
+  const { serverEnv } = await import("@/env");
+  if (serverEnv().jobsDriver !== "inline") return;
+
+  const { startLocalSchedules } = await import("@/lib/jobs/schedule");
+  startLocalSchedules();
+}
+
 export const onRequestError: Instrumentation.onRequestError = async (error, request, context) => {
   // pino is Node-only; the proxy may run elsewhere, and the report should never
   // be the thing that throws.

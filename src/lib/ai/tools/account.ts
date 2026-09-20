@@ -11,7 +11,9 @@ import { z } from "zod";
 
 import type { VitrineTool } from "@/lib/ai/tools/types";
 import { uiCommandSchema } from "@/lib/ai/ui-commands";
+import { MAX_PRICE_CENTS } from "@/lib/admin/catalog";
 import { ORDER_STATUSES } from "@/lib/commerce/order-state";
+import { MIN_TARGET_CENTS } from "@/lib/commerce/price-watch";
 import { RETURN_REASONS } from "@/lib/commerce/returns";
 
 /**
@@ -126,5 +128,34 @@ export const startReturn = define({
     if (order === null) return { ok: false as const, reason: "not_found" };
     const result = await ctx.services.orders.requestReturn(order.id, note === undefined || note === "" ? reason : `${reason}: ${note}`);
     return result.ok ? { ok: true as const, number: order.number } : { ok: false as const, reason: result.reason };
+  },
+});
+
+export const setPriceWatch = define({
+  name: "set_price_watch",
+  description:
+    "Watch one product's price for the shopper: the shop emails them once, the day it reaches the amount they name. " +
+    "Use it when they say they would buy it cheaper, or ask to be told about a drop; pass `remove: true` to stop watching. " +
+    "It needs a signed-in account, and it only watches: it never changes a price and never promises a discount.",
+  scope: "account",
+  input: z.object({
+    productId: z.uuid().describe("A product id from a search or a recommendation, never guessed."),
+    targetCents: z.number().int().min(MIN_TARGET_CENTS).max(MAX_PRICE_CENTS).optional().describe("The price to wait for, in cents, below today's price."),
+    remove: z.boolean().optional().describe("Stop watching this product's price."),
+  }),
+  output: z.discriminatedUnion("ok", [
+    z.object({ ok: z.literal(true), watching: z.boolean(), targetCents: z.number().int().nullable() }),
+    z.object({ ok: z.literal(false), reason: z.enum(["sign_in", "needs_target", "not_found", "not_below_price", "too_many"]) }),
+  ]),
+  async run(ctx, { productId, targetCents, remove }) {
+    // The account is the answer's address, so there is nothing to do without one.
+    if (ctx.user === null) return { ok: false as const, reason: "sign_in" as const };
+    if (remove === true) {
+      await ctx.services.watch.remove(productId);
+      return { ok: true as const, watching: false, targetCents: null };
+    }
+    if (targetCents === undefined) return { ok: false as const, reason: "needs_target" as const };
+    const result = await ctx.services.watch.set(productId, targetCents);
+    return result.ok ? { ok: true as const, watching: true, targetCents } : { ok: false as const, reason: result.reason };
   },
 });

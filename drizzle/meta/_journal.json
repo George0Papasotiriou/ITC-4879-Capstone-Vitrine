@@ -71,6 +71,13 @@
       "when": 1789850636542,
       "tag": "0009_ai_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789867311820,
+      "tag": "0010_price_watches_reports",
+      "breakpoints": true
     }
   ]
 }

@@ -184,6 +184,52 @@ export function createDashboardStore(sql: Sql) {
     };
   }
 
+  /**
+   * What AI cost, by feature and by day (docs/adr/020). Demo-mode calls are
+   * counted separately: they are free, and counting them as spend would hide
+   * the real figure.
+   */
+  async function aiSpend(period: Period): Promise<{
+    byFeature: { feature: string; calls: number; costMicros: number; inputTokens: number; outputTokens: number; unpriced: number }[];
+    byDay: { day: string; value: number }[];
+    totalMicros: number;
+    calls: number;
+    demoCalls: number;
+    unpriced: number;
+  }> {
+    const from = period.from.toISOString();
+    const to = period.to.toISOString();
+    const [features, days, totals] = await Promise.all([
+      sql<{ feature: string; calls: number; cost: string; input: string; output: string; unpriced: number }[]>`
+        SELECT feature, count(*)::int AS calls, COALESCE(sum(cost_micros), 0)::bigint AS cost,
+               COALESCE(sum(input_tokens), 0)::bigint AS input, COALESCE(sum(output_tokens), 0)::bigint AS output,
+               count(*) FILTER (WHERE cost_micros IS NULL)::int AS unpriced
+        FROM ai_usage WHERE provider <> 'demo' AND occurred_at >= ${from}::timestamptz AND occurred_at <= ${to}::timestamptz
+        GROUP BY feature ORDER BY sum(cost_micros) DESC NULLS LAST, feature
+      `,
+      sql<{ day: string; cost: string }[]>`
+        SELECT to_char(occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS day, COALESCE(sum(cost_micros), 0)::bigint AS cost
+        FROM ai_usage WHERE provider <> 'demo' AND occurred_at >= ${from}::timestamptz AND occurred_at <= ${to}::timestamptz
+        GROUP BY 1
+      `,
+      sql<{ total: string; calls: number; demo: number; unpriced: number }[]>`
+        SELECT COALESCE(sum(cost_micros) FILTER (WHERE provider <> 'demo'), 0)::bigint AS total,
+               count(*) FILTER (WHERE provider <> 'demo')::int AS calls,
+               count(*) FILTER (WHERE provider = 'demo')::int AS demo,
+               count(*) FILTER (WHERE provider <> 'demo' AND cost_micros IS NULL)::int AS unpriced
+        FROM ai_usage WHERE occurred_at >= ${from}::timestamptz AND occurred_at <= ${to}::timestamptz
+      `,
+    ]);
+    return {
+      byFeature: features.map((row) => ({ feature: row.feature, calls: row.calls, costMicros: num(row.cost), inputTokens: num(row.input), outputTokens: num(row.output), unpriced: row.unpriced })),
+      byDay: fillDays(period, new Map(days.map((row) => [row.day, num(row.cost)]))),
+      totalMicros: num(totals[0]!.total),
+      calls: totals[0]!.calls,
+      demoCalls: totals[0]!.demo,
+      unpriced: totals[0]!.unpriced,
+    };
+  }
+
   /** Orders placed in the period, for the CSV export: one row per order. */
   async function ordersForExport(period: Period) {
     return sql<{
@@ -218,7 +264,7 @@ export function createDashboardStore(sql: Sql) {
     `;
   }
 
-  return { overview, ordersForExport, stockForExport };
+  return { overview, aiSpend, ordersForExport, stockForExport };
 }
 
 export type DashboardStore = ReturnType<typeof createDashboardStore>;

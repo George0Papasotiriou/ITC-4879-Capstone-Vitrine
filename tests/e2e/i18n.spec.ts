@@ -86,7 +86,9 @@ test("the language switch lands on the same page in the other language", async (
   await page.goto("/el/c/lighting", { waitUntil: "domcontentloaded" });
 
   await page.getByRole("link", { name: "English" }).click();
-  await expect(page).toHaveURL(/\/en\/c\/lighting$/);
+  // A whole page load, which under a full parallel run can take longer than the
+  // default five seconds; the assertion is about where it lands, not how fast.
+  await expect(page).toHaveURL(/\/en\/c\/lighting$/, { timeout: 15_000 });
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 

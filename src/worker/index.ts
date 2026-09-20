@@ -10,6 +10,7 @@
 import { Worker, type Job } from "bullmq";
 
 import { createRedis } from "@/lib/jobs/redis";
+import { registerBullSchedules } from "@/lib/jobs/schedule";
 import {
   QUEUE_NAMES,
   WORKER_HEARTBEAT_INTERVAL_MS,
@@ -105,6 +106,17 @@ log.info(
   { queues: Object.values(QUEUE_NAMES) },
   "worker started",
 );
+
+/**
+ * The recurring jobs (docs/adr/020). Upserting on every start keeps Redis in
+ * step with the table in src/lib/jobs/schedule.ts: a schedule that was removed
+ * from the code stops being registered, and one whose pattern changed is
+ * replaced rather than duplicated. A failure here must not stop the worker
+ * from doing the work it already has.
+ */
+void registerBullSchedules().catch((error: unknown) => {
+  log.error({ err: error }, "schedules could not be registered");
+});
 
 /**
  * Graceful shutdown. Railway sends SIGTERM on redeploy; BullMQ's `close()`

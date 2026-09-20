@@ -13,6 +13,7 @@ import { connection } from "next/server";
 import { currentUser, type CurrentUser } from "@/lib/auth/session";
 import { createOrderNotifier, type OrderNotifier } from "@/lib/commerce/notify";
 import type { SideEffect } from "@/lib/commerce/order-state";
+import { createPriceWatchStore, type PriceWatchStore } from "@/lib/commerce/price-watch-store";
 import { createReviewStore, type ReviewStore } from "@/lib/commerce/review-store";
 import { createCommerceStore, type CommerceStore, type OrderOwner, type OrderView } from "@/lib/commerce/store";
 import { orderLinkToken, signValue, verifySignedValue } from "@/lib/commerce/tokens";
@@ -96,6 +97,13 @@ let reviewStore: ReviewStore | undefined;
 export async function reviewsStore(): Promise<ReviewStore> {
   await connection();
   return (reviewStore ??= createReviewStore(sql));
+}
+
+let watchStore: PriceWatchStore | undefined;
+
+export async function priceWatches(): Promise<PriceWatchStore> {
+  await connection();
+  return (watchStore ??= createPriceWatchStore(sql));
 }
 
 /**
