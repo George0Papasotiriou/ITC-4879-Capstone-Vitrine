@@ -909,6 +909,97 @@ export const reports = pgTable(
   (t) => [index("reports_kind_idx").on(t.kind, t.periodEnd)],
 );
 
+/**
+ * The support desk (docs/adr/021). One ticket is one conversation with one
+ * customer; its messages are what was said, by whom, and whether a message is
+ * a draft an agent has not sent yet. A ticket belongs to an account when there
+ * is one, and always to an email address, because a guest may write too.
+ */
+export const supportTickets = pgTable(
+  "support_tickets",
+  {
+    id: id(),
+    /** Human-readable, for emails and the desk: VS-XXXX-XXXX. */
+    number: text("number").notNull(),
+    subject: text("subject").notNull(),
+    /** open | waiting_customer | resolved | closed (src/lib/support/tickets.ts). */
+    status: text("status").notNull().default("open"),
+    /** delivery | returns | product | account | payment | other. */
+    topic: text("topic").notNull().default("other"),
+    locale: text("locale").notNull().default("en"),
+    email: text("email").notNull(),
+    name: text("name").notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    /** The order it is about, when the customer named one. */
+    orderId: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+    assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
+    /** The promise the desk's timers are built on: a first reply within a working day (docs/policies.md). */
+    firstReplyDueAt: timestamp("first_reply_due_at", { withTimezone: true }).notNull(),
+    firstReplyAt: timestamp("first_reply_at", { withTimezone: true }),
+    /** When the customer last wrote: what the queue sorts by. */
+    lastCustomerAt: timestamp("last_customer_at", { withTimezone: true }).notNull().defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    /** One question when a ticket is closed: 1 to 5. */
+    csatScore: integer("csat_score"),
+    csatComment: text("csat_comment"),
+    csatAnsweredAt: timestamp("csat_answered_at", { withTimezone: true }),
+    /** SHA-256 of the secret in the customer's link; the secret itself is never stored. */
+    accessTokenHash: text("access_token_hash").notNull(),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("support_tickets_number_key").on(t.number),
+    index("support_tickets_queue_idx").on(t.status, t.firstReplyDueAt),
+    index("support_tickets_user_idx").on(t.userId, t.createdAt),
+    index("support_tickets_email_idx").on(t.email, t.createdAt),
+    check("support_tickets_csat_range", sql`${t.csatScore} IS NULL OR (${t.csatScore} >= 1 AND ${t.csatScore} <= 5)`),
+  ],
+);
+
+export const supportMessages = pgTable(
+  "support_messages",
+  {
+    id: id(),
+    ticketId: uuid("ticket_id")
+      .notNull()
+      .references(() => supportTickets.id, { onDelete: "cascade" }),
+    /** customer | agent | ai | system. */
+    author: text("author").notNull(),
+    authorUserId: uuid("author_user_id").references(() => users.id, { onDelete: "set null" }),
+    body: text("body").notNull(),
+    /** An AI draft waiting for an agent: never sent, never shown to the customer. */
+    draft: boolean("draft").notNull().default(false),
+    /** A note between staff: kept with the ticket, never emailed. */
+    internal: boolean("internal").notNull().default(false),
+    /** The model that wrote a draft, for the AI spending page. */
+    model: text("model"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("support_messages_ticket_idx").on(t.ticketId, t.createdAt)],
+);
+
+/** Ready answers an agent can drop into a reply, in both languages. */
+export const supportMacros = pgTable(
+  "support_macros",
+  {
+    id: id(),
+    key: text("key").notNull(),
+    topic: text("topic").notNull().default("other"),
+    titleEn: text("title_en").notNull(),
+    titleEl: text("title_el").notNull(),
+    bodyEn: text("body_en").notNull(),
+    bodyEl: text("body_el").notNull(),
+    sort: integer("sort").notNull().default(0),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("support_macros_key_key").on(t.key), index("support_macros_topic_idx").on(t.topic, t.sort)],
+);
+
+export type SupportTicketRow = typeof supportTickets.$inferSelect;
+export type SupportMessageRow = typeof supportMessages.$inferSelect;
+export type SupportMacroRow = typeof supportMacros.$inferSelect;
+
 export type AuditLogRow = typeof auditLog.$inferSelect;
 export type AiUsageRow = typeof aiUsage.$inferSelect;
 export type PriceWatch = typeof priceWatches.$inferSelect;

@@ -74,7 +74,7 @@ export function AiSettings({ killSwitch, dailyBudgetEur }: { killSwitch: boolean
       </div>
 
       <form onSubmit={saveBudget} className="flex flex-wrap items-end gap-3">
-        <Field label={t("budget")} name="budget" inputMode="decimal" defaultValue={String(dailyBudgetEur)} hint={t("budgetHint")} className="max-w-[12rem]" data-agent-id="admin:ai-budget" />
+        <Field label={t("budget")} name="budget" inputMode="decimal" defaultValue={dailyBudgetEur.toFixed(2)} hint={t("budgetHint")} className="max-w-[12rem]" data-agent-id="admin:ai-budget" />
         <Button type="submit" variant="secondary" disabled={!hydrated} aria-disabled={pending} data-agent-id="admin:ai-budget-save">
           {t("save")}
         </Button>

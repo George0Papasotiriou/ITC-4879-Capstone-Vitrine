@@ -16,6 +16,7 @@ import type { WatchResponse } from "@/app/api/watch/route";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
+import { useHydrated } from "@/components/ui/use-hydrated";
 import { centsToInput } from "@/lib/admin/catalog";
 import { formatMoney, money } from "@/lib/commerce/money";
 import { parseTargetCents, suggestedTargetCents } from "@/lib/commerce/price-watch";
@@ -49,6 +50,8 @@ export function PriceWatch({
   const t = useTranslations("product.watch");
   const locale = useLocale();
   const toast = useToast();
+  // Buttons stay disabled until the form can act on a click, so an early tap is never lost.
+  const hydrated = useHydrated();
   const [target, setTarget] = useState<number | null>(targetCents);
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -122,7 +125,7 @@ export function PriceWatch({
             className="max-w-[14rem]"
             data-agent-id="price-watch:target"
           />
-          <Button type="submit" aria-disabled={pending} data-agent-id="action:save-price-watch">
+          <Button type="submit" disabled={!hydrated} aria-disabled={pending} data-agent-id="action:save-price-watch">
             {t("save")}
           </Button>
           <Button type="button" variant="tertiary" onClick={() => { setOpen(false); setError(null); }}>
@@ -131,12 +134,13 @@ export function PriceWatch({
         </form>
       ) : (
         <div className="mt-3 flex flex-wrap gap-3">
-          <Button variant="tertiary" onClick={() => setOpen(true)} data-agent-id="action:watch-price">
+          <Button variant="tertiary" disabled={!hydrated} onClick={() => setOpen(true)} data-agent-id="action:watch-price">
             {target === null ? t("start") : t("change")}
           </Button>
           {target === null ? null : (
             <Button
               variant="tertiary"
+              disabled={!hydrated}
               aria-disabled={pending}
               onClick={() => void send({ action: "remove", productId }, t("stopped"))}
               data-agent-id="action:stop-price-watch"

@@ -59,6 +59,15 @@ export function orderLinkToken(orderId: string, secret: string): string {
   return hmac(`order-link:${orderId}`, secret);
 }
 
+/**
+ * The same, for a support ticket's private link (docs/adr/021): a guest who
+ * wrote to the desk can open the conversation from the email, and only the
+ * hash is stored.
+ */
+export function ticketLinkToken(ticketId: string, secret: string): string {
+  return hmac(`ticket-link:${ticketId}`, secret);
+}
+
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -72,6 +81,15 @@ const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
 /** VT-XXXX-XXXX: 40 random bits, about a trillion possibilities; uniqueness is still enforced by the database. */
 export function newOrderNumber(random: (size: number) => Uint8Array = (size) => randomBytes(size)): string {
+  return newReference("VT", random);
+}
+
+/** VS-XXXX-XXXX for a support ticket: the same shape, so a number read aloud is read the same way. */
+export function newTicketNumber(random: (size: number) => Uint8Array = (size) => randomBytes(size)): string {
+  return newReference("VS", random);
+}
+
+function newReference(prefix: string, random: (size: number) => Uint8Array): string {
   const bytes = random(5);
   let bits = 0n;
   for (const byte of bytes) bits = (bits << 8n) | BigInt(byte);
@@ -80,5 +98,5 @@ export function newOrderNumber(random: (size: number) => Uint8Array = (size) => 
     text = CROCKFORD[Number(bits & 31n)]! + text;
     bits >>= 5n;
   }
-  return `VT-${text.slice(0, 4)}-${text.slice(4)}`;
+  return `${prefix}-${text.slice(0, 4)}-${text.slice(4)}`;
 }

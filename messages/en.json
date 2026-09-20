@@ -162,6 +162,12 @@
       "stop": "Stop watching",
       "stopped": "No longer watching that price.",
       "failed": "That did not work. Try again."
+    },
+    "desks": {
+      "support": {
+        "title": "Support inbox",
+        "lede": "Answer what people have written, with a draft to start from."
+      }
     }
   },
   "concierge": {
@@ -361,8 +367,8 @@
     "privacyIntro": "Vitrine collects as little as it can, and says what it does with it.",
     "privacyBody": "Photos you show the Concierge are used only for the request you made, need your consent first, are deleted after 24 hours by default, and are never sent to free AI services or written to logs. Search terms are recorded without your name to improve search quality.",
     "contactTitle": "Contact",
-    "contactIntro": "Vitrine is the ITC 4949 capstone project of George Papasotiriou.",
-    "contactBody": "Questions about the project are welcome through the course. This is not a shop, so there is no customer service for orders.",
+    "contactIntro": "Write to us and someone answers within one working day.",
+    "contactBody": "Vitrine is the ITC 4949 capstone project of George Papasotiriou. The shop works from end to end, but the payment is a test payment: nothing is charged and nothing is dispatched. The desk is real, though — ask about an order, a return, a piece, or the project itself.",
     "creditsTitle": "Credits and data",
     "creditsIntro": "Where the products, photographs and numbers on this site come from.",
     "creditsDataset": "Product data and photography: the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0. It is used here non-commercially, for education.",
@@ -749,6 +755,17 @@
       "action": "Open the report (PDF)",
       "expires": "The link works for seven days. After that, generate it again from the dashboard.",
       "figures": "Sales {sales} across {orders} orders. AI cost {ai}."
+    },
+    "support": {
+      "receivedSubject": "We have your message ({number})",
+      "receivedIntro": "Thank you for writing. Your ticket is {number}, and someone will reply within one working day.",
+      "replySubject": "Reply about {number}",
+      "replyIntro": "There is a reply on your ticket {number}.",
+      "closedSubject": "Ticket {number} is closed",
+      "closedIntro": "We have closed ticket {number}. If this is not sorted, write again from the same page and it opens back up.",
+      "action": "Open the conversation",
+      "rate": "How did we do? You can leave a score of 1 to 5 on that page; it takes a moment and it is the only thing we ask.",
+      "keep": "Keep this email: the link is how you open the conversation without an account."
     }
   },
   "auth": {
@@ -942,7 +959,87 @@
     "hidden": "Review hidden.",
     "restored": "Review restored.",
     "hiddenBecause": "Hidden: {reason}",
-    "reviewsEmpty": "No reviews here."
+    "reviewsEmpty": "No reviews here.",
+    "support": {
+      "title": "Support inbox",
+      "lede": "What people have written to the shop. Whatever nobody has answered comes first, by the promise: a reply within one working day.",
+      "counts": "{unanswered} unanswered, {late} past the promise",
+      "filterLabel": "Show",
+      "filters": {
+        "all": "Everything open"
+      },
+      "statuses": {
+        "open": "Open",
+        "waiting_customer": "Waiting for the customer",
+        "resolved": "Sorted",
+        "closed": "Closed"
+      },
+      "topics": {
+        "delivery": "Delivery",
+        "returns": "Returns",
+        "product": "A piece",
+        "account": "Account",
+        "payment": "Payment",
+        "other": "Something else"
+      },
+      "clock": {
+        "late": "Late, due {when}",
+        "soon": "Due {when}",
+        "due": "Due {when}"
+      },
+      "answered": "Answered",
+      "answeredLate": "Answered, after the promise",
+      "draftWaiting": "a draft is waiting",
+      "empty": "Nothing here. The desk is clear.",
+      "backToQueue": "Back to the inbox",
+      "facts": {
+        "number": "Ticket",
+        "status": "State",
+        "customer": "Customer",
+        "topic": "About",
+        "firstReply": "First reply",
+        "order": "Order"
+      },
+      "authors": {
+        "customer": "Customer",
+        "agent": "Agent",
+        "ai": "Assistant",
+        "system": "Note",
+        "note": "Internal note",
+        "draft": "Draft, written by {source}"
+      },
+      "replyLabel": "Your reply",
+      "writeDraft": "Write a draft",
+      "writing": "Writing…",
+      "discardDraft": "Throw the draft away",
+      "draftNote": "A draft. Read it, change what is wrong, and it goes out as your message.",
+      "draftReady": "Draft ready, from {source}.",
+      "fromMacros": "the ready answers",
+      "macros": "Ready answers",
+      "send": "Send the reply",
+      "sent": "Sent to the customer.",
+      "note": "Keep as a note",
+      "noteSaved": "Note kept. The customer does not see it.",
+      "resolve": "Mark as sorted",
+      "close": "Close",
+      "reopen": "Open it again",
+      "moved": {
+        "resolve": "Marked as sorted.",
+        "close": "Closed. The customer is asked how it went.",
+        "reopen": "Open again."
+      },
+      "errors": {
+        "too_short": "Write a little more before sending.",
+        "closed": "This ticket is closed. Open it again first.",
+        "not_found": "That is no longer there. Refresh the page.",
+        "not_allowed": "That cannot be done from here.",
+        "ai_off": "The shop has no AI key, so there is no draft to write.",
+        "ai_paused": "AI is paused, so no draft can be written now.",
+        "no_draft": "Nothing came back. Write the reply yourself.",
+        "forbidden": "You do not have the desk's permission.",
+        "failed": "That did not work. Try again."
+      }
+    }
   },
   "reviews": {
     "heading": "Reviews",
@@ -1022,6 +1119,10 @@
       "ai": {
         "title": "AI and spending",
         "lede": "What the Concierge costs, and the switch that pauses every AI feature."
+      },
+      "support": {
+        "title": "Support inbox",
+        "lede": "Answer what people have written, with a draft to start from."
       }
     },
     "products": {
@@ -1240,7 +1341,8 @@
         "product": "Products",
         "variant": "Stock",
         "review": "Reviews",
-        "user": "Roles"
+        "user": "Roles",
+        "setting": "AI switches"
       },
       "columns": {
         "when": "When",
@@ -1336,6 +1438,62 @@
       "saved": "Saved.",
       "failed": "That did not save. Try again.",
       "empty": "No AI calls in this period."
+    }
+  },
+  "support": {
+    "form": {
+      "name": "Your name",
+      "email": "Email",
+      "emailHint": "This is where the answer goes.",
+      "subject": "What it is about",
+      "subjectHint": "Optional. We take the first line of your message if you leave it empty.",
+      "orderNumber": "Order number",
+      "orderNumberHint": "Optional, like VT-4JJZ-MPF9.",
+      "message": "Your message",
+      "messageHint": "Tell us what happened and what you would like to happen next.",
+      "send": "Send it",
+      "sending": "Sending…",
+      "promise": "We reply within one working day.",
+      "signedInAs": "Writing as {email}.",
+      "errors": {
+        "too_short": "Write a little more so we can help.",
+        "slow_down": "That is several messages in a short time. Try again a bit later.",
+        "failed": "That did not send. Try again."
+      }
+    },
+    "mine": {
+      "title": "Your conversations"
+    },
+    "ticket": {
+      "title": "Your conversation",
+      "number": "Ticket {number}",
+      "aboutOrder": "About order {number}",
+      "backToContact": "Back to contact",
+      "promise": "We will reply {when}.",
+      "statuses": {
+        "open": "With us",
+        "waiting_customer": "Waiting for you",
+        "resolved": "Sorted",
+        "closed": "Closed"
+      },
+      "authors": {
+        "customer": "You",
+        "agent": "Vitrine",
+        "system": "Vitrine"
+      },
+      "replyLabel": "Write back",
+      "reply": "Send",
+      "sent": "Sent.",
+      "rateTitle": "How did we do?",
+      "rateLede": "One score from 1 to 5. It takes a moment and it is the only thing we ask.",
+      "rated": "You gave us {score} out of 5. Thank you.",
+      "thanks": "Thank you.",
+      "reopenHint": "If it is not sorted, write again below and the conversation opens back up.",
+      "errors": {
+        "too_short": "Write a little more so we can help.",
+        "closed": "This conversation is closed. Write to us again and we will open a new one.",
+        "failed": "That did not send. Try again."
+      }
     }
   }
 }

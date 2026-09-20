@@ -13,9 +13,14 @@
  * 390x844 mobile. Full-page, so a design review sees the whole thing.
  *
  *   node scripts/screenshot.mjs /design /
+ *   node scripts/screenshot.mjs --sign-in admin@vitrine.test /en/admin/ai
+ *
+ * With --sign-in it signs in first with a demo account (the password local
+ * accounts share, .local/demo-password), which is how staff pages are
+ * captured. Local stack only: those accounts exist nowhere else.
  */
 import { chromium } from "@playwright/test";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const OUT = "docs/report/screenshots";
@@ -25,7 +30,20 @@ const VIEWPORTS = [
   { name: "mobile", width: 390, height: 844 },
 ];
 
-const routes = process.argv.slice(2);
+const args = process.argv.slice(2);
+const signInIndex = args.indexOf("--sign-in");
+const signInAs = signInIndex === -1 ? null : args[signInIndex + 1];
+const routes = signInIndex === -1 ? args : args.filter((_, index) => index !== signInIndex && index !== signInIndex + 1);
+
+/** Signs a page in with the local demo password, and waits for the account page. */
+async function signIn(page, email) {
+  const password = (await readFile(".local/demo-password", "utf8")).trim();
+  await page.goto(`${BASE}/en/account/sign-in`, { waitUntil: "load" });
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.waitForURL(/\/en\/account$/, { timeout: 30_000 });
+}
 if (routes.length === 0) {
   console.error("Usage: node scripts/screenshot.mjs <route> [route...]");
   process.exit(1);
@@ -44,6 +62,7 @@ for (const route of routes) {
       deviceScaleFactor: 2,
     });
     const page = await context.newPage();
+    if (signInAs !== null) await signIn(page, signInAs);
     // Not `networkidle`: Next prefetches every Link in the viewport, so the
     // network never goes quiet on a listing page.
     await page.goto(`${BASE}${route}`, { waitUntil: "load" });

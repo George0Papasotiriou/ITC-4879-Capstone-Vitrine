@@ -223,7 +223,9 @@ async function main() {
       // so the end-to-end tests always run against the same shelves.
       (await run(TSX, ["scripts/catalog.ts", "seed", ...(ephemeral ? ["--if-empty"] : ["--collection", "--sync"])], env)) ||
       // Content-based neighbour lists, so recommendations work from the first view.
-      (await run(TSX, ["scripts/reco.ts", "rebuild", "--if-empty"], env));
+      (await run(TSX, ["scripts/reco.ts", "rebuild", "--if-empty"], env)) ||
+      // The support desk's ready answers, as a deploy writes them.
+      (await run(TSX, ["scripts/support.ts", "macros"], env));
     if (code !== 0) {
       await stopDatabase();
       throw new Error("Seeding the catalogue failed; see the output above.");

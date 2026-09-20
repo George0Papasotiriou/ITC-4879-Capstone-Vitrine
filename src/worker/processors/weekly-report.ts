@@ -16,6 +16,7 @@ import { emailLocale, weeklyReport } from "@/lib/email/templates";
 import type { JobPayloads } from "@/lib/jobs/types";
 import { loggerFor } from "@/lib/log";
 import { createReportStore, REPORT_KIND, reportKey } from "@/lib/report/store";
+import { createSupportStore } from "@/lib/support/store";
 import { money, summarize, weeklyReportPdf } from "@/lib/report/weekly";
 import { storage } from "@/lib/storage";
 
@@ -41,17 +42,17 @@ export async function processWeeklyReport(payload: JobPayloads["weekly-report"],
   const period = weekEnding(endDay);
 
   const dashboards = createDashboardStore(sql);
-  const [overview, ai] = await Promise.all([dashboards.overview(period), dashboards.aiSpend(period)]);
+  const [overview, ai, support] = await Promise.all([dashboards.overview(period), dashboards.aiSpend(period), createSupportStore(sql).stats(period)]);
 
   const generatedAt = new Date();
-  const bytes = weeklyReportPdf({ period: { start: period.dayKeys[0]!, end: endDay }, generatedAt, overview, ai });
+  const bytes = weeklyReportPdf({ period: { start: period.dayKeys[0]!, end: endDay }, generatedAt, overview, ai, support });
   const key = reportKey(REPORT_KIND, endDay);
 
   const store = await storage();
   await store.putObject({ key, body: bytes, contentType: "application/pdf" });
 
   const reports = createReportStore(sql);
-  const summary = summarize({ overview, ai });
+  const summary = summarize({ overview, ai, support });
   const reportId = await reports.save(
     { kind: REPORT_KIND, periodStart: period.dayKeys[0]!, periodEnd: endDay, storageKey: key, bytes: bytes.byteLength, summary },
     generatedAt,

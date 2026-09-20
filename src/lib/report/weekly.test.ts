@@ -55,7 +55,20 @@ const ai: AiSpendSummary = {
   unpriced: 300,
 };
 
-const build = () => Buffer.from(weeklyReportPdf({ period: { start: "2026-09-14", end: "2026-09-20" }, generatedAt: new Date("2026-09-21T06:00:00Z"), overview, ai })).toString("latin1");
+const support = {
+  opened: 9,
+  answered: 8,
+  lateFirstReplies: 1,
+  medianFirstReplyMinutes: 95,
+  csat: { count: 4, average: 4.5 },
+  byTopic: [
+    { topic: "delivery", count: 5 },
+    { topic: "returns", count: 4 },
+  ],
+};
+
+const build = () =>
+  Buffer.from(weeklyReportPdf({ period: { start: "2026-09-14", end: "2026-09-20" }, generatedAt: new Date("2026-09-21T06:00:00Z"), overview, ai, support })).toString("latin1");
 
 /** Every string the report prints, in the order it is drawn. */
 function printed(file: string): string[] {
@@ -74,6 +87,11 @@ describe("weekly report", () => {
     expect(words).toContain("Searches that found nothing");
     expect(words).toContain("waterbed");
     expect(words).toContain("Concierge");
+    // The desk's week, when there is one (docs/adr/021).
+    expect(words).toContain("Questions asked");
+    expect(words).toContain("95 min");
+    // Parentheses are escaped in a PDF literal, which is what `printed` reads.
+    expect(words).toContain("4.5 of 5");
   });
 
   it("says what AI cost in euros, from millionths", () => {
@@ -118,8 +136,10 @@ describe("weekly report", () => {
   });
 
   it("stores the figures the admin page lists", () => {
-    expect(summarize({ overview, ai })).toEqual({
+    expect(summarize({ overview, ai, support })).toEqual({
       salesCents: 1_413_963,
+      ticketsOpened: 9,
+      csatAverage: 4.5,
       orders: 42,
       refundsCents: 44_651,
       returnsRequested: 3,

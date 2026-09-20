@@ -160,6 +160,8 @@ describe.skipIf(url === undefined || url === "")("stored reports", () => {
   let reports: ReturnType<typeof createReportStore>;
   const summary: WeeklyReportSummary = {
     salesCents: 120_000,
+    ticketsOpened: 2,
+    csatAverage: 4.5,
     orders: 7,
     refundsCents: 0,
     returnsRequested: 1,

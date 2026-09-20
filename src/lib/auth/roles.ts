@@ -38,13 +38,15 @@ export const PERMISSIONS = [
   "ai:manage",
   /** Building the weekly report out of turn, which emails every admin a link to it. */
   "reports:generate",
+  /** The support desk: reading other people's tickets and answering them (docs/adr/021). */
+  "support:work",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
 /** Who may do what. Read as: a role grants these permissions. */
 export const GRANTS: Readonly<Record<Role, readonly Permission[]>> = {
   customer: ["orders:own"],
-  support: ["orders:own", "orders:manage", "reviews:moderate"],
+  support: ["orders:own", "orders:manage", "reviews:moderate", "support:work"],
   merchandiser: ["orders:own", "reviews:moderate", "catalog:edit", "reports:read"],
   admin: PERMISSIONS,
 };

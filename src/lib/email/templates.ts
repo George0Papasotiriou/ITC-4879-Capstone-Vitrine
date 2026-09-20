@@ -29,9 +29,12 @@ import en from "../../../messages/en.json";
  */
 
 export type EmailLocale = "en" | "el";
-export type EmailKind = "verify_email" | "reset_password" | "price_drop" | "weekly_report" | `order_${OrderEmailKind}`;
+export type EmailKind = "verify_email" | "reset_password" | "price_drop" | "weekly_report" | `support_${SupportEmailKind}` | `order_${OrderEmailKind}`;
 
 /** The order emails, one per customer-facing change in the order state machine (order-state.ts side effects). */
+export const SUPPORT_EMAIL_KINDS = ["received", "reply", "closed"] as const;
+export type SupportEmailKind = (typeof SUPPORT_EMAIL_KINDS)[number];
+
 export const ORDER_EMAIL_KINDS = ["confirmed", "shipped", "delivered", "cancelled", "refunded", "returnRequested", "returnReceived"] as const;
 export type OrderEmailKind = (typeof ORDER_EMAIL_KINDS)[number];
 
@@ -150,5 +153,23 @@ export function weeklyReport(
     paragraphs: [t("report.intro", { start, end }), t("report.figures", { sales, orders, ai })],
     action: { label: t("report.action"), url },
     after: [t("report.expires")],
+  });
+}
+
+/**
+ * A support email: we have your message, there is a reply, or the ticket is
+ * closed (docs/adr/021). The link opens the conversation; for a guest it is
+ * the only way in, so the email says to keep it.
+ */
+export function supportUpdate(
+  locale: EmailLocale,
+  { kind, name, number, url }: { kind: SupportEmailKind; name: string; number: string; url: string },
+): EmailContent {
+  const t = createTranslator({ locale, messages: MESSAGES[locale], namespace: "email" });
+  return render(locale, t(`support.${kind}Subject`, { number }), {
+    greeting: t("greeting", { name }),
+    paragraphs: [t(`support.${kind}Intro`, { number })],
+    action: { label: t("support.action"), url },
+    after: [...(kind === "closed" ? [t("support.rate")] : []), t("support.keep")],
   });
 }

@@ -124,6 +124,16 @@ test("a customer gets 404 on staff pages and cannot export or edit", async ({ br
   }
   expect((await page.request.get("/api/admin/export/orders")).status()).toBe(403);
   const origin = new URL(page.url()).origin;
+  // The AI switches and the weekly report are an admin's alone (docs/adr/020).
+  expect((await page.request.post("/api/admin/reports", { headers: { origin }, data: {} })).status()).toBe(403);
+  expect((await page.request.post("/api/admin/ai", { headers: { origin }, data: { killSwitch: true } })).status()).toBe(403);
+  expect((await page.goto("/en/admin/ai"))?.status()).toBe(404);
+  // A watch on a piece that does not exist is refused, whoever asks.
+  const missingWatch = await page.request.post("/api/watch", {
+    headers: { origin },
+    data: { action: "set", productId: "01890000-0000-7000-8000-000000000000", targetCents: 1_000, locale: "en" },
+  });
+  expect(missingWatch.status()).toBe(404);
   const edit = await page.request.post("/api/staff/products/01890000-0000-7000-8000-000000000000", {
     headers: { origin },
     data: { kind: "stock", variantId: "01890000-0000-7000-8000-000000000000", stock: "0", reason: "Emptying the shelf" },

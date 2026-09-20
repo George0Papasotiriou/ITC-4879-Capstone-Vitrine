@@ -31,17 +31,30 @@ export type AiSpendSummary = {
   unpriced: number;
 };
 
+export type SupportSummary = {
+  opened: number;
+  answered: number;
+  lateFirstReplies: number;
+  medianFirstReplyMinutes: number | null;
+  csat: { count: number; average: number | null };
+  byTopic: { topic: string; count: number }[];
+};
+
 export type WeeklyReportInput = {
   /** The days the report covers, inclusive, as YYYY-MM-DD. */
   period: { start: string; end: string };
   generatedAt: Date;
   overview: DashboardOverview;
   ai: AiSpendSummary;
+  /** The support desk, when there is one to report on. */
+  support?: SupportSummary;
 };
 
 /** What is stored in the `reports` row and read back by the admin page and the email. */
 export type WeeklyReportSummary = {
   salesCents: number;
+  ticketsOpened: number;
+  csatAverage: number | null;
   orders: number;
   refundsCents: number;
   returnsRequested: number;
@@ -159,9 +172,11 @@ function salesChart(pdf: PdfDocument, flow: Flow, data: readonly { day: string; 
 }
 
 /** The figures stored with the file, so the admin page lists a report without opening it. */
-export function summarize({ overview, ai }: Pick<WeeklyReportInput, "overview" | "ai">): WeeklyReportSummary {
+export function summarize({ overview, ai, support }: Pick<WeeklyReportInput, "overview" | "ai" | "support">): WeeklyReportSummary {
   return {
     salesCents: overview.sales.grossCents,
+    ticketsOpened: support?.opened ?? 0,
+    csatAverage: support?.csat.average ?? null,
     orders: overview.sales.orders,
     refundsCents: overview.sales.refundsCents,
     returnsRequested: overview.returns.requested,
@@ -174,7 +189,7 @@ export function summarize({ overview, ai }: Pick<WeeklyReportInput, "overview" |
 }
 
 /** The report itself. */
-export function weeklyReportPdf({ period, generatedAt, overview, ai }: WeeklyReportInput): Uint8Array {
+export function weeklyReportPdf({ period, generatedAt, overview, ai, support }: WeeklyReportInput): Uint8Array {
   const pdf = new PdfDocument();
   const flow = new Flow(pdf);
 
@@ -233,6 +248,19 @@ export function weeklyReportPdf({ period, generatedAt, overview, ai }: WeeklyRep
     }
   }
 
+  if (support !== undefined && support.opened > 0) {
+    flow.heading("Support");
+    flow.row("Questions asked", plain.format(support.opened));
+    flow.row("Answered", `${plain.format(support.answered)}   ${support.lateFirstReplies === 0 ? "all within a day" : `${plain.format(support.lateFirstReplies)} late`}`);
+    flow.row("Median first reply", support.medianFirstReplyMinutes === null ? "-" : `${plain.format(support.medianFirstReplyMinutes)} min`);
+    flow.row("Satisfaction", support.csat.average === null ? "-" : `${support.csat.average.toFixed(1)} of 5 (${plain.format(support.csat.count)})`);
+    if (support.byTopic.length > 0) {
+      flow.gap(4);
+      flow.cells("Topic", ["Questions"], { bold: true });
+      for (const topic of support.byTopic) flow.cells(TOPIC_LABELS[topic.topic] ?? topic.topic, [plain.format(topic.count)]);
+    }
+  }
+
   if (overview.lowStock.items.length > 0) {
     flow.heading("Running low");
     flow.cells("Piece", ["SKU", "Left"], { bold: true });
@@ -248,6 +276,15 @@ export function weeklyReportPdf({ period, generatedAt, overview, ai }: WeeklyRep
 
   return pdf.save();
 }
+
+const TOPIC_LABELS: Record<string, string> = {
+  delivery: "Delivery",
+  returns: "Returns",
+  product: "A piece",
+  account: "Account",
+  payment: "Payment",
+  other: "Something else",
+};
 
 const FUNNEL_LABELS: Record<string, string> = {
   carts: "Carts started",

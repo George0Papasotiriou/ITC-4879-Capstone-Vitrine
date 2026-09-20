@@ -17,6 +17,7 @@ import { ProductImage } from "@/components/commerce/product-image";
 import { Button } from "@/components/ui/button";
 import { SmartLink } from "@/components/ui/smart-link";
 import { useToast } from "@/components/ui/toast";
+import { useHydrated } from "@/components/ui/use-hydrated";
 import type { CatalogImage } from "@/lib/catalog/queries";
 import { formatMoney, money } from "@/lib/commerce/money";
 
@@ -43,6 +44,7 @@ export function WatchList({ items }: { items: readonly WatchItem[] }) {
   const t = useTranslations("account.watches");
   const locale = useLocale();
   const toast = useToast();
+  const hydrated = useHydrated();
   const [removed, setRemoved] = useState<readonly string[]>([]);
   const [pending, setPending] = useState<string | null>(null);
 
@@ -85,7 +87,7 @@ export function WatchList({ items }: { items: readonly WatchItem[] }) {
               {t("now", { amount: amount(item.priceCents, item.currency) })} · {item.reached ? t("reached") : t("target", { amount: amount(item.targetCents, item.currency) })}
             </span>
           </span>
-          <Button variant="tertiary" aria-disabled={pending === item.productId} onClick={() => void stop(item.productId)} data-agent-id={`action:stop-watch:${item.productId}`}>
+          <Button variant="tertiary" disabled={!hydrated} aria-disabled={pending === item.productId} onClick={() => void stop(item.productId)} data-agent-id={`action:stop-watch:${item.productId}`}>
             {t("stop")}
           </Button>
         </li>

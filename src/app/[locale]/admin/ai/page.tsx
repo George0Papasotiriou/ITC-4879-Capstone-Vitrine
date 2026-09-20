@@ -97,14 +97,19 @@ export default async function AiPage({ params, searchParams }: PageProps<"/[loca
       </section>
 
       <Panel id="ai-by-day" title={t("byDay.title")} className="mt-12">
-        <DayBars
-          data={spend.byDay}
-          label={t("byDay.chartLabel", { max: euro(Math.max(0, ...spend.byDay.map((entry) => entry.value))) })}
-          formatValue={euro}
-          formatDay={dayLabel}
-          tableCaption={t("byDay.title")}
-          columns={[t("byDay.day"), t("byDay.value")]}
-        />
+        {/* An empty chart says less than a sentence: until something has been spent, say so. */}
+        {spend.byDay.every((entry) => entry.value === 0) ? (
+          <p className="text-slate text-sm">{t("empty")}</p>
+        ) : (
+          <DayBars
+            data={spend.byDay}
+            label={t("byDay.chartLabel", { max: euro(Math.max(0, ...spend.byDay.map((entry) => entry.value))) })}
+            formatValue={euro}
+            formatDay={dayLabel}
+            tableCaption={t("byDay.title")}
+            columns={[t("byDay.day"), t("byDay.value")]}
+          />
+        )}
       </Panel>
 
       <div className="mt-12 grid gap-x-14 gap-y-12 lg:grid-cols-2">
