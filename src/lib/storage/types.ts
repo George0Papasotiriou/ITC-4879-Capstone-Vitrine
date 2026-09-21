@@ -27,6 +27,11 @@ export interface StorageDriver {
   putObject(params: { key: string; body: Uint8Array; contentType: string }): Promise<void>;
   /** Server-side read of one object, or null when it does not exist. */
   getObject(key: string): Promise<{ body: Uint8Array; contentType: string } | null>;
+  /**
+   * Removes one object. Deleting something that is not there is not an error:
+   * the expiry job (docs/adr/023) must be safe to run twice.
+   */
+  deleteObject(key: string): Promise<void>;
   /** Health probe: resolves if storage is reachable and writable. */
   check(): Promise<{ location: string }>;
 }

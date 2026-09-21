@@ -32,6 +32,16 @@ export const mediaInputSchema = z.object({
   whiteGround: z.boolean(),
 });
 
+/**
+ * A size a garment is cut in (docs/adr/022). Furniture has one variant and no
+ * size; the capsule has one per size, each with its own stock.
+ */
+export const variantInputSchema = z.object({
+  size: z.string().trim().min(1).max(12),
+  stock: z.number().int().nonnegative(),
+  priceCents: cents.nullable().default(null),
+});
+
 export const productInputSchema = z
   .object({
     source: z.enum(["abo", "capsule"]),
@@ -59,6 +69,12 @@ export const productInputSchema = z
     license: z.string().min(1),
     attribution: z.string().min(1),
     media: z.array(mediaInputSchema).min(1),
+    /** Sizes, for products sold in them. Without it the product has one variant, as furniture does. */
+    variants: z.array(variantInputSchema).min(1).max(12).optional(),
+  })
+  .refine((product) => product.variants === undefined || new Set(product.variants.map((variant) => variant.size)).size === product.variants.length, {
+    message: "each size may appear only once",
+    path: ["variants"],
   })
   .refine((product) => product.compareAtCents === null || product.compareAtCents > product.priceCents, {
     message: "compareAtCents must be above priceCents",
@@ -76,5 +92,6 @@ export const catalogFixtureSchema = z.object({
 });
 
 export type MediaInput = z.infer<typeof mediaInputSchema>;
+export type VariantInput = z.infer<typeof variantInputSchema>;
 export type ProductInput = z.infer<typeof productInputSchema>;
 export type CatalogFixture = z.infer<typeof catalogFixtureSchema>;

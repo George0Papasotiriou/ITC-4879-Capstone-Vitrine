@@ -29,7 +29,8 @@ export type Pricing =
   | { kind: "unverified" };
 
 export type ModelEntry = {
-  provider: "google" | "openai" | "fashn" | "demo";
+  /** "drawn" is the keyless stand-in that composes rather than generates (docs/adr/023). */
+  provider: "google" | "openai" | "fashn" | "demo" | "drawn";
   id: string;
   pricing: Pricing;
 };

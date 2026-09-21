@@ -22,6 +22,10 @@ export type JobPayloads = {
   "rebuild-taste-graph": { requestedAt: string; reason: "schedule" | "manual" | "simulation" };
   /** Phase 11: email the shoppers whose watched price has been reached (docs/adr/020). Nightly. */
   "price-watches": { requestedAt: string; reason: "schedule" | "manual" };
+  /** Phase 9: run one try-on for a shopper who asked for it (docs/adr/023). */
+  "try-on": { tryOnId: string; requestedAt: string };
+  /** Phase 9: delete the photographs whose day is up, and the results made from them. Every 15 minutes. */
+  "photo-expiry": { requestedAt: string; reason: "schedule" | "manual" };
   /** Phase 11: build the weekly PDF report and email the admins a link to it. Mondays. */
   "weekly-report": { requestedAt: string; reason: "schedule" | "manual"; /** Last day of the week to report on, YYYY-MM-DD; today when absent. */ endDay?: string };
 };
@@ -41,6 +45,8 @@ export const JOB_QUEUE: Record<JobName, QueueName> = {
   "rebuild-taste-graph": QUEUE_NAMES.default,
   "price-watches": QUEUE_NAMES.default,
   "weekly-report": QUEUE_NAMES.default,
+  "try-on": QUEUE_NAMES.default,
+  "photo-expiry": QUEUE_NAMES.default,
 };
 
 /**

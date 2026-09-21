@@ -155,6 +155,12 @@ export const CATEGORY_TERMS: Record<CategorySlug, Entry> = {
     greekStems: ["γλαστρ", "διακοσμητ"],
     greekWords: ["βαζο", "βαζα", "κερι", "κερια"],
   },
+  // The Wear capsule (docs/adr/022): a shopper looking for clothes says so in
+  // either language, and "wear" is also how the category is named in the shop.
+  wear: {
+    english: ["wear", "clothes", "clothing", "shirt", "top", "tee", "knit", "jumper", "sweater", "trousers", "skirt", "dress", "coat", "jacket", "capsule"],
+    greekStems: ["ρουχ", "μπλουζ", "πουκαμισ", "πλεκτ", "παντελον", "φουστ", "φορεμ", "παλτ", "σακακ"],
+  },
 };
 
 export type ColorId = keyof typeof COLORS;

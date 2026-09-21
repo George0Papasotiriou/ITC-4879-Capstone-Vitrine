@@ -19,7 +19,7 @@
  *       photography into storage, and write them to the database. --dry-run
  *       prints the selection and the download volume and fetches no images.
  *
- *   pnpm catalog seed --collection --sync
+ *   pnpm catalog seed --collection --capsule --sync
  *       The shop's catalogue, locally and in Railway's pre-deploy step: the
  *       specimen and the collection, new products added, stock left alone.
  *
@@ -69,6 +69,8 @@ import { storage } from "@/lib/storage";
 const CACHE = ".abo-cache";
 const SPECIMEN_FIXTURE = "src/lib/catalog/fixtures/specimen.json";
 const COLLECTION_FIXTURE = "src/lib/catalog/fixtures/collection.json";
+/** The Wear capsule the shop drew itself (docs/adr/022), written by `pnpm capsule`. */
+const CAPSULE_FIXTURE = "src/lib/catalog/fixtures/capsule.json";
 const IMPORT_OUTPUT = ".local/catalog/abo-import.json";
 /** Categories sold by their photograph as it is, where a white studio ground is not expected. */
 const FLAT_CATEGORIES = new Set<CategorySlug>(["rugs", "wall-decor"]);
@@ -654,6 +656,7 @@ async function main(): Promise<void> {
       fixture: { type: "string", default: SPECIMEN_FIXTURE },
       "if-empty": { type: "boolean", default: false },
       collection: { type: "boolean", default: false },
+      capsule: { type: "boolean", default: false },
       sync: { type: "boolean", default: false },
       "dry-run": { type: "boolean", default: false },
       files: { type: "string", default: "0" },
@@ -666,7 +669,7 @@ async function main(): Promise<void> {
   switch (command) {
     case "seed":
       return seed({
-        fixtures: values.collection ? [values.fixture, COLLECTION_FIXTURE] : [values.fixture],
+        fixtures: [values.fixture, ...(values.collection ? [COLLECTION_FIXTURE] : []), ...(values.capsule ? [CAPSULE_FIXTURE] : [])],
         ifEmpty: values["if-empty"],
         sync: values.sync,
       });

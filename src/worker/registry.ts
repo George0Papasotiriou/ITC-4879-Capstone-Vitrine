@@ -8,9 +8,11 @@
  */
 
 import type { JobName, JobPayloads } from "@/lib/jobs/types";
+import { processPhotoExpiry } from "@/worker/processors/photo-expiry";
 import { processPing } from "@/worker/processors/ping";
 import { processPriceWatches } from "@/worker/processors/price-watches";
 import { processRebuildTasteGraph } from "@/worker/processors/rebuild-taste-graph";
+import { processTryOn } from "@/worker/processors/try-on";
 import { processWeeklyReport } from "@/worker/processors/weekly-report";
 
 /**
@@ -32,4 +34,6 @@ export const processors: { [N in JobName]: Processor<N> } = {
   "rebuild-taste-graph": processRebuildTasteGraph,
   "price-watches": processPriceWatches,
   "weekly-report": processWeeklyReport,
+  "try-on": processTryOn,
+  "photo-expiry": processPhotoExpiry,
 };

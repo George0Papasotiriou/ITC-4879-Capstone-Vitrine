@@ -159,3 +159,37 @@ export const setPriceWatch = define({
     return result.ok ? { ok: true as const, watching: true, targetCents } : { ok: false as const, reason: result.reason };
   },
 });
+
+export const tryOnPiece = define({
+  name: "try_on",
+  description:
+    "Try one piece of clothing on the photograph the shopper gave the Fitting Room. It costs the shopper credits, so ask first, and only for one piece at a time. " +
+    "Use it when they ask to see something on themselves. It needs a photograph they have already given; if there is none, say so and open the Fitting Room instead. " +
+    "Never describe how the result looks: the shopper sees it, and it is their own photograph.",
+  scope: "costly",
+  credits: "try_on",
+  input: z.object({ productId: z.uuid().describe("A product id from a search; clothes only.") }),
+  output: z.discriminatedUnion("ok", [
+    z.object({ ok: z.literal(true), tryOnId: z.string(), minutesLeft: z.number().int(), commands: z.array(uiCommandSchema) }),
+    z.object({ ok: z.literal(false), reason: z.enum(["no_photo", "not_clothes", "not_found", "refused"]), commands: z.array(uiCommandSchema) }),
+  ]),
+  async run(ctx, { productId }) {
+    const [card] = await ctx.services.cards([productId]);
+    if (card === undefined) return { ok: false as const, reason: "not_found" as const, commands: [] };
+    if (card.category !== "wear") return { ok: false as const, reason: "not_clothes" as const, commands: [] };
+
+    const fittingRoom = uiCommandSchema.parse({
+      type: "navigate",
+      href: "/fitting-room",
+      caption: ctx.locale === "el" ? "Άνοιγμα του δοκιμαστηρίου" : "Opening the Fitting Room",
+    });
+
+    // Without a photograph there is nothing to try it on; the page is where one is given.
+    const photo = await ctx.services.tryOn.photo();
+    if (photo === null) return { ok: false as const, reason: "no_photo" as const, commands: [fittingRoom] };
+
+    const started = await ctx.services.tryOn.start({ photoId: photo.id, productId });
+    if (!started.ok) return { ok: false as const, reason: "refused" as const, commands: [] };
+    return { ok: true as const, tryOnId: started.id, minutesLeft: photo.minutesLeft, commands: [fittingRoom] };
+  },
+});

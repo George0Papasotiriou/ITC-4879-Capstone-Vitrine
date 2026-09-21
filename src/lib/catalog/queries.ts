@@ -72,6 +72,8 @@ export type ProductDetail = ProductCard & {
   dimsCm: DimensionsCm | null;
   weightGrams: number | null;
   stock: number;
+  /** One per size for the capsule, one without a size for everything else (docs/adr/022). */
+  variants: { id: string; sku: string; size: string | null; stock: number; priceCents: number | null }[];
   media: CatalogImage[];
   ratingSum: number;
   ratingCount: number;
@@ -351,6 +353,7 @@ export function createCatalogQueries(sql: Sql) {
       translation: "none" | "machine" | "reviewed";
       updated_at: Date;
       all_images: ImageRow[] | null;
+      variants: { id: string; sku: string; size: string | null; stock: number; price_cents: number | null }[] | null;
     };
 
     const [row] = await sql<DetailRow[]>`
@@ -365,7 +368,11 @@ export function createCatalogQueries(sql: Sql) {
             'altEn', m.alt_en, 'altEl', m.alt_el, 'whiteGround', m.white_ground
           ) ORDER BY m.position)
           FROM product_media m WHERE m.product_id = p.id AND m.kind = 'image'
-        ) AS all_images
+        ) AS all_images,
+        (
+          SELECT json_agg(json_build_object('id', v.id, 'sku', v.sku, 'size', v.size, 'stock', v.stock, 'price_cents', v.price_cents) ORDER BY v.position, v.sku)
+          FROM product_variants v WHERE v.product_id = p.id
+        ) AS variants
       ${fromProducts}
       WHERE p.slug = ${slug} AND p.status = 'active'
     `;
@@ -385,6 +392,7 @@ export function createCatalogQueries(sql: Sql) {
       dimsCm: row.dims_cm,
       weightGrams: row.weight_grams,
       stock: row.stock,
+      variants: (row.variants ?? []).map((variant) => ({ id: variant.id, sku: variant.sku, size: variant.size, stock: variant.stock, priceCents: variant.price_cents })),
       media: (row.all_images ?? []).map((media) => image(media, locale)!),
       ratingSum: row.rating_sum,
       ratingCount: row.rating_count,

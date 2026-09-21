@@ -88,6 +88,7 @@ export function createLocalDriver(env: ServerEnv): StorageDriver {
       const object = await readObject(config.root, key);
       return object === null ? null : { body: new Uint8Array(object.body), contentType: object.meta.contentType };
     },
+    deleteObject: (key) => removeObject(config.root, key),
     check: async () => {
       // Writable, not just present: a read-only folder would pass a stat and
       // then fail on the first upload.
@@ -118,6 +119,12 @@ export async function writeObject(root: string, key: string, body: Uint8Array, c
   await rename(temporary, target);
   const meta: Meta = { contentType, size: body.byteLength, uploadedAt: new Date().toISOString() };
   await writeFile(`${target}.meta.json`, JSON.stringify(meta));
+}
+
+/** Removes an object and the note beside it; a missing file is not an error. */
+export async function removeObject(root: string, key: string): Promise<void> {
+  const target = resolveKeyPath(root, key);
+  await Promise.all([unlink(target).catch(() => {}), unlink(`${target}.meta.json`).catch(() => {})]);
 }
 
 export async function readObject(root: string, key: string): Promise<{ body: Buffer; meta: Meta } | null> {

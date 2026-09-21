@@ -7,7 +7,7 @@
  * The one tool registry: every tool, which surfaces offer it, and running one with its input and output checked.
  */
 
-import { getOrders, getOrderStatus, setPriceWatch, startCheckout, startReturn } from "@/lib/ai/tools/account";
+import { getOrders, getOrderStatus, setPriceWatch, startCheckout, startReturn, tryOnPiece } from "@/lib/ai/tools/account";
 import { addToCart, removeFromCart, updateCartItem } from "@/lib/ai/tools/cart";
 import { buildBundle, compareProducts, getProducts, recommend, searchProducts, summarizeReviews } from "@/lib/ai/tools/catalog";
 import { APPROVAL_SCOPES, type Surface, type ToolContext, type VitrineTool } from "@/lib/ai/tools/types";
@@ -40,6 +40,7 @@ export const TOOLS: readonly VitrineTool<unknown, unknown>[] = [
   getOrders,
   getOrderStatus,
   setPriceWatch,
+  tryOnPiece,
   startCheckout,
   startReturn,
 ].map((tool) => erase(tool as VitrineTool<never, unknown>));

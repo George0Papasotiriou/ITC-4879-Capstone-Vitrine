@@ -910,6 +910,71 @@ export const reports = pgTable(
 );
 
 /**
+ * A photograph a shopper gave the shop for one purpose: trying a piece on,
+ * searching by photo, or placing something in a room (docs/adr/023). It is
+ * kept for a day, then deleted by a job, and the shopper can delete it sooner.
+ * It is never written to a log and never leaves the shop's own storage except
+ * to the paid API the shopper approved.
+ */
+export const uploads = pgTable(
+  "uploads",
+  {
+    id: id(),
+    /** try_on | snap | room. */
+    kind: text("kind").notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    /** "user:<id>" or "guest:<cookie id>", as the AI layer counts a shopper (src/lib/ai/usage.ts). */
+    actorKey: text("actor_key").notNull(),
+    storageKey: text("storage_key").notNull(),
+    contentType: text("content_type").notNull(),
+    bytes: integer("bytes").notNull().default(0),
+    width: integer("width"),
+    height: integer("height"),
+    /** When the shopper agreed to this photograph being used for this purpose. */
+    consentAt: timestamp("consent_at", { withTimezone: true }).notNull().defaultNow(),
+    /** A day later, by default (docs/PLAN.md 2.9). */
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    index("uploads_expiry_idx").on(t.expiresAt),
+    index("uploads_actor_idx").on(t.actorKey, t.createdAt),
+    check("uploads_bytes_nonnegative", sql`${t.bytes} >= 0`),
+  ],
+);
+
+/**
+ * One try-on: a photograph, a piece, and what came back. The result is a file
+ * in the shop's storage that expires with the photograph it was made from.
+ */
+export const tryOns = pgTable(
+  "try_ons",
+  {
+    id: id(),
+    uploadId: uuid("upload_id")
+      .notNull()
+      .references(() => uploads.id, { onDelete: "cascade" }),
+    productId: uuid("product_id").references(() => products.id, { onDelete: "set null" }),
+    variantId: uuid("variant_id").references(() => productVariants.id, { onDelete: "set null" }),
+    actorKey: text("actor_key").notNull(),
+    /** queued | running | done | failed. */
+    status: text("status").notNull().default("queued"),
+    provider: text("provider").notNull(),
+    model: text("model").notNull(),
+    resultKey: text("result_key"),
+    failureReason: text("failure_reason"),
+    costMicros: integer("cost_micros"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (t) => [index("try_ons_actor_idx").on(t.actorKey, t.createdAt), index("try_ons_upload_idx").on(t.uploadId)],
+);
+
+export type UploadRow = typeof uploads.$inferSelect;
+export type TryOnRow = typeof tryOns.$inferSelect;
+
+/**
  * The support desk (docs/adr/021). One ticket is one conversation with one
  * customer; its messages are what was said, by whom, and whether a message is
  * a draft an agent has not sent yet. A ticket belongs to an account when there

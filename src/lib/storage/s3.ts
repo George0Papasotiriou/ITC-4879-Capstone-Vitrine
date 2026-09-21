@@ -52,7 +52,7 @@ function s3Config(env: ServerEnv): S3Config {
 export async function createS3Driver(env: ServerEnv): Promise<StorageDriver> {
   const config = s3Config(env);
   const [
-    { S3Client: Client, PutObjectCommand, GetObjectCommand, HeadBucketCommand },
+    { S3Client: Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadBucketCommand },
     { getSignedUrl },
   ] = await Promise.all([import("@aws-sdk/client-s3"), import("@aws-sdk/s3-request-presigner")]);
 
@@ -90,6 +90,9 @@ export async function createS3Driver(env: ServerEnv): Promise<StorageDriver> {
         if ((error as { name?: string }).name === "NoSuchKey") return null;
         throw error;
       }
+    },
+    deleteObject: async (key) => {
+      await client.send(new DeleteObjectCommand({ Bucket: config.bucket, Key: key }));
     },
     check: async () => {
       await client.send(new HeadBucketCommand({ Bucket: config.bucket }));

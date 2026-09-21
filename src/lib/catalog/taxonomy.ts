@@ -30,7 +30,8 @@ export type CategorySlug =
   | "storage"
   | "bedroom"
   | "wall-decor"
-  | "accents";
+  | "accents"
+  | "wear";
 
 export type Category = {
   slug: CategorySlug;
@@ -107,6 +108,14 @@ export const CATEGORIES: readonly Category[] = [
     descriptionEl: "Βάζα, γλάστρες και κεριά.",
     position: 7,
   },
+  {
+    slug: "wear",
+    nameEn: "Wear",
+    nameEl: "Ρούχα",
+    descriptionEn: "A small capsule: a few good pieces, in sizes.",
+    descriptionEl: "Μια μικρή κάψουλα: λίγα καλά κομμάτια, σε μεγέθη.",
+    position: 8,
+  },
 ];
 
 export const CATEGORY_SLUGS = CATEGORIES.map((category) => category.slug);
@@ -141,6 +150,26 @@ const band = (minEuros: number, maxEuros: number, maxStock = 40, soldOutShare = 
   maxStock,
   soldOutShare,
 });
+
+/**
+ * The Wear capsule's kinds (docs/adr/022). They are not ABO product types:
+ * the capsule is the shop's own small clothing collection, drawn here rather
+ * than imported, so the Fitting Room has something to try on.
+ */
+export const CAPSULE_PRODUCT_KINDS: Readonly<Record<string, ProductKind>> = {
+  TOP: { category: "wear", kindEn: "Top", kindEl: "Μπλούζα", bands: band(29, 79, 30) },
+  SHIRT: { category: "wear", kindEn: "Shirt", kindEl: "Πουκάμισο", bands: band(49, 129, 30) },
+  KNIT: { category: "wear", kindEn: "Knit", kindEl: "Πλεκτό", bands: band(69, 189, 24) },
+  TROUSERS: { category: "wear", kindEn: "Trousers", kindEl: "Παντελόνι", bands: band(59, 169, 24) },
+  SKIRT: { category: "wear", kindEn: "Skirt", kindEl: "Φούστα", bands: band(49, 139, 24) },
+  DRESS: { category: "wear", kindEn: "Dress", kindEl: "Φόρεμα", bands: band(79, 229, 20) },
+  COAT: { category: "wear", kindEn: "Coat", kindEl: "Παλτό", bands: band(149, 389, 16) },
+  JACKET: { category: "wear", kindEn: "Jacket", kindEl: "Σακάκι", bands: band(99, 279, 18) },
+};
+
+/** The sizes the capsule is cut in, smallest first. */
+export const CAPSULE_SIZES = ["XS", "S", "M", "L", "XL"] as const;
+export type CapsuleSize = (typeof CAPSULE_SIZES)[number];
 
 /** ABO `product_type` → where it lives in Vitrine. Types not listed are not imported. */
 export const ABO_PRODUCT_KINDS: Readonly<Record<string, ProductKind>> = {

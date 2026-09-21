@@ -221,7 +221,7 @@ async function main() {
       // The shop gets the whole catalogue, synced on every start like a Railway
       // deploy; the throwaway test database gets the 25 specimen products only,
       // so the end-to-end tests always run against the same shelves.
-      (await run(TSX, ["scripts/catalog.ts", "seed", ...(ephemeral ? ["--if-empty"] : ["--collection", "--sync"])], env)) ||
+      (await run(TSX, ["scripts/catalog.ts", "seed", ...(ephemeral ? ["--capsule", "--if-empty"] : ["--collection", "--capsule", "--sync"])], env)) ||
       // Content-based neighbour lists, so recommendations work from the first view.
       (await run(TSX, ["scripts/reco.ts", "rebuild", "--if-empty"], env)) ||
       // The support desk's ready answers, as a deploy writes them.

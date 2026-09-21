@@ -50,6 +50,9 @@ export const SCHEDULES: readonly ScheduledJob[] = [
   { id: "weekly-report", job: "weekly-report", pattern: "0 6 * * 1", localEveryMs: 60 * MINUTE },
   // The Taste Graph is rebuilt nightly, after the day's behaviour is in.
   { id: "taste-graph-nightly", job: "rebuild-taste-graph", pattern: "30 3 * * *", localEveryMs: 30 * MINUTE },
+  // Photographs are kept for a day; the sweep runs often enough that "deleted
+  // after 24 hours" is true to the quarter hour (docs/adr/023).
+  { id: "photo-expiry", job: "photo-expiry", pattern: "*/15 * * * *", localEveryMs: 15 * MINUTE },
 ];
 
 /** Enqueues one scheduled job now. Used by the two schedulers and by "run it now" buttons. */

@@ -139,6 +139,36 @@ describe("account and sensitive tools", () => {
   });
 });
 
+describe("the Fitting Room tool", () => {
+  it("tries clothes on, and nothing else", async () => {
+    const { ctx } = context({ cards: async () => [{ ...card(LAMP, "Lamp", 9400), category: "lighting" }] });
+    await expect(run("try_on", { productId: LAMP }, ctx)).resolves.toMatchObject({ ok: false, reason: "not_clothes" });
+  });
+
+  it("opens the Fitting Room when there is no photograph to use", async () => {
+    const { ctx } = context({
+      cards: async () => [{ ...card(LAMP, "Linen Dress", 14900), category: "wear" }],
+      tryOn: { photo: async () => null, start: async () => ({ ok: true, id: "t1" }) },
+    });
+    const result = (await run("try_on", { productId: LAMP }, ctx)) as { ok: boolean; reason: string; commands: { href: string }[] };
+    expect(result).toMatchObject({ ok: false, reason: "no_photo" });
+    expect(result.commands[0]!.href).toBe("/fitting-room");
+  });
+
+  it("starts one try-on with the shopper's own photograph", async () => {
+    const asked: unknown[] = [];
+    const { ctx } = context({
+      cards: async () => [{ ...card(LAMP, "Linen Dress", 14900), category: "wear" }],
+      tryOn: {
+        photo: async () => ({ id: "photo-1", minutesLeft: 1400 }),
+        start: async (input) => (asked.push(input), { ok: true, id: "try-1" }),
+      },
+    });
+    await expect(run("try_on", { productId: LAMP }, ctx)).resolves.toMatchObject({ ok: true, tryOnId: "try-1", minutesLeft: 1400 });
+    expect(asked).toEqual([{ photoId: "photo-1", productId: LAMP }]);
+  });
+});
+
 describe("registry", () => {
   it("names every tool once, in snake_case, with a description that says when not to use it", () => {
     const names = TOOLS.map((tool) => tool.name);
@@ -151,7 +181,7 @@ describe("registry", () => {
   });
 
   it("asks before sensitive and costly tools only", () => {
-    expect(TOOLS.filter(needsApproval).map((tool) => tool.name).sort()).toEqual(["start_checkout", "start_return"]);
+    expect(TOOLS.filter(needsApproval).map((tool) => tool.name).sort()).toEqual(["start_checkout", "start_return", "try_on"]);
   });
 
   it("gives the support assistant order and policy tools, not the cart or the page", () => {

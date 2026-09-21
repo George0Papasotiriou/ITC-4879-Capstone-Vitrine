@@ -22,6 +22,9 @@ import { currentRegion } from "@/lib/commerce/region";
 import { accessibleOrder, commerce, currentCart, lastOrder, notifyOrder, orderOwner, priceWatches, rememberCart, reviewsStore } from "@/lib/commerce/server";
 import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
 import { sql } from "@/lib/db/client";
+import { enqueue } from "@/lib/jobs/queue";
+import { minutesLeft } from "@/lib/photos/photos";
+import { photoStore } from "@/lib/photos/server";
 import { pairsWith, recommendationsForCurrentShopper } from "@/lib/reco/server";
 import { buildBundles } from "@/lib/stylist/server";
 import { serverEnv } from "@/env";
@@ -138,6 +141,35 @@ export async function toolServices({ locale, user, cart: held }: { locale: "en" 
       },
       defaultVariant: (productId) => store.defaultVariant(productId),
       undoToken: (payload) => createUndoToken(payload, secret()),
+    },
+    tryOn: {
+      photo: async () => {
+        const actor = await aiActor(user);
+        const [photo] = await (await photoStore()).forActor(actor.key, "try_on");
+        return photo === undefined ? null : { id: photo.id, minutesLeft: minutesLeft(photo.expiresAt) };
+      },
+      start: async ({ photoId, productId }) => {
+        const actor = await aiActor(user);
+        const usage = await usageStore();
+        // The same guard as the page: credits first, and the work as a job.
+        const reserved = await usage.reserveCredits(actor, "try_on");
+        if (!reserved.ok) return { ok: false, reason: reserved.reason };
+        const store = await photoStore();
+        const photo = await store.byId(photoId, actor.key);
+        if (photo === null) return { ok: false, reason: "not_found" };
+        const drawn = serverEnv().FASHN_API_KEY === undefined;
+        const id = await store.startTryOn({
+          uploadId: photo.id,
+          productId,
+          variantId: null,
+          actorKey: actor.key,
+          provider: drawn ? "drawn" : "fashn",
+          model: drawn ? "vitrine-drawn-composite" : "tryon-v1.6",
+          expiresAt: photo.expiresAt,
+        });
+        await enqueue("try-on", { tryOnId: id, requestedAt: new Date().toISOString() });
+        return { ok: true, id };
+      },
     },
     watch: {
       get: async (productId) => {

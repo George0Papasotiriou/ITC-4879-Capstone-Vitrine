@@ -17,6 +17,7 @@ import { ProductImage } from "@/components/commerce/product-image";
 import { sessionId } from "@/components/reco/track-interest";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { DialogRoot, SheetContent } from "@/components/ui/dialog";
+import { useHydrated } from "@/components/ui/use-hydrated";
 import { useToast } from "@/components/ui/toast";
 import { formatMoney, money } from "@/lib/commerce/money";
 
@@ -30,11 +31,27 @@ import { formatMoney, money } from "@/lib/commerce/money";
  * without leaving the page. Focus moves into the sheet and returns to the
  * button when it closes (Radix Dialog).
  */
-export function AddToCart({ productId, inStock, agentId }: { productId: string; inStock: boolean; agentId: string }) {
+export function AddToCart({
+  productId,
+  variantId,
+  inStock,
+  label,
+  agentId,
+}: {
+  productId: string;
+  /** A chosen size; without one the server picks the product's only variant. */
+  variantId?: string;
+  inStock: boolean;
+  /** Replaces "Add to cart" when the shopper has something to do first, such as choosing a size. */
+  label?: string;
+  agentId: string;
+}) {
   const t = useTranslations("cart");
   const tp = useTranslations("product");
   const locale = useLocale();
   const toast = useToast();
+  // Disabled until the page can act on a click, as the shop's other forms are.
+  const hydrated = useHydrated();
   const [pending, startTransition] = useTransition();
   const [cart, setCart] = useState<CartSummary | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -43,7 +60,7 @@ export function AddToCart({ productId, inStock, agentId }: { productId: string; 
   const add = () => {
     if (!inStock || pending) return;
     startTransition(async () => {
-      const result = await changeCart({ action: "add", productId, quantity: 1, locale, sessionId: sessionId() });
+      const result = await changeCart({ action: "add", ...(variantId === undefined ? { productId } : { variantId }), quantity: 1, locale, sessionId: sessionId() });
       if (!result.ok) {
         const message = result.reason === "out_of_stock" ? t("outOfStock") : result.reason === "not_found" ? t("notFound") : result.reason === "cart_full" ? t("cartFull") : t("failed");
         toast({ title: message, tone: "danger" });
@@ -59,8 +76,8 @@ export function AddToCart({ productId, inStock, agentId }: { productId: string; 
 
   return (
     <>
-      <Button data-agent-id={agentId} aria-disabled={!inStock || pending || undefined} onClick={add}>
-        {inStock ? tp("addToCart") : tp("outOfStock")}
+      <Button data-agent-id={agentId} disabled={!hydrated} aria-disabled={!inStock || pending || undefined} onClick={add}>
+        {label ?? (inStock ? tp("addToCart") : tp("outOfStock"))}
       </Button>
 
       <DialogRoot open={open} onOpenChange={setOpen}>

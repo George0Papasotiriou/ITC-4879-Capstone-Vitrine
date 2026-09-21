@@ -1,0 +1,2310 @@
+{
+  "version": 1,
+  "description": "The Wear capsule: 24 pieces the shop designed and drew itself, in five sizes each (docs/adr/022).",
+  "products": [
+    {
+      "source": "capsule",
+      "sourceId": "heavy-cotton-tee-ecru",
+      "slug": "heavy-cotton-tee-ecru",
+      "kind": "TOP",
+      "category": "wear",
+      "titleEn": "Heavy Cotton Tee",
+      "titleEl": "Βαμβακερό T-shirt",
+      "brand": "Vitrine",
+      "descriptionEn": "Heavy jersey, 240 g/m². Straight, drops at the shoulder. Machine wash cold, dry flat.",
+      "descriptionEl": "Βαρύ ζέρσεϊ, 240 g/m². Ίσια γραμμή, πέφτει στον ώμο. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Heavy jersey, 240 g/m²",
+        "Straight, drops at the shoulder",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Βαρύ ζέρσεϊ, 240 g/m²",
+        "Ίσια γραμμή, πέφτει στον ώμο",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Ecru",
+      "colors": [
+        "ecru"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "Straight, drops at the shoulder",
+        "fabric": "Heavy jersey, 240 g/m²",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 4900,
+      "compareAtCents": null,
+      "stock": 39,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/heavy-cotton-tee-ecru.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Heavy Cotton Tee in Ecru, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/heavy-cotton-tee-ecru-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Heavy Cotton Tee in Ecru, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 12,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 12,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 3,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "heavy-cotton-tee-ink",
+      "slug": "heavy-cotton-tee-ink",
+      "kind": "TOP",
+      "category": "wear",
+      "titleEn": "Heavy Cotton Tee",
+      "titleEl": "Βαμβακερό T-shirt",
+      "brand": "Vitrine",
+      "descriptionEn": "Heavy jersey, 240 g/m². Straight, drops at the shoulder. Machine wash cold, dry flat.",
+      "descriptionEl": "Βαρύ ζέρσεϊ, 240 g/m². Ίσια γραμμή, πέφτει στον ώμο. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Heavy jersey, 240 g/m²",
+        "Straight, drops at the shoulder",
+        "Machine wash cold, dry flat.",
+        "Sizes: S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Βαρύ ζέρσεϊ, 240 g/m²",
+        "Ίσια γραμμή, πέφτει στον ώμο",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Ink",
+      "colors": [
+        "ink"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "Straight, drops at the shoulder",
+        "fabric": "Heavy jersey, 240 g/m²",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 4900,
+      "compareAtCents": null,
+      "stock": 29,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/heavy-cotton-tee-ink.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Heavy Cotton Tee in Ink, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/heavy-cotton-tee-ink-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Heavy Cotton Tee in Ink, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 8,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 10,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 10,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 1,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "linen-vest-sage",
+      "slug": "linen-vest-sage",
+      "kind": "TOP",
+      "category": "wear",
+      "titleEn": "Linen Vest",
+      "titleEl": "Λινό αμάνικο",
+      "brand": "Vitrine",
+      "descriptionEn": "Washed linen, 170 g/m². Close at the shoulder, easy through the body. Machine wash cold, dry flat.",
+      "descriptionEl": "Πλυμένο λινό, 170 g/m². Εφαρμοστό στον ώμο, άνετο στο σώμα. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Washed linen, 170 g/m²",
+        "Close at the shoulder, easy through the body",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Πλυμένο λινό, 170 g/m²",
+        "Εφαρμοστό στον ώμο, άνετο στο σώμα",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Sage",
+      "colors": [
+        "sage"
+      ],
+      "materials": [
+        "linen"
+      ],
+      "attributes": {
+        "fit": "Close at the shoulder, easy through the body",
+        "fabric": "Washed linen, 170 g/m²",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 5900,
+      "compareAtCents": 7900,
+      "stock": 13,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/linen-vest-sage.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Linen Vest in Sage, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/linen-vest-sage-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Linen Vest in Sage, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 3,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "poplin-shirt-ecru",
+      "slug": "poplin-shirt-ecru",
+      "kind": "SHIRT",
+      "category": "wear",
+      "titleEn": "Poplin Shirt",
+      "titleEl": "Ποπλίνα πουκάμισο",
+      "brand": "Vitrine",
+      "descriptionEn": "Cotton poplin, 120 g/m². Relaxed, boxy hem. Machine wash cold, dry flat.",
+      "descriptionEl": "Βαμβακερή ποπλίνα, 120 g/m². Άνετο, ίσιο τελείωμα. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Cotton poplin, 120 g/m²",
+        "Relaxed, boxy hem",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Βαμβακερή ποπλίνα, 120 g/m²",
+        "Άνετο, ίσιο τελείωμα",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Ecru",
+      "colors": [
+        "ecru"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "Relaxed, boxy hem",
+        "fabric": "Cotton poplin, 120 g/m²",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 8900,
+      "compareAtCents": null,
+      "stock": 42,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/poplin-shirt-ecru.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Poplin Shirt in Ecru, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/poplin-shirt-ecru-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Poplin Shirt in Ecru, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 13,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 13,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 3,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "linen-shirt-oat",
+      "slug": "linen-shirt-oat",
+      "kind": "SHIRT",
+      "category": "wear",
+      "titleEn": "Linen Shirt",
+      "titleEl": "Λινό πουκάμισο",
+      "brand": "Vitrine",
+      "descriptionEn": "Washed linen, 190 g/m². Relaxed, straight cuff. Machine wash cold, dry flat.",
+      "descriptionEl": "Πλυμένο λινό, 190 g/m². Άνετο, ίσια μανσέτα. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Washed linen, 190 g/m²",
+        "Relaxed, straight cuff",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Πλυμένο λινό, 190 g/m²",
+        "Άνετο, ίσια μανσέτα",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Oat",
+      "colors": [
+        "oat"
+      ],
+      "materials": [
+        "linen"
+      ],
+      "attributes": {
+        "fit": "Relaxed, straight cuff",
+        "fabric": "Washed linen, 190 g/m²",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 9900,
+      "compareAtCents": null,
+      "stock": 11,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/linen-shirt-oat.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Linen Shirt in Oat, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/linen-shirt-oat-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Linen Shirt in Oat, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 1,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 1,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "overshirt-olive",
+      "slug": "overshirt-olive",
+      "kind": "SHIRT",
+      "category": "wear",
+      "titleEn": "Cotton Overshirt",
+      "titleEl": "Βαμβακερό πουκάμισο-ζακέτα",
+      "brand": "Vitrine",
+      "descriptionEn": "Brushed cotton twill. Roomy, worn over a tee. Machine wash cold, dry flat.",
+      "descriptionEl": "Χνουδωτή βαμβακερή τουίλ. Φαρδύ, πάνω από T-shirt. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Brushed cotton twill",
+        "Roomy, worn over a tee",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Χνουδωτή βαμβακερή τουίλ",
+        "Φαρδύ, πάνω από T-shirt",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Olive",
+      "colors": [
+        "olive"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "Roomy, worn over a tee",
+        "fabric": "Brushed cotton twill",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 12900,
+      "compareAtCents": null,
+      "stock": 10,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/overshirt-olive.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Cotton Overshirt in Olive, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/overshirt-olive-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Cotton Overshirt in Olive, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 5,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "merino-crew-slate",
+      "slug": "merino-crew-slate",
+      "kind": "KNIT",
+      "category": "wear",
+      "titleEn": "Merino Crew",
+      "titleEl": "Μερινό πουλόβερ",
+      "brand": "Vitrine",
+      "descriptionEn": "Fine merino, 12 gauge. Slim, ribbed cuffs. Hand wash cool, dry flat, do not wring.",
+      "descriptionEl": "Λεπτό μερινό, 12 gauge. Στενή γραμμή, ριμπ μανσέτες. Πλύσιμο στο χέρι με δροσερό νερό, στέγνωμα απλωμένο, χωρίς στύψιμο.",
+      "highlightsEn": [
+        "Fine merino, 12 gauge",
+        "Slim, ribbed cuffs",
+        "Hand wash cool, dry flat, do not wring.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Λεπτό μερινό, 12 gauge",
+        "Στενή γραμμή, ριμπ μανσέτες",
+        "Πλύσιμο στο χέρι με δροσερό νερό, στέγνωμα απλωμένο, χωρίς στύψιμο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Slate",
+      "colors": [
+        "slate"
+      ],
+      "materials": [
+        "wool"
+      ],
+      "attributes": {
+        "fit": "Slim, ribbed cuffs",
+        "fabric": "Fine merino, 12 gauge",
+        "care": "Hand wash cool, dry flat, do not wring.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 12900,
+      "compareAtCents": null,
+      "stock": 24,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/merino-crew-slate.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Merino Crew in Slate, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/merino-crew-slate-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Merino Crew in Slate, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 4,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "lambswool-jumper-rust",
+      "slug": "lambswool-jumper-rust",
+      "kind": "KNIT",
+      "category": "wear",
+      "titleEn": "Lambswool Jumper",
+      "titleEl": "Πουλόβερ lambswool",
+      "brand": "Vitrine",
+      "descriptionEn": "Lambswool, brushed. Easy, dropped shoulder. Hand wash cool, dry flat, do not wring.",
+      "descriptionEl": "Lambswool, χνουδωτό. Άνετο, χαμηλός ώμος. Πλύσιμο στο χέρι με δροσερό νερό, στέγνωμα απλωμένο, χωρίς στύψιμο.",
+      "highlightsEn": [
+        "Lambswool, brushed",
+        "Easy, dropped shoulder",
+        "Hand wash cool, dry flat, do not wring.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Lambswool, χνουδωτό",
+        "Άνετο, χαμηλός ώμος",
+        "Πλύσιμο στο χέρι με δροσερό νερό, στέγνωμα απλωμένο, χωρίς στύψιμο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Rust",
+      "colors": [
+        "rust"
+      ],
+      "materials": [
+        "wool"
+      ],
+      "attributes": {
+        "fit": "Easy, dropped shoulder",
+        "fabric": "Lambswool, brushed",
+        "care": "Hand wash cool, dry flat, do not wring.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 15900,
+      "compareAtCents": null,
+      "stock": 36,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/lambswool-jumper-rust.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Lambswool Jumper in Rust, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/lambswool-jumper-rust-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Lambswool Jumper in Rust, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 10,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 10,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 5,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "cotton-cardigan-ecru",
+      "slug": "cotton-cardigan-ecru",
+      "kind": "KNIT",
+      "category": "wear",
+      "titleEn": "Cotton Cardigan",
+      "titleEl": "Βαμβακερή ζακέτα",
+      "brand": "Vitrine",
+      "descriptionEn": "Cotton, mid gauge. Straight, hip length. Machine wash cold, dry flat.",
+      "descriptionEl": "Βαμβάκι, μεσαίο gauge. Ίσια, μέχρι τη μέση. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Cotton, mid gauge",
+        "Straight, hip length",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Βαμβάκι, μεσαίο gauge",
+        "Ίσια, μέχρι τη μέση",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Ecru",
+      "colors": [
+        "ecru"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "Straight, hip length",
+        "fabric": "Cotton, mid gauge",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 13900,
+      "compareAtCents": 17900,
+      "stock": 38,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/cotton-cardigan-ecru.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Cotton Cardigan in Ecru, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/cotton-cardigan-ecru-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Cotton Cardigan in Ecru, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 8,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 12,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 12,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 3,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "wide-trousers-ink",
+      "slug": "wide-trousers-ink",
+      "kind": "TROUSERS",
+      "category": "wear",
+      "titleEn": "Wide Trousers",
+      "titleEl": "Φαρδύ παντελόνι",
+      "brand": "Vitrine",
+      "descriptionEn": "Cotton twill, 300 g/m². High waist, wide leg. Machine wash cold, dry flat.",
+      "descriptionEl": "Βαμβακερή τουίλ, 300 g/m². Ψηλόμεσο, φαρδύ πόδι. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Cotton twill, 300 g/m²",
+        "High waist, wide leg",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Βαμβακερή τουίλ, 300 g/m²",
+        "Ψηλόμεσο, φαρδύ πόδι",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Ink",
+      "colors": [
+        "ink"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "High waist, wide leg",
+        "fabric": "Cotton twill, 300 g/m²",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 11900,
+      "compareAtCents": null,
+      "stock": 28,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/wide-trousers-ink.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Wide Trousers in Ink, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/wide-trousers-ink-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Wide Trousers in Ink, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 2,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "linen-trousers-oat",
+      "slug": "linen-trousers-oat",
+      "kind": "TROUSERS",
+      "category": "wear",
+      "titleEn": "Linen Trousers",
+      "titleEl": "Λινό παντελόνι",
+      "brand": "Vitrine",
+      "descriptionEn": "Washed linen, 200 g/m². Drawstring waist, straight leg. Machine wash cold, dry flat.",
+      "descriptionEl": "Πλυμένο λινό, 200 g/m². Λάστιχο με κορδόνι, ίσιο πόδι. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Washed linen, 200 g/m²",
+        "Drawstring waist, straight leg",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Πλυμένο λινό, 200 g/m²",
+        "Λάστιχο με κορδόνι, ίσιο πόδι",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Oat",
+      "colors": [
+        "oat"
+      ],
+      "materials": [
+        "linen"
+      ],
+      "attributes": {
+        "fit": "Drawstring waist, straight leg",
+        "fabric": "Washed linen, 200 g/m²",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 10900,
+      "compareAtCents": null,
+      "stock": 8,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/linen-trousers-oat.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Linen Trousers in Oat, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/linen-trousers-oat-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Linen Trousers in Oat, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 4,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "tapered-trousers-olive",
+      "slug": "tapered-trousers-olive",
+      "kind": "TROUSERS",
+      "category": "wear",
+      "titleEn": "Tapered Trousers",
+      "titleEl": "Στενό παντελόνι",
+      "brand": "Vitrine",
+      "descriptionEn": "Stretch cotton twill. Mid waist, tapered. Machine wash cold, dry flat.",
+      "descriptionEl": "Ελαστική βαμβακερή τουίλ. Μέση στη μέση, στενό προς τα κάτω. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Stretch cotton twill",
+        "Mid waist, tapered",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Ελαστική βαμβακερή τουίλ",
+        "Μέση στη μέση, στενό προς τα κάτω",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Olive",
+      "colors": [
+        "olive"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "Mid waist, tapered",
+        "fabric": "Stretch cotton twill",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 12900,
+      "compareAtCents": null,
+      "stock": 36,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/tapered-trousers-olive.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Tapered Trousers in Olive, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/tapered-trousers-olive-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Tapered Trousers in Olive, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 8,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 12,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 12,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 2,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "bias-skirt-slate",
+      "slug": "bias-skirt-slate",
+      "kind": "SKIRT",
+      "category": "wear",
+      "titleEn": "Bias Skirt",
+      "titleEl": "Λοξή φούστα",
+      "brand": "Vitrine",
+      "descriptionEn": "Linen blend, bias cut. Falls from the hip, midi. Machine wash cold, dry flat.",
+      "descriptionEl": "Μείγμα λινού, λοξή κοπή. Πέφτει από τον γοφό, midi. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Linen blend, bias cut",
+        "Falls from the hip, midi",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Μείγμα λινού, λοξή κοπή",
+        "Πέφτει από τον γοφό, midi",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Slate",
+      "colors": [
+        "slate"
+      ],
+      "materials": [
+        "linen"
+      ],
+      "attributes": {
+        "fit": "Falls from the hip, midi",
+        "fabric": "Linen blend, bias cut",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 9900,
+      "compareAtCents": null,
+      "stock": 25,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/bias-skirt-slate.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Bias Skirt in Slate, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/bias-skirt-slate-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Bias Skirt in Slate, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 3,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "pleated-skirt-ecru",
+      "slug": "pleated-skirt-ecru",
+      "kind": "SKIRT",
+      "category": "wear",
+      "titleEn": "Pleated Skirt",
+      "titleEl": "Πλισέ φούστα",
+      "brand": "Vitrine",
+      "descriptionEn": "Cotton, pressed pleats. High waist, midi. Dry clean only.",
+      "descriptionEl": "Βαμβάκι, μόνιμες πιέτες. Ψηλόμεσο, midi. Μόνο στεγνό καθάρισμα.",
+      "highlightsEn": [
+        "Cotton, pressed pleats",
+        "High waist, midi",
+        "Dry clean only.",
+        "Sizes: XS, S, M, L",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Βαμβάκι, μόνιμες πιέτες",
+        "Ψηλόμεσο, midi",
+        "Μόνο στεγνό καθάρισμα.",
+        "Μεγέθη: XS, S, M, L",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Ecru",
+      "colors": [
+        "ecru"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "High waist, midi",
+        "fabric": "Cotton, pressed pleats",
+        "care": "Dry clean only.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 11900,
+      "compareAtCents": null,
+      "stock": 10,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/pleated-skirt-ecru.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Pleated Skirt in Ecru, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/pleated-skirt-ecru-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Pleated Skirt in Ecru, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 1,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 0,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "denim-skirt-clay",
+      "slug": "denim-skirt-clay",
+      "kind": "SKIRT",
+      "category": "wear",
+      "titleEn": "Twill Skirt",
+      "titleEl": "Φούστα τουίλ",
+      "brand": "Vitrine",
+      "descriptionEn": "Cotton twill, 320 g/m². A-line, above the knee. Machine wash cold, dry flat.",
+      "descriptionEl": "Βαμβακερή τουίλ, 320 g/m². Γραμμή Α, πάνω από το γόνατο. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Cotton twill, 320 g/m²",
+        "A-line, above the knee",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Βαμβακερή τουίλ, 320 g/m²",
+        "Γραμμή Α, πάνω από το γόνατο",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Clay",
+      "colors": [
+        "clay"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "A-line, above the knee",
+        "fabric": "Cotton twill, 320 g/m²",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 8900,
+      "compareAtCents": null,
+      "stock": 45,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/denim-skirt-clay.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Twill Skirt in Clay, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/denim-skirt-clay-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Twill Skirt in Clay, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 12,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 12,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 6,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "linen-dress-sage",
+      "slug": "linen-dress-sage",
+      "kind": "DRESS",
+      "category": "wear",
+      "titleEn": "Linen Dress",
+      "titleEl": "Λινό φόρεμα",
+      "brand": "Vitrine",
+      "descriptionEn": "Washed linen, 190 g/m². Easy through the body, midi. Machine wash cold, dry flat.",
+      "descriptionEl": "Πλυμένο λινό, 190 g/m². Άνετο στο σώμα, midi. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Washed linen, 190 g/m²",
+        "Easy through the body, midi",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Πλυμένο λινό, 190 g/m²",
+        "Άνετο στο σώμα, midi",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Sage",
+      "colors": [
+        "sage"
+      ],
+      "materials": [
+        "linen"
+      ],
+      "attributes": {
+        "fit": "Easy through the body, midi",
+        "fabric": "Washed linen, 190 g/m²",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 14900,
+      "compareAtCents": null,
+      "stock": 29,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/linen-dress-sage.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Linen Dress in Sage, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/linen-dress-sage-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Linen Dress in Sage, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 6,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "shirt-dress-oat",
+      "slug": "shirt-dress-oat",
+      "kind": "DRESS",
+      "category": "wear",
+      "titleEn": "Shirt Dress",
+      "titleEl": "Σεμιζιέ φόρεμα",
+      "brand": "Vitrine",
+      "descriptionEn": "Cotton poplin. Belted, knee length. Machine wash cold, dry flat.",
+      "descriptionEl": "Βαμβακερή ποπλίνα. Με ζώνη, μέχρι το γόνατο. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Cotton poplin",
+        "Belted, knee length",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Βαμβακερή ποπλίνα",
+        "Με ζώνη, μέχρι το γόνατο",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Oat",
+      "colors": [
+        "oat"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "Belted, knee length",
+        "fabric": "Cotton poplin",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 15900,
+      "compareAtCents": null,
+      "stock": 14,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/shirt-dress-oat.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Shirt Dress in Oat, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/shirt-dress-oat-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Shirt Dress in Oat, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 4,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "knit-dress-ink",
+      "slug": "knit-dress-ink",
+      "kind": "DRESS",
+      "category": "wear",
+      "titleEn": "Knit Dress",
+      "titleEl": "Πλεκτό φόρεμα",
+      "brand": "Vitrine",
+      "descriptionEn": "Merino blend. Close, ribbed. Hand wash cool, dry flat, do not wring.",
+      "descriptionEl": "Μείγμα μερινό. Εφαρμοστό, ριμπ. Πλύσιμο στο χέρι με δροσερό νερό, στέγνωμα απλωμένο, χωρίς στύψιμο.",
+      "highlightsEn": [
+        "Merino blend",
+        "Close, ribbed",
+        "Hand wash cool, dry flat, do not wring.",
+        "Sizes: XS, S, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Μείγμα μερινό",
+        "Εφαρμοστό, ριμπ",
+        "Πλύσιμο στο χέρι με δροσερό νερό, στέγνωμα απλωμένο, χωρίς στύψιμο.",
+        "Μεγέθη: XS, S, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Ink",
+      "colors": [
+        "ink"
+      ],
+      "materials": [
+        "wool"
+      ],
+      "attributes": {
+        "fit": "Close, ribbed",
+        "fabric": "Merino blend",
+        "care": "Hand wash cool, dry flat, do not wring.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 17900,
+      "compareAtCents": 21900,
+      "stock": 9,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/knit-dress-ink.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Knit Dress in Ink, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/knit-dress-ink-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Knit Dress in Ink, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 1,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 4,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "wool-coat-ink",
+      "slug": "wool-coat-ink",
+      "kind": "COAT",
+      "category": "wear",
+      "titleEn": "Wool Coat",
+      "titleEl": "Μάλλινο παλτό",
+      "brand": "Vitrine",
+      "descriptionEn": "Wool melton, 700 g/m². Straight, below the knee. Dry clean only.",
+      "descriptionEl": "Μάλλινο melton, 700 g/m². Ίσιο, κάτω από το γόνατο. Μόνο στεγνό καθάρισμα.",
+      "highlightsEn": [
+        "Wool melton, 700 g/m²",
+        "Straight, below the knee",
+        "Dry clean only.",
+        "Sizes: XS, S, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Μάλλινο melton, 700 g/m²",
+        "Ίσιο, κάτω από το γόνατο",
+        "Μόνο στεγνό καθάρισμα.",
+        "Μεγέθη: XS, S, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Ink",
+      "colors": [
+        "ink"
+      ],
+      "materials": [
+        "wool"
+      ],
+      "attributes": {
+        "fit": "Straight, below the knee",
+        "fabric": "Wool melton, 700 g/m²",
+        "care": "Dry clean only.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 32900,
+      "compareAtCents": null,
+      "stock": 3,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/wool-coat-ink.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Wool Coat in Ink, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/wool-coat-ink-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Wool Coat in Ink, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 1,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 1,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 1,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "belted-coat-oat",
+      "slug": "belted-coat-oat",
+      "kind": "COAT",
+      "category": "wear",
+      "titleEn": "Belted Coat",
+      "titleEl": "Παλτό με ζώνη",
+      "brand": "Vitrine",
+      "descriptionEn": "Wool and cashmere. Wrapped, belted at the waist. Dry clean only.",
+      "descriptionEl": "Μαλλί και κασμίρι. Κρουαζέ, με ζώνη στη μέση. Μόνο στεγνό καθάρισμα.",
+      "highlightsEn": [
+        "Wool and cashmere",
+        "Wrapped, belted at the waist",
+        "Dry clean only.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Μαλλί και κασμίρι",
+        "Κρουαζέ, με ζώνη στη μέση",
+        "Μόνο στεγνό καθάρισμα.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Oat",
+      "colors": [
+        "oat"
+      ],
+      "materials": [
+        "wool"
+      ],
+      "attributes": {
+        "fit": "Wrapped, belted at the waist",
+        "fabric": "Wool and cashmere",
+        "care": "Dry clean only.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 36900,
+      "compareAtCents": null,
+      "stock": 25,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/belted-coat-oat.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Belted Coat in Oat, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/belted-coat-oat-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Belted Coat in Oat, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 6,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "rain-coat-olive",
+      "slug": "rain-coat-olive",
+      "kind": "COAT",
+      "category": "wear",
+      "titleEn": "Rain Coat",
+      "titleEl": "Αδιάβροχο",
+      "brand": "Vitrine",
+      "descriptionEn": "Waxed cotton. Roomy, hooded. Dry clean only.",
+      "descriptionEl": "Κερωμένο βαμβάκι. Φαρδύ, με κουκούλα. Μόνο στεγνό καθάρισμα.",
+      "highlightsEn": [
+        "Waxed cotton",
+        "Roomy, hooded",
+        "Dry clean only.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Κερωμένο βαμβάκι",
+        "Φαρδύ, με κουκούλα",
+        "Μόνο στεγνό καθάρισμα.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Olive",
+      "colors": [
+        "olive"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "Roomy, hooded",
+        "fabric": "Waxed cotton",
+        "care": "Dry clean only.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 27900,
+      "compareAtCents": null,
+      "stock": 14,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/rain-coat-olive.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Rain Coat in Olive, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/rain-coat-olive-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Rain Coat in Olive, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 3,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "linen-blazer-ecru",
+      "slug": "linen-blazer-ecru",
+      "kind": "JACKET",
+      "category": "wear",
+      "titleEn": "Linen Blazer",
+      "titleEl": "Λινό σακάκι",
+      "brand": "Vitrine",
+      "descriptionEn": "Linen, unlined. Soft shoulder, two buttons. Dry clean only.",
+      "descriptionEl": "Λινό, χωρίς φόδρα. Μαλακός ώμος, δύο κουμπιά. Μόνο στεγνό καθάρισμα.",
+      "highlightsEn": [
+        "Linen, unlined",
+        "Soft shoulder, two buttons",
+        "Dry clean only.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Λινό, χωρίς φόδρα",
+        "Μαλακός ώμος, δύο κουμπιά",
+        "Μόνο στεγνό καθάρισμα.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Ecru",
+      "colors": [
+        "ecru"
+      ],
+      "materials": [
+        "linen"
+      ],
+      "attributes": {
+        "fit": "Soft shoulder, two buttons",
+        "fabric": "Linen, unlined",
+        "care": "Dry clean only.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 19900,
+      "compareAtCents": null,
+      "stock": 17,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/linen-blazer-ecru.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Linen Blazer in Ecru, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/linen-blazer-ecru-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Linen Blazer in Ecru, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 6,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "chore-jacket-slate",
+      "slug": "chore-jacket-slate",
+      "kind": "JACKET",
+      "category": "wear",
+      "titleEn": "Chore Jacket",
+      "titleEl": "Ζακέτα εργασίας",
+      "brand": "Vitrine",
+      "descriptionEn": "Cotton canvas, 340 g/m². Boxy, three pockets. Machine wash cold, dry flat.",
+      "descriptionEl": "Βαμβακερό καραβόπανο, 340 g/m². Τετράγωνη γραμμή, τρεις τσέπες. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Cotton canvas, 340 g/m²",
+        "Boxy, three pockets",
+        "Machine wash cold, dry flat.",
+        "Sizes: S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Βαμβακερό καραβόπανο, 340 g/m²",
+        "Τετράγωνη γραμμή, τρεις τσέπες",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Slate",
+      "colors": [
+        "slate"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "Boxy, three pockets",
+        "fabric": "Cotton canvas, 340 g/m²",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 14900,
+      "compareAtCents": null,
+      "stock": 17,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/chore-jacket-slate.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Chore Jacket in Slate, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/chore-jacket-slate-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Chore Jacket in Slate, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 1,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "capsule",
+      "sourceId": "quilted-jacket-clay",
+      "slug": "quilted-jacket-clay",
+      "kind": "JACKET",
+      "category": "wear",
+      "titleEn": "Quilted Jacket",
+      "titleEl": "Καπιτονέ μπουφάν",
+      "brand": "Vitrine",
+      "descriptionEn": "Quilted cotton, recycled wadding. Short, snap front. Machine wash cold, dry flat.",
+      "descriptionEl": "Καπιτονέ βαμβάκι, ανακυκλωμένο γέμισμα. Κοντό, με σούστες. Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+      "highlightsEn": [
+        "Quilted cotton, recycled wadding",
+        "Short, snap front",
+        "Machine wash cold, dry flat.",
+        "Sizes: XS, S, M, L, XL",
+        "Body measurements in the size chart, in centimetres",
+        "The images are drawings: the capsule is ours, and was not photographed."
+      ],
+      "highlightsEl": [
+        "Καπιτονέ βαμβάκι, ανακυκλωμένο γέμισμα",
+        "Κοντό, με σούστες",
+        "Πλύσιμο στο πλυντήριο σε κρύο νερό, στέγνωμα απλωμένο.",
+        "Μεγέθη: XS, S, M, L, XL",
+        "Μετρήσεις σώματος στον πίνακα μεγεθών, σε εκατοστά",
+        "Οι εικόνες είναι σχέδια: η κάψουλα είναι δική μας και δεν φωτογραφήθηκε."
+      ],
+      "translation": "reviewed",
+      "colorLabel": "Clay",
+      "colors": [
+        "clay"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "fit": "Short, snap front",
+        "fabric": "Quilted cotton, recycled wadding",
+        "care": "Machine wash cold, dry flat.",
+        "images": "Drawn, not photographed"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 16900,
+      "compareAtCents": 20900,
+      "stock": 17,
+      "license": "Vitrine original",
+      "attribution": "Drawn for Vitrine; the capsule is the shop's own design, not a dataset product.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/capsule/quilted-jacket-clay.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Quilted Jacket in Clay, laid flat",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/capsule/quilted-jacket-clay-b.webp",
+          "width": 1100,
+          "height": 1100,
+          "bytes": null,
+          "altEn": "Quilted Jacket in Clay, folded",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 4,
+          "priceCents": null
+        }
+      ]
+    }
+  ]
+}

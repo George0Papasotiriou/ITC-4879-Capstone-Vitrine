@@ -228,20 +228,33 @@ export async function upsertCatalog(
       if (media.length > 0) await tx.insert(schema.productMedia).values(media);
       summary.media += media.length;
 
+      // One variant per product, or one per size for anything sold in sizes
+      // (docs/adr/022). The SKU carries the size, so a size that is added later
+      // is a new row and the ones already sold keep their history.
+      const variants: (typeof schema.productVariants.$inferInsert)[] = batch.flatMap((product) => {
+        const productId = idFor.get(`${product.source}:${product.sourceId}`)!;
+        const sku = `VT-${product.source.toUpperCase()}-${product.sourceId}`;
+        if (product.variants === undefined) {
+          return [{ productId, sku, colorLabel: product.colorLabel, size: null as string | null, priceCents: null as number | null, stock: product.stock, position: 0 }];
+        }
+        return product.variants.map((variant, position) => ({
+          productId,
+          sku: `${sku}-${variant.size.toUpperCase()}`,
+          colorLabel: product.colorLabel,
+          size: variant.size as string | null,
+          priceCents: variant.priceCents as number | null,
+          stock: variant.stock,
+          position,
+        }));
+      });
+
       await tx
         .insert(schema.productVariants)
-        .values(
-          batch.map((product) => ({
-            productId: idFor.get(`${product.source}:${product.sourceId}`)!,
-            sku: `VT-${product.source.toUpperCase()}-${product.sourceId}`,
-            colorLabel: product.colorLabel,
-            stock: product.stock,
-          })),
-        )
+        .values(variants)
         .onConflictDoUpdate({
           target: schema.productVariants.sku,
           set: {
-            ...excluded(schema.productVariants, preserveStock ? ["colorLabel"] : ["colorLabel", "stock"]),
+            ...excluded(schema.productVariants, preserveStock ? ["colorLabel", "size", "priceCents", "position"] : ["colorLabel", "size", "priceCents", "position", "stock"]),
             updatedAt: sql`now()`,
           },
         });

@@ -166,6 +166,7 @@ type LineRow = {
   sku: string;
   title_en: string;
   title_el: string | null;
+  size: string | null;
   kind: string;
   unit_cents: number;
   currency: string;
@@ -180,9 +181,12 @@ export type CommerceStoreOptions = {
   orderToken?: (orderId: string) => string;
 };
 
+/** "Poplin Shirt, M" — the size is part of what was bought, so it is part of the line. */
+export const withSize = (title: string, size: string | null): string => (size === null || size === "" ? title : `${title}, ${size}`);
+
 export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptions = {}) {
   const lineColumns = sql`
-    v.id AS variant_id, p.id AS product_id, p.slug, v.sku, p.title_en, p.title_el, p.kind,
+    v.id AS variant_id, p.id AS product_id, p.slug, v.sku, p.title_en, p.title_el, v.size, p.kind,
     COALESCE(v.price_cents, p.price_cents) AS unit_cents, p.currency, ci.quantity, v.stock,
     (p.status = 'active') AS active,
     (
@@ -196,7 +200,9 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
     productId: row.product_id,
     slug: row.slug,
     sku: row.sku,
-    title: locale === "el" ? (row.title_el ?? row.title_en) : row.title_en,
+    // A garment's size belongs to the line: two sizes of one shirt are two lines
+    // and must read as two lines, in the cart and in the order (docs/adr/022).
+    title: withSize(locale === "el" ? (row.title_el ?? row.title_en) : row.title_en, row.size),
     kindLabelKey: row.kind,
     image:
       row.image === null

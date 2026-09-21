@@ -61,6 +61,12 @@ export type ToolServices = {
     /** A signed token that puts the line back to `quantity` (src/lib/ai/tools/undo.ts). */
     undoToken(payload: { cartId: string; variantId: string; quantity: number }): string;
   };
+  /** The Fitting Room (docs/adr/023): the photograph the shopper gave, and one try-on. */
+  tryOn: {
+    /** The newest photograph this shopper gave for trying pieces on, if any. */
+    photo(): Promise<{ id: string; minutesLeft: number } | null>;
+    start(input: { photoId: string; productId: string }): Promise<{ ok: true; id: string } | { ok: false; reason: string }>;
+  };
   /** Price watches on one product, for the signed-in shopper (docs/adr/020). */
   watch: {
     get(productId: string): Promise<{ targetCents: number } | null>;

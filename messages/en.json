@@ -44,7 +44,7 @@
     "addToCart": "Add to cart",
     "added": "Added to cart",
     "seeInYourRoom": "See it in your room",
-    "tryItOn": "Try it on",
+    "tryItOn": "Try it on in the Fitting Room",
     "outOfStock": "Out of stock",
     "pairsWith": "Pairs well with",
     "reviews": "What reviewers say",
@@ -92,6 +92,17 @@
         "sign_in": "Sign in first, then set the price.",
         "invalid_request": "That did not save. Try again."
       }
+    },
+    "sizes": {
+      "title": "Size",
+      "choose": "Choose a size",
+      "chosen": "Size {size}",
+      "few": "Size {size}, only {count} left",
+      "soldOutSize": "Size {size}, sold out",
+      "chooseFirst": "Choose a size first",
+      "chartTitle": "Size chart",
+      "chartLede": "Body measurements in centimetres. The capsule is cut on one block, so these hold across the pieces.",
+      "measurement": "Measurement"
     }
   },
   "cart": {
@@ -1495,5 +1506,53 @@
         "failed": "That did not send. Try again."
       }
     }
+  },
+  "fitting": {
+    "title": "Fitting Room",
+    "lede": "Try the capsule on a photograph of yourself. The photograph stays in the shop for a day, is used for nothing else, and you can delete it at any moment.",
+    "promises": {
+      "day": "Kept for 24 hours, then deleted automatically.",
+      "purpose": "Used only for the try-ons you ask for, one piece at a time.",
+      "delete": "\"Delete now\" removes it and every result made from it, at once.",
+      "privacy": "Never shown to anyone else, never used to train anything, never in a log.",
+      "privacyLink": "How the shop handles data"
+    },
+    "photoTitle": "Your photograph",
+    "photoLede": "A photograph of you standing, facing the camera, in fitted clothes works best. JPEG, PNG or WebP, up to 12 MB.",
+    "consent": "I am in this photograph, or the person in it agreed, and I want the shop to keep it for a day so I can try pieces on it.",
+    "uploading": "Sending…",
+    "uploaded": "Photograph received.",
+    "yourPhotoAlt": "The photograph you gave the shop",
+    "countdown": "Deleted in {minutes} minutes, or now, if you prefer.",
+    "deleteNow": "Delete now",
+    "deleted": "Deleted, with everything made from it.",
+    "piecesTitle": "The capsule",
+    "piecesLede": "Choose a piece. It takes a few seconds.",
+    "piecesLocked": "Give a photograph first, and the pieces below can be tried on it.",
+    "tryIt": "Try it on",
+    "asking": "Asking…",
+    "resultsTitle": "On you",
+    "resultsLede": "Made from your photograph, and deleted with it.",
+    "drawnNote": "The shop has no try-on key yet, so these are the piece drawn over your photograph rather than fitted to you. With a key, the same button asks the try-on service instead.",
+    "drawnLabel": "Drawn over the photograph, not a fitting",
+    "tryOnLabel": "Virtual try-on",
+    "making": "Making it…",
+    "failed": "That one did not work. Your credits were given back.",
+    "resultAlt": "The piece on your photograph",
+    "errors": {
+      "no_consent": "Tick the box first: the shop keeps nothing without it.",
+      "too_large": "That photograph is over 12 MB. Try a smaller one.",
+      "too_small": "That photograph is too small to work with.",
+      "type": "That is not a photograph the shop can read. JPEG, PNG or WebP.",
+      "too_many": "You already have a few photographs here. Delete one first.",
+      "unreadable": "The shop could not read that file.",
+      "kill_switch": "AI features are paused right now. Everything else works.",
+      "budget": "The shop has reached what it spends on AI today. Try again tomorrow.",
+      "credits": "That is all the try-ons for today. Signing in gives you more.",
+      "off": "Try-on is not switched on in this shop yet.",
+      "not_found": "That piece or photograph is no longer here.",
+      "failed": "That did not work. Try again."
+    },
+    "choosePhoto": "Choose a photograph"
   }
 }

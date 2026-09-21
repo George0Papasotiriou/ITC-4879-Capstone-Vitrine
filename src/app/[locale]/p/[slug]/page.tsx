@@ -15,6 +15,7 @@ import { AddToCart } from "@/components/commerce/add-to-cart";
 import { RegionNote } from "@/components/commerce/region-control";
 import { currentRegion } from "@/lib/commerce/region";
 import { PriceWatch } from "@/components/commerce/price-watch";
+import { SizePicker, type SizeOption } from "@/components/commerce/size-picker";
 import { ProductGallery } from "@/components/commerce/product-gallery";
 import { ProductGrid } from "@/components/commerce/product-grid";
 import { TrackInterest } from "@/components/reco/track-interest";
@@ -33,6 +34,8 @@ import { productJsonLd, serializeJsonLd } from "@/lib/catalog/structured-data";
 import { priceWatches, reviewsStore } from "@/lib/commerce/server";
 import { currentUser } from "@/lib/auth/session";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
+import { sizeChartFor } from "@/lib/catalog/capsule";
+import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
@@ -126,6 +129,12 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/p/[sl
         ? { label: t("lowStock", { count: product.stock }), tone: "text-dusk" }
         : { label: t("inStock"), tone: "text-success" };
 
+  // A piece cut in sizes is added by size; everything else has one variant (docs/adr/022).
+  const sizes: SizeOption[] = product.variants
+    .filter((variant) => variant.size !== null)
+    .map((variant) => ({ variantId: variant.id, size: variant.size!, stock: variant.stock }));
+  const sizeChart = sizes.length > 0 ? sizeChartFor(product.kind) : null;
+
   const imageLabels = product.media.map((_, index) => t("showImage", { index: index + 1, count: product.media.length }));
   // English copy on a Greek page is marked as English, for screen readers and translation tools.
   const copyLang = product.translated ? undefined : "en";
@@ -185,11 +194,18 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/p/[sl
             <Rating value={product.ratingCount === 0 ? 0 : product.ratingSum / product.ratingCount} count={product.ratingCount} locale={locale} />
           </div>
 
+          {sizes.length === 0 ? null : <SizePicker productId={product.id} sizes={sizes} agentId={`action:add-to-cart:${product.id}`} />}
+
           <div className="mt-8 flex flex-col gap-3">
-            <AddToCart productId={product.id} inStock={product.inStock} agentId={`action:add-to-cart:${product.id}`} />
+            {sizes.length > 0 ? null : <AddToCart productId={product.id} inStock={product.inStock} agentId={`action:add-to-cart:${product.id}`} />}
             {roomPlacement(product.kind, product.dimsCm) === null ? null : (
               <ButtonLink href={`/${locale}/room?product=${product.slug}`} document variant="secondary" data-agent-id={`action:see-in-room:${product.id}`}>
                 {t("seeInYourRoom")}
+              </ButtonLink>
+            )}
+            {sizes.length === 0 ? null : (
+              <ButtonLink href="/fitting-room" variant="secondary" data-agent-id={`action:try-it-on:${product.id}`}>
+                {t("tryItOn")}
               </ButtonLink>
             )}
           </div>
@@ -215,6 +231,42 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/p/[sl
               </ul>
             </section>
           ) : null}
+
+          {sizeChart === null ? null : (
+            <section className="mt-8" data-agent-id="product:size-chart">
+              <h2 className="text-sm font-medium">{t("sizes.chartTitle")}</h2>
+              <p className="text-slate mt-1 text-sm">{t("sizes.chartLede")}</p>
+              <div className="-mx-1 mt-3 overflow-x-auto px-1">
+                <table className="w-full text-sm">
+                  <caption className="sr-only">{t("sizes.chartTitle")}</caption>
+                  <thead>
+                    <tr className="text-slate text-left">
+                      <th scope="col" className="py-2 pr-4 font-medium">{t("sizes.measurement")}</th>
+                      {CAPSULE_SIZES.map((size) => (
+                        <th key={size} scope="col" className="tabular py-2 pr-4 text-right font-medium">
+                          {size}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sizeChart.map((row) => (
+                      <tr key={row.measure.en} className="border-hairline border-t">
+                        <th scope="row" className="py-2 pr-4 text-left font-normal">
+                          {locale === "el" ? row.measure.el : row.measure.en}
+                        </th>
+                        {CAPSULE_SIZES.map((size) => (
+                          <td key={size} className="tabular py-2 pr-4 text-right">
+                            {row.values[size]}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
           {specs.length > 0 ? (
             <section className="mt-8">

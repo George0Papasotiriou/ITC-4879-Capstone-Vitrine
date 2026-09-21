@@ -42,6 +42,8 @@ const ROUTE_ALLOWLIST: readonly RegExp[] = [
   // Checkout only opens the page: the shopper reviews and pays there themselves (CLAUDE.md rule 5).
   /^\/checkout$/,
   /^\/room$/,
+  // The Fitting Room, where a shopper's own photograph lives (docs/adr/023).
+  /^\/fitting-room$/,
   /^\/stylist$/,
   /^\/taste$/,
   /^\/(?:shipping|privacy|contact|credits)$/,
