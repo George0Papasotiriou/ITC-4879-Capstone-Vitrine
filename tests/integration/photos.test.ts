@@ -25,7 +25,10 @@ describe.skipIf(url === undefined || url === "")("photographs", () => {
   let photos: ReturnType<typeof createPhotoStore>;
   const shopper = "guest:01a0-test-shopper";
   const someoneElse = "guest:01a0-test-stranger";
-  const now = new Date("2026-09-21T10:00:00Z");
+  // The real clock, not a fixed date: a photograph lives for a day, and the
+  // queries only ever show what is still alive, so a date written here would
+  // make every photograph in this file already gone by the time it is read.
+  const now = new Date();
 
   const give = async (actorKey = shopper, at = now) => {
     const id = uuidv7();

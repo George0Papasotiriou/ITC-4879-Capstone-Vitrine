@@ -16,6 +16,7 @@ import { RegionNote } from "@/components/commerce/region-control";
 import { currentRegion } from "@/lib/commerce/region";
 import { PriceWatch } from "@/components/commerce/price-watch";
 import { SizePicker, type SizeOption } from "@/components/commerce/size-picker";
+import { ModelView } from "@/components/commerce/model-view";
 import { ProductGallery } from "@/components/commerce/product-gallery";
 import { ProductGrid } from "@/components/commerce/product-grid";
 import { TrackInterest } from "@/components/reco/track-interest";
@@ -29,6 +30,7 @@ import { serverEnv } from "@/env";
 import { requireLocale } from "@/i18n/params";
 import { routing } from "@/i18n/routing";
 import { getCardsByIds, getFeatured, getProduct } from "@/lib/catalog/server";
+import { hasShape } from "@/lib/catalog/shape";
 import { pairsWith } from "@/lib/reco/server";
 import { productJsonLd, serializeJsonLd } from "@/lib/catalog/structured-data";
 import { priceWatches, reviewsStore } from "@/lib/commerce/server";
@@ -43,9 +45,10 @@ import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
  *
  * The media stage on the left, the decision column on the right. Everything a
  * shopper decides on — price, stock, dimensions — is read from the database for
- * this request. The 360° spin, the 3D viewer and AR arrive with the full ABO
- * import, and the review summary in Phase 5. "See it in your room" is offered for
- * pieces with measured dimensions that stand or lie on a floor.
+ * this request. "See it in your room" and "See it in 3D" are offered for the same
+ * pieces: those with measured dimensions that stand or lie on a floor. The 3D
+ * shape is built from those dimensions (docs/adr/025); a 360° spin waits for the
+ * full ABO import.
  */
 
 /** Few enough left that it is worth saying. */
@@ -73,7 +76,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/p/[slug]
   };
 }
 
-export default async function ProductPage({ params }: PageProps<"/[locale]/p/[slug]">) {
+export default async function ProductPage({ params, searchParams }: PageProps<"/[locale]/p/[slug]">) {
   const locale = await requireLocale(params);
   const { slug } = await params;
 
@@ -198,6 +201,16 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/p/[sl
 
           <div className="mt-8 flex flex-col gap-3">
             {sizes.length > 0 ? null : <AddToCart productId={product.id} inStock={product.inStock} agentId={`action:add-to-cart:${product.id}`} />}
+            {/* The Concierge's open_viewer arrives as ?view=ar or ?view=model (docs/adr/025). */}
+            {!hasShape(product.kind, product.dimsCm) ? null : (
+              <ModelView
+                slug={product.slug}
+                productId={product.id}
+                title={product.title}
+                dims={product.dimsCm!}
+                startOpen={["ar", "model"].includes(String((await searchParams).view ?? ""))}
+              />
+            )}
             {roomPlacement(product.kind, product.dimsCm) === null ? null : (
               <ButtonLink href={`/${locale}/room?product=${product.slug}`} document variant="secondary" data-agent-id={`action:see-in-room:${product.id}`}>
                 {t("seeInYourRoom")}

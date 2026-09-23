@@ -9,7 +9,7 @@
 
 import { z } from "zod";
 
-import { aiActor, aiMode, usageStore } from "@/lib/ai/server";
+import { aiActor, aiMode, knownActor, usageStore } from "@/lib/ai/server";
 import { currentUser } from "@/lib/auth/session";
 import { getProduct } from "@/lib/catalog/server";
 import { enqueue } from "@/lib/jobs/queue";
@@ -49,7 +49,9 @@ async function view(tryOn: { id: string; status: string; resultKey: string | nul
 }
 
 export async function GET(): Promise<Response> {
-  const actor = await aiActor(await currentUser());
+  // A read never mints a guest id (see `knownActor`).
+  const actor = await knownActor(await currentUser());
+  if (actor === null) return Response.json({ ok: true, tryOns: [] } satisfies TryOnResponse);
   const tryOns = await (await photoStore()).tryOnsForActor(actor.key);
   return Response.json({ ok: true, tryOns: await Promise.all(tryOns.map((tryOn) => view(tryOn))) } satisfies TryOnResponse);
 }

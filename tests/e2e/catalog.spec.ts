@@ -71,11 +71,21 @@ test("choosing a sort order navigates to the sorted URL", async ({ page }) => {
 
 test("the whole collection paginates", async ({ page }) => {
   await page.goto("/en/c", { waitUntil: "domcontentloaded" });
-  await expect(resultCount(page)).toHaveText("25 products");
-  await expect(page.getByText("Page 1 of 2")).toBeVisible();
+
+  // Counted from what the shop holds rather than written down here: the
+  // catalogue grows (the Wear capsule of docs/adr/022 added two dozen pieces),
+  // and a number in a test would only record when it was last edited.
+  const tiles = page.locator('article[data-agent-id^="product:"]');
+  const total = Number(/^(\d+) products?$/.exec((await resultCount(page).textContent()) ?? "")?.[1]);
+  const perPage = await tiles.count();
+  const pages = Math.ceil(total / perPage);
+  expect(total).toBeGreaterThan(perPage);
+
+  await expect(page.getByText(`Page 1 of ${pages}`)).toBeVisible();
   await page.getByRole("link", { name: "Next page" }).click();
-  await expect(page).toHaveURL(/\/en\/c\?page=2$/);
-  await expect(page.locator('article[data-agent-id^="product:"]')).toHaveCount(1);
+  await expect(page.getByText(`Page 2 of ${pages}`)).toBeVisible();
+  expect(new URL(page.url()).search).toBe("?page=2");
+  await expect(tiles).toHaveCount(Math.min(perPage, total - perPage));
 });
 
 test("a filter with no matches explains itself and offers a way back", async ({ page }) => {

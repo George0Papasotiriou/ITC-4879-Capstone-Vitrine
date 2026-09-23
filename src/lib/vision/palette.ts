@@ -58,17 +58,70 @@ const ANCHORS: Readonly<Record<ColorId, Rgb[]>> = {
   orange: [{ r: 198, g: 112, b: 60 }, { r: 168, g: 86, b: 52 }],
   pink: [{ r: 224, g: 168, b: 172 }, { r: 198, g: 130, b: 140 }],
   purple: [{ r: 120, g: 92, b: 150 }, { r: 88, g: 68, b: 112 }],
+  // Metals read as their own light rather than a hue; the anchors are the tones a photograph shows.
+  gold: [{ r: 196, g: 164, b: 96 }, { r: 168, g: 138, b: 74 }],
+  silver: [{ r: 196, g: 198, b: 200 }, { r: 168, g: 172, b: 176 }],
 };
 
 const distance = (a: Rgb, b: Rgb) => (a.r - b.r) ** 2 + (a.g - b.g) ** 2 + (a.b - b.b) ** 2;
 
-/** The shop's word for one colour: the nearest anchor, in plain RGB distance. */
+/** The words that are not a hue: chosen by how light they are, never by colour. */
+const NEUTRALS: ReadonlySet<ColorId> = new Set(["black", "white", "grey", "silver"]);
+
+/**
+ * Below this much colour (the gap between the strongest and weakest channel,
+ * out of 255) there is no hue worth naming and the answer is a neutral word.
+ * Above it there is, however pale: a sage wall is green, not silver.
+ */
+const NEUTRAL_CHROMA = 13;
+
+type Hsl = { h: number; s: number; l: number; chroma: number };
+
+/** Hue, how strong the colour is, and how light it is — the three things a person separates. */
+function toHsl({ r, g, b }: Rgb): Hsl {
+  const high = Math.max(r, g, b);
+  const low = Math.min(r, g, b);
+  const chroma = high - low;
+  const l = (high + low) / 510;
+  const s = chroma === 0 ? 0 : chroma / 255 / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (chroma !== 0) {
+    if (high === r) h = 60 * (((g - b) / chroma + 6) % 6);
+    else if (high === g) h = 60 * ((b - r) / chroma + 2);
+    else h = 60 * ((r - g) / chroma + 4);
+  }
+  return { h, s, l, chroma };
+}
+
+/** Round the colour wheel: 350° and 10° are twenty degrees apart, not three hundred and forty. */
+const hueGap = (a: number, b: number) => {
+  const gap = Math.abs(a - b) % 360;
+  return gap > 180 ? 360 - gap : gap;
+};
+
+/**
+ * The shop's word for one colour.
+ *
+ * Plain RGB distance names badly: a pale sage and a pale grey sit close
+ * together in RGB, and picking the nearer anchor calls the sage "silver" —
+ * which is measurable and wrong. So hue is separated from lightness first. A
+ * colour with almost no hue takes the neutral word of its lightness; anything
+ * with a hue is matched on hue above all, then on how strong and how light it
+ * is. That is the order a person uses to answer "what colour is that?".
+ */
 export function nameColour(rgb: Rgb): ColorId {
-  let best: ColorId = "grey";
+  const colour = toHsl(rgb);
+  const neutral = colour.chroma < NEUTRAL_CHROMA;
+
+  let best: ColorId = neutral ? "grey" : "brown";
   let bestDistance = Number.POSITIVE_INFINITY;
   for (const [color, anchors] of Object.entries(ANCHORS) as [ColorId, Rgb[]][]) {
+    if (NEUTRALS.has(color) !== neutral) continue;
     for (const anchor of anchors) {
-      const value = distance(rgb, anchor);
+      const other = toHsl(anchor);
+      const value = neutral
+        ? Math.abs(colour.l - other.l)
+        : hueGap(colour.h, other.h) / 180 + Math.abs(colour.s - other.s) / 2 + Math.abs(colour.l - other.l);
       if (value < bestDistance) {
         bestDistance = value;
         best = color;
@@ -79,16 +132,22 @@ export function nameColour(rgb: Rgb): ColorId {
 }
 
 /**
+ * The colour a word stands for, as a picture rather than a match: the first
+ * anchor of that word. Used where the shop has to *show* a colour it only has
+ * a name for — the stand-in models of docs/adr/025.
+ */
+export function colourSwatch(color: ColorId): Rgb {
+  return ANCHORS[color]?.[0] ?? { r: 150, g: 150, b: 150 };
+}
+
+/**
  * k-means over the pixels, from a fixed start so the same photograph always
  * gives the same palette: a search that changed its mind between two runs
  * would be impossible to test or to trust.
  */
 export function cluster(pixels: readonly Rgb[], k = CLUSTERS, rounds = 8): { centre: Rgb; share: number }[] {
   if (pixels.length === 0) return [];
-  // Start on evenly spaced pixels rather than at random: deterministic, and
-  // spread across the photograph rather than bunched in one corner.
-  const step = Math.max(1, Math.floor(pixels.length / k));
-  let centres: Rgb[] = Array.from({ length: k }, (_, index) => pixels[Math.min(pixels.length - 1, index * step)]!);
+  let centres: Rgb[] = startingCentres(pixels, k);
 
   let counts = new Array<number>(k).fill(0);
   for (let round = 0; round < rounds; round += 1) {
@@ -107,7 +166,7 @@ export function cluster(pixels: readonly Rgb[], k = CLUSTERS, rounds = 8): { cen
       sums[nearest]!.r += pixel.r;
       sums[nearest]!.g += pixel.g;
       sums[nearest]!.b += pixel.b;
-      counts[nearest] += 1;
+      counts[nearest] = counts[nearest]! + 1;
     }
     centres = centres.map((centre, index) =>
       counts[index]! === 0
@@ -120,6 +179,46 @@ export function cluster(pixels: readonly Rgb[], k = CLUSTERS, rounds = 8): { cen
     .map((centre, index) => ({ centre, share: counts[index]! / pixels.length }))
     .filter((entry) => entry.share > 0)
     .sort((a, b) => b.share - a.share);
+}
+
+/**
+ * Where the clusters start: the pixel nearest the average colour, then each
+ * time the pixel furthest from everything chosen so far. Deterministic, like
+ * picking evenly spaced pixels, but it spreads across the colours in the
+ * picture rather than across the order they happen to be in — so a small blue
+ * cushion in a beige room gets a cluster of its own.
+ */
+function startingCentres(pixels: readonly Rgb[], k: number): Rgb[] {
+  const mean = pixels.reduce((sum, pixel) => ({ r: sum.r + pixel.r, g: sum.g + pixel.g, b: sum.b + pixel.b }), { r: 0, g: 0, b: 0 });
+  const average = { r: mean.r / pixels.length, g: mean.g / pixels.length, b: mean.b / pixels.length };
+
+  let first = pixels[0]!;
+  let firstDistance = Number.POSITIVE_INFINITY;
+  for (const pixel of pixels) {
+    const value = distance(pixel, average);
+    if (value < firstDistance) {
+      firstDistance = value;
+      first = pixel;
+    }
+  }
+
+  const centres: Rgb[] = [first];
+  while (centres.length < k) {
+    let farthest = pixels[0]!;
+    let farthestDistance = -1;
+    for (const pixel of pixels) {
+      let nearest = Number.POSITIVE_INFINITY;
+      for (const centre of centres) nearest = Math.min(nearest, distance(pixel, centre));
+      if (nearest > farthestDistance) {
+        farthestDistance = nearest;
+        farthest = pixel;
+      }
+    }
+    // Every pixel is already a centre: no more distinct colours to find.
+    if (farthestDistance === 0) break;
+    centres.push(farthest);
+  }
+  return centres;
 }
 
 /**
@@ -136,6 +235,40 @@ export function palette(pixels: readonly Rgb[], { minShare = MIN_SHARE, k = CLUS
     else existing.share += entry.share;
   }
   return [...named.values()].sort((a, b) => b.share - a.share);
+}
+
+/**
+ * A plain background, dropped.
+ *
+ * A studio photograph — and every drawing in the capsule — is an object on a
+ * plain ground, and the ground is most of the picture. Taking the palette of
+ * the whole frame would answer "white", which is true and useless. So the
+ * border ring is measured: when it is one colour, everything close to that
+ * colour goes, and what is left is the object.
+ *
+ * When the ring is not uniform (a room, a street) nothing is dropped: there is
+ * no background to speak of, and the palette is the picture's own.
+ */
+export function withoutBackground(pixels: readonly Rgb[], width: number, height: number, { tolerance = 40 }: { tolerance?: number } = {}): Rgb[] {
+  if (width < 8 || height < 8 || pixels.length < width * height) return [...pixels];
+
+  const ring: Rgb[] = [];
+  for (let x = 0; x < width; x += 1) {
+    ring.push(pixels[x]!, pixels[(height - 1) * width + x]!);
+  }
+  for (let y = 0; y < height; y += 1) {
+    ring.push(pixels[y * width]!, pixels[y * width + width - 1]!);
+  }
+
+  const mean = ring.reduce((sum, pixel) => ({ r: sum.r + pixel.r, g: sum.g + pixel.g, b: sum.b + pixel.b }), { r: 0, g: 0, b: 0 });
+  const average = { r: mean.r / ring.length, g: mean.g / ring.length, b: mean.b / ring.length };
+  const spread = Math.sqrt(ring.reduce((sum, pixel) => sum + distance(pixel, average), 0) / ring.length);
+  // A ring that varies is a room, not a backdrop.
+  if (spread > tolerance) return [...pixels];
+
+  const kept = pixels.filter((pixel) => Math.sqrt(distance(pixel, average)) > tolerance);
+  // If almost nothing is left, the picture really is that colour.
+  return kept.length < pixels.length * 0.04 ? [...pixels] : kept;
 }
 
 /**

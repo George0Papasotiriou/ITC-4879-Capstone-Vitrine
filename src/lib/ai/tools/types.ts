@@ -67,6 +67,11 @@ export type ToolServices = {
     photo(): Promise<{ id: string; minutesLeft: number } | null>;
     start(input: { photoId: string; productId: string }): Promise<{ ok: true; id: string } | { ok: false; reason: string }>;
   };
+  /** Search by photo (docs/adr/024): the photograph the shopper gave, and what the shop has like it. */
+  snap: {
+    photo(): Promise<{ id: string } | null>;
+    search(input: { photoId: string; category?: string }): Promise<{ ids: string[]; colours: string[] }>;
+  };
   /** Price watches on one product, for the signed-in shopper (docs/adr/020). */
   watch: {
     get(productId: string): Promise<{ targetCents: number } | null>;

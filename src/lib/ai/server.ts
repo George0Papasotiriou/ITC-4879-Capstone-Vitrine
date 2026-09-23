@@ -25,6 +25,8 @@ import { sql } from "@/lib/db/client";
 import { enqueue } from "@/lib/jobs/queue";
 import { minutesLeft } from "@/lib/photos/photos";
 import { photoStore } from "@/lib/photos/server";
+import { searchableColours } from "@/lib/vision/palette";
+import { readPalette, snapSearch } from "@/lib/vision/snap-server";
 import { pairsWith, recommendationsForCurrentShopper } from "@/lib/reco/server";
 import { buildBundles } from "@/lib/stylist/server";
 import { serverEnv } from "@/env";
@@ -63,7 +65,9 @@ export function approvalSecret(): string {
 
 /**
  * Who is asking, for allowances: the account when signed in, else the guest
- * cookie, created on first use. Call only where cookies may be written.
+ * cookie, created on first use. Call only where cookies may be written, and
+ * only where the request is about to keep something for them — see
+ * `knownActor` for why reads must not mint.
  */
 export async function aiActor(user: CurrentUser | null): Promise<Actor> {
   if (user !== null) return { key: `user:${user.id}`, kind: "customer" };
@@ -74,6 +78,20 @@ export async function aiActor(user: CurrentUser | null): Promise<Actor> {
     jar.set(AI_GUEST_COOKIE, signValue(id, secret()), { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 30 });
   }
   return { key: `guest:${id}`, kind: "guest" };
+}
+
+/**
+ * Who is asking, without giving anyone a name.
+ *
+ * Minting on a read is a race: a page that asks two questions at once gets two
+ * guest ids and keeps whichever answer lands last, so the photograph just
+ * uploaded belongs to an identity the browser has already forgotten. A read
+ * therefore answers for the guest the browser already is, or for nobody.
+ */
+export async function knownActor(user: CurrentUser | null): Promise<Actor | null> {
+  if (user !== null) return { key: `user:${user.id}`, kind: "customer" };
+  const id = verifySignedValue((await cookies()).get(AI_GUEST_COOKIE)?.value, secret());
+  return id === null ? null : { key: `guest:${id}`, kind: "guest" };
 }
 
 export function toolUser(user: CurrentUser | null): ToolUser | null {
@@ -142,14 +160,34 @@ export async function toolServices({ locale, user, cart: held }: { locale: "en" 
       defaultVariant: (productId) => store.defaultVariant(productId),
       undoToken: (payload) => createUndoToken(payload, secret()),
     },
+    snap: {
+      photo: async () => {
+        const actor = await knownActor(user);
+        if (actor === null) return null;
+        const [photo] = await (await photoStore()).forActor(actor.key, "snap");
+        return photo === undefined ? null : { id: photo.id };
+      },
+      search: async ({ photoId, category }) => {
+        const actor = await knownActor(user);
+        if (actor === null) return { ids: [], colours: [] };
+        const photo = await (await photoStore()).byId(photoId, actor.key);
+        if (photo === null) return { ids: [], colours: [] };
+        const seen = await readPalette(photo.storageKey);
+        if (seen === null) return { ids: [], colours: [] };
+        return { ids: await snapSearch(seen, { category, locale }), colours: searchableColours(seen) };
+      },
+    },
     tryOn: {
       photo: async () => {
-        const actor = await aiActor(user);
+        const actor = await knownActor(user);
+        if (actor === null) return null;
         const [photo] = await (await photoStore()).forActor(actor.key, "try_on");
         return photo === undefined ? null : { id: photo.id, minutesLeft: minutesLeft(photo.expiresAt) };
       },
       start: async ({ photoId, productId }) => {
-        const actor = await aiActor(user);
+        // A try-on needs a photograph, and a photograph means the browser is already known.
+        const actor = await knownActor(user);
+        if (actor === null) return { ok: false as const, reason: "not_found" as const };
         const usage = await usageStore();
         // The same guard as the page: credits first, and the work as a job.
         const reserved = await usage.reserveCredits(actor, "try_on");

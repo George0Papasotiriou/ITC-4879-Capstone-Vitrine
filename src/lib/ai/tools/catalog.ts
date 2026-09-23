@@ -10,6 +10,7 @@
 import { z } from "zod";
 
 import { untrusted } from "@/lib/ai/guardrails/untrusted";
+import { uiCommandSchema } from "@/lib/ai/ui-commands";
 import { brief, inOrder, productBriefSchema } from "@/lib/ai/tools/briefs";
 import type { VitrineTool } from "@/lib/ai/tools/types";
 import { CATEGORY_SLUGS, type CategorySlug } from "@/lib/catalog/taxonomy";
@@ -193,5 +194,33 @@ export const summarizeReviews = define({
         author: review.authorName,
       })),
     };
+  },
+});
+
+export const findByPhoto = define({
+  name: "find_by_photo",
+  description:
+    "Find pieces like the photograph the shopper gave the Snap to shop page: the shop measures the photograph's colours and searches with them. " +
+    "Use it when they mention a photo they have shared, or ask for something that matches a picture. " +
+    "If there is no photograph, say so and open the page; never describe what is in their photograph, because the shop reads colour, not objects.",
+  scope: "read",
+  input: z.object({ category: z.string().trim().max(32).optional().describe("Narrow to one category slug, when the shopper named one.") }),
+  output: z.discriminatedUnion("ok", [
+    z.object({ ok: z.literal(true), colours: z.array(z.string()), products: z.array(productBriefSchema), commands: z.array(uiCommandSchema) }),
+    z.object({ ok: z.literal(false), reason: z.literal("no_photo"), commands: z.array(uiCommandSchema) }),
+  ]),
+  async run(ctx, { category }) {
+    const snapPage = uiCommandSchema.parse({
+      type: "navigate",
+      href: "/snap",
+      caption: ctx.locale === "el" ? "Άνοιγμα της αναζήτησης με φωτογραφία" : "Opening search by photo",
+    });
+
+    const photo = await ctx.services.snap.photo();
+    if (photo === null) return { ok: false as const, reason: "no_photo" as const, commands: [snapPage] };
+
+    const found = await ctx.services.snap.search({ photoId: photo.id, ...(category === undefined ? {} : { category }) });
+    const cards = found.ids.length === 0 ? [] : await ctx.services.cards(found.ids.slice(0, 8));
+    return { ok: true as const, colours: found.colours, products: inOrder(found.ids, cards).map(brief), commands: [] };
   },
 });

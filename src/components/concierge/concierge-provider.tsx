@@ -32,7 +32,8 @@ type ConciergeValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
   chat: UseChatHelpers<UIMessage>;
-  ask: (text: string) => void;
+  /** `spoken` tells the server the answer will be read aloud, so it keeps it short (docs/adr/026). */
+  ask: (text: string, options?: { spoken?: boolean }) => void;
   /** The reason the last request was refused (turns, budget…), if it was. */
   refusal: string | null;
   reset: () => void;
@@ -115,12 +116,14 @@ function ConciergeState({ children }: { children: ReactNode }) {
   }, [chat.messages, spotlight, t, locale]);
 
   const ask = useCallback(
-    (text: string) => {
+    (text: string, options?: { spoken?: boolean }) => {
       const trimmed = text.trim();
       if (trimmed === "") return;
       setRefusal(null);
       setOpen(true);
-      void chat.sendMessage({ text: trimmed });
+      // Carried on this message rather than on the transport: one spoken turn
+      // does not make the next typed one spoken too.
+      void chat.sendMessage({ text: trimmed }, { body: { spoken: options?.spoken === true } });
     },
     [chat],
   );

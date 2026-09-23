@@ -75,6 +75,10 @@ export function context(overrides: Partial<ToolServices> = {}, cartLines: Partia
       defaultVariant: async (productId) => (productId === LAMP ? LAMP_VARIANT : null),
       undoToken: (payload) => createUndoToken(payload, SECRET),
     },
+    snap: {
+      photo: async () => ({ id: "01890000-0000-7000-8000-0000000000f3" }),
+      search: async () => ({ ids: [LAMP], colours: ["beige"] }),
+    },
     tryOn: {
       photo: async () => ({ id: "01890000-0000-7000-8000-0000000000f1", minutesLeft: 1400 }),
       start: async () => ({ ok: true, id: "01890000-0000-7000-8000-0000000000f2" }),

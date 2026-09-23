@@ -29,8 +29,13 @@ export type Pricing =
   | { kind: "unverified" };
 
 export type ModelEntry = {
-  /** "drawn" is the keyless stand-in that composes rather than generates (docs/adr/023). */
-  provider: "google" | "openai" | "fashn" | "demo" | "drawn";
+  /**
+   * "drawn" is the keyless stand-in that composes rather than generates
+   * (docs/adr/023); "browser" is work the browser itself does — the speech of
+   * docs/adr/026 — which costs nothing and still deserves a line in the usage
+   * table, so /admin/ai shows the feature being used.
+   */
+  provider: "google" | "openai" | "fashn" | "demo" | "drawn" | "browser";
   id: string;
   pricing: Pricing;
 };

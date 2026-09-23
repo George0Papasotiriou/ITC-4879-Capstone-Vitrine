@@ -18,6 +18,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { catalogFixtureSchema, type ProductInput } from "@/lib/catalog/input";
 import { archiveExcluded, upsertCatalog, type CatalogDatabase } from "@/lib/catalog/write";
 import * as schema from "@/lib/db/schema";
+import { CATEGORY_SLUGS } from "@/lib/catalog/taxonomy";
 
 /**
  * The catalogue migration and writer, against real PostgreSQL with the real
@@ -55,7 +56,9 @@ describe.skipIf(url === undefined || url === "")("catalogue", () => {
              (SELECT count(*)::int FROM categories) AS categories
     `;
     const mediaInFixture = fixture.reduce((sum, product) => sum + product.media.length, 0);
-    expect(counts).toEqual({ products: 25, media: mediaInFixture, variants: 25, categories: 8 });
+    // Every category in the taxonomy is written, not only the ones the specimen
+    // set uses, so the number follows the taxonomy rather than a figure here.
+    expect(counts).toEqual({ products: 25, media: mediaInFixture, variants: 25, categories: CATEGORY_SLUGS.length });
   });
 
   it("is idempotent: a second import updates in place and keeps product ids", async () => {

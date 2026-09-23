@@ -44,6 +44,8 @@ const ROUTE_ALLOWLIST: readonly RegExp[] = [
   /^\/room$/,
   // The Fitting Room, where a shopper's own photograph lives (docs/adr/023).
   /^\/fitting-room$/,
+  // Search by photo (docs/adr/024).
+  /^\/snap$/,
   /^\/stylist$/,
   /^\/taste$/,
   /^\/(?:shipping|privacy|contact|credits)$/,

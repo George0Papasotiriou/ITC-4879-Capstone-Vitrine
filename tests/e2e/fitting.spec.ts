@@ -64,7 +64,8 @@ test("a size that has sold out is shown, and cannot be chosen", async ({ browser
   let found = false;
   for (const href of links.slice(0, 12)) {
     await page.goto(href, { waitUntil: "domcontentloaded" });
-    const soldOut = page.locator('[data-agent-id^="size:"][disabled]');
+    // By the label, not by `disabled`: every size is inert for the moment before the page hydrates.
+    const soldOut = page.locator('[data-agent-id^="size:"][aria-label*="sold out"]');
     if ((await soldOut.count()) > 0) {
       await expect(soldOut.first()).toBeDisabled();
       await expect(soldOut.first()).toHaveAttribute("aria-label", /sold out/i);

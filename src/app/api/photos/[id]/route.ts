@@ -7,7 +7,7 @@
  * Deleting a photograph the shop holds, before it expires on its own.
  */
 
-import { aiActor } from "@/lib/ai/server";
+import { knownActor } from "@/lib/ai/server";
 import { currentUser } from "@/lib/auth/session";
 import { photoStore, removeFiles } from "@/lib/photos/server";
 
@@ -21,8 +21,11 @@ export const runtime = "nodejs";
 
 export async function DELETE(_request: Request, context: RouteContext<"/api/photos/[id]">): Promise<Response> {
   const user = await currentUser();
-  const actor = await aiActor(user);
+  // Deleting is about a photograph that already exists, so the browser is
+  // already known; nothing is minted here (docs/adr/023).
+  const actor = await knownActor(user);
   const { id } = await context.params;
+  if (actor === null) return Response.json({ ok: false, reason: "not_found" }, { status: 404 });
 
   const store = await photoStore();
   const photo = await store.deleteOwn(id, actor.key);

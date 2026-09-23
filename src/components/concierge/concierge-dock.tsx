@@ -16,6 +16,7 @@ import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent 
 import { ActionTimeline } from "@/components/concierge/action-timeline";
 import { AssistantPart } from "@/components/concierge/concierge-parts";
 import { useConcierge } from "@/components/concierge/concierge-provider";
+import { VoiceBar } from "@/components/concierge/voice-bar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/ui/cn";
 
@@ -114,6 +115,9 @@ export function ConciergeDock() {
             ✕
           </Button>
         </header>
+
+        {/* Speaking sits between the title and the conversation: it is a way in, not another Concierge (docs/adr/026). */}
+        <VoiceBar />
 
         <div ref={log} role="log" aria-live="polite" aria-relevant="additions" className="flex-1 overflow-y-auto px-5 py-4" data-agent-id="concierge:log">
           {chat.messages.length === 0 ? (

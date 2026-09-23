@@ -61,9 +61,15 @@ export function FittingRoom({ pieces }: { pieces: readonly TryOnPiece[] }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // What the shopper has done since a request went out. An answer that left
+  // before they gave a photograph describes a room they have already changed,
+  // so it is dropped rather than painted over what is now on screen.
+  const changes = useRef(0);
+
   const load = useCallback((cancelled?: () => boolean) => {
+    const asked = changes.current;
     void currentState().then((state) => {
-      if (cancelled?.() === true) return;
+      if (cancelled?.() === true || changes.current !== asked) return;
       setPhoto(state.photo);
       setTryOns(state.tryOns);
     });
@@ -119,6 +125,7 @@ export function FittingRoom({ pieces }: { pieces: readonly TryOnPiece[] }) {
       return;
     }
     setError(null);
+    changes.current += 1;
     setPhoto(result.photo);
     toast({ title: t("uploaded"), tone: "success" });
   };
@@ -132,6 +139,7 @@ export function FittingRoom({ pieces }: { pieces: readonly TryOnPiece[] }) {
       setError(t("errors.failed"));
       return;
     }
+    changes.current += 1;
     setPhoto(null);
     setTryOns([]);
     if (file.current !== null) file.current.value = "";
@@ -154,6 +162,7 @@ export function FittingRoom({ pieces }: { pieces: readonly TryOnPiece[] }) {
       return;
     }
     setError(null);
+    changes.current += 1;
     setTryOns((current) => [result.tryOn, ...current]);
   };
 
@@ -168,9 +177,13 @@ export function FittingRoom({ pieces }: { pieces: readonly TryOnPiece[] }) {
           <>
             <p className="text-slate max-w-[65ch] text-sm">{t("photoLede")}</p>
             <label className="flex max-w-[65ch] items-start gap-3 text-sm">
+              {/* Inert until the page wakes up: a box ticked before then would be
+                  unticked again by the first render, and the shop would refuse
+                  a photograph the shopper believes they agreed to. */}
               <input
                 type="checkbox"
                 checked={consent}
+                disabled={!hydrated}
                 onChange={(event) => setConsent(event.target.checked)}
                 className="border-hairline mt-1 size-4 rounded-sm border"
                 data-agent-id="fitting:consent"
@@ -229,8 +242,8 @@ export function FittingRoom({ pieces }: { pieces: readonly TryOnPiece[] }) {
         </h2>
         <p className="text-slate max-w-[65ch] text-sm">{photo === null ? t("piecesLocked") : t("piecesLede")}</p>
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" data-agent-id="fitting:pieces">
+          {/* No fading while a piece is locked: dimmed text falls below the contrast the shop keeps. */}
           {pieces.map((piece) => (
-            {/* No fading while it is locked: dimmed text falls below the contrast the shop keeps. */}
             <li key={piece.slug} className="border-hairline rounded-plinth flex flex-col gap-2 border p-3">
               <span className="bg-plinth rounded-plinth relative aspect-square overflow-hidden">
                 {piece.image === null ? null : (

@@ -13,6 +13,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { AddToCart } from "@/components/commerce/add-to-cart";
+import { useHydrated } from "@/components/ui/use-hydrated";
 import { cn } from "@/lib/ui/cn";
 
 /**
@@ -32,6 +33,9 @@ const LOW_STOCK = 3;
 export function SizePicker({ productId, sizes, agentId }: { productId: string; sizes: readonly SizeOption[]; agentId: string }) {
   const t = useTranslations("product.sizes");
   const [chosen, setChosen] = useState<SizeOption | null>(null);
+  // Until the page is hydrated a size button would swallow the tap and do
+  // nothing, which reads as a broken shop; it waits instead.
+  const hydrated = useHydrated();
   const anyLeft = sizes.some((size) => size.stock > 0);
 
   return (
@@ -51,13 +55,17 @@ export function SizePicker({ productId, sizes, agentId }: { productId: string; s
               key={size.variantId}
               type="button"
               onClick={() => setChosen(size)}
-              disabled={soldOut}
+              disabled={soldOut || !hydrated}
               aria-pressed={chosen?.variantId === size.variantId}
               aria-label={soldOut ? t("soldOutSize", { size: size.size }) : size.size}
               className={cn(
                 "rounded-plinth border-hairline flex h-11 min-w-[3.25rem] items-center justify-center border px-3 text-sm transition-colors",
-                "disabled:text-slate disabled:cursor-not-allowed disabled:line-through disabled:opacity-60",
-                chosen?.variantId === size.variantId ? "bg-dusk text-glass border-dusk" : "hover:border-dusk/40 bg-white",
+                // Struck through only when the size has gone, never in the moment before the page wakes up.
+                soldOut
+                  ? "text-slate cursor-not-allowed line-through"
+                  : chosen?.variantId === size.variantId
+                    ? "bg-dusk text-glass border-dusk"
+                    : "hover:border-dusk/40 bg-white",
               )}
               data-agent-id={`size:${size.size}`}
             >

@@ -9,7 +9,7 @@
 
 import { uuidv7 } from "uuidv7";
 
-import { aiActor } from "@/lib/ai/server";
+import { aiActor, knownActor } from "@/lib/ai/server";
 import { currentUser } from "@/lib/auth/session";
 import { checkUpload, MAX_UPLOAD_BYTES, minutesLeft, type PhotoKind } from "@/lib/photos/photos";
 import { acceptPhoto, photoStore, photoUrl } from "@/lib/photos/server";
@@ -39,7 +39,10 @@ async function view(photo: { id: string; kind: PhotoKind; storageKey: string; wi
 
 export async function GET(): Promise<Response> {
   const user = await currentUser();
-  const actor = await aiActor(user);
+  // A list is a read: it never mints a guest id, so it cannot race with the
+  // upload that does and leave the photograph belonging to nobody.
+  const actor = await knownActor(user);
+  if (actor === null) return Response.json({ ok: true, photos: [] } satisfies PhotoResponse);
   const photos = await (await photoStore()).forActor(actor.key);
   return Response.json({ ok: true, photos: await Promise.all(photos.map((photo) => view(photo))) } satisfies PhotoResponse);
 }

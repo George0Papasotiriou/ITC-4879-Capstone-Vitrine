@@ -137,6 +137,13 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/[
         </button>
       </form>
 
+      {/* The other way to search: a photograph, read for its colours (docs/adr/024). */}
+      <p className="text-slate mt-3 text-sm">
+        <SmartLink href="/snap" className="underline underline-offset-4" data-agent-id="action:open-snap">
+          {t("bePhoto")}
+        </SmartLink>
+      </p>
+
       {result === null ? (
         <EmptyState
           className="items-start text-left"

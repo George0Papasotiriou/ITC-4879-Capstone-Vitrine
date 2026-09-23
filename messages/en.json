@@ -103,6 +103,16 @@
       "chartTitle": "Size chart",
       "chartLede": "Body measurements in centimetres. The capsule is cut on one block, so these hold across the pieces.",
       "measurement": "Measurement"
+    },
+    "model": {
+      "open": "See it in 3D",
+      "title": "{title} in 3D",
+      "standIn": "A stand-in shape at the piece's real size, not a scan of it: the shop has photographs of this piece, not a 3D model. Use it to judge how big it is and whether it fits.",
+      "alt": "A simplified 3D shape of {title}, at its real dimensions",
+      "inYourSpace": "Stand it in your room",
+      "loading": "Bringing up the shape…",
+      "failed": "The 3D view could not start here. The dimensions below say the same thing.",
+      "size": "{w} × {d} × {h} cm, the size you see here."
     }
   },
   "cart": {
@@ -278,7 +288,37 @@
       "too_long": "That message is too long. Try saying it in fewer words.",
       "generic": "The Concierge couldn't answer that. Please try again."
     },
-    "viewProduct": "View {title}"
+    "viewProduct": "View {title}",
+    "voice": {
+      "speak": "Speak",
+      "stop": "Stop",
+      "modeLabel": "How to talk",
+      "holdToTalk": "Hold to talk",
+      "captionsLabel": "Heard:",
+      "states": {
+        "idle": "Voice is off",
+        "listening": "Listening",
+        "thinking": "Thinking",
+        "speaking": "Speaking"
+      },
+      "modes": {
+        "hands-free": "Hands-free",
+        "hold": "Hold to talk"
+      },
+      "errors": {
+        "off": "The Concierge is switched off right now, so it cannot listen either.",
+        "kill_switch": "The shop has paused its AI features. Everything else still works.",
+        "budget": "The shop has reached today's AI budget. Try again tomorrow, or type instead.",
+        "turns": "That is as much as the Concierge can do for you today. It starts again tomorrow.",
+        "spent": "That is a long conversation — start another one when you are ready.",
+        "unsupported": "This browser cannot listen or speak. The Concierge still answers what you type.",
+        "not-allowed": "The microphone is blocked for this site. Allow it in the browser to speak.",
+        "audio-capture": "No microphone was found.",
+        "network": "The speech service could not be reached. Typing still works.",
+        "generic": "Voice stopped working. Typing still works.",
+        "credits": "The shop has used today's AI allowance for this feature."
+      }
+    }
   },
   "footer": {
     "shop": "Shop",
@@ -368,7 +408,8 @@
     "exampleThree": "grey chair",
     "inStock": "In stock",
     "relaxedColors": "No product in that colour matched, so other colours are shown.",
-    "relaxedMaterials": "No product in that material matched, so other materials are shown."
+    "relaxedMaterials": "No product in that material matched, so other materials are shown.",
+    "bePhoto": "Or search with a photograph"
   },
   "pages": {
     "shippingTitle": "Shipping and returns",
@@ -1554,5 +1595,34 @@
       "failed": "That did not work. Try again."
     },
     "choosePhoto": "Choose a photograph"
+  },
+  "snap": {
+    "title": "Snap to shop",
+    "lede": "Show the shop a photograph — a room, a piece you like, a fabric — and it finds what it has in those colours.",
+    "promises": {
+      "colours": "Without an AI key the shop reads colour, not objects: it measures the photograph's palette and searches with it.",
+      "here": "The photograph is measured here, on the shop's own server. It is not sent to anyone.",
+      "day": "Kept for 24 hours like every photograph, and you can delete it at once.",
+      "privacyLink": "How the shop handles data"
+    },
+    "consent": "I want the shop to read the colours of this photograph and keep it for a day.",
+    "choosePhoto": "Choose a photograph",
+    "looking": "Looking…",
+    "yourPhotoAlt": "The photograph you gave the shop",
+    "sawTitle": "What the shop saw",
+    "deleteNow": "Delete the photograph",
+    "errors": {
+      "no_consent": "Tick the box first: the shop reads nothing without it.",
+      "too_large": "That photograph is over 12 MB. Try a smaller one.",
+      "too_small": "That photograph is too small to read.",
+      "type": "That is not a photograph the shop can read. JPEG, PNG or WebP.",
+      "too_many": "You already have a few photographs here. Delete one first.",
+      "unreadable": "The shop could not read that file.",
+      "not_found": "That photograph is no longer here.",
+      "failed": "That did not work. Try again."
+    },
+    "resultsTitle": "What the shop has like it",
+    "nothing": "Nothing in those colours yet. Try another photograph, or type what you are after.",
+    "refine": "Open these in search, where you can filter and sort"
   }
 }

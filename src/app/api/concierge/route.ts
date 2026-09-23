@@ -43,6 +43,8 @@ const bodySchema = z.object({
   messages: z.array(z.unknown()).min(1).max(200),
   locale: z.enum(routing.locales).catch(routing.defaultLocale),
   pageMap: z.unknown().optional(),
+  /** True when the question was spoken and the answer will be read aloud (docs/adr/026). */
+  spoken: z.boolean().optional(),
 });
 
 const refuse = (reason: string, status: number) => Response.json({ ok: false, reason }, { status });
@@ -72,11 +74,12 @@ export async function POST(request: Request): Promise<Response> {
 
   // Both cookies are written before the stream starts: nothing can be set once it has.
   const cart = await conciergeCart();
-  const ctx = { locale, surface: "chat" as const, user: toolUser(user), actor, services: await toolServices({ locale, user, cart }) };
+  const spoken = body.data.spoken === true;
+  const ctx = { locale, surface: spoken ? ("voice" as const) : ("chat" as const), user: toolUser(user), actor, services: await toolServices({ locale, user, cart }) };
   const log = loggerForRequest(request.headers);
   const result = runTurn({
     model: chosen.model,
-    instructions: conciergeInstructions({ locale, pageMap: parsePageMap(body.data.pageMap), signedIn: user !== null }),
+    instructions: conciergeInstructions({ locale, pageMap: parsePageMap(body.data.pageMap), signedIn: user !== null, spoken }),
     messages: await convertToModelMessages(messages),
     ctx,
     approvalSecret: approvalSecret(),
