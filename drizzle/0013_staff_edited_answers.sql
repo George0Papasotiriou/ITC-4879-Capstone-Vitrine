@@ -1,0 +1,1 @@
+ALTER TABLE "support_macros" ADD COLUMN "staff_edited_at" timestamp with time zone;

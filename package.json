@@ -19,6 +19,7 @@
     "orders": "node scripts/local.mjs run scripts/orders.ts",
     "jobs": "node scripts/local.mjs run scripts/jobs.ts",
     "support": "node scripts/local.mjs run scripts/support.ts",
+    "showcase": "node scripts/local.mjs run scripts/showcase.ts",
     "capsule": "tsx scripts/capsule.ts",
     "evals:smoke": "tsx evals/run.ts --suite smoke",
     "evals:full": "tsx evals/run.ts --suite full",
@@ -43,7 +44,7 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/lib/db/migrate.ts",
-    "db:setup": "pnpm db:migrate && tsx scripts/catalog.ts seed --collection --capsule --sync && tsx scripts/support.ts macros && tsx scripts/reco.ts simulate --if-empty && tsx scripts/reco.ts rebuild --if-empty",
+    "db:setup": "pnpm db:migrate && tsx scripts/catalog.ts seed --collection --capsule --sync && tsx scripts/support.ts macros && tsx scripts/reco.ts simulate --if-empty && tsx scripts/reco.ts rebuild --if-empty && tsx scripts/showcase.ts ensure",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

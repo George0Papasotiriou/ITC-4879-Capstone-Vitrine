@@ -1056,6 +1056,13 @@ export const supportMacros = pgTable(
     bodyEn: text("body_en").notNull(),
     bodyEl: text("body_el").notNull(),
     sort: integer("sort").notNull().default(0),
+    /**
+     * Set when someone at the desk edits the answer (docs/adr/029). The deploy
+     * then leaves it as they wrote it, as the catalogue sync does with a
+     * merchandiser's edit; null means the shop's own words, kept in step with
+     * the code.
+     */
+    staffEditedAt: timestamp("staff_edited_at", { withTimezone: true }),
     ...timestamps,
   },
   (t) => [uniqueIndex("support_macros_key_key").on(t.key), index("support_macros_topic_idx").on(t.topic, t.sort)],
