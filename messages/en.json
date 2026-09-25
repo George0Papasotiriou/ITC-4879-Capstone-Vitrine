@@ -276,7 +276,13 @@
       "approve": "Yes, go ahead",
       "decline": "No",
       "approved": "Approved",
-      "declined": "Declined"
+      "declined": "Declined",
+      "tryOnTitle": "Try this on your photograph?",
+      "tryOnBody": "It uses one of today's credits and takes a few seconds. Only you see the result, and it goes when your photograph does.",
+      "handOverTitle": "Send this to a person at the shop?",
+      "handOverBody": "Someone at the support desk will read it and reply within one working day. If you are not signed in, the contact form opens with it written in, and you add your email there.",
+      "genericTitle": "Go ahead?",
+      "genericBody": "Nothing happens until you say yes."
     },
     "errors": {
       "turns": "You've used today's Concierge questions. They come back tomorrow; signing in gives you more.",
@@ -318,6 +324,13 @@
         "generic": "Voice stopped working. Typing still works.",
         "credits": "The shop has used today's AI allowance for this feature."
       }
+    },
+    "handOver": {
+      "sent": "Sent to the support desk as {number}.",
+      "reply": "A person replies within {hours} hours, by email and on the conversation's page.",
+      "open": "Open the conversation",
+      "contactForm": "Opening the contact form with your message written in.",
+      "failed": "That could not be sent just now. The contact page reaches the same people."
     }
   },
   "footer": {
@@ -1511,7 +1524,8 @@
         "too_short": "Write a little more so we can help.",
         "slow_down": "That is several messages in a short time. Try again a bit later.",
         "failed": "That did not send. Try again."
-      }
+      },
+      "fromConcierge": "Your message from the Concierge is written in below. Read it, change anything, add your email and send it."
     },
     "mine": {
       "title": "Your conversations"

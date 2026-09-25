@@ -69,7 +69,7 @@ async function main() {
     JOIN LATERAL (
       SELECT m.src FROM product_media m WHERE m.product_id = p.id AND m.kind = 'image' ORDER BY m.position LIMIT 1
     ) m ON true
-    WHERE p.status = 'active' AND array_length(p.colors, 1) = 1 AND m.src LIKE '/%'
+    WHERE p.status = 'active' AND array_length(p.colors, 1) = 1 AND m.src LIKE '/products/%'
     ORDER BY p.source, p.id
   `;
 
@@ -110,11 +110,14 @@ async function main() {
   say("holds whose entry names exactly one colour. The label is the dataset's attribute rather than");
   say("a person judging the photograph, so a disagreement is not always the reading's mistake.");
   say();
+  // The baseline a reading has to beat: always answering the catalogue's most common word.
+  const [majorityColour, majorityCount] = [...byColour.entries()].sort((a, b) => b[1].n - a[1].n)[0] ?? ["—", { n: 0 }];
+
   say("## Verdict");
   say();
-  say("| Photographs | Top colour agrees | Agrees anywhere in the search |");
-  say("|---|---|---|");
-  say(`| ${seen.length} | ${top1} (${percent(top1, seen.length)}%) | ${anywhere} (${percent(anywhere, seen.length)}%) |`);
+  say("| Photographs | Top colour agrees | Agrees anywhere in the search | Always the most common word |");
+  say("|---|---|---|---|");
+  say(`| ${seen.length} | ${top1} (${percent(top1, seen.length)}%) | ${anywhere} (${percent(anywhere, seen.length)}%) | ${majorityCount.n} (${percent(majorityCount.n, seen.length)}%, "${majorityColour}") |`);
   say();
 
   say("## By colour");
@@ -133,6 +136,32 @@ async function main() {
   for (const [pair, count] of [...confusions.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)) {
     say(`| ${pair} | ${count} |`);
   }
+  say();
+  say("## Discussion");
+  say();
+  say("What this evaluation changed. Its first run found two defects, both fixed before the figures");
+  say("above were taken. The clothing capsule had filed its fabric names (\"ecru\", \"ink\") as colours,");
+  say("which no filter and no search by photo could match; each is now filed under the shop's word");
+  say("(`CAPSULE_COLOUR_WORDS`). And the backdrop test asked whether the edge of the frame was");
+  say("*uniform*, so a sofa reaching across it made a studio shot look like a room and the white");
+  say("ground was counted: seven black pieces in ten read \"white\". The edge is now summarised by its");
+  say("median, and it is a backdrop when most of it is that one colour.");
+  say();
+  say("What was tried and not kept. Warm greys (a grey sofa under warm light) read as brown or beige");
+  say("at chroma 13 to 18. Requiring more colour of warm hues fixed six of them and broke six pale");
+  say("beiges (cream, ecru), which sit at the same chroma and hue: one fewer top-1 agreement, three");
+  say("more anywhere. The two overlap except in lightness, and a rule on lightness would be tuned on");
+  say("this very set; it is left for a labelled set held apart from this one.");
+  say();
+  say("Where it is weakest. Metals (gold, silver) are reflections of whatever surrounds them and are");
+  say("rarely named right. White pieces on a white ground leave only shadows and legs to read. Slate");
+  say("is filed as grey, and the reading calls it blue — the vocabulary itself is unsure there.");
+  say();
+  say("## Limitations");
+  say();
+  say("- The labels are the dataset's colour attribute, not a person judging each photograph.");
+  say("- The photographs are studio shots; a shopper's photograph of a room is harder and is not measured here.");
+  say("- The capsule's pictures are drawings, whose colours are exact; they flatter the capsule rows.");
   say();
   say("## How to reproduce");
   say();

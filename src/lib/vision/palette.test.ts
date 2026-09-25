@@ -126,8 +126,19 @@ describe("a plain background", () => {
     expect(palette(kept)[0]!.color).toBe("green");
   });
 
-  it("changes nothing when the border is not one colour", () => {
-    const room = studio.map((pixel, index) => (index % 3 === 0 ? { r: 120, g: 84, b: 58 } : pixel));
+  it("finds the ground even when the piece reaches the edge of the frame", () => {
+    // A black sofa across the whole width: the ring is crossed by it, but most
+    // of the ring is still the white ground. The first version called this a
+    // room and read "white" (evaluation E9).
+    const wide = Array.from({ length: 100 }, (_, index) => (Math.floor(index / 10) >= 3 && Math.floor(index / 10) <= 6 ? { r: 24, g: 24, b: 26 } : ground));
+    const kept = withoutBackground(wide, 10, 10);
+    expect(kept).toHaveLength(40);
+    expect(palette(kept)[0]!.color).toBe("black");
+  });
+
+  it("changes nothing in a room, where no colour covers most of the edge", () => {
+    // A wall above and a floor below: half the ring each, so neither is a backdrop.
+    const room = Array.from({ length: 100 }, (_, index) => (index < 50 ? { r: 226, g: 214, b: 193 } : { r: 120, g: 84, b: 58 }));
     expect(withoutBackground(room, 10, 10)).toEqual(room);
   });
 

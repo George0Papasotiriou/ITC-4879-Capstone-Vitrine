@@ -29,6 +29,30 @@ describe("intentOf", () => {
     expect(intentOf("open my cart")).toBe("cart");
     expect(intentOf("I'm ready to check out")).toBe("checkout");
     expect(intentOf("velvet sofa under 900")).toBe("browse");
+    expect(intentOf("Can I talk to a person about VT-4JJZ-MPF9?")).toBe("person");
+    expect(intentOf("Θέλω να μιλήσω με έναν άνθρωπο")).toBe("person");
+  });
+
+  it("hands a request for a person over with the shopper's own words, the order and a queue", () => {
+    const step = demoStep(prompt("My lamp arrived broken, I want to talk to a person about VT-4JJZ-MPF9"));
+    expect(step).toEqual({
+      kind: "tools",
+      calls: [
+        {
+          toolName: "hand_to_person",
+          input: {
+            summary: 'The shopper asked for a person: "My lamp arrived broken, I want to talk to a person about VT-4JJZ-MPF9"',
+            topic: "returns",
+            orderNumber: "VT-4JJZ-MPF9",
+          },
+        },
+      ],
+    });
+    const sent = demoStep(prompt("a person please", [{ toolName: "hand_to_person", output: { ok: true, number: "VS-7K2M-Q4HD" } }]));
+    expect(sent).toMatchObject({ kind: "text" });
+    expect((sent as { text: string }).text).toContain("VS-7K2M-Q4HD");
+    const guest = demoStep(prompt("a person please", [{ toolName: "hand_to_person", output: { ok: false, reason: "needs_contact" } }], "el"));
+    expect((guest as { text: string }).text).toContain("φόρμα επικοινωνίας");
   });
 
   it("keeps only the words that describe the piece", () => {

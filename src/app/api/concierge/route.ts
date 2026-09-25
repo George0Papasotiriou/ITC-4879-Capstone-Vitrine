@@ -75,7 +75,17 @@ export async function POST(request: Request): Promise<Response> {
   // Both cookies are written before the stream starts: nothing can be set once it has.
   const cart = await conciergeCart();
   const spoken = body.data.spoken === true;
-  const ctx = { locale, surface: spoken ? ("voice" as const) : ("chat" as const), user: toolUser(user), actor, services: await toolServices({ locale, user, cart }) };
+  // What was said, as plain text: a hand-over carries it to the person who
+  // takes over (docs/adr/027). Only the words — no tool output, no prices.
+  const conversation = messages
+    .map((message) => {
+      const text = message.parts.map((part) => (part.type === "text" ? part.text : "")).join(" ").trim();
+      return text === "" ? null : `${message.role === "user" ? "Shopper" : "Concierge"}: ${text}`;
+    })
+    .filter((line): line is string => line !== null)
+    .join("\n");
+  const services = await toolServices({ locale, user, cart, conversation });
+  const ctx = { locale, surface: spoken ? ("voice" as const) : ("chat" as const), user: toolUser(user), actor, services };
   const log = loggerForRequest(request.headers);
   const result = runTurn({
     model: chosen.model,

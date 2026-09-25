@@ -131,11 +131,28 @@ export function AssistantPart({ part, onApprove }: { part: Part; onApprove: (id:
 
   if (part.state === "approval-requested") {
     if (part.approval.isAutomatic === true) return null;
-    const checkout = name === "start_checkout";
+    // Each approval says what will happen in its own words; one that is not
+    // listed asks plainly rather than borrowing another tool's sentence.
+    const copy =
+      name === "start_checkout"
+        ? { title: t("approval.checkoutTitle"), body: t("approval.checkoutBody") }
+        : name === "start_return"
+          ? { title: t("approval.returnTitle", { number: String(input.number ?? "") }), body: t("approval.returnBody") }
+          : name === "try_on"
+            ? { title: t("approval.tryOnTitle"), body: t("approval.tryOnBody") }
+            : name === "hand_to_person"
+              ? { title: t("approval.handOverTitle"), body: t("approval.handOverBody") }
+              : { title: t("approval.genericTitle"), body: t("approval.genericBody") };
     return (
-      <div className="border-lumen rounded-plinth flex flex-col gap-3 border-2 p-4" role="group" aria-label={checkout ? t("approval.checkoutTitle") : t("approval.returnTitle", { number: String(input.number ?? "") })} data-agent-id={`concierge:approval:${name}`}>
-        <p className="font-medium">{checkout ? t("approval.checkoutTitle") : t("approval.returnTitle", { number: String(input.number ?? "") })}</p>
-        <p className="text-slate text-sm">{checkout ? t("approval.checkoutBody") : t("approval.returnBody")}</p>
+      <div className="border-lumen rounded-plinth flex flex-col gap-3 border-2 p-4" role="group" aria-label={copy.title} data-agent-id={`concierge:approval:${name}`}>
+        <p className="font-medium">{copy.title}</p>
+        <p className="text-slate text-sm">{copy.body}</p>
+        {/* The exact words that will be sent: nothing reaches a person that the shopper has not read. */}
+        {name === "hand_to_person" && typeof input.summary === "string" ? (
+          <blockquote className="border-hairline bg-plinth rounded-plinth border px-3 py-2 text-sm whitespace-pre-line" data-agent-id="concierge:handover-summary">
+            {input.summary}
+          </blockquote>
+        ) : null}
         <div className="flex gap-2">
           <Button size="sm" onClick={() => onApprove(part.approval.id, true)} data-agent-id="concierge:approve">
             {t("approval.approve")}
@@ -187,6 +204,19 @@ export function AssistantPart({ part, onApprove }: { part: Part; onApprove: (id:
     }
     case "get_order_status":
       return output.found === true ? <Status>{t("orderLine", { number: String(output.number), status: o(`status.${String(output.status)}`) })}</Status> : null;
+    case "hand_to_person":
+      if (output.ok === true) {
+        return (
+          <div className="border-hairline rounded-plinth flex flex-col gap-1 border p-3 text-sm" data-agent-id="concierge:handover">
+            <p className="font-medium">{t("handOver.sent", { number: String(output.number) })}</p>
+            <p className="text-slate">{t("handOver.reply", { hours: Number(output.replyWithinHours ?? 24) })}</p>
+            <SmartLink href={`/support/${String(output.ticketId)}`} className="underline underline-offset-4" data-agent-id="concierge:handover-link">
+              {t("handOver.open")}
+            </SmartLink>
+          </div>
+        );
+      }
+      return <Status>{output.reason === "needs_contact" ? t("handOver.contactForm") : t("handOver.failed")}</Status>;
     default:
       // Page actions (navigate, filters, highlight, viewers) show their caption; the Spotlight shows the action itself.
       return typeof input.caption === "string" ? <Status>{input.caption}</Status> : null;

@@ -17,6 +17,8 @@
  * interface labels every demo answer as a demo.
  */
 
+import { guessTopic } from "@/lib/support/tickets";
+
 export type DemoToolResult = { toolName: string; output: unknown; denied?: boolean };
 
 export type DemoPrompt = {
@@ -32,7 +34,7 @@ export type DemoPrompt = {
 export type DemoCall = { toolName: string; input: Record<string, unknown> };
 export type DemoStep = { kind: "tools"; calls: DemoCall[] } | { kind: "text"; text: string };
 
-type Intent = "greet" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "room" | "browse";
+type Intent = "greet" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "room" | "browse";
 
 const ORDER_NUMBER = /\bvt-[0-9a-z]{4}-[0-9a-z]{4}\b/i;
 
@@ -51,6 +53,9 @@ export function intentOf(text: string): Intent {
   const t = fold(text);
   // Not \b: in JavaScript it only sees Latin letters as word characters, so it never matches after Greek.
   if (/^(hi|hello|hey|γεια|καλησπερα|καλημερα)(?!\p{L})/u.test(t)) return "greet";
+  // Asking for a person wins over everything else in the sentence: an order
+  // number or a product named alongside it is what the person should look at.
+  if (/\b(a person|a human|human being|real person|someone at the shop|customer service|an agent)\b|ανθρωπ|υπαλληλ|εκπροσωπ/.test(t)) return "person";
   if (/\b(return|send (it|this|them) back)\b|επιστρ/.test(t) && ORDER_NUMBER.test(t)) return "return";
   if (ORDER_NUMBER.test(t)) return "order_status";
   if (/\border|παραγγελ/.test(t)) return "orders";
@@ -109,6 +114,16 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
           "Hello! I can find pieces, compare them, put a set together within a budget, add things to your cart and check on your orders. What are you looking for?",
           "Γεια! Μπορώ να βρω κομμάτια, να τα συγκρίνω, να φτιάξω ένα σετ μέσα σε έναν προϋπολογισμό, να προσθέσω στο καλάθι και να δω τις παραγγελίες σου. Τι ψάχνεις;",
         );
+      case "person": {
+        // Rules cannot summarise, so the shopper's own words are the summary, and they approve it first.
+        const words = text.trim().slice(0, 500);
+        const order = ORDER_NUMBER.exec(text)?.[0].toUpperCase();
+        return call("hand_to_person", {
+          summary: locale === "el" ? `Ζητήθηκε άνθρωπος από το κατάστημα: «${words}»` : `The shopper asked for a person: "${words}"`,
+          topic: guessTopic(text),
+          ...(order === undefined ? {} : { orderNumber: order }),
+        });
+      }
       case "cart":
         return call("navigate", { href: "/cart", caption: locale === "el" ? "Άνοιγμα του καλαθιού" : "Opening the cart" });
       case "checkout":
@@ -164,6 +179,24 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
     case "start_return": {
       const output = last.output as { ok: boolean };
       return output.ok ? say(locale, "Your return is requested. The shop will arrange the collection and your refund.", "Το αίτημα επιστροφής καταχωρίστηκε. Το κατάστημα θα κανονίσει την παραλαβή και την επιστροφή χρημάτων.") : say(locale, "That order can't be returned from here.", "Αυτή η παραγγελία δεν μπορεί να επιστραφεί από εδώ.");
+    }
+    case "hand_to_person": {
+      const output = last.output as { ok: boolean; number?: string; reason?: string };
+      if (output.ok) {
+        return say(
+          locale,
+          `I've passed this to the team as ${output.number}. A person will reply within one working day, by email and on the ticket's page.`,
+          `Το έδωσα στην ομάδα ως ${output.number}. Θα σου απαντήσει άνθρωπος μέσα σε μία εργάσιμη, με email και στη σελίδα του αιτήματος.`,
+        );
+      }
+      if (output.reason === "needs_contact") {
+        return say(
+          locale,
+          "A person needs an email to reply to, so I've opened the contact form with your message already written. Add your email there and send it.",
+          "Για να σου απαντήσει άνθρωπος χρειάζεται ένα email, οπότε άνοιξα τη φόρμα επικοινωνίας με το μήνυμά σου ήδη γραμμένο. Πρόσθεσε εκεί το email σου και στείλ' το.",
+        );
+      }
+      return say(locale, "I couldn't pass that on just now. The contact page reaches the same people.", "Δεν μπόρεσα να το προωθήσω αυτή τη στιγμή. Η σελίδα επικοινωνίας φτάνει στους ίδιους ανθρώπους.");
     }
     case "start_checkout": {
       const output = last.output as { ok: boolean };

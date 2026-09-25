@@ -13,6 +13,7 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { uuidv7 } from "uuidv7";
 
+import { createRateLimiter } from "@/lib/ai/guardrails/rate-limit";
 import { createUndoToken } from "@/lib/ai/tools/undo";
 import type { ToolServices, ToolUser } from "@/lib/ai/tools/types";
 import { createUsageStore, type Actor, type UsageStore } from "@/lib/ai/usage";
@@ -27,6 +28,7 @@ import { minutesLeft } from "@/lib/photos/photos";
 import { photoStore } from "@/lib/photos/server";
 import { searchableColours } from "@/lib/vision/palette";
 import { readPalette, snapSearch } from "@/lib/vision/snap-server";
+import { newTicketIdentity, notifyTicket, supportStore } from "@/lib/support/server";
 import { pairsWith, recommendationsForCurrentShopper } from "@/lib/reco/server";
 import { buildBundles } from "@/lib/stylist/server";
 import { serverEnv } from "@/env";
@@ -114,7 +116,27 @@ export async function conciergeCart(): Promise<{ cartId: string | null; userId: 
 }
 
 /** The services the tools run against, for this shopper and this request. */
-export async function toolServices({ locale, user, cart: held }: { locale: "en" | "el"; user: CurrentUser | null; cart?: { cartId: string | null; userId: string | null } }): Promise<ToolServices> {
+/**
+ * Hand-overs from the Concierge, per account: a person reads each one, so a
+ * handful an hour is plenty, and a loop in a model cannot fill the queue.
+ */
+const handOversPerAccount = createRateLimiter({ limit: 3, windowMs: 60 * 60 * 1000 });
+
+/** The longest conversation a hand-over carries to the desk, as an internal note. */
+const MAX_CONVERSATION = 4_000;
+
+export async function toolServices({
+  locale,
+  user,
+  cart: held,
+  conversation,
+}: {
+  locale: "en" | "el";
+  user: CurrentUser | null;
+  cart?: { cartId: string | null; userId: string | null };
+  /** The conversation so far as plain text, for a hand-over to a person (docs/adr/027). */
+  conversation?: string;
+}): Promise<ToolServices> {
   const store = await commerce();
   const reviews = await reviewsStore();
   const { country } = await currentRegion();
@@ -220,6 +242,38 @@ export async function toolServices({ locale, user, cart: held }: { locale: "en" 
         return (await priceWatches()).set({ userId: user.id, productId, targetCents, locale });
       },
       remove: async (productId) => (user === null ? false : (await priceWatches()).remove({ userId: user.id, productId })),
+    },
+    support: {
+      handOver: async ({ summary, topic, orderNumber }) => {
+        if (user === null) return { ok: false, reason: "failed" };
+        if (!handOversPerAccount(user.id)) return { ok: false, reason: "slow_down" };
+        // An order number is attached only when it is one of this person's own.
+        const order = orderNumber === undefined ? undefined : (await myOrders()).find((entry) => entry.number === orderNumber);
+        const desk = await supportStore();
+        const id = uuidv7();
+        const identity = newTicketIdentity(id);
+        const ticket = await desk.open({
+          id,
+          number: identity.number,
+          subject: null,
+          body: summary,
+          topic,
+          locale,
+          email: user.email,
+          name: user.name,
+          userId: user.id,
+          orderId: order?.id ?? null,
+          accessTokenHash: identity.accessTokenHash,
+        });
+        // The person picking it up sees how it began; the customer does not see
+        // this note, and it never goes out by email.
+        if (conversation !== undefined && conversation.trim() !== "") {
+          const note = conversation.length > MAX_CONVERSATION ? `…${conversation.slice(-MAX_CONVERSATION)}` : conversation;
+          await desk.addMessage(ticket.id, { author: "ai", body: `Handed over from the Concierge. The conversation so far:\n\n${note}`, internal: true });
+        }
+        await notifyTicket("received", { id: ticket.id, number: ticket.number, name: user.name, email: user.email, locale });
+        return { ok: true, id: ticket.id, number: ticket.number };
+      },
     },
     orders: {
       mine: myOrders,

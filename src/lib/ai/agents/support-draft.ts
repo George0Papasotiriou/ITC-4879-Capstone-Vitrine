@@ -12,7 +12,7 @@ import { generateText, type LanguageModel } from "ai";
 import { untrusted } from "@/lib/ai/guardrails/untrusted";
 import { supportInstructions, SUPPORT_PROMPT_VERSION, type DraftContext } from "@/lib/ai/prompts/support-v1";
 import type { Macro } from "@/lib/support/store";
-import { renderMacro, type TicketTopic } from "@/lib/support/tickets";
+import { renderMacro } from "@/lib/support/tickets";
 
 /**
  * A draft is a suggestion (docs/adr/021): it is stored as a message marked
@@ -93,16 +93,4 @@ export async function draftReply({
     prompt: SUPPORT_PROMPT_VERSION,
     usage: { inputTokens: result.usage.inputTokens ?? 0, outputTokens: result.usage.outputTokens ?? 0 },
   };
-}
-
-/** A topic from what the customer wrote, so a new ticket lands in the right queue without asking them. */
-export function guessTopic(text: string): TicketTopic {
-  const words = text.toLowerCase();
-  const has = (...terms: string[]) => terms.some((term) => words.includes(term));
-  if (has("refund", "return", "broken", "damaged", "επιστροφ", "σπασ", "χαλασ")) return "returns";
-  if (has("deliver", "shipping", "courier", "arrive", "παραδοσ", "αποστολ", "μεταφορ")) return "delivery";
-  if (has("charge", "payment", "card", "invoice", "vat", "πληρωμ", "χρεωσ", "τιμολογ", "φπα")) return "payment";
-  if (has("password", "sign in", "account", "two-step", "passkey", "λογαριασμ", "κωδικ", "συνδεσ")) return "account";
-  if (has("size", "dimension", "material", "colour", "color", "fabric", "διασταση", "υλικ", "χρωμα", "υφασμ")) return "product";
-  return "other";
 }

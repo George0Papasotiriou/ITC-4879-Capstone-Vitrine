@@ -19,6 +19,7 @@ import { collectPageMap } from "@/components/concierge/page-map";
 import { SpotlightProvider, useSpotlight, type Executors } from "@/components/concierge/spotlight";
 import { useRouter } from "@/i18n/navigation";
 import { parseCommands } from "@/lib/ai/ui-commands";
+import { CONTACT_DRAFT_KEY } from "@/lib/support/tickets";
 
 /**
  * Mounted once in the layout, so the conversation survives navigation: when
@@ -86,8 +87,17 @@ function ConciergeState({ children }: { children: ReactNode }) {
       for (const part of message.parts) {
         if (!isToolUIPart(part) || part.state !== "output-available" || handled.current.has(part.toolCallId)) continue;
         handled.current.add(part.toolCallId);
-        const output = part.output as { commands?: unknown; ok?: boolean; undo?: string; title?: string; quantity?: number } | null;
+        const output = part.output as { commands?: unknown; ok?: boolean; undo?: string; title?: string; quantity?: number; reason?: string; summary?: string } | null;
         const name = getToolName(part);
+        // A guest handed to a person: the summary they approved waits in the
+        // contact form, written before the page opens (docs/adr/027).
+        if (name === "hand_to_person" && output?.reason === "needs_contact" && typeof output.summary === "string") {
+          try {
+            window.sessionStorage.setItem(CONTACT_DRAFT_KEY, output.summary);
+          } catch {
+            // Without storage the form opens empty, and the dock still says what to write.
+          }
+        }
         if (output !== null && Array.isArray(output.commands) && output.commands.length > 0) {
           // show_products renders in the dock; only commands that act on the page go through the Spotlight.
           const { commands } = parseCommands(output.commands);

@@ -10,13 +10,12 @@
 import { z } from "zod";
 
 import { routing } from "@/i18n/routing";
-import { guessTopic } from "@/lib/ai/agents/support-draft";
 import { createRateLimiter } from "@/lib/ai/guardrails/rate-limit";
 import { currentUser } from "@/lib/auth/session";
 import { commerce, orderOwner } from "@/lib/commerce/server";
 import { clientAddress } from "@/lib/geo/ip-country";
 import { accessibleTicket, newTicketIdentity, notifyTicket, supportStore, ticketUrl } from "@/lib/support/server";
-import { MAX_MESSAGE_LENGTH, TICKET_TOPICS } from "@/lib/support/tickets";
+import { guessTopic, MAX_MESSAGE_LENGTH, TICKET_TOPICS } from "@/lib/support/tickets";
 import { uuidv7 } from "uuidv7";
 
 /**

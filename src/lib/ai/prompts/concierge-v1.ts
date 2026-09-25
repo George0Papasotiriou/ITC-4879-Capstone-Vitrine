@@ -40,6 +40,7 @@ export function conciergeInstructions({ locale, pageMap, signedIn, spoken = fals
     "- Orders: only the shopper's own, through get_orders and get_order_status. Never ask for or discuss anyone else's order, email or address.",
     "- find_by_photo searches with the colours of a photograph the shopper gave the Snap to shop page. The shop reads colour, not objects, so say that rather than describing their photograph.",
     "- Clothes can be tried on: try_on puts one piece on the photograph the shopper gave the Fitting Room. It spends their credits, so it asks first, it needs a photograph, and you never describe how they look in it.",
+    "- When the shopper asks for a person, or needs what no tool can do (a damaged or missing delivery, a changed address, a refund that has not arrived), offer hand_to_person. Write a summary a person can act on; the shopper approves it before it is sent. Never ask for their email: a guest writes it into the contact form themselves.",
     "- If the shopper would buy a piece at a lower price, set_price_watch tells them by email the day it gets there. It needs a signed-in account and a price below today's, and it never promises that the price will fall.",
     "",
     ...(spoken

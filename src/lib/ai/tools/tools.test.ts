@@ -169,6 +169,57 @@ describe("the Fitting Room tool", () => {
   });
 });
 
+describe("handing over to a person", () => {
+  const summary = "The lamp from VT-4JJZ-MPF9 arrived with a cracked base and they would like a replacement.";
+
+  it("asks the shopper first, like every step that acts in their name", () => {
+    expect(needsApproval(findTool("hand_to_person", "chat")!)).toBe(true);
+  });
+
+  it("opens a ticket for a signed-in shopper, with the summary they approved", async () => {
+    const calls: unknown[] = [];
+    const { ctx } = context({
+      support: {
+        handOver: async (input) => {
+          calls.push(input);
+          return { ok: true, id: "01890000-0000-7000-8000-0000000000d1", number: "VS-7K2M-Q4HD" };
+        },
+      },
+    });
+    ctx.user = { id: "u1", email: "a@b.gr", emailVerified: true, roles: ["customer"] };
+    const output = await run("hand_to_person", { summary, topic: "returns", orderNumber: "vt-4jjz-mpf9" }, ctx);
+    expect(output).toEqual({ ok: true, ticketId: "01890000-0000-7000-8000-0000000000d1", number: "VS-7K2M-Q4HD", replyWithinHours: 24 });
+    // The order number is normalised before it reaches the desk.
+    expect(calls).toEqual([{ summary, topic: "returns", orderNumber: "VT-4JJZ-MPF9" }]);
+  });
+
+  it("sends a guest to the contact form with the summary, and never asks the model for an email", async () => {
+    let handedOver = false;
+    const { ctx } = context({
+      support: {
+        handOver: async () => {
+          handedOver = true;
+          return { ok: true, id: "x", number: "VS-0000-0000" };
+        },
+      },
+    });
+    const output = await run("hand_to_person", { summary, topic: "returns" }, ctx);
+    expect(output).toMatchObject({ ok: false, reason: "needs_contact", summary });
+    expect(output.commands).toEqual([{ type: "navigate", href: "/contact", caption: "Opening the contact form" }]);
+    expect(handedOver).toBe(false);
+    // Nothing in the tool's input could carry an address to the desk.
+    expect(Object.keys((findTool("hand_to_person", "chat")!.input as unknown as { shape: Record<string, unknown> }).shape)).not.toContain("email");
+  });
+
+  it("passes on a refusal, and turns away a summary nobody could act on", async () => {
+    const { ctx } = context({ support: { handOver: async () => ({ ok: false, reason: "slow_down" }) } });
+    ctx.user = { id: "u1", email: "a@b.gr", emailVerified: true, roles: ["customer"] };
+    await expect(run("hand_to_person", { summary, topic: "other" }, ctx)).resolves.toEqual({ ok: false, reason: "slow_down" });
+    const tooShort = await runTool(findTool("hand_to_person", "chat")!, ctx, { summary: "help", topic: "other" });
+    expect(tooShort).toMatchObject({ ok: false, reason: "invalid_input" });
+  });
+});
+
 describe("registry", () => {
   it("names every tool once, in snake_case, with a description that says when not to use it", () => {
     const names = TOOLS.map((tool) => tool.name);
@@ -181,7 +232,7 @@ describe("registry", () => {
   });
 
   it("asks before sensitive and costly tools only", () => {
-    expect(TOOLS.filter(needsApproval).map((tool) => tool.name).sort()).toEqual(["start_checkout", "start_return", "try_on"]);
+    expect(TOOLS.filter(needsApproval).map((tool) => tool.name).sort()).toEqual(["hand_to_person", "start_checkout", "start_return", "try_on"]);
   });
 
   it("gives the support assistant order and policy tools, not the cart or the page", () => {

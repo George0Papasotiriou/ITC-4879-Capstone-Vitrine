@@ -26,7 +26,7 @@ import { parseArgs } from "node:util";
 import sharp from "sharp";
 
 import { CANVAS, garmentSvg, type View } from "@/lib/catalog/capsule-drawing";
-import { CAPSULE, capsuleSizes, sizeChartFor, type CapsulePiece } from "@/lib/catalog/capsule";
+import { CAPSULE, CAPSULE_COLOUR_WORDS, capsuleSizes, sizeChartFor, type CapsulePiece } from "@/lib/catalog/capsule";
 import type { ProductInput } from "@/lib/catalog/input";
 import { CAPSULE_PRODUCT_KINDS } from "@/lib/catalog/taxonomy";
 
@@ -107,8 +107,9 @@ function productFor(piece: CapsulePiece): ProductInput {
     highlightsEl: highlights(piece, "el"),
     // Written by hand in both languages, not machine translated (docs/adr/022).
     translation: "reviewed",
+    // The label is the fabric's name; the colour is the shop's word for it (E9).
     colorLabel: piece.colorLabelEn,
-    colors: [piece.color],
+    colors: [CAPSULE_COLOUR_WORDS[piece.color]],
     materials: piece.materials,
     attributes: {
       fit: piece.fitEn,

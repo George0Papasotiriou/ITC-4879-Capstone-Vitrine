@@ -11,7 +11,8 @@ import { existsSync, readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { CAPSULE, CAPSULE_COLOURS, capsuleSizes, capsuleStock, sizeChartFor, suggestSize } from "@/lib/catalog/capsule";
+import { CAPSULE, CAPSULE_COLOUR_WORDS, CAPSULE_COLOURS, capsuleSizes, capsuleStock, sizeChartFor, suggestSize } from "@/lib/catalog/capsule";
+import { COLORS } from "@/lib/search/vocabulary";
 import { garmentSvg } from "@/lib/catalog/capsule-drawing";
 import { catalogFixtureSchema } from "@/lib/catalog/input";
 import { CAPSULE_PRODUCT_KINDS, CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
@@ -30,6 +31,18 @@ describe("the capsule", () => {
       expect(piece.fabricEl.length, piece.id).toBeGreaterThan(2);
       expect(piece.careEl.length, piece.id).toBeGreaterThan(2);
       expect(piece.compareAtCents === null || piece.compareAtCents > piece.priceCents, piece.id).toBe(true);
+    }
+  });
+
+  it("files every fabric colour under a colour word the filters and search know", () => {
+    // The first import filed "ecru" and "ink" themselves, which no filter or
+    // search by photo could ever match (evaluation E9 found it).
+    for (const colour of Object.keys(CAPSULE_COLOURS) as (keyof typeof CAPSULE_COLOURS)[]) {
+      expect(Object.keys(COLORS), colour).toContain(CAPSULE_COLOUR_WORDS[colour]);
+    }
+    const fixture = JSON.parse(readFileSync("src/lib/catalog/fixtures/capsule.json", "utf8")) as { products: { colors: string[] }[] };
+    for (const product of fixture.products) {
+      for (const colour of product.colors) expect(Object.keys(COLORS)).toContain(colour);
     }
   });
 

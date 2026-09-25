@@ -7,6 +7,7 @@
  * The Wear capsule: twenty-four pieces, their sizes and size charts, and the flat-lay drawings that stand in for photography.
  */
 
+import type { ColorId } from "@/lib/search/vocabulary";
 import { CAPSULE_SIZES, stableUnit, type CapsuleSize } from "@/lib/catalog/taxonomy";
 
 /**
@@ -32,8 +33,12 @@ export type CapsulePiece = {
   kind: CapsuleKind;
   titleEn: string;
   titleEl: string;
-  /** The colour as the shop's vocabulary knows it (src/lib/search/vocabulary.ts). */
-  color: string;
+  /**
+   * The fabric's own colour (a key of CAPSULE_COLOURS: "ecru", "ink"…). What the
+   * catalogue files it under — the word the colour filter and search by photo
+   * use — is CAPSULE_COLOUR_WORDS[color].
+   */
+  color: ColourId;
   colorLabelEn: string;
   colorLabelEl: string;
   /** What it is made of, in the same vocabulary. */
@@ -50,7 +55,7 @@ export type CapsulePiece = {
 };
 
 /** The fabric colours the capsule is dyed in, as they are drawn. */
-export const CAPSULE_COLOURS: Readonly<Record<string, { fill: string; shade: string; line: string }>> = {
+export const CAPSULE_COLOURS = {
   ecru: { fill: "#eae4d9", shade: "#ded7c8", line: "#c3baa6" },
   oat: { fill: "#d8cdbb", shade: "#cabda8", line: "#ab9c83" },
   clay: { fill: "#c08a6e", shade: "#b07b60", line: "#8e5e46" },
@@ -59,9 +64,32 @@ export const CAPSULE_COLOURS: Readonly<Record<string, { fill: string; shade: str
   ink: { fill: "#2b3242", shade: "#232939", line: "#161b27" },
   sage: { fill: "#a9b5a4", shade: "#9aa795", line: "#7b8975" },
   rust: { fill: "#a2553c", shade: "#934a33", line: "#6f3624" },
-};
+} as const satisfies Readonly<Record<string, { fill: string; shade: string; line: string }>>;
 
 export type ColourId = keyof typeof CAPSULE_COLOURS;
+
+/**
+ * Each fabric colour filed under the shop's own colour word
+ * (src/lib/search/vocabulary.ts), so the colour filter, search and search by
+ * photo find the capsule like everything else. Where the vocabulary already
+ * lists the name as a synonym ("slate", "olive", "sage", "rust", "navy") that
+ * decides it; ecru and oat are cream tones, filed with beige; clay is a light
+ * terracotta, and on screen it reads orange rather than red. The fabric's own
+ * name stays the label a shopper sees ("Ecru").
+ *
+ * Found by evaluation E9: the first import filed the fabric names themselves,
+ * which no filter or search could match.
+ */
+export const CAPSULE_COLOUR_WORDS: Readonly<Record<ColourId, ColorId>> = {
+  ecru: "beige",
+  oat: "beige",
+  clay: "orange",
+  olive: "green",
+  slate: "grey",
+  ink: "blue",
+  sage: "green",
+  rust: "orange",
+};
 
 const piece = (
   id: string,

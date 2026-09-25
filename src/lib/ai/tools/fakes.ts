@@ -88,6 +88,9 @@ export function context(overrides: Partial<ToolServices> = {}, cartLines: Partia
       set: async () => ({ ok: true, watchId: "w1", created: true }),
       remove: async () => true,
     },
+    support: {
+      handOver: async () => ({ ok: true, id: "01890000-0000-7000-8000-0000000000d1", number: "VS-7K2M-Q4HD" }),
+    },
     orders: {
       mine: async () => [],
       byNumber: async () => null,

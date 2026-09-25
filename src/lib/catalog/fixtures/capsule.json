@@ -32,7 +32,7 @@
       "translation": "reviewed",
       "colorLabel": "Ecru",
       "colors": [
-        "ecru"
+        "beige"
       ],
       "materials": [
         "cotton"
@@ -128,7 +128,7 @@
       "translation": "reviewed",
       "colorLabel": "Ink",
       "colors": [
-        "ink"
+        "blue"
       ],
       "materials": [
         "cotton"
@@ -224,7 +224,7 @@
       "translation": "reviewed",
       "colorLabel": "Sage",
       "colors": [
-        "sage"
+        "green"
       ],
       "materials": [
         "linen"
@@ -320,7 +320,7 @@
       "translation": "reviewed",
       "colorLabel": "Ecru",
       "colors": [
-        "ecru"
+        "beige"
       ],
       "materials": [
         "cotton"
@@ -416,7 +416,7 @@
       "translation": "reviewed",
       "colorLabel": "Oat",
       "colors": [
-        "oat"
+        "beige"
       ],
       "materials": [
         "linen"
@@ -512,7 +512,7 @@
       "translation": "reviewed",
       "colorLabel": "Olive",
       "colors": [
-        "olive"
+        "green"
       ],
       "materials": [
         "cotton"
@@ -608,7 +608,7 @@
       "translation": "reviewed",
       "colorLabel": "Slate",
       "colors": [
-        "slate"
+        "grey"
       ],
       "materials": [
         "wool"
@@ -704,7 +704,7 @@
       "translation": "reviewed",
       "colorLabel": "Rust",
       "colors": [
-        "rust"
+        "orange"
       ],
       "materials": [
         "wool"
@@ -800,7 +800,7 @@
       "translation": "reviewed",
       "colorLabel": "Ecru",
       "colors": [
-        "ecru"
+        "beige"
       ],
       "materials": [
         "cotton"
@@ -896,7 +896,7 @@
       "translation": "reviewed",
       "colorLabel": "Ink",
       "colors": [
-        "ink"
+        "blue"
       ],
       "materials": [
         "cotton"
@@ -992,7 +992,7 @@
       "translation": "reviewed",
       "colorLabel": "Oat",
       "colors": [
-        "oat"
+        "beige"
       ],
       "materials": [
         "linen"
@@ -1088,7 +1088,7 @@
       "translation": "reviewed",
       "colorLabel": "Olive",
       "colors": [
-        "olive"
+        "green"
       ],
       "materials": [
         "cotton"
@@ -1184,7 +1184,7 @@
       "translation": "reviewed",
       "colorLabel": "Slate",
       "colors": [
-        "slate"
+        "grey"
       ],
       "materials": [
         "linen"
@@ -1280,7 +1280,7 @@
       "translation": "reviewed",
       "colorLabel": "Ecru",
       "colors": [
-        "ecru"
+        "beige"
       ],
       "materials": [
         "cotton"
@@ -1376,7 +1376,7 @@
       "translation": "reviewed",
       "colorLabel": "Clay",
       "colors": [
-        "clay"
+        "orange"
       ],
       "materials": [
         "cotton"
@@ -1472,7 +1472,7 @@
       "translation": "reviewed",
       "colorLabel": "Sage",
       "colors": [
-        "sage"
+        "green"
       ],
       "materials": [
         "linen"
@@ -1568,7 +1568,7 @@
       "translation": "reviewed",
       "colorLabel": "Oat",
       "colors": [
-        "oat"
+        "beige"
       ],
       "materials": [
         "cotton"
@@ -1664,7 +1664,7 @@
       "translation": "reviewed",
       "colorLabel": "Ink",
       "colors": [
-        "ink"
+        "blue"
       ],
       "materials": [
         "wool"
@@ -1760,7 +1760,7 @@
       "translation": "reviewed",
       "colorLabel": "Ink",
       "colors": [
-        "ink"
+        "blue"
       ],
       "materials": [
         "wool"
@@ -1856,7 +1856,7 @@
       "translation": "reviewed",
       "colorLabel": "Oat",
       "colors": [
-        "oat"
+        "beige"
       ],
       "materials": [
         "wool"
@@ -1952,7 +1952,7 @@
       "translation": "reviewed",
       "colorLabel": "Olive",
       "colors": [
-        "olive"
+        "green"
       ],
       "materials": [
         "cotton"
@@ -2048,7 +2048,7 @@
       "translation": "reviewed",
       "colorLabel": "Ecru",
       "colors": [
-        "ecru"
+        "beige"
       ],
       "materials": [
         "linen"
@@ -2144,7 +2144,7 @@
       "translation": "reviewed",
       "colorLabel": "Slate",
       "colors": [
-        "slate"
+        "grey"
       ],
       "materials": [
         "cotton"
@@ -2240,7 +2240,7 @@
       "translation": "reviewed",
       "colorLabel": "Clay",
       "colors": [
-        "clay"
+        "orange"
       ],
       "materials": [
         "cotton"

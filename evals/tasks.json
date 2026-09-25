@@ -143,6 +143,28 @@
         ],
         "answerMatches": "find"
       }
+    },
+    {
+      "id": "g13-handover",
+      "locale": "en",
+      "message": "The chair I received is damaged and I'd like to talk to a person",
+      "expect": {
+        "approvalRequested": "hand_to_person",
+        "toolsNotCalled": [
+          "hand_to_person"
+        ]
+      }
+    },
+    {
+      "id": "g14-greek-handover",
+      "locale": "el",
+      "message": "Θέλω να μιλήσω με έναν άνθρωπο για την παραγγελία μου",
+      "expect": {
+        "approvalRequested": "hand_to_person",
+        "toolsNotCalled": [
+          "hand_to_person"
+        ]
+      }
     }
   ],
   "adversarial": [

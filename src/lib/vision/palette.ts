@@ -75,6 +75,7 @@ const NEUTRALS: ReadonlySet<ColorId> = new Set(["black", "white", "grey", "silve
  */
 const NEUTRAL_CHROMA = 13;
 
+
 type Hsl = { h: number; s: number; l: number; chroma: number };
 
 /** Hue, how strong the colour is, and how light it is — the three things a person separates. */
@@ -238,37 +239,51 @@ export function palette(pixels: readonly Rgb[], { minShare = MIN_SHARE, k = CLUS
 }
 
 /**
- * A plain background, dropped.
+ * A plain background, found.
  *
- * A studio photograph — and every drawing in the capsule — is an object on a
- * plain ground, and the ground is most of the picture. Taking the palette of
- * the whole frame would answer "white", which is true and useless. So the
- * border ring is measured: when it is one colour, everything close to that
- * colour goes, and what is left is the object.
+ * A studio photograph — every catalogue shot, and every drawing in the capsule
+ * — is an object on a plain ground, and the ground is most of the picture.
+ * Taking the palette of the whole frame would answer "white", which is true
+ * and useless. So the border ring of the frame is measured.
  *
- * When the ring is not uniform (a room, a street) nothing is dropped: there is
- * no background to speak of, and the palette is the picture's own.
+ * The first version asked whether the ring was *uniform*, and a sofa that
+ * reached the edge of the frame made it look like a room: the ground stayed,
+ * and evaluation E9 read "white" for seven black products out of ten. The ring
+ * is now summarised by its per-channel **median**, which the object crossing
+ * it cannot drag, and it counts as a backdrop when most of the ring (60%) is
+ * within reach of that median. A room — wall, floor, window — has no colour
+ * that covers most of its edge, and gets no backdrop.
  */
-export function withoutBackground(pixels: readonly Rgb[], width: number, height: number, { tolerance = 40 }: { tolerance?: number } = {}): Rgb[] {
-  if (width < 8 || height < 8 || pixels.length < width * height) return [...pixels];
+export function backdropOf(pixels: readonly Rgb[], width: number, height: number, { tolerance = 40, share = 0.6 }: { tolerance?: number; share?: number } = {}): Rgb | null {
+  if (width < 8 || height < 8 || pixels.length < width * height) return null;
 
   const ring: Rgb[] = [];
-  for (let x = 0; x < width; x += 1) {
-    ring.push(pixels[x]!, pixels[(height - 1) * width + x]!);
-  }
-  for (let y = 0; y < height; y += 1) {
-    ring.push(pixels[y * width]!, pixels[y * width + width - 1]!);
-  }
+  for (let x = 0; x < width; x += 1) ring.push(pixels[x]!, pixels[(height - 1) * width + x]!);
+  for (let y = 1; y < height - 1; y += 1) ring.push(pixels[y * width]!, pixels[y * width + width - 1]!);
 
-  const mean = ring.reduce((sum, pixel) => ({ r: sum.r + pixel.r, g: sum.g + pixel.g, b: sum.b + pixel.b }), { r: 0, g: 0, b: 0 });
-  const average = { r: mean.r / ring.length, g: mean.g / ring.length, b: mean.b / ring.length };
-  const spread = Math.sqrt(ring.reduce((sum, pixel) => sum + distance(pixel, average), 0) / ring.length);
-  // A ring that varies is a room, not a backdrop.
-  if (spread > tolerance) return [...pixels];
+  const median = (channel: "r" | "g" | "b") => {
+    const values = ring.map((pixel) => pixel[channel]).sort((a, b) => a - b);
+    return values[Math.floor(values.length / 2)]!;
+  };
+  const ground = { r: median("r"), g: median("g"), b: median("b") };
+  const near = ring.filter((pixel) => Math.sqrt(distance(pixel, ground)) <= tolerance).length;
+  return near / ring.length >= share ? ground : null;
+}
 
-  const kept = pixels.filter((pixel) => Math.sqrt(distance(pixel, average)) > tolerance);
-  // If almost nothing is left, the picture really is that colour.
+/**
+ * The pixels that are not the backdrop. If almost nothing is left (under 4%),
+ * the picture really is that colour — a white cushion shot on white — and it
+ * is kept whole rather than read from a handful of shadows.
+ */
+export function withoutColour(pixels: readonly Rgb[], colour: Rgb, { tolerance = 40 }: { tolerance?: number } = {}): Rgb[] {
+  const kept = pixels.filter((pixel) => Math.sqrt(distance(pixel, colour)) > tolerance);
   return kept.length < pixels.length * 0.04 ? [...pixels] : kept;
+}
+
+/** Both steps on one frame: the backdrop found at its edge and dropped from all of it. */
+export function withoutBackground(pixels: readonly Rgb[], width: number, height: number, options: { tolerance?: number } = {}): Rgb[] {
+  const ground = backdropOf(pixels, width, height, options);
+  return ground === null ? [...pixels] : withoutColour(pixels, ground, options);
 }
 
 /**

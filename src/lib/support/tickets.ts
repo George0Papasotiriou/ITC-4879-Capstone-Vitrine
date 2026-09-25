@@ -153,3 +153,24 @@ export function satisfaction(scores: readonly number[]): { count: number; averag
   if (valid.length === 0) return { count: 0, average: null };
   return { count: valid.length, average: Math.round((valid.reduce((sum, score) => sum + score, 0) / valid.length) * 10) / 10 };
 }
+
+/** A topic from what the customer wrote, so a new ticket lands in the right queue without asking them. */
+export function guessTopic(text: string): TicketTopic {
+  // Accents off first: Greek is written with them ("παράδοση"), and the stems
+  // below are written without, so a message with accents matched nothing.
+  const words = text.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+  const has = (...terms: string[]) => terms.some((term) => words.includes(term));
+  if (has("refund", "return", "broken", "damaged", "επιστροφ", "σπασ", "χαλασ")) return "returns";
+  if (has("deliver", "shipping", "courier", "arrive", "παραδοσ", "αποστολ", "μεταφορ")) return "delivery";
+  if (has("charge", "payment", "card", "invoice", "vat", "πληρωμ", "χρεωσ", "τιμολογ", "φπα")) return "payment";
+  if (has("password", "sign in", "account", "two-step", "passkey", "λογαριασμ", "κωδικ", "συνδεσ")) return "account";
+  if (has("size", "dimension", "material", "colour", "color", "fabric", "διασταση", "υλικ", "χρωμα", "υφασμ")) return "product";
+  return "other";
+}
+
+/**
+ * Where the Concierge leaves a guest's approved summary for the contact form
+ * (docs/adr/027). Session storage, in this tab only: the summary never travels
+ * in a URL, and the guest's email is typed into the form, never into a chat.
+ */
+export const CONTACT_DRAFT_KEY = "vitrine:contact-draft";

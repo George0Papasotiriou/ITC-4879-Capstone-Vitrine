@@ -10,7 +10,7 @@
 import { runSearch } from "@/lib/catalog/server";
 import { storage } from "@/lib/storage";
 import { colorLabel } from "@/lib/search/vocabulary";
-import { palette, pixelsFrom, searchableColours, withoutBackground, type PaletteEntry } from "@/lib/vision/palette";
+import { backdropOf, palette, pixelsFrom, searchableColours, withoutColour, type PaletteEntry } from "@/lib/vision/palette";
 
 /**
  * The photograph is read where it lives, in the shop's own storage: nothing is
@@ -35,9 +35,13 @@ export async function paletteOfImage(bytes: Buffer): Promise<PaletteEntry[] | nu
     // Small enough to be quick, large enough to keep the picture's colours.
     const small = await sharp(bytes).resize(200, 200, { fit: "inside" }).toBuffer({ resolveWithObject: true });
 
-    // The middle of the picture, not its edges: a shopper photographs the thing
-    // they mean, and a studio shot or a plain wall fills the border with a
-    // colour that is not what they are asking about.
+    // The backdrop is judged from the whole frame's edge, where a studio shot
+    // is almost all ground even when the piece reaches across it.
+    const whole = await sharp(small.data).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const ground = backdropOf(pixelsFrom(whole.data, whole.info.channels, 1), whole.info.width, whole.info.height);
+
+    // Then the middle of the picture, not its edges: a shopper photographs the
+    // thing they mean, and the border is wall, table or backdrop.
     const inset = 0.15;
     const width = Math.max(1, Math.round(small.info.width * (1 - inset * 2)));
     const height = Math.max(1, Math.round(small.info.height * (1 - inset * 2)));
@@ -48,7 +52,7 @@ export async function paletteOfImage(bytes: Buffer): Promise<PaletteEntry[] | nu
       .toBuffer({ resolveWithObject: true });
     // The plain ground of a studio shot is dropped before the colours are counted.
     const pixels = pixelsFrom(data, info.channels, 1);
-    return palette(withoutBackground(pixels, info.width, info.height));
+    return palette(ground === null ? pixels : withoutColour(pixels, ground));
   } catch {
     return null;
   }

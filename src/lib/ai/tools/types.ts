@@ -17,6 +17,7 @@ import type { RatingSummary } from "@/lib/commerce/reviews";
 import type { SetWatchResult } from "@/lib/commerce/price-watch-store";
 import type { PublicReview } from "@/lib/commerce/review-store";
 import type { StylistRequest, StylistResult } from "@/lib/stylist/stylist";
+import type { TicketTopic } from "@/lib/support/tickets";
 
 /**
  * One tool registry (CLAUDE.md rule 4, docs/PLAN.md 2.5). Chat, voice, the
@@ -77,6 +78,14 @@ export type ToolServices = {
     get(productId: string): Promise<{ targetCents: number } | null>;
     set(productId: string, targetCents: number): Promise<SetWatchResult>;
     remove(productId: string): Promise<boolean>;
+  };
+  /** The support desk (docs/adr/021, 027): a person takes over from the Concierge. */
+  support: {
+    /**
+     * Opens a ticket for the signed-in shopper with the summary they approved,
+     * and hands the staff the conversation as an internal note.
+     */
+    handOver(input: { summary: string; topic: TicketTopic; orderNumber?: string }): Promise<{ ok: true; id: string; number: string } | { ok: false; reason: "slow_down" | "failed" }>;
   };
   orders: {
     /** The signed-in shopper's orders, or the guest's most recent one. */

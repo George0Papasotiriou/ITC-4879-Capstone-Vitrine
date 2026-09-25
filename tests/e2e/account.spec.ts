@@ -129,7 +129,10 @@ test("resets a forgotten password by the emailed link", async ({ browser }) => {
   await page.goto(await linkFromOutbox(page, email, "reset_password"));
   await expect(page).toHaveURL(/\/en\/account\/reset-password\?token=/);
   await fillAndSubmit(page, { "auth:new-password": "a brand new passphrase" }, "action:save-password");
-  await expect(page.getByText("Your password is changed and every device is signed out.")).toBeVisible();
+  // Hashing the new password (scrypt) and signing out every device is the
+  // slowest request in the shop; under a full parallel run it outlasted the
+  // default 5 s once, with the button still saying "Saving…".
+  await expect(page.getByText("Your password is changed and every device is signed out.")).toBeVisible({ timeout: 15_000 });
 
   await signIn(page, email, PASSWORD);
   await expect(page.locator('[data-agent-id="form:error"]')).toContainText("do not match an account");

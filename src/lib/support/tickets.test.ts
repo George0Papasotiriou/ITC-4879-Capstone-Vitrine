@@ -14,6 +14,7 @@ import {
   cleanMessage,
   csatScore,
   firstReplyDueAt,
+  guessTopic,
   nextStatus,
   queueOrder,
   renderMacro,
@@ -125,5 +126,18 @@ describe("satisfaction", () => {
   it("averages to one decimal, and says nothing when nobody answered", () => {
     expect(satisfaction([5, 4, 4])).toEqual({ count: 3, average: 4.3 });
     expect(satisfaction([])).toEqual({ count: 0, average: null });
+  });
+});
+
+describe("guessing the queue", () => {
+  it("files a message by what it is about, in English and Greek", () => {
+    expect(guessTopic("The table arrived broken")).toBe("returns");
+    // Written as a Greek customer writes it, with accents.
+    expect(guessTopic("Πότε θα γίνει η παράδοση;")).toBe("delivery");
+    expect(guessTopic("Ήρθε σπασμένο, θέλω επιστροφή χρημάτων")).toBe("returns");
+    expect(guessTopic("I was charged twice on my card")).toBe("payment");
+    expect(guessTopic("I can't sign in to my account")).toBe("account");
+    expect(guessTopic("What are the dimensions of the sofa?")).toBe("product");
+    expect(guessTopic("Hello there")).toBe("other");
   });
 });

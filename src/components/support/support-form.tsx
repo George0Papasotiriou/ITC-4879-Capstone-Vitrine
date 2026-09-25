@@ -10,20 +10,30 @@
  */
 
 import { useLocale, useTranslations } from "next-intl";
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 
 import type { SupportResponse } from "@/app/api/support/route";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { useHydrated } from "@/components/ui/use-hydrated";
 import { useRouter } from "@/i18n/navigation";
-import { MAX_MESSAGE_LENGTH } from "@/lib/support/tickets";
+import { CONTACT_DRAFT_KEY, MAX_MESSAGE_LENGTH } from "@/lib/support/tickets";
 
 /**
  * One form for everyone (docs/adr/021). A signed-in customer writes as
  * themselves and the shop fills in their name and address; a guest gives both,
  * and the answer arrives by email with a private link to the conversation.
  */
+/** What the Concierge left for this form, if anything (docs/adr/027). */
+function conciergeDraft(): string | null {
+  try {
+    const draft = window.sessionStorage.getItem(CONTACT_DRAFT_KEY)?.trim() ?? "";
+    return draft === "" ? null : draft.slice(0, MAX_MESSAGE_LENGTH);
+  } catch {
+    return null;
+  }
+}
+
 export function SupportForm({ signedIn, name, email }: { signedIn: boolean; name: string | null; email: string | null }) {
   const t = useTranslations("support.form");
   const locale = useLocale();
@@ -31,6 +41,9 @@ export function SupportForm({ signedIn, name, email }: { signedIn: boolean; name
   const hydrated = useHydrated();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Read once the page is live: the server has no session storage, and the
+  // first render must match what it sent.
+  const draft = useMemo(() => (hydrated ? conciergeDraft() : null), [hydrated]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,6 +77,11 @@ export function SupportForm({ signedIn, name, email }: { signedIn: boolean; name
       return;
     }
     setError(null);
+    try {
+      window.sessionStorage.removeItem(CONTACT_DRAFT_KEY);
+    } catch {
+      // Nothing to forget where storage is not allowed.
+    }
     // The ticket page is where the conversation continues; a guest reaches it
     // through the link in their email, and through this one now. The router is
     // next-intl's, so the path carries no locale: it adds the one in use.
@@ -90,7 +108,15 @@ export function SupportForm({ signedIn, name, email }: { signedIn: boolean; name
         <label htmlFor="support-body" className="text-sm font-medium">
           {t("message")}
         </label>
+        {draft === null ? null : (
+          <p className="text-slate text-sm" data-agent-id="support:from-concierge">
+            {t("fromConcierge")}
+          </p>
+        )}
+        {/* Keyed on the draft, so the summary appears once the page is live and the field is still the shopper's to edit. */}
         <textarea
+          key={draft === null ? "empty" : "draft"}
+          defaultValue={draft ?? undefined}
           id="support-body"
           name="body"
           required
