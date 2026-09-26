@@ -77,7 +77,7 @@ export function Field({
       ) : null}
 
       {error !== undefined ? (
-        <p id={errorId} className="text-danger text-sm">
+        <p id={errorId} className="text-danger animate-rise text-sm">
           {error}
         </p>
       ) : null}

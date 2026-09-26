@@ -24,6 +24,11 @@ import { costMicros, eurToMicros, type AiFeature, type ModelEntry, type Usage } 
  * Allowances are taken in one statement that only increments while still under
  * the cap, so two requests arriving together cannot both take the last turn.
  * Credits reserved for a job that then fails are given back (`releaseCredits`).
+ *
+ * Most calls are recorded after they happen. A realtime voice session cannot
+ * be: the browser holds the socket and the shop never sees the audio, so the
+ * whole session is reserved when it starts (`record` with an id) and settled
+ * down to what it used when it ends (`settle`), never up (docs/adr/030).
  */
 
 type Sql = postgres.Sql;
@@ -83,13 +88,17 @@ export function createUsageStore(sql: Sql, options: UsageStoreOptions) {
     return Number(row?.spent ?? 0);
   }
 
-  /** Whether AI may run at all right now: mode, kill switch, budget. */
-  async function open(now = new Date()): Promise<GateResult> {
+  /**
+   * Whether AI may run at all right now: mode, kill switch, budget. `paid`
+   * marks a call that reaches a paid provider whatever the text mode — a voice
+   * key beside a demo Concierge — so the budget guards it even in demo mode.
+   */
+  async function open(now = new Date(), { paid = false }: { paid?: boolean } = {}): Promise<GateResult> {
     if (options.mode === "off") return { ok: false, reason: "off" };
     const current = await settings();
     if (current.killSwitch) return { ok: false, reason: "kill_switch" };
     // Demo mode costs nothing, so the budget only guards real providers.
-    if (options.mode !== "demo" && (await spentToday(now)) >= current.dailyBudgetMicros) return { ok: false, reason: "budget" };
+    if ((options.mode !== "demo" || paid) && (await spentToday(now)) >= current.dailyBudgetMicros) return { ok: false, reason: "budget" };
     return { ok: true };
   }
 
@@ -108,11 +117,14 @@ export function createUsageStore(sql: Sql, options: UsageStoreOptions) {
     return taken.length === 0 ? { ok: false, reason: "turns" } : { ok: true };
   }
 
-  /** Reserves credits for a costly action; release them if the action fails. */
-  async function reserveCredits(actor: Actor, action: CostlyAction, now = new Date()): Promise<GateResult> {
-    const gate = await open(now);
+  /**
+   * Reserves credits for a costly action, `times` over (a voice session
+   * reserves one per minute); release them if the action fails.
+   */
+  async function reserveCredits(actor: Actor, action: CostlyAction, now = new Date(), times = 1): Promise<GateResult> {
+    const gate = await open(now, { paid: action === "voice_minute" });
     if (!gate.ok) return gate;
-    const amount = CREDIT_COSTS[action];
+    const amount = CREDIT_COSTS[action] * Math.max(1, Math.floor(times));
     const cap = DAILY_CAPS[actor.kind].credits;
     if (amount > cap) return { ok: false, reason: "credits" };
     const taken = await sql`
@@ -125,10 +137,12 @@ export function createUsageStore(sql: Sql, options: UsageStoreOptions) {
     return taken.length === 0 ? { ok: false, reason: "credits" } : { ok: true };
   }
 
-  /** Gives back credits reserved on `day` for an action that did not happen. */
-  async function releaseCredits(actor: Actor, action: CostlyAction, day: string): Promise<void> {
+  /** Gives back credits reserved on `day` for an action that did not happen, `times` over. */
+  async function releaseCredits(actor: Actor, action: CostlyAction, day: string, times = 1): Promise<void> {
+    const amount = CREDIT_COSTS[action] * Math.max(0, Math.floor(times));
+    if (amount === 0) return;
     await sql`
-      UPDATE ai_allowances SET credits = GREATEST(credits - ${CREDIT_COSTS[action]}, 0), updated_at = now()
+      UPDATE ai_allowances SET credits = GREATEST(credits - ${amount}, 0), updated_at = now()
       WHERE actor_key = ${actor.key} AND day = ${day}
     `;
   }
@@ -142,17 +156,37 @@ export function createUsageStore(sql: Sql, options: UsageStoreOptions) {
     return { turns: Math.max(0, caps.turns - (row?.turns ?? 0)), credits: Math.max(0, caps.credits - (row?.credits ?? 0)) };
   }
 
-  /** Records one call. In demo mode the provider is "demo" and nothing is charged. */
-  async function record(entry: { feature: AiFeature; model: ModelEntry; surface: string; actorKey: string | null; usage: Usage; now?: Date }): Promise<number | null> {
-    const demo = options.mode === "demo";
+  /**
+   * Records one call. In demo mode the provider is "demo" and nothing is
+   * charged, unless the call is `paid`: it reached a real provider anyway. An
+   * `id` lets the caller settle the row later.
+   */
+  async function record(entry: { feature: AiFeature; model: ModelEntry; surface: string; actorKey: string | null; usage: Usage; now?: Date; paid?: boolean; id?: string }): Promise<number | null> {
+    const demo = options.mode === "demo" && entry.paid !== true;
     const cost = demo ? 0 : costMicros(entry.model.pricing, entry.usage);
     await sql`
       INSERT INTO ai_usage (id, occurred_at, feature, provider, model, surface, actor_key, input_tokens, output_tokens, units, cost_micros)
-      VALUES (${uuidv7()}, ${(entry.now ?? new Date()).toISOString()}::timestamptz, ${entry.feature}, ${demo ? "demo" : entry.model.provider},
+      VALUES (${entry.id ?? uuidv7()},${(entry.now ?? new Date()).toISOString()}::timestamptz, ${entry.feature}, ${demo ? "demo" : entry.model.provider},
               ${entry.model.id}, ${entry.surface}, ${entry.actorKey}, ${Math.max(0, Math.round(entry.usage.inputTokens ?? 0))},
               ${Math.max(0, Math.round(entry.usage.outputTokens ?? 0))}, ${Math.max(0, entry.usage.units ?? 0)}, ${cost})
     `;
     return cost;
+  }
+
+  /**
+   * Lowers a reserved row to what was really used: fewer units, and the cost
+   * of those units. Only ever down — a settlement that would raise the charge
+   * leaves the reservation as it was — and only on the actor's own row.
+   */
+  async function settle(entry: { id: string; actorKey: string; model: ModelEntry; usage: Usage }): Promise<boolean> {
+    const units = Math.max(0, entry.usage.units ?? 0);
+    const cost = costMicros(entry.model.pricing, { ...entry.usage, units }) ?? 0;
+    const settled = await sql`
+      UPDATE ai_usage SET units = ${units}, cost_micros = CASE WHEN cost_micros IS NULL THEN NULL ELSE LEAST(cost_micros, ${cost}) END
+      WHERE id = ${entry.id} AND actor_key = ${entry.actorKey} AND units > ${units}
+      RETURNING id
+    `;
+    return settled.length > 0;
   }
 
   /** Sets the kill switch or the budget for everyone; the caller audits it. */
@@ -163,7 +197,7 @@ export function createUsageStore(sql: Sql, options: UsageStoreOptions) {
     `;
   }
 
-  return { mode: options.mode, settings, spentToday, open, takeTurn, reserveCredits, releaseCredits, remaining, record, setSetting };
+  return { mode: options.mode, settings, spentToday, open, takeTurn, reserveCredits, releaseCredits, remaining, record, settle, setSetting };
 }
 
 export type UsageStore = ReturnType<typeof createUsageStore>;

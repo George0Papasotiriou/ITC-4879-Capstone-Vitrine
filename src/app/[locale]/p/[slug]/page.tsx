@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { AddToCart } from "@/components/commerce/add-to-cart";
+import { ListenButton } from "@/components/comfort/listen-button";
 import { RegionNote } from "@/components/commerce/region-control";
 import { currentRegion } from "@/lib/commerce/region";
 import { PriceWatch } from "@/components/commerce/price-watch";
@@ -38,6 +39,8 @@ import { currentUser } from "@/lib/auth/session";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
 import { sizeChartFor } from "@/lib/catalog/capsule";
 import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
+import { preferredSize, roomFits } from "@/lib/prefs/preferences";
+import { currentPreferences } from "@/lib/prefs/server";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
@@ -138,6 +141,11 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
     .map((variant) => ({ variantId: variant.id, size: variant.size!, stock: variant.stock }));
   const sizeChart = sizes.length > 0 ? sizeChartFor(product.kind) : null;
 
+  // What the shopper has told the shop (docs/adr/033): their size for this kind of garment, and their rooms.
+  const { preferences } = await currentPreferences();
+  const yourSize = sizes.length > 0 ? preferredSize(preferences, product.kind) : null;
+  const fits = roomFits(product.dimsCm, preferences.rooms);
+
   const imageLabels = product.media.map((_, index) => t("showImage", { index: index + 1, count: product.media.length }));
   // English copy on a Greek page is marked as English, for screen readers and translation tools.
   const copyLang = product.translated ? undefined : "en";
@@ -197,7 +205,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             <Rating value={product.ratingCount === 0 ? 0 : product.ratingSum / product.ratingCount} count={product.ratingCount} locale={locale} />
           </div>
 
-          {sizes.length === 0 ? null : <SizePicker productId={product.id} sizes={sizes} agentId={`action:add-to-cart:${product.id}`} />}
+          {sizes.length === 0 ? null : <SizePicker productId={product.id} sizes={sizes} preferred={yourSize ?? undefined} agentId={`action:add-to-cart:${product.id}`} />}
 
           <div className="mt-8 flex flex-col gap-3">
             {sizes.length > 0 ? null : <AddToCart productId={product.id} inStock={product.inStock} agentId={`action:add-to-cart:${product.id}`} />}
@@ -236,8 +244,12 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
 
           {product.highlights.length > 0 ? (
             <section className="mt-8">
-              <h2 className="text-sm font-medium">{t("highlights")}</h2>
-              <ul className="text-slate mt-3 flex list-disc flex-col gap-2 pl-5 text-sm" lang={copyLang}>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-sm font-medium">{t("highlights")}</h2>
+                {/* Read aloud: the highlights, then the description (docs/adr/032). */}
+                <ListenButton targets={["product-highlights", "product-description"]} />
+              </div>
+              <ul id="product-highlights" className="text-slate mt-3 flex list-disc flex-col gap-2 pl-5 text-sm" lang={copyLang}>
                 {product.highlights.map((highlight) => (
                   <li key={highlight}>{highlight}</li>
                 ))}
@@ -295,11 +307,21 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                   </div>
                 ))}
               </dl>
+              {/* Against the rooms the shopper told the shop about, with room to walk past (docs/adr/033). */}
+              {fits.length === 0 ? null : (
+                <ul className="mt-3 flex flex-col gap-1 text-sm" data-agent-id="product:room-fit">
+                  {fits.map((fit) => (
+                    <li key={fit.room} className={fit.fits ? "text-success" : "text-slate"}>
+                      {fit.fits ? t("fits.yes", { room: fit.room, wall: fit.wallCm, spare: fit.spareCm }) : t("fits.no", { room: fit.room, wall: fit.wallCm })}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           ) : null}
 
           {product.description === null ? null : (
-            <p className="text-slate mt-8 max-w-[60ch] text-sm leading-relaxed whitespace-pre-line" lang={copyLang}>
+            <p id="product-description" className="text-slate mt-8 max-w-[60ch] text-sm leading-relaxed whitespace-pre-line" lang={copyLang}>
               {product.description}
             </p>
           )}

@@ -861,6 +861,54 @@ export const aiAllowances = pgTable(
 );
 
 /**
+ * One realtime voice session (docs/adr/030). The browser talks to the provider
+ * directly, so the shop reserves the whole session when it starts — credits
+ * and a cost row in ai_usage — lets the browser open its socket once
+ * (`minted_at`), and settles both down to the time between that and the end
+ * (`used_seconds`), measured on the server. A session nobody ends stays
+ * charged in full.
+ */
+export const voiceSessions = pgTable(
+  "voice_sessions",
+  {
+    id: id(),
+    actorKey: text("actor_key").notNull(),
+    provider: text("provider").notNull(),
+    model: text("model").notNull(),
+    locale: text("locale").notNull(),
+    /** The UTC day the credits were taken from, so they can be given back. */
+    day: date("day", { mode: "string" }).notNull(),
+    reservedMinutes: integer("reserved_minutes").notNull(),
+    /** The ai_usage row holding the reserved cost. */
+    usageId: uuid("usage_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    mintedAt: timestamp("minted_at", { withTimezone: true }),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    usedSeconds: integer("used_seconds"),
+  },
+  (t) => [
+    index("voice_sessions_actor_idx").on(t.actorKey, t.createdAt),
+    check("voice_sessions_minutes_positive", sql`${t.reservedMinutes} > 0 AND (${t.usedSeconds} IS NULL OR ${t.usedSeconds} >= 0)`),
+  ],
+);
+
+/**
+ * What a signed-in shopper has told the shop about themselves (docs/adr/033):
+ * sizes, rooms, likes and a budget, as one document checked by
+ * `preferencesSchema` whenever it is read or written, and their reading and
+ * comfort settings (docs/adr/032) in the same compact form as the cookie. One
+ * row per person; deleting the account deletes it.
+ */
+export const userPreferences = pgTable("user_preferences", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  data: jsonb("data").notNull().default({}),
+  comfort: text("comfort").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * A shopper waiting for a price to fall (docs/PLAN.md Phase 11 step 5). One
  * watch per person per product; the nightly job emails them when the shop's
  * price for their country reaches the target, and then rests that watch.

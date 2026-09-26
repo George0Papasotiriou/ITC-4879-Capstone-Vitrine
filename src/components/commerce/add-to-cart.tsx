@@ -10,9 +10,9 @@
  */
 
 import { useLocale, useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
-import { changeCart, type CartSummary } from "@/components/commerce/cart-client";
+import { announceCart, changeCart, type CartSummary } from "@/components/commerce/cart-client";
 import { ProductImage } from "@/components/commerce/product-image";
 import { sessionId } from "@/components/reco/track-interest";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { DialogRoot, SheetContent } from "@/components/ui/dialog";
 import { useHydrated } from "@/components/ui/use-hydrated";
 import { useToast } from "@/components/ui/toast";
 import { formatMoney, money } from "@/lib/commerce/money";
+import { flyToCart } from "@/lib/ui/fly-to-cart";
 
 /**
  * "Add to cart" on a product page, and the mini cart it opens (docs/PLAN.md
@@ -30,6 +31,11 @@ import { formatMoney, money } from "@/lib/commerce/money";
  * so the shopper sees the real subtotal and what is left for free shipping
  * without leaving the page. Focus moves into the sheet and returns to the
  * button when it closes (Radix Dialog).
+ *
+ * Before the sheet, the piece's photograph flies to the cart and the count
+ * ticks as it lands (docs/adr/031); the button says "Added to cart" with a
+ * drawn tick for a moment. The flight starts only once the server has said
+ * yes, so nothing ever flies into a cart it did not reach.
  */
 export function AddToCart({
   productId,
@@ -37,6 +43,7 @@ export function AddToCart({
   inStock,
   label,
   agentId,
+  flightSource,
 }: {
   productId: string;
   /** A chosen size; without one the server picks the product's only variant. */
@@ -45,6 +52,8 @@ export function AddToCart({
   /** Replaces "Add to cart" when the shopper has something to do first, such as choosing a size. */
   label?: string;
   agentId: string;
+  /** A selector for the photograph that flies to the cart; the product page's hero by default. */
+  flightSource?: string;
 }) {
   const t = useTranslations("cart");
   const tp = useTranslations("product");
@@ -56,11 +65,17 @@ export function AddToCart({
   const [cart, setCart] = useState<CartSummary | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [added, setAdded] = useState(0);
+  useEffect(() => {
+    if (added === 0) return;
+    const settle = window.setTimeout(() => setAdded(0), 1_600);
+    return () => window.clearTimeout(settle);
+  }, [added]);
 
   const add = () => {
     if (!inStock || pending) return;
     startTransition(async () => {
-      const result = await changeCart({ action: "add", ...(variantId === undefined ? { productId } : { variantId }), quantity: 1, locale, sessionId: sessionId() });
+      const result = await changeCart({ action: "add", ...(variantId === undefined ? { productId } : { variantId }), quantity: 1, locale, sessionId: sessionId() }, { announce: false });
       if (!result.ok) {
         const message = result.reason === "out_of_stock" ? t("outOfStock") : result.reason === "not_found" ? t("notFound") : result.reason === "cart_full" ? t("cartFull") : t("failed");
         toast({ title: message, tone: "danger" });
@@ -68,7 +83,13 @@ export function AddToCart({
       }
       setCart(result.cart);
       setNote(result.limitedTo === null ? null : t("addedLimited", { count: result.limitedTo }));
-      setOpen(true);
+      setAdded((value) => value + 1);
+      // Outside the transition, so the button is not held "pending" while the piece flies.
+      const cartNow = result.cart;
+      void flyToCart(document.querySelector(flightSource ?? '[data-flight-source="product-hero"]')).then(() => {
+        announceCart(cartNow);
+        setOpen(true);
+      });
     });
   };
 
@@ -77,7 +98,16 @@ export function AddToCart({
   return (
     <>
       <Button data-agent-id={agentId} disabled={!hydrated} aria-disabled={!inStock || pending || undefined} onClick={add}>
-        {label ?? (inStock ? tp("addToCart") : tp("outOfStock"))}
+        {added > 0 ? (
+          <span key={added} className="animate-rise inline-flex items-center gap-2" data-agent-id={`${agentId}:added`}>
+            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="m5 12 5 5 9-10" pathLength={24} strokeLinecap="round" strokeLinejoin="round" className="animate-draw" />
+            </svg>
+            {tp("added")}
+          </span>
+        ) : (
+          (label ?? (inStock ? tp("addToCart") : tp("outOfStock")))
+        )}
       </Button>
 
       <DialogRoot open={open} onOpenChange={setOpen}>

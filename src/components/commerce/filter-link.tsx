@@ -45,9 +45,11 @@ export function FilterLink({
       href={href}
       aria-current={current ? "page" : undefined}
       scroll={false}
+      // The grid rearranges itself rather than being replaced (docs/adr/031).
+      transitionTypes={["listing"]}
       className={cn(
         "inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm no-underline",
-        "transition-colors duration-quick ease-standard",
+        "press",
         selected
           ? "bg-dusk text-glass"
           : "border-hairline text-dusk hover:border-dusk/35 hover:bg-dusk/[0.04] border",

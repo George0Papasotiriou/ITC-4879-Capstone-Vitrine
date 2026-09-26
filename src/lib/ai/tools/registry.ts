@@ -12,7 +12,8 @@ import { addToCart, removeFromCart, updateCartItem } from "@/lib/ai/tools/cart";
 import { buildBundle, compareProducts, findByPhoto, getProducts, recommend, searchProducts, summarizeReviews } from "@/lib/ai/tools/catalog";
 import { handToPerson } from "@/lib/ai/tools/support";
 import { APPROVAL_SCOPES, type Surface, type ToolContext, type VitrineTool } from "@/lib/ai/tools/types";
-import { highlight, navigate, openViewer, setFilters, showProducts } from "@/lib/ai/tools/ui";
+import { getPreferences, rememberPreference } from "@/lib/ai/tools/preferences";
+import { highlight, navigate, adjustComfort, openViewer, setFilters, showProducts } from "@/lib/ai/tools/ui";
 
 /**
  * Every surface reads this list (CLAUDE.md rule 4). Adding a capability means
@@ -36,6 +37,9 @@ export const TOOLS: readonly VitrineTool<unknown, unknown>[] = [
   highlight,
   showProducts,
   openViewer,
+  adjustComfort,
+  getPreferences,
+  rememberPreference,
   addToCart,
   updateCartItem,
   removeFromCart,

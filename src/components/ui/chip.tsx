@@ -47,7 +47,7 @@ export function Chip({
       onClick={onToggle}
       className={cn(
         "inline-flex h-9 cursor-pointer items-center gap-2 rounded-full px-4 text-sm",
-        "transition-colors duration-quick ease-standard",
+        "press",
         "disabled:cursor-not-allowed disabled:opacity-40",
         selected
           ? "bg-dusk text-glass"

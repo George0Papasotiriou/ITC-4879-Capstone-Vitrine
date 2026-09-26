@@ -14,6 +14,7 @@ import { uuidv7 } from "uuidv7";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import * as schema from "@/lib/db/schema";
+import { answerInputSchema } from "@/lib/support/answers";
 import { DEFAULT_MACROS } from "@/lib/support/macros";
 import { createSupportStore, type NewTicket } from "@/lib/support/store";
 import { FIRST_REPLY_HOURS, REOPEN_WINDOW_DAYS } from "@/lib/support/tickets";
@@ -211,13 +212,87 @@ describe.skipIf(url === undefined || url === "")("the support desk", () => {
   });
 
   it("writes the ready answers, and brings them up to date on the next deploy", async () => {
-    expect(await desk.seedMacros(DEFAULT_MACROS)).toBe(DEFAULT_MACROS.length);
-    expect(await desk.seedMacros(DEFAULT_MACROS)).toBe(0);
+    expect(await desk.seedMacros(DEFAULT_MACROS)).toEqual({ added: DEFAULT_MACROS.length, kept: 0 });
+    expect(await desk.seedMacros(DEFAULT_MACROS)).toEqual({ added: 0, kept: 0 });
     expect(await desk.macros()).toHaveLength(DEFAULT_MACROS.length);
 
     await connection`UPDATE support_macros SET body_en = 'stale' WHERE key = 'damaged'`;
     await desk.seedMacros(DEFAULT_MACROS);
     const damaged = (await desk.macros("returns")).find((macro) => macro.key === "damaged");
     expect(damaged!.bodyEn).toBe(DEFAULT_MACROS.find((macro) => macro.key === "damaged")!.bodyEn);
+  });
+
+  describe("ready answers the desk edits (docs/adr/029)", () => {
+    const agent = { userId: null as unknown as string, email: "agent@example.com" };
+    const answer = (overrides: Partial<Record<string, unknown>> = {}) =>
+      answerInputSchema.parse({
+        topic: "delivery",
+        titleEn: "Saturday delivery",
+        titleEl: "Παράδοση το Σάββατο",
+        bodyEn: "Hello {name},\n\nThe carrier can come on Saturday morning.",
+        bodyEl: "Γεια σου {name},\n\nΗ μεταφορική μπορεί να έρθει το Σάββατο το πρωί.",
+        sort: 70,
+        ...overrides,
+      });
+
+    beforeEach(async () => {
+      await connection`DELETE FROM support_macros`;
+      await connection`DELETE FROM audit_log WHERE entity_type = 'macro'`;
+      await desk.seedMacros(DEFAULT_MACROS);
+      const [person] = await connection<{ id: string }[]>`
+        INSERT INTO users (id, name, email, email_verified, role) VALUES (${uuidv7()}, 'Agent', ${`agent.${Date.now()}@example.com`}, true, 'support') RETURNING id
+      `;
+      agent.userId = person!.id;
+    });
+
+    it("keeps an edit through the next deploy, and says so", async () => {
+      const damaged = (await desk.macros()).find((macro) => macro.key === "damaged")!;
+      const saved = await desk.saveMacro(damaged.id, answer({ topic: damaged.topic, titleEn: damaged.titleEn, titleEl: damaged.titleEl, bodyEn: "Hello {name},\n\nWe are sorry: send us two photographs and we will arrange it.", bodyEl: damaged.bodyEl, sort: damaged.sort }), agent);
+      expect(saved).toMatchObject({ ok: true, changed: ["bodyEn"] });
+
+      expect(await desk.seedMacros(DEFAULT_MACROS)).toEqual({ added: 0, kept: 1 });
+      const after = await desk.macroById(damaged.id);
+      expect(after!.bodyEn).toContain("two photographs");
+      expect(after!.staffEditedAt).not.toBeNull();
+
+      const [entry] = await connection<{ action: string; actor_email: string }[]>`SELECT action, actor_email FROM audit_log WHERE entity_type = 'macro' AND entity_id = ${damaged.id}`;
+      expect(entry).toMatchObject({ action: "macro.update", actor_email: "agent@example.com" });
+    });
+
+    it("writes nothing for an edit that changes nothing", async () => {
+      const first = (await desk.macros())[0]!;
+      const saved = await desk.saveMacro(first.id, answer({ topic: first.topic, titleEn: first.titleEn, titleEl: first.titleEl, bodyEn: first.bodyEn, bodyEl: first.bodyEl, sort: first.sort }), agent);
+      expect(saved).toMatchObject({ ok: true, changed: [] });
+      expect((await desk.macroById(first.id))!.staffEditedAt).toBeNull();
+      expect(await connection`SELECT id FROM audit_log WHERE entity_type = 'macro'`).toHaveLength(0);
+    });
+
+    it("restores the shop's words, and the deploy keeps them in step again", async () => {
+      const damaged = (await desk.macros()).find((macro) => macro.key === "damaged")!;
+      await desk.saveMacro(damaged.id, answer({ topic: damaged.topic, titleEn: "Changed title", titleEl: damaged.titleEl, bodyEn: damaged.bodyEn, bodyEl: damaged.bodyEl, sort: damaged.sort }), agent);
+      expect(await desk.restoreMacro(damaged.id, DEFAULT_MACROS, agent)).toEqual({ ok: true });
+      const restored = await desk.macroById(damaged.id);
+      expect(restored!.titleEn).toBe(damaged.titleEn);
+      expect(restored!.staffEditedAt).toBeNull();
+      expect(await desk.seedMacros(DEFAULT_MACROS)).toEqual({ added: 0, kept: 0 });
+    });
+
+    it("adds new answers under keys of their own, and removes only those", async () => {
+      const first = await desk.saveMacro(null, answer(), agent);
+      const second = await desk.saveMacro(null, answer(), agent);
+      expect(first).toMatchObject({ ok: true, created: true });
+      const keys = (await desk.macros()).filter((macro) => macro.titleEn === "Saturday delivery").map((macro) => macro.key).sort();
+      expect(keys).toEqual(["saturday_delivery", "saturday_delivery_2"]);
+
+      // The shop's own answers are edited or restored, never removed: a deploy would bring them back.
+      const shipped = (await desk.macros()).find((macro) => macro.key === "damaged")!;
+      expect(await desk.removeMacro(shipped.id, DEFAULT_MACROS, agent)).toEqual({ ok: false, reason: "shipped" });
+      expect(await desk.restoreMacro(first.ok ? first.id : "", DEFAULT_MACROS, agent)).toEqual({ ok: false, reason: "not_shipped" });
+
+      expect(await desk.removeMacro(second.ok ? second.id : "", DEFAULT_MACROS, agent)).toEqual({ ok: true });
+      expect((await desk.macros()).filter((macro) => macro.titleEn === "Saturday delivery")).toHaveLength(1);
+      const actions = await connection<{ action: string }[]>`SELECT action FROM audit_log WHERE entity_type = 'macro' ORDER BY created_at, id`;
+      expect(actions.map((row) => row.action)).toEqual(["macro.create", "macro.create", "macro.remove"]);
+    });
   });
 });

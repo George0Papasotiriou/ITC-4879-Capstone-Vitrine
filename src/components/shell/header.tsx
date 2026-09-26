@@ -12,6 +12,7 @@ import { getTranslations } from "next-intl/server";
 import { CartCount } from "@/components/commerce/cart-count";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/ui/cn";
+import { ComfortButton } from "@/components/comfort/comfort-button";
 import { ConciergeToggle } from "@/components/concierge/concierge-toggle";
 
 /**
@@ -53,6 +54,8 @@ export async function Header({ className }: { className?: string }) {
             <span className="bg-lumen size-2.5 rounded-full" aria-hidden="true" />
             <span className="text-sm">{t("concierge")}</span>
           </ConciergeToggle>
+          {/* Text size, contrast, motion and the rest: on every page, found before it is needed (docs/adr/032). */}
+          <ComfortButton />
           <HeaderAction
             href="/search"
             agentId="nav:search"

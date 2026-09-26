@@ -42,12 +42,15 @@ export function ProductImage({
   sizes = "(min-width: 1024px) 30vw, 50vw",
   loading = "lazy",
   decorative = false,
+  appear = false,
 }: {
   image: CatalogImage;
   sizes?: string;
   loading?: ImageLoading;
   /** A second view that repeats what the main image already says. */
   decorative?: boolean;
+  /** Fades in when it replaces another photograph in the same place (a gallery thumbnail chosen). */
+  appear?: boolean;
 }) {
   return (
     <Image
@@ -56,7 +59,7 @@ export function ProductImage({
       fill
       sizes={sizes}
       {...(loading === "lazy" ? {} : { loading: "eager" as const, fetchPriority: "high" as const })}
-      className="object-contain"
+      className={appear ? "animate-[vitrine-fade-in_var(--duration-calm)_var(--ease-standard)] object-contain" : "object-contain"}
       // Read by the plinth: a studio shot is blended into it, a scene is not.
       data-ground={image.studio === false ? "scene" : "studio"}
     />

@@ -27,7 +27,17 @@ export type CartChangeResponse =
   | { ok: true; quantity: number; limitedTo: number | null; cart: CartSummary }
   | { ok: false; reason: "invalid_request" | "not_found" | "out_of_stock" | "cart_full" | "network" };
 
-export async function changeCart(body: Record<string, unknown>): Promise<CartChangeResponse> {
+/** Tells every cart count on the page what the cart now holds. */
+export function announceCart(cart: CartSummary): void {
+  window.dispatchEvent(new CustomEvent<CartSummary>(CART_EVENT, { detail: cart }));
+}
+
+/**
+ * Changes the cart. The new cart is announced at once, unless `announce` is
+ * false: then the caller announces it when its own motion lands (the flight to
+ * the cart, docs/adr/031), so the count ticks as the piece arrives.
+ */
+export async function changeCart(body: Record<string, unknown>, { announce = true }: { announce?: boolean } = {}): Promise<CartChangeResponse> {
   try {
     const response = await fetch("/api/cart", {
       method: "POST",
@@ -35,7 +45,7 @@ export async function changeCart(body: Record<string, unknown>): Promise<CartCha
       body: JSON.stringify(body),
     });
     const data = (await response.json()) as CartChangeResponse;
-    if (data.ok) window.dispatchEvent(new CustomEvent<CartSummary>(CART_EVENT, { detail: data.cart }));
+    if (data.ok && announce) announceCart(data.cart);
     return data;
   } catch {
     return { ok: false, reason: "network" };

@@ -12,6 +12,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { RegionFooter } from "@/components/commerce/region-control";
 import { LocaleSwitch } from "@/components/shell/locale-switch";
 import { Link } from "@/i18n/navigation";
+import { ComfortLink } from "@/components/comfort/comfort-button";
 import { CATEGORIES } from "@/lib/catalog/taxonomy";
 
 /**
@@ -63,6 +64,8 @@ export async function Footer() {
               {item.label}
             </Link>
           ))}
+          {/* The comfort settings, for anyone who looks for them where help usually is (docs/adr/032). */}
+          <ComfortLink className="text-slate text-sm" />
         </nav>
 
         <div className="flex flex-col gap-3">

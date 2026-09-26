@@ -18,6 +18,7 @@ import { Field } from "@/components/ui/field";
 import { SmartLink } from "@/components/ui/smart-link";
 import { useHydrated } from "@/components/ui/use-hydrated";
 import { authClient, authErrorKey } from "@/lib/auth/client";
+import { syncOnNextPage } from "@/components/comfort/comfort-store";
 import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "@/lib/auth/policy";
 
 /**
@@ -83,7 +84,12 @@ export function SignInForm({ locale, next, googleEnabled }: { locale: string; ne
 
   // A full load, not a client navigation: signing in changes whose page this is, so
   // every client-side cache (the cart count, personalisation) must start again.
-  const finish = () => window.location.assign(next);
+  // The next page brings the device and the account into step (docs/adr/033). Not awaited here:
+  // the sign-in client starts its own redirect, and this navigation must go first.
+  const finish = () => {
+    syncOnNextPage();
+    window.location.assign(next);
+  };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -208,6 +214,8 @@ export function SignUpForm({ locale, outboxOpen }: { locale: string; outboxOpen:
 
     setPending(true);
     setFormError(null);
+    // The confirmed account's first page brings this device's preferences over (docs/adr/033).
+    syncOnNextPage();
     const { error: failure } = await authClient.signUp.email({ name, email, password, callbackURL });
     setPending(false);
     if (failure) {
@@ -427,6 +435,8 @@ export function TwoFactorForm({ next }: { next: string }) {
       setPending(false);
       return;
     }
+    // Signed in: the next page brings the device and the account into step (docs/adr/033).
+    syncOnNextPage();
     window.location.assign(next);
   };
 

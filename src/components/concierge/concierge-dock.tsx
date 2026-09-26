@@ -11,7 +11,7 @@
 
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type PointerEvent } from "react";
 
 import { ActionTimeline } from "@/components/concierge/action-timeline";
 import { AssistantPart } from "@/components/concierge/concierge-parts";
@@ -19,6 +19,9 @@ import { useConcierge } from "@/components/concierge/concierge-provider";
 import { VoiceBar } from "@/components/concierge/voice-bar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/ui/cn";
+import { DURATION } from "@/lib/ui/motion";
+import { usePresence } from "@/lib/ui/use-presence";
+import { prefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
  * docs/PLAN.md Phase 6 step 3. The dock stays open across pages because its
@@ -26,7 +29,18 @@ import { cn } from "@/lib/ui/cn";
  * shopper can keep using the page beside it on a wide screen. Escape closes it
  * and returns focus to where it was; the conversation is a live log for screen
  * readers; the input is always one tab away.
+ *
+ * Motion (docs/adr/031): it rises from the bottom on a phone and slides in
+ * from the side above it, and leaves faster than it came. On a phone it can be
+ * pulled down by its handle, and a pull let go past a quarter of its height
+ * (or flicked) closes it from where the finger left it; the close button does
+ * the same for anyone who does not drag. New messages rise into the
+ * conversation, and the conversation follows them smoothly.
  */
+
+/** A pull this far, or this fast, closes the sheet. */
+const CLOSE_SHARE = 0.25;
+const CLOSE_SPEED = 0.6; // px per ms
 
 function suggestionSet(pathname: string, locale: string): "home" | "product" | "listing" | "cart" | "other" {
   const path = pathname.replace(new RegExp(`^/${locale}(?=/|$)`), "") || "/";
@@ -41,7 +55,7 @@ export function ConciergeDock() {
   const t = useTranslations("concierge");
   const locale = useLocale();
   const pathname = usePathname();
-  const { open, setOpen, chat, ask, refusal, reset } = useConcierge();
+  const { open, setOpen, chat, ask, refusal, reset, approve } = useConcierge();
   const [text, setText] = useState("");
   const input = useRef<HTMLTextAreaElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -49,6 +63,16 @@ export function ConciergeDock() {
   const id = useId();
   const busy = chat.status === "submitted" || chat.status === "streaming";
   const demo = chat.messages.some((message) => (message.metadata as { demo?: boolean } | undefined)?.demo === true);
+  const presence = usePresence(open, DURATION.quick);
+  const sheet = useRef<HTMLElement>(null);
+  const drag = useRef<{ startY: number; startedAt: number; dy: number } | null>(null);
+  // Messages already there when the dock opened do not rise again; only new ones do.
+  const [seen, setSeen] = useState(0);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setSeen(chat.messages.length);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -66,8 +90,39 @@ export function ConciergeDock() {
 
   // Follow the conversation as it grows.
   useEffect(() => {
-    log.current?.scrollTo({ top: log.current.scrollHeight });
+    log.current?.scrollTo({ top: log.current.scrollHeight, behavior: prefersReducedMotion() ? "auto" : "smooth" });
   }, [chat.messages]);
+
+  const startPull = (event: PointerEvent<HTMLDivElement>) => {
+    if (sheet.current === null) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    drag.current = { startY: event.clientY, startedAt: performance.now(), dy: 0 };
+    sheet.current.style.transition = "none";
+  };
+  const pull = (event: PointerEvent<HTMLDivElement>) => {
+    if (drag.current === null || sheet.current === null) return;
+    // Only downwards: the sheet follows the finger.
+    drag.current.dy = Math.max(0, event.clientY - drag.current.startY);
+    sheet.current.style.transform = `translateY(${drag.current.dy}px)`;
+  };
+  const letGo = () => {
+    const pulled = drag.current;
+    const element = sheet.current;
+    drag.current = null;
+    if (pulled === null || element === null) return;
+    const speed = pulled.dy / Math.max(1, performance.now() - pulled.startedAt);
+    if (pulled.dy > element.offsetHeight * CLOSE_SHARE || speed > CLOSE_SPEED) {
+      // It leaves from where the finger let go (`--sheet-drag` in globals.css).
+      element.style.setProperty("--sheet-drag", `${pulled.dy}px`);
+      element.style.transform = "";
+      element.style.transition = "";
+      setOpen(false);
+      return;
+    }
+    // Not far enough: it settles back on the spring.
+    element.style.transition = "transform var(--duration-calm) var(--ease-spring)";
+    element.style.transform = "";
+  };
 
   const submit = (event?: FormEvent) => {
     event?.preventDefault();
@@ -80,22 +135,38 @@ export function ConciergeDock() {
   };
   const suggestions = Object.values(t.raw(`suggestions.${suggestionSet(pathname, locale)}`) as Record<string, string>);
 
-  if (!open) return null;
+  if (!presence.mounted) return null;
   return (
     <>
       {/* On phones the sheet covers most of the page, so a tap outside closes it. */}
-      <button type="button" aria-label={t("close")} tabIndex={-1} className="bg-dusk/30 fixed inset-0 z-40 md:hidden" onClick={() => setOpen(false)} />
+      <button type="button" aria-label={t("close")} tabIndex={-1} data-state={presence.state} className="bg-dusk/30 animate-overlay fixed inset-0 z-40 md:hidden" onClick={() => setOpen(false)} />
       <section
+        ref={sheet}
         aria-labelledby={`${id}-title`}
         data-concierge-dock=""
+        data-state={presence.state}
         data-agent-id="concierge:dock"
+        // Leaving, it is already gone for assistive technology and the keyboard.
+        inert={!open}
         className={cn(
-          "bg-glass border-hairline fixed z-50 flex flex-col shadow-[0_24px_48px_-12px_color-mix(in_oklab,var(--color-dusk)_22%,transparent)]",
+          "bg-glass border-hairline animate-dock fixed z-50 flex flex-col shadow-[0_24px_48px_-12px_color-mix(in_oklab,var(--color-dusk)_22%,transparent)]",
           "inset-x-0 bottom-0 h-[85dvh] rounded-t-[12px] border-t",
           "md:inset-x-auto md:top-0 md:right-0 md:bottom-0 md:h-dvh md:w-[420px] md:rounded-none md:border-t-0 md:border-l",
         )}
       >
-        <header className="border-hairline flex items-center gap-3 border-b px-5 py-3">
+        {/* The handle a thumb pulls the sheet down by; phones only. The close button is its keyboard equivalent. */}
+        <div
+          aria-hidden="true"
+          className="flex h-5 shrink-0 cursor-grab touch-none items-center justify-center md:hidden"
+          onPointerDown={startPull}
+          onPointerMove={pull}
+          onPointerUp={letGo}
+          onPointerCancel={letGo}
+          data-agent-id="concierge:handle"
+        >
+          <span className="bg-dusk/25 h-1 w-10 rounded-full" />
+        </div>
+        <header className="border-hairline flex items-center gap-3 border-b px-5 py-3 max-md:pt-1">
           <span className="bg-lumen size-2.5 rounded-full" aria-hidden="true" />
           <h2 id={`${id}-title`} className="font-display text-lg">
             {t("panelLabel")}
@@ -112,7 +183,9 @@ export function ConciergeDock() {
             </Button>
           ) : null}
           <Button variant="tertiary" size="sm" onClick={() => setOpen(false)} aria-label={t("close")} data-agent-id="concierge:close">
-            ✕
+            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
+            </svg>
           </Button>
         </header>
 
@@ -139,15 +212,25 @@ export function ConciergeDock() {
             </div>
           ) : (
             <ol className="flex flex-col gap-5">
-              {chat.messages.map((message) => (
-                <li key={message.id} className={cn("flex flex-col gap-3", message.role === "user" && "items-end")} data-agent-id={`concierge:message:${message.role}`}>
-                  {message.role === "user" ? (
-                    <p className="bg-dusk text-glass rounded-plinth max-w-[85%] px-3 py-2 whitespace-pre-line">{message.parts.map((part) => (part.type === "text" ? part.text : "")).join("")}</p>
-                  ) : (
-                    message.parts.map((part, index) => <AssistantPart key={index} part={part} onApprove={(approvalId, approved) => void chat.addToolApprovalResponse({ id: approvalId, approved })} />)
-                  )}
-                </li>
-              ))}
+              {chat.messages.map((message, position) => {
+                const fresh = position >= seen;
+                const words = message.parts.map((part) => (part.type === "text" ? part.text : "")).join("");
+                return (
+                  <li key={message.id} className={cn("flex flex-col gap-3", message.role === "user" && "items-end", fresh && "animate-rise")} data-agent-id={`concierge:message:${message.role}`}>
+                    {message.role === "user" ? (
+                      // A spoken turn whose words are still arriving shows an ellipsis until they do.
+                      <p className="bg-dusk text-glass rounded-plinth max-w-[85%] px-3 py-2 whitespace-pre-line">{words === "" ? "…" : words}</p>
+                    ) : (
+                      message.parts.map((part, index) => (
+                        // Keyed by state as well, so a card that becomes its result rises in again, in place.
+                        <div key={`${index}-${part.type !== "text" && "state" in part ? part.state : part.type}`} className={fresh ? "animate-rise" : undefined}>
+                          <AssistantPart part={part} onApprove={approve} />
+                        </div>
+                      ))
+                    )}
+                  </li>
+                );
+              })}
             </ol>
           )}
           {refusal === null ? null : (

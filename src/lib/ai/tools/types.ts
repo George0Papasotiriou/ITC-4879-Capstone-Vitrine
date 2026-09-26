@@ -17,6 +17,7 @@ import type { RatingSummary } from "@/lib/commerce/reviews";
 import type { SetWatchResult } from "@/lib/commerce/price-watch-store";
 import type { PublicReview } from "@/lib/commerce/review-store";
 import type { StylistRequest, StylistResult } from "@/lib/stylist/stylist";
+import type { Preferences } from "@/lib/prefs/preferences";
 import type { TicketTopic } from "@/lib/support/tickets";
 
 /**
@@ -78,6 +79,10 @@ export type ToolServices = {
     get(productId: string): Promise<{ targetCents: number } | null>;
     set(productId: string, targetCents: number): Promise<SetWatchResult>;
     remove(productId: string): Promise<boolean>;
+  };
+  /** What the shopper has told the shop about themselves (docs/adr/033); changes go through the page, after approval. */
+  preferences: {
+    read(): Promise<Preferences>;
   };
   /** The support desk (docs/adr/021, 027): a person takes over from the Concierge. */
   support: {

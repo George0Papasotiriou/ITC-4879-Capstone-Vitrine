@@ -15,6 +15,7 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { SmartLink } from "@/components/ui/smart-link";
+import { preferencesPatchSchema, SIZE_GROUPS } from "@/lib/prefs/preferences";
 import { formatMoney, money } from "@/lib/commerce/money";
 
 /**
@@ -113,6 +114,32 @@ function Status({ children }: { children: React.ReactNode }) {
   return <p className="text-slate text-xs italic">{children}</p>;
 }
 
+/** A preference change in plain words, for the approval card. */
+function RememberSummary({ patch }: { patch: unknown }) {
+  const t = useTranslations("concierge.remember");
+  const parsed = preferencesPatchSchema.safeParse(patch);
+  if (!parsed.success) return null;
+  const change = parsed.data;
+  const lines: string[] = [];
+  for (const group of SIZE_GROUPS) {
+    const size = change.sizes?.[group];
+    if (size !== undefined) lines.push(size === null ? t("sizeRemoved", { group: t(`groups.${group}`) }) : t("size", { size, group: t(`groups.${group}`) }));
+  }
+  for (const room of change.rooms ?? []) lines.push(t("room", { name: room.name, wall: room.wallCm }));
+  const like = [...(change.like?.colors ?? []), ...(change.like?.materials ?? [])];
+  const avoid = [...(change.avoid?.colors ?? []), ...(change.avoid?.materials ?? [])];
+  if (like.length > 0) lines.push(t("like", { items: like.join(", ") }));
+  if (avoid.length > 0) lines.push(t("avoid", { items: avoid.join(", ") }));
+  if (change.budgetEuros !== undefined) lines.push(change.budgetEuros === null ? t("budgetRemoved") : t("budget", { amount: change.budgetEuros }));
+  return (
+    <ul className="border-hairline bg-plinth rounded-plinth flex flex-col gap-1 border px-3 py-2 text-sm" data-agent-id="concierge:remember-summary">
+      {lines.map((line) => (
+        <li key={line}>{line}</li>
+      ))}
+    </ul>
+  );
+}
+
 /** One part of an assistant message. */
 export function AssistantPart({ part, onApprove }: { part: Part; onApprove: (id: string, approved: boolean) => void }) {
   const t = useTranslations("concierge");
@@ -142,12 +169,16 @@ export function AssistantPart({ part, onApprove }: { part: Part; onApprove: (id:
             ? { title: t("approval.tryOnTitle"), body: t("approval.tryOnBody") }
             : name === "hand_to_person"
               ? { title: t("approval.handOverTitle"), body: t("approval.handOverBody") }
-              : { title: t("approval.genericTitle"), body: t("approval.genericBody") };
+              : name === "remember_preference"
+                ? { title: t("approval.rememberTitle"), body: t("approval.rememberBody") }
+                : { title: t("approval.genericTitle"), body: t("approval.genericBody") };
     return (
       <div className="border-lumen rounded-plinth flex flex-col gap-3 border-2 p-4" role="group" aria-label={copy.title} data-agent-id={`concierge:approval:${name}`}>
         <p className="font-medium">{copy.title}</p>
         <p className="text-slate text-sm">{copy.body}</p>
         {/* The exact words that will be sent: nothing reaches a person that the shopper has not read. */}
+        {/* Exactly what will be kept about them (docs/adr/033). */}
+        {name === "remember_preference" ? <RememberSummary patch={input.patch} /> : null}
         {name === "hand_to_person" && typeof input.summary === "string" ? (
           <blockquote className="border-hairline bg-plinth rounded-plinth border px-3 py-2 text-sm whitespace-pre-line" data-agent-id="concierge:handover-summary">
             {input.summary}

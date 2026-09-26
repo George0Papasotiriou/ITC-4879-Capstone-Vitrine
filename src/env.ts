@@ -132,9 +132,14 @@ const rawSchema = z.object({
    */
   AI_PROVIDER: z.enum(["google", "demo", "off"]).optional(),
   GOOGLE_GENERATIVE_AI_API_KEY: optionalString,
-  /** Only for the voice alternative (OpenAI realtime). */
+  /**
+   * Realtime voice (docs/adr/030). VOICE_PROVIDER picks who carries a spoken
+   * session: "openai" (with OPENAI_API_KEY), "google" (with the Gemini key
+   * above), or "browser", the browser's own speech, which needs no key. A
+   * provider without its key falls back to the browser, so voice never breaks.
+   */
   OPENAI_API_KEY: optionalString,
-  VOICE_PROVIDER: z.enum(["google", "openai"]).default("google"),
+  VOICE_PROVIDER: z.enum(["browser", "google", "openai"]).default("google"),
   /** Virtual try-on (Phase 9). Without it try-on runs in demo mode or not at all. */
   FASHN_API_KEY: optionalString,
   /** The whole shop's AI spend per day, in euros; past it, AI features pause until midnight UTC. */

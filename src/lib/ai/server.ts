@@ -32,6 +32,8 @@ import { newTicketIdentity, notifyTicket, supportStore } from "@/lib/support/ser
 import { pairsWith, recommendationsForCurrentShopper } from "@/lib/reco/server";
 import { buildBundles } from "@/lib/stylist/server";
 import { serverEnv } from "@/env";
+import { currentPreferences } from "@/lib/prefs/server";
+import { createVoiceSessionStore, type VoiceSessionStore } from "@/lib/ai/surfaces/voice/sessions";
 
 /**
  * Everything here reads the request (cookies, the signed-in person, the
@@ -58,6 +60,14 @@ export async function usageStore(): Promise<UsageStore> {
   await connection();
   const env = serverEnv();
   return (usage ??= createUsageStore(sql, { mode: env.aiMode, killSwitch: env.AI_KILL_SWITCH, dailyBudgetEur: env.AI_DAILY_BUDGET_EUR }));
+}
+
+let voiceSessions: VoiceSessionStore | undefined;
+
+/** Realtime voice sessions (docs/adr/030), reserved and settled through the same usage guard. */
+export async function voiceSessionStore(): Promise<VoiceSessionStore> {
+  const usage = await usageStore();
+  return (voiceSessions ??= createVoiceSessionStore(sql, usage));
 }
 
 /** The key tool approvals are signed with: derived from the cookie secret, never the secret itself. */
@@ -242,6 +252,9 @@ export async function toolServices({
         return (await priceWatches()).set({ userId: user.id, productId, targetCents, locale });
       },
       remove: async (productId) => (user === null ? false : (await priceWatches()).remove({ userId: user.id, productId })),
+    },
+    preferences: {
+      read: async () => (await currentPreferences()).preferences,
     },
     support: {
       handOver: async ({ summary, topic, orderNumber }) => {

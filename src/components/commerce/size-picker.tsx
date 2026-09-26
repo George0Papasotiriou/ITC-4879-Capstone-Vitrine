@@ -30,9 +30,10 @@ export type SizeOption = { variantId: string; size: string; stock: number };
 /** Few enough left that it is worth saying, as on the rest of the shop. */
 const LOW_STOCK = 3;
 
-export function SizePicker({ productId, sizes, agentId }: { productId: string; sizes: readonly SizeOption[]; agentId: string }) {
+export function SizePicker({ productId, sizes, agentId, preferred }: { productId: string; sizes: readonly SizeOption[]; agentId: string; preferred?: string }) {
   const t = useTranslations("product.sizes");
-  const [chosen, setChosen] = useState<SizeOption | null>(null);
+  // The shopper's own size, from their preferences (docs/adr/033): chosen to start with when it is in stock.
+  const [chosen, setChosen] = useState<SizeOption | null>(() => sizes.find((size) => size.size === preferred && size.stock > 0) ?? null);
   // Until the page is hydrated a size button would swallow the tap and do
   // nothing, which reads as a broken shop; it waits instead.
   const hydrated = useHydrated();
@@ -57,7 +58,7 @@ export function SizePicker({ productId, sizes, agentId }: { productId: string; s
               onClick={() => setChosen(size)}
               disabled={soldOut || !hydrated}
               aria-pressed={chosen?.variantId === size.variantId}
-              aria-label={soldOut ? t("soldOutSize", { size: size.size }) : size.size}
+              aria-label={soldOut ? t("soldOutSize", { size: size.size }) : size.size === preferred ? t("yourSizeLabel", { size: size.size }) : size.size}
               className={cn(
                 "rounded-plinth border-hairline flex h-11 min-w-[3.25rem] items-center justify-center border px-3 text-sm transition-colors",
                 // Struck through only when the size has gone, never in the moment before the page wakes up.
@@ -70,10 +71,17 @@ export function SizePicker({ productId, sizes, agentId }: { productId: string; s
               data-agent-id={`size:${size.size}`}
             >
               {size.size}
+              {size.size === preferred ? <span className="bg-lumen ml-1.5 size-1.5 rounded-full" aria-hidden="true" data-agent-id="size:yours" /> : null}
             </button>
           );
         })}
       </div>
+
+      {preferred === undefined ? null : (
+        <p className="text-slate text-xs" data-agent-id="sizes:yours">
+          {t("yourSize", { size: preferred })}
+        </p>
+      )}
 
       <AddToCart
         productId={productId}

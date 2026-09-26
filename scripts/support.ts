@@ -103,11 +103,12 @@ const DEMO_TICKETS: readonly { name: string; email: string; locale: string; topi
 async function macros(sql: postgres.Sql): Promise<void> {
   const desk = createSupportStore(sql);
   if (values["dry-run"]) {
-    console.log(`Would write ${DEFAULT_MACROS.length} ready answers, replacing any that are already there.`);
+    console.log(`Would write ${DEFAULT_MACROS.length} ready answers, replacing any that are already there, except those the desk has edited.`);
     return;
   }
-  const added = await desk.seedMacros(DEFAULT_MACROS);
-  console.log(`Ready answers: ${DEFAULT_MACROS.length} written (${added} new, ${DEFAULT_MACROS.length - added} brought up to date).`);
+  const { added, kept } = await desk.seedMacros(DEFAULT_MACROS);
+  const updated = DEFAULT_MACROS.length - added - kept;
+  console.log(`Ready answers: ${added} new, ${updated} brought up to date${kept > 0 ? `, ${kept} left as the desk edited them` : ""}.`);
 }
 
 async function demo(sql: postgres.Sql): Promise<void> {

@@ -10,11 +10,13 @@
 import { serverEnv } from "@/env";
 import { sql } from "@/lib/db/client";
 import { createMailer, type Mailer } from "@/lib/email/mailer";
+import { isShowcaseAddress } from "@/lib/showcase/plan";
 
 let mailer: Mailer | undefined;
 
 export function appMailer(): Mailer {
-  mailer ??= createMailer({ sql, resendApiKey: serverEnv().RESEND_API_KEY, from: serverEnv().EMAIL_FROM });
+  // The showcase's addresses are a real domain someone else may own: their mail stays in the outbox.
+  mailer ??= createMailer({ sql, resendApiKey: serverEnv().RESEND_API_KEY, from: serverEnv().EMAIL_FROM, keepInOutbox: isShowcaseAddress });
   return mailer;
 }
 

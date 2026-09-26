@@ -39,17 +39,22 @@ export function ProductGallery({
   showImageLabel: readonly string[];
 }) {
   const [selected, setSelected] = useState(0);
+  // Once the shopper has chosen a photograph, each new one cross-fades in its place.
+  const [chosen, setChosen] = useState(false);
   const current = images[selected] ?? images[0];
 
   return (
     <div className="flex flex-col gap-4">
-      <ViewTransition name={transitionName} share="morph" default="none">
-        <HeroPlinth className="aspect-square w-full">
-          {current === undefined ? null : (
-            <ProductImage key={current.src} image={current} loading={selected === 0 ? "hero" : "lazy"} sizes="(min-width: 1024px) 55vw, 90vw" />
-          )}
-        </HeroPlinth>
-      </ViewTransition>
+      {/* The photograph that flies to the cart when the piece is added (docs/adr/031). */}
+      <div data-flight-source="product-hero">
+        <ViewTransition name={transitionName} share="morph" default="none">
+          <HeroPlinth className="aspect-square w-full">
+            {current === undefined ? null : (
+              <ProductImage key={current.src} image={current} loading={selected === 0 ? "hero" : "lazy"} sizes="(min-width: 1024px) 55vw, 90vw" appear={chosen} />
+            )}
+          </HeroPlinth>
+        </ViewTransition>
+      </div>
 
       {images.length > 1 ? (
         <ul aria-label={label} className="flex flex-wrap gap-3">
@@ -59,7 +64,10 @@ export function ProductGallery({
                 type="button"
                 aria-label={showImageLabel[index]}
                 aria-pressed={index === selected}
-                onClick={() => setSelected(index)}
+                onClick={() => {
+                  setChosen(true);
+                  setSelected(index);
+                }}
                 className={cn(
                   "bg-plinth rounded-plinth relative block aspect-square w-20 cursor-pointer overflow-hidden sm:w-24",
                   "outline-offset-2 transition-shadow duration-quick ease-standard",

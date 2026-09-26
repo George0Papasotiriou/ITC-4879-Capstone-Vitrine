@@ -29,6 +29,7 @@ export function SmartLink({
   children,
   scroll,
   document = false,
+  transitionTypes,
   ...props
 }: {
   href: string;
@@ -42,6 +43,12 @@ export function SmartLink({
    * caller passes the full localised path (`/el/room?…`), since it is used as is.
    */
   document?: boolean;
+  /**
+   * Routes only: what kind of move this navigation is, for the view
+   * transitions (docs/adr/031) — "listing" rearranges a grid, "morph" carries a
+   * photograph into a product page. Untagged navigations fade between pages.
+   */
+  transitionTypes?: string[];
 } & Omit<ComponentPropsWithoutRef<"a">, "href" | "children">) {
   const isRoute = href.startsWith("/") && !href.startsWith("//");
 
@@ -54,7 +61,7 @@ export function SmartLink({
   }
 
   return (
-    <Link href={href} scroll={scroll} {...props}>
+    <Link href={href} scroll={scroll} transitionTypes={transitionTypes} {...props}>
       {children}
     </Link>
   );

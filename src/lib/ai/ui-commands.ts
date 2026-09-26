@@ -9,6 +9,9 @@
 
 import { z } from "zod";
 
+import { comfortPatchSchema } from "@/lib/comfort/settings";
+import { preferencesPatchSchema } from "@/lib/prefs/preferences";
+
 /**
  * The UI control protocol (docs/PLAN.md 2.5)
  *
@@ -120,6 +123,30 @@ const openViewerCommand = z.object({
   caption: captionSchema,
 });
 
+/**
+ * Changes how the shop is shown to this shopper (docs/adr/032): text size,
+ * contrast, motion and the rest. The light travels to the comfort button in
+ * the header, where the shopper can change it back; the change is undoable.
+ */
+const comfortCommand = z.object({
+  type: z.literal("comfort"),
+  agentId: agentIdSchema,
+  settings: comfortPatchSchema,
+  caption: captionSchema,
+});
+
+/**
+ * Keeps something the shopper said about themselves (docs/adr/033), after
+ * they approved it: the page saves it where their preferences live — the
+ * device or the account — and records an undo.
+ */
+const preferencesCommand = z.object({
+  type: z.literal("preferences"),
+  agentId: agentIdSchema,
+  patch: preferencesPatchSchema,
+  caption: captionSchema,
+});
+
 export const uiCommandSchema = z.discriminatedUnion("type", [
   navigateCommand,
   highlightCommand,
@@ -127,6 +154,8 @@ export const uiCommandSchema = z.discriminatedUnion("type", [
   setFiltersCommand,
   showProductsCommand,
   openViewerCommand,
+  comfortCommand,
+  preferencesCommand,
 ]);
 
 export type UiCommand = z.infer<typeof uiCommandSchema>;

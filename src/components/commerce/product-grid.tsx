@@ -23,6 +23,10 @@ import { cn } from "@/lib/ui/cn";
  *
  * Ninth, not tenth, so the feature lands at the start of a row on a four-column
  * layout rather than mid-row.
+ *
+ * Each tile carries `data-flip-key`: inside a FlipGroup (the listing), a
+ * filter, the sort or the page changing makes the pieces that stay glide to
+ * their new places and the new ones rise in (docs/adr/031).
  */
 
 const HERO_EVERY = 9;
@@ -48,7 +52,7 @@ export function ProductGrid({
         const isHero = index > 0 && index % HERO_EVERY === 0;
 
         return (
-          <div key={product.id} className={cn(isHero && "col-span-2 row-span-2")}>
+          <div key={product.id} data-flip-key={product.id} className={cn(isHero && "col-span-2 row-span-2")}>
             <ProductTile
               href={`/p/${product.slug}`}
               agentId={`product:${product.id}`}

@@ -58,8 +58,9 @@ export function Tabs({
             className={cn(
               "text-slate relative h-11 shrink-0 cursor-pointer px-3 text-sm whitespace-nowrap",
               "transition-colors duration-quick ease-standard hover:text-dusk",
-              "after:absolute after:inset-x-3 after:bottom-[-1px] after:h-0.5 after:bg-transparent",
-              "data-[state=active]:text-dusk data-[state=active]:font-medium data-[state=active]:after:bg-dusk",
+              // The underline draws out from the middle of the chosen tab (docs/adr/031).
+              "after:bg-dusk after:absolute after:inset-x-3 after:bottom-[-1px] after:h-0.5 after:scale-x-0 after:transition-transform after:duration-calm after:ease-standard",
+              "data-[state=active]:text-dusk data-[state=active]:font-medium data-[state=active]:after:scale-x-100",
               "disabled:cursor-not-allowed disabled:opacity-40",
             )}
           >
@@ -68,7 +69,7 @@ export function Tabs({
         ))}
       </Primitive.List>
       {items.map((item) => (
-        <Primitive.Content key={item.value} value={item.value} className="pt-5 outline-none">
+        <Primitive.Content key={item.value} value={item.value} className="data-[state=active]:animate-[vitrine-fade-in_var(--duration-calm)_var(--ease-standard)] pt-5 outline-none">
           {item.content}
         </Primitive.Content>
       ))}

@@ -19,7 +19,8 @@ import { parseRoles } from "@/lib/auth/roles";
 import { catalogFixtureSchema } from "@/lib/catalog/input";
 import { upsertCatalog } from "@/lib/catalog/write";
 import * as schema from "@/lib/db/schema";
-import { SHOWCASE_ACCOUNTS, SHOWCASE_MARKER, TICKET_STORIES } from "@/lib/showcase/plan";
+import { createMailer } from "@/lib/email/mailer";
+import { isShowcaseAddress, SHOWCASE_ACCOUNTS, SHOWCASE_MARKER, TICKET_STORIES } from "@/lib/showcase/plan";
 import { ensureAccounts, ensureHistory, lockShowcase } from "@/lib/showcase/seed";
 
 const url = process.env.DATABASE_URL;
@@ -72,7 +73,7 @@ describe.skipIf(url === undefined || url === "")("showcase", () => {
     await ensureAccounts(connection, "a different showcase password", quiet);
     const after = await connection<{ id: string }[]>`SELECT id FROM users WHERE email = ANY(${emails}::text[]) ORDER BY email`;
     expect(after).toEqual(before);
-    const [row] = await connection<{ password: string }[]>`SELECT a.password FROM accounts a JOIN users u ON u.id = a.user_id WHERE u.email = 'admin1@vitrine.test'`;
+    const [row] = await connection<{ password: string }[]>`SELECT a.password FROM accounts a JOIN users u ON u.id = a.user_id WHERE u.email = 'admin1@vitrine.app'`;
     expect(await verifyPassword({ hash: row!.password, password: "a different showcase password" })).toBe(true);
     expect(await verifyPassword({ hash: row!.password, password: PASSWORD })).toBe(false);
     // The grants were recorded once, when the accounts were new.
@@ -89,15 +90,15 @@ describe.skipIf(url === undefined || url === "")("showcase", () => {
     const eleni = await connection<{ status: string }[]>`SELECT status FROM orders WHERE user_id = ${people.get("customer1")!.id}`;
     expect(new Set(eleni.map((order) => order.status))).toEqual(new Set(["delivered", "shipped", "paid", "refunded", "cancelled"]));
 
-    expect(await count(connection`SELECT count(*)::int AS n FROM orders WHERE email LIKE '%@guests.vitrine.test'`)).toBeGreaterThanOrEqual(20);
+    expect(await count(connection`SELECT count(*)::int AS n FROM orders WHERE email LIKE '%@guests.vitrine.app'`)).toBeGreaterThanOrEqual(20);
     expect(await count(connection`SELECT count(*)::int AS n FROM support_tickets`)).toBe(TICKET_STORIES.length);
     expect(await count(connection`SELECT count(*)::int AS n FROM support_messages WHERE internal AND body LIKE 'Handed over from the Concierge%'`)).toBe(1);
     expect(await count(connection`SELECT count(*)::int AS n FROM reviews WHERE status = 'hidden'`)).toBe(2);
     expect(await count(connection`SELECT count(*)::int AS n FROM price_watches`)).toBeGreaterThanOrEqual(3);
     expect(await count(connection`SELECT count(*)::int AS n FROM carts WHERE user_id = ${people.get("customer1")!.id}`)).toBe(1);
     expect(await count(connection`SELECT count(*)::int AS n FROM audit_log WHERE actor_user_id IN (${people.get("merchandiser1")!.id}, ${people.get("merchandiser2")!.id})`)).toBe(3);
-    // No email was queued: every address is under .test, and the seeding never sends.
-    expect(await count(connection`SELECT count(*)::int AS n FROM email_outbox WHERE to_address LIKE '%vitrine.test'`)).toBe(0);
+    // No email was queued: the seeding never sends.
+    expect(await count(connection`SELECT count(*)::int AS n FROM email_outbox WHERE to_address LIKE '%vitrine.app'`)).toBe(0);
   });
 
   it("writes nothing twice, even when a deploy stopped before it finished", async () => {
@@ -116,6 +117,30 @@ describe.skipIf(url === undefined || url === "")("showcase", () => {
     await connection`DELETE FROM app_settings WHERE key = ${SHOWCASE_MARKER}`;
     await ensureHistory(connection, people, { cookieSecret: SECRET, log: quiet });
     expect(await totals()).toEqual(before);
+  });
+
+  it("never hands mail for the showcase's domain to the email service, even with a key", async () => {
+    const calls: string[] = [];
+    const mailer = createMailer({
+      sql: connection,
+      from: "Vitrine <shop@example.com>",
+      resendApiKey: "re_test",
+      keepInOutbox: isShowcaseAddress,
+      fetch: (async (_url: string, init: { body: string }) => {
+        calls.push((JSON.parse(init.body) as { to: string[] }).to[0]!);
+        return new Response(JSON.stringify({ id: "sent" }), { status: 200 });
+      }) as unknown as typeof fetch,
+    });
+    const content = { subject: "Your order", text: "It has shipped.", html: "<p>It has shipped.</p>" };
+
+    const kept = await mailer.sendEmail({ to: "customer1@vitrine.app", kind: "order", locale: "en", content });
+    const guest = await mailer.sendEmail({ to: "anna.martin@guests.vitrine.app", kind: "order", locale: "en", content });
+    const real = await mailer.sendEmail({ to: "someone@example.com", kind: "order", locale: "en", content });
+
+    expect(kept).toMatchObject({ transport: "outbox", delivered: false });
+    expect(guest).toMatchObject({ transport: "outbox", delivered: false });
+    expect(real).toMatchObject({ transport: "resend", delivered: true });
+    expect(calls).toEqual(["someone@example.com"]);
   });
 
   it("locks the accounts without taking the shop's history with them", async () => {

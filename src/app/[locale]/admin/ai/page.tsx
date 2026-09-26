@@ -131,6 +131,24 @@ export default async function AiPage({ params, searchParams }: PageProps<"/[loca
           )}
         </Panel>
 
+        <Panel id="ai-voice" title={t("voice.title")} lede={t("voice.lede")}>
+          {spend.voice.length === 0 ? (
+            <p className="text-slate text-sm">{t("voice.empty")}</p>
+          ) : (
+            <ShareTable
+              caption={t("voice.title")}
+              columns={[t("voice.provider"), t("voice.sessions"), t("voice.minutes"), t("voice.cost")]}
+              agentId="ai:voice"
+              rows={spend.voice.map((row) => ({
+                key: row.provider,
+                label: t.has(`voice.providers.${row.provider}`) ? t(`voice.providers.${row.provider}`) : row.provider,
+                value: row.costMicros,
+                cells: [format.number(row.sessions), format.number(row.seconds / 60, { maximumFractionDigits: 1 }), euro(row.costMicros)],
+              }))}
+            />
+          )}
+        </Panel>
+
         {can(user.roles, "ai:manage") ? (
           <Panel id="ai-settings" title={t("settings")} lede={t("settingsLede")}>
             <AiSettings killSwitch={settings.killSwitch} dailyBudgetEur={budgetEur} />

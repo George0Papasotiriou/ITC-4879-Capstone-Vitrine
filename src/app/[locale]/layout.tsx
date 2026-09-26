@@ -10,11 +10,12 @@
 import type { Metadata, Viewport } from "next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Commissioner } from "next/font/google";
+import { Atkinson_Hyperlegible_Next, Commissioner } from "next/font/google";
 import { notFound } from "next/navigation";
 
 import "../globals.css";
 
+import { ComfortLayer } from "@/components/comfort/comfort-layer";
 import { ConciergeDock } from "@/components/concierge/concierge-dock";
 import { ConciergeProvider } from "@/components/concierge/concierge-provider";
 import { Footer } from "@/components/shell/footer";
@@ -24,6 +25,7 @@ import { ServiceWorker } from "@/components/shell/service-worker";
 import { Toaster } from "@/components/ui/toast";
 import { publicOrigin } from "@/env";
 import { routing } from "@/i18n/routing";
+import { prepaintScript } from "@/lib/comfort/settings";
 
 /**
  * Commissioner — a variable humanist sans with full Greek support, by Kostas
@@ -40,6 +42,18 @@ const commissioner = Commissioner({
   subsets: ["latin", "latin-ext", "greek"],
   axes: ["FLAR"],
   display: "swap",
+});
+
+/**
+ * The readable face of the comfort settings (docs/adr/032). Declared for every
+ * page but never preloaded: the browser fetches it only when a shopper has
+ * chosen it and the stylesheet asks for it.
+ */
+const readable = Atkinson_Hyperlegible_Next({
+  variable: "--font-atkinson",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  preload: false,
 });
 
 /** Both locales are prerendered rather than resolved per request. */
@@ -90,7 +104,13 @@ export default async function LocaleLayout({
   const t = await getTranslations({ locale, namespace: "nav" });
 
   return (
-    <html lang={locale} className={`${commissioner.variable} h-full`}>
+    // The head script sets the comfort attributes on <html> before React
+    // hydrates, so <html> is allowed to differ from the server's markup.
+    <html lang={locale} className={`${commissioner.variable} ${readable.variable} h-full`} suppressHydrationWarning>
+      <head>
+        {/* Comfort settings, applied before the first paint (docs/adr/032). */}
+        <script dangerouslySetInnerHTML={{ __html: prepaintScript() }} />
+      </head>
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>
           <Toaster>
@@ -114,6 +134,7 @@ export default async function LocaleLayout({
           <Footer />
           <MobileBar />
           <ConciergeDock />
+          <ComfortLayer />
           <ServiceWorker />
           </ConciergeProvider>
           </Toaster>

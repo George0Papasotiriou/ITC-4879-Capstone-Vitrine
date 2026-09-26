@@ -20,8 +20,8 @@ import { cn } from "@/lib/ui/cn";
  * or emoji inside the label (4.6, 4.8).
  *
  * Nothing lifts on hover. Feedback is a colour shift inside `--duration-quick`,
- * because Part 4.5 spends all the motion budget on the window light and the
- * Spotlight.
+ * and a press gives a little under the finger (`press`: 0.97 within a frame,
+ * docs/adr/031), so every tap is answered before the server is.
  */
 
 type Variant = "primary" | "secondary" | "tertiary" | "danger";
@@ -30,7 +30,7 @@ type Size = "sm" | "md" | "lg";
 const base = [
   "inline-flex items-center justify-center gap-2",
   "rounded-plinth font-medium whitespace-nowrap",
-  "transition-colors duration-quick ease-standard",
+  "press",
   "cursor-pointer select-none",
   "disabled:cursor-not-allowed disabled:opacity-40",
   // `aria-disabled` is the right tool for "temporarily unavailable": a real
@@ -91,6 +91,8 @@ type ButtonLinkProps = CommonProps & {
   href: string;
   /** Load as a new document (see SmartLink): the href is then used as is, locale included. */
   document?: boolean;
+  /** What kind of move the navigation is, for view transitions (see SmartLink). */
+  transitionTypes?: string[];
 } & Omit<ComponentPropsWithoutRef<"a">, "className" | "children" | "href">;
 
 /** The same surface rendered as a link, for navigation rather than an action.

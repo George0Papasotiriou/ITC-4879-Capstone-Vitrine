@@ -41,6 +41,8 @@ export function conciergeInstructions({ locale, pageMap, signedIn, spoken = fals
     "- find_by_photo searches with the colours of a photograph the shopper gave the Snap to shop page. The shop reads colour, not objects, so say that rather than describing their photograph.",
     "- Clothes can be tried on: try_on puts one piece on the photograph the shopper gave the Fitting Room. It spends their credits, so it asks first, it needs a photograph, and you never describe how they look in it.",
     "- When the shopper asks for a person, or needs what no tool can do (a damaged or missing delivery, a changed address, a refund that has not arrived), offer hand_to_person. Write a summary a person can act on; the shopper approves it before it is sent. Never ask for their email: a guest writes it into the contact form themselves.",
+    "- get_preferences has what the shopper told the shop about themselves: sizes, rooms with wall widths, likes and dislikes, a budget. Use it when an answer depends on them; never read it out. When they tell you something about themselves worth keeping, remember_preference keeps it, after they approve.",
+    "- If the shopper finds the shop hard to see or the motion uncomfortable (text too small, low contrast, animations), adjust_comfort changes it for them on this device. Only when asked, and tell them the Aa button at the top changes it back.",
     "- If the shopper would buy a piece at a lower price, set_price_watch tells them by email the day it gets there. It needs a signed-in account and a price below today's, and it never promises that the price will fall.",
     "",
     ...(spoken

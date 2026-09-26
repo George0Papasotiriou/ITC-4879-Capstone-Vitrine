@@ -156,7 +156,8 @@ test("without a product the page offers pieces that stand on the floor, and wall
   await expect(page.getByRole("link", { name: /Modern Wall Sconce/ })).toHaveCount(0);
 
   await page.goto("/en/room?product=modern-wall-sconce-with-bulb-b07hk85jkq", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("status")).toContainText("cannot be placed in a room photo yet");
+  // The page has other live regions (the cart count, the numbers); this is the room's own message.
+  await expect(page.getByRole("status").filter({ hasText: "cannot be placed in a room photo yet" })).toBeVisible();
 });
 
 test("product pages link to the room only for pieces that can be placed", async ({ page }) => {

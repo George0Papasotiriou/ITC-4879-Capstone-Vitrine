@@ -165,6 +165,56 @@
           "hand_to_person"
         ]
       }
+    },
+    {
+      "id": "g15-comfort",
+      "locale": "en",
+      "message": "The text is too small and the animations make me dizzy",
+      "expect": {
+        "tools": [
+          "adjust_comfort"
+        ],
+        "commands": [
+          "comfort"
+        ],
+        "answerMatches": "Aa"
+      }
+    },
+    {
+      "id": "g16-comfort-greek",
+      "locale": "el",
+      "message": "Θέλω μεγαλύτερα γράμματα",
+      "expect": {
+        "tools": [
+          "adjust_comfort"
+        ],
+        "commands": [
+          "comfort"
+        ],
+        "answerLanguage": "el"
+      }
+    },
+    {
+      "id": "g17-remember-size",
+      "locale": "en",
+      "message": "I'm a medium",
+      "expect": {
+        "approvalRequested": "remember_preference",
+        "toolsNotCalled": [
+          "add_to_cart"
+        ]
+      }
+    },
+    {
+      "id": "g18-what-you-know",
+      "locale": "en",
+      "message": "What do you know about me?",
+      "expect": {
+        "tools": [
+          "get_preferences"
+        ],
+        "answerMatches": "your shop|delete"
+      }
     }
   ],
   "adversarial": [

@@ -66,7 +66,7 @@ function ToastItem({
       duration={tone === "danger" ? Infinity : 5000}
       // Failures interrupt a screen reader; confirmations wait their turn.
       type={tone === "danger" ? "foreground" : "background"}
-      className="bg-glass shadow-sheet rounded-sheet animate-pop relative flex items-start gap-3 p-4 pr-12"
+      className="bg-glass shadow-sheet rounded-sheet animate-toast relative flex touch-none items-start gap-3 p-4 pr-12"
     >
       <ToneMark tone={tone} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -102,7 +102,7 @@ function ToneMark({ tone }: { tone: ToastTone }) {
   if (tone === "success") {
     return (
       <svg viewBox="0 0 24 24" className="text-success mt-0.5 size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-        <path d="m5 12 5 5 9-10" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="m5 12 5 5 9-10" pathLength={24} strokeLinecap="round" strokeLinejoin="round" className="animate-draw" />
       </svg>
     );
   }

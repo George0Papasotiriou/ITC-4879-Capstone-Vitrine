@@ -95,7 +95,9 @@ export function DayBars({
                 y={bar.y}
                 width={bar.width}
                 height={bar.height}
-                className="fill-dusk"
+                // Each bar grows from zero once, a beat after the one before (docs/adr/031).
+                className="fill-dusk animate-grow"
+                style={{ animationDelay: `${Math.min(index, 30) * 12}ms` }}
               >
                 <title>{`${formatDay(data[index]!.day)}: ${formatValue(data[index]!.value)}`}</title>
               </rect>
@@ -202,7 +204,7 @@ export function ShareTable({
                   aria-hidden="true"
                 >
                   <span
-                    className="bg-dusk block h-full rounded-full"
+                    className="bg-dusk animate-grow-x block h-full rounded-full"
                     style={{
                       width: `${(Math.max(0, row.value) / max) * 100}%`,
                     }}

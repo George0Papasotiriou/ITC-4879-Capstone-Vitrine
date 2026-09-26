@@ -67,6 +67,21 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
       <div className="mt-3">
         <PersonalizationControl enabled={personalizationEnabled} />
       </div>
+      {/* What the shopper tells the shop, and everything it keeps, each on its own page (docs/adr/033). */}
+      <ul className="mt-8 flex flex-col gap-3">
+        <li>
+          <SmartLink href="/account/preferences" className="font-medium underline-offset-4 hover:underline" data-agent-id="account:preferences-link">
+            {t("preferencesLink")}
+          </SmartLink>
+          <p className="text-slate text-sm">{t("preferencesHint")}</p>
+        </li>
+        <li>
+          <SmartLink href="/account/data" className="font-medium underline-offset-4 hover:underline" data-agent-id="account:data-link">
+            {t("dataLink")}
+          </SmartLink>
+          <p className="text-slate text-sm">{t("dataHint")}</p>
+        </li>
+      </ul>
     </section>
   );
 

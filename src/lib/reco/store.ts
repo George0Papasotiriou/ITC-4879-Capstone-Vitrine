@@ -239,7 +239,29 @@ export function createTasteGraph(sql: Sql) {
     return rows.length;
   }
 
-  return { rebuild, forActor, pairsWith, record, forget };
+  /**
+   * What the shop has recorded for this shopper, newest first (docs/adr/033):
+   * the product, what they did and when, for them to read and delete. Their
+   * own events only, found by the id in their cookie.
+   */
+  async function history(actorId: string, locale: "en" | "el", limit = 200): Promise<{ id: string; productId: string; title: string; slug: string; kind: InteractionKind; at: Date }[]> {
+    const rows = await sql<{ id: string; product_id: string; title: string; slug: string; kind: InteractionKind; occurred_at: Date }[]>`
+      SELECT i.id, i.product_id, COALESCE(CASE WHEN ${locale} = 'el' THEN p.title_el END, p.title_en) AS title, p.slug, i.kind, i.occurred_at
+      FROM interactions i JOIN products p ON p.id = i.product_id
+      WHERE i.actor_id = ${actorId}
+      ORDER BY i.occurred_at DESC
+      LIMIT ${limit}
+    `;
+    return rows.map((row) => ({ id: row.id, productId: row.product_id, title: row.title, slug: row.slug, kind: row.kind, at: new Date(row.occurred_at) }));
+  }
+
+  /** Forgets one recorded event, only if it is this shopper's. */
+  async function forgetOne(actorId: string, id: string): Promise<boolean> {
+    const rows = await sql`DELETE FROM interactions WHERE id = ${id} AND actor_id = ${actorId} RETURNING id`;
+    return rows.length === 1;
+  }
+
+  return { rebuild, forActor, pairsWith, record, forget, history, forgetOne };
 }
 
 export type TasteGraph = ReturnType<typeof createTasteGraph>;

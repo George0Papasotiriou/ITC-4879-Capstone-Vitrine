@@ -10,6 +10,8 @@
 import type postgres from "postgres";
 import { uuidv7 } from "uuidv7";
 
+import { diffFields, recordAudit, type AuditActor } from "@/lib/admin/audit";
+import { answerKey, type AnswerInput } from "@/lib/support/answers";
 import {
   canReopen,
   cleanMessage,
@@ -89,7 +91,22 @@ export type NewTicket = {
   accessTokenHash: string;
 };
 
-export type Macro = { id: string; key: string; topic: string; titleEn: string; titleEl: string; bodyEn: string; bodyEl: string; sort: number };
+export type Macro = {
+  id: string;
+  key: string;
+  topic: string;
+  titleEn: string;
+  titleEl: string;
+  bodyEn: string;
+  bodyEl: string;
+  sort: number;
+  /** When someone at the desk last changed it; null while it is the shop's own words (docs/adr/029). */
+  staffEditedAt?: Date | null;
+};
+
+/** The fields a person edits, and the audit log compares. */
+const ANSWER_FIELDS = ["topic", "titleEn", "titleEl", "bodyEn", "bodyEl", "sort"] as const;
+const answerFields = (macro: Pick<Macro, (typeof ANSWER_FIELDS)[number]>) => Object.fromEntries(ANSWER_FIELDS.map((field) => [field, macro[field]]));
 
 type TicketRow = {
   id: string;
@@ -452,32 +469,126 @@ export function createSupportStore(sql: Sql) {
     };
   }
 
+  type MacroRow = { id: string; key: string; topic: string; title_en: string; title_el: string; body_en: string; body_el: string; sort: number; staff_edited_at: Date | null };
+  const toMacro = (macro: MacroRow): Macro => ({
+    id: macro.id,
+    key: macro.key,
+    topic: macro.topic,
+    titleEn: macro.title_en,
+    titleEl: macro.title_el,
+    bodyEn: macro.body_en,
+    bodyEl: macro.body_el,
+    sort: macro.sort,
+    staffEditedAt: macro.staff_edited_at === null ? null : new Date(macro.staff_edited_at),
+  });
+
   async function macros(topic?: string): Promise<Macro[]> {
-    const rows = await sql<{ id: string; key: string; topic: string; title_en: string; title_el: string; body_en: string; body_el: string; sort: number }[]>`
-      SELECT id, key, topic, title_en, title_el, body_en, body_el, sort FROM support_macros
+    const rows = await sql<MacroRow[]>`
+      SELECT id, key, topic, title_en, title_el, body_en, body_el, sort, staff_edited_at FROM support_macros
       WHERE ${topic === undefined ? sql`TRUE` : sql`topic = ${topic}`}
       ORDER BY sort, key
     `;
-    return rows.map((macro) => ({
-      id: macro.id,
-      key: macro.key,
-      topic: macro.topic,
-      titleEn: macro.title_en,
-      titleEl: macro.title_el,
-      bodyEn: macro.body_en,
-      bodyEl: macro.body_el,
-      sort: macro.sort,
-    }));
+    return rows.map(toMacro);
+  }
+
+  async function macroById(id: string, db: postgres.Sql | postgres.TransactionSql = sql, { lock = false } = {}): Promise<Macro | null> {
+    const [row] = lock
+      ? await db<MacroRow[]>`SELECT id, key, topic, title_en, title_el, body_en, body_el, sort, staff_edited_at FROM support_macros WHERE id = ${id} FOR UPDATE`
+      : await db<MacroRow[]>`SELECT id, key, topic, title_en, title_el, body_en, body_el, sort, staff_edited_at FROM support_macros WHERE id = ${id}`;
+    return row === undefined ? null : toMacro(row);
+  }
+
+  /**
+   * Saves a ready answer someone at the desk wrote or changed (docs/adr/029):
+   * a new one when `id` is null, filed under a key made from its title. An
+   * edit that changes nothing writes nothing, not even the audit entry; one
+   * that does is marked, so the next deploy leaves it as they wrote it.
+   */
+  async function saveMacro(id: string | null, input: AnswerInput, actor: AuditActor, at = new Date()) {
+    return sql.begin(async (tx) => {
+      const stamp = at.toISOString();
+      if (id === null) {
+        const keys = await tx<{ key: string }[]>`SELECT key FROM support_macros`;
+        const key = answerKey(input.titleEn, new Set(keys.map((row) => row.key)));
+        const newId = uuidv7();
+        await tx`
+          INSERT INTO support_macros (id, key, topic, title_en, title_el, body_en, body_el, sort, staff_edited_at, created_at, updated_at)
+          VALUES (${newId}, ${key}, ${input.topic}, ${input.titleEn}, ${input.titleEl}, ${input.bodyEn}, ${input.bodyEl}, ${input.sort},
+                  ${stamp}::timestamptz, ${stamp}::timestamptz, ${stamp}::timestamptz)
+        `;
+        const changes = Object.fromEntries(Object.entries(answerFields(input)).map(([field, value]) => [field, { before: null, after: value }]));
+        await recordAudit(tx, { actor, action: "macro.create", entityType: "macro", entityId: newId, changes }, at);
+        return { ok: true, id: newId, created: true, changed: ANSWER_FIELDS as readonly string[] } as const;
+      }
+
+      const current = await macroById(id, tx, { lock: true });
+      if (current === null) return { ok: false, reason: "not_found" } as const;
+      const changes = diffFields<Record<string, unknown>>(answerFields(current), answerFields(input));
+      const changed = Object.keys(changes);
+      if (changed.length === 0) return { ok: true, id, created: false, changed } as const;
+      await tx`
+        UPDATE support_macros SET topic = ${input.topic}, title_en = ${input.titleEn}, title_el = ${input.titleEl},
+               body_en = ${input.bodyEn}, body_el = ${input.bodyEl}, sort = ${input.sort},
+               staff_edited_at = ${stamp}::timestamptz, updated_at = ${stamp}::timestamptz
+        WHERE id = ${id}
+      `;
+      await recordAudit(tx, { actor, action: "macro.update", entityType: "macro", entityId: id, changes }, at);
+      return { ok: true, id, created: false, changed } as const;
+    });
+  }
+
+  /**
+   * Puts the shop's own words back into one of its ready answers and lets the
+   * deploy keep it in step with the code again. Only answers the shop ships
+   * have a version to go back to.
+   */
+  async function restoreMacro(id: string, shipped: readonly Omit<Macro, "id">[], actor: AuditActor, at = new Date()) {
+    return sql.begin(async (tx) => {
+      const current = await macroById(id, tx, { lock: true });
+      if (current === null) return { ok: false, reason: "not_found" } as const;
+      const original = shipped.find((macro) => macro.key === current.key);
+      if (original === undefined) return { ok: false, reason: "not_shipped" } as const;
+      const changes = diffFields<Record<string, unknown>>(answerFields(current), answerFields(original));
+      await tx`
+        UPDATE support_macros SET topic = ${original.topic}, title_en = ${original.titleEn}, title_el = ${original.titleEl},
+               body_en = ${original.bodyEn}, body_el = ${original.bodyEl}, sort = ${original.sort},
+               staff_edited_at = NULL, updated_at = ${at.toISOString()}::timestamptz
+        WHERE id = ${id}
+      `;
+      if (Object.keys(changes).length > 0 || current.staffEditedAt !== null) {
+        await recordAudit(tx, { actor, action: "macro.restore", entityType: "macro", entityId: id, changes }, at);
+      }
+      return { ok: true } as const;
+    });
+  }
+
+  /**
+   * Removes an answer the desk wrote itself. The shop's own answers cannot be
+   * removed here — the next deploy would only bring them back — so they are
+   * edited or restored instead.
+   */
+  async function removeMacro(id: string, shipped: readonly Omit<Macro, "id">[], actor: AuditActor, at = new Date()) {
+    return sql.begin(async (tx) => {
+      const current = await macroById(id, tx, { lock: true });
+      if (current === null) return { ok: false, reason: "not_found" } as const;
+      if (shipped.some((macro) => macro.key === current.key)) return { ok: false, reason: "shipped" } as const;
+      await tx`DELETE FROM support_macros WHERE id = ${id}`;
+      const changes = Object.fromEntries(Object.entries(answerFields(current)).map(([field, value]) => [field, { before: value, after: null }]));
+      await recordAudit(tx, { actor, action: "macro.remove", entityType: "macro", entityId: id, changes }, at);
+      return { ok: true } as const;
+    });
   }
 
   /**
    * Writes the ready answers the desk ships with (src/lib/support/macros.ts).
-   * They are part of the code, so a deploy replaces them: the text an agent
-   * sends should be the text that was reviewed with the policies it quotes.
-   * Returns how many rows were new.
+   * They are part of the code, so a deploy keeps them in step with it — except
+   * an answer someone at the desk has edited, which stays as they wrote it
+   * until they restore the shop's version (docs/adr/029). Returns how many
+   * rows were new and how many were left as the desk wrote them.
    */
-  async function seedMacros(entries: readonly Omit<Macro, "id">[], at = new Date()): Promise<number> {
+  async function seedMacros(entries: readonly Omit<Macro, "id">[], at = new Date()): Promise<{ added: number; kept: number }> {
     let added = 0;
+    let kept = 0;
     for (const macro of entries) {
       const rows = await sql<{ added: boolean }[]>`
         INSERT INTO support_macros (id, key, topic, title_en, title_el, body_en, body_el, sort, created_at, updated_at)
@@ -485,14 +596,38 @@ export function createSupportStore(sql: Sql) {
                 ${at.toISOString()}::timestamptz, ${at.toISOString()}::timestamptz)
         ON CONFLICT (key) DO UPDATE SET topic = EXCLUDED.topic, title_en = EXCLUDED.title_en, title_el = EXCLUDED.title_el,
                body_en = EXCLUDED.body_en, body_el = EXCLUDED.body_el, sort = EXCLUDED.sort, updated_at = EXCLUDED.updated_at
+        WHERE support_macros.staff_edited_at IS NULL
         RETURNING (xmax = 0) AS added
       `;
-      added += rows[0]?.added === true ? 1 : 0;
+      // No row back means the update was skipped: the desk's version stands.
+      if (rows.length === 0) kept += 1;
+      else added += rows[0]?.added === true ? 1 : 0;
     }
-    return added;
+    return { added, kept };
   }
 
-  return { open, addMessage, sendDraft, discardDraft, move, assign, saveSatisfaction, byId, byNumber, tokenHash, forCustomer, queue, counts, stats, macros, seedMacros };
+  return {
+    open,
+    addMessage,
+    sendDraft,
+    discardDraft,
+    move,
+    assign,
+    saveSatisfaction,
+    byId,
+    byNumber,
+    tokenHash,
+    forCustomer,
+    queue,
+    counts,
+    stats,
+    macros,
+    macroById: (id: string) => macroById(id),
+    saveMacro,
+    restoreMacro,
+    removeMacro,
+    seedMacros,
+  };
 }
 
 export type SupportStore = ReturnType<typeof createSupportStore>;

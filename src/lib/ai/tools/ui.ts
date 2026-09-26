@@ -12,6 +12,7 @@ import { z } from "zod";
 import { brief, inOrder, productBriefSchema } from "@/lib/ai/tools/briefs";
 import type { VitrineTool } from "@/lib/ai/tools/types";
 import { agentIdSchema, isAllowedRoute, uiCommandSchema, type UiCommand } from "@/lib/ai/ui-commands";
+import { comfortPatchSchema } from "@/lib/comfort/settings";
 import { EMPTY_LISTING, listingQuery, SORTS, type Sort } from "@/lib/catalog/listing";
 import { CATEGORY_SLUGS, type CategorySlug } from "@/lib/catalog/taxonomy";
 import { COLORS, MATERIALS } from "@/lib/search/vocabulary";
@@ -102,6 +103,19 @@ export const showProducts = define({
   async run(ctx, { productIds, caption: text }) {
     const cards = inOrder(productIds, await ctx.services.cards(productIds));
     return { ...commands({ type: "show_products", productIds: cards.map((card) => card.id), caption: text }), products: cards.map(brief) };
+  },
+});
+
+export const adjustComfort = define({
+  name: "adjust_comfort",
+  description:
+    "Change how the shop looks and moves for this shopper, on this device: text size (text: 100, 112, 125 or 150), spacing (wide), contrast (more), a more readable font (readable), motion (reduce, full or system), underlined links (underline), larger buttons (targets: large), a reading guide (guide: on), keyboard shortcuts (on or off). " +
+    "Use it when the shopper says the text is too small, it is hard to read, the animations bother them, or asks for any of these by name. Never change them unasked, and say they can change them back with the Aa button at the top or undo it.",
+  scope: "ui",
+  input: z.object({ settings: comfortPatchSchema, caption }),
+  output: commandsOutput,
+  async run(_ctx, { settings, caption: text }) {
+    return commands({ type: "comfort", agentId: "nav:comfort", settings, caption: text });
   },
 });
 

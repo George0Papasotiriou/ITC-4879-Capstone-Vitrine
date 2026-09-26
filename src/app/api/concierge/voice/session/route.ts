@@ -9,21 +9,24 @@
 
 import { z } from "zod";
 
-import { aiActor, usageStore } from "@/lib/ai/server";
-import { liveSession, realtimeVoiceConfigured } from "@/lib/ai/surfaces/voice/live";
+import { aiActor, usageStore, voiceSessionStore } from "@/lib/ai/server";
+import { realtimeProvider, voiceModel, type RealtimeProvider } from "@/lib/ai/surfaces/voice/live";
 import { MAX_SESSION_MS, MAX_TURNS, voiceLocale } from "@/lib/ai/surfaces/voice/session";
 import { currentUser } from "@/lib/auth/session";
 
 /**
- * The gate for voice (docs/adr/026). A spoken session asks the same questions
- * as any other AI surface before it starts — is AI on, is the day's budget
- * spent, has this shopper any turns left — so a shopper is told *before* they
- * start speaking, not after.
+ * The gate for voice (docs/adr/026, docs/adr/030). A spoken session asks the
+ * same questions as any other AI surface before it starts — is AI on, is the
+ * day's budget spent, has this shopper any turns left — so a shopper is told
+ * *before* they start speaking, not after.
  *
- * It also decides how voice runs. Today that is always the browser's own
- * speech: no key, no cost, nothing sent anywhere. When a realtime key exists,
- * `liveSession` mints an ephemeral token and the answer changes to
- * `mode: "live"`; nothing else in the interface changes.
+ * It also decides how voice runs. With a realtime key (VOICE_PROVIDER), the
+ * session is reserved here — its minutes from the shopper's credits and its
+ * cost against the day's budget — and the browser then asks
+ * `/api/concierge/voice/realtime` for the token, once. Without a key, or when
+ * the credits or the budget cannot cover a realtime session, voice runs on the
+ * browser's own speech, which costs nothing: a shopper who has spent their
+ * credits can still talk.
  */
 
 export const runtime = "nodejs";
@@ -33,15 +36,23 @@ const bodySchema = z.object({ locale: z.enum(["en", "el"]).catch("en") });
 export type VoiceSessionResponse =
   | {
       ok: true;
-      mode: "browser" | "live";
+      mode: "browser";
       /** The language tag the recogniser and the voice use. */
       locale: string;
       maxSessionMs: number;
       maxTurns: number;
       /** Turns left in the shopper's allowance today; the spoken session cannot exceed it. */
       turnsLeft: number;
-      /** A realtime token, only in live mode. */
-      token?: { value: string; url: string; expiresAt: number };
+    }
+  | {
+      ok: true;
+      mode: "realtime";
+      provider: RealtimeProvider;
+      /** The reserved session; the token route opens it once. */
+      sessionId: string;
+      locale: string;
+      /** The reserved minutes: the browser closes the socket when they run out. */
+      maxSessionMs: number;
     }
   | { ok: false; reason: "off" | "kill_switch" | "budget" | "credits" | "turns" };
 
@@ -58,22 +69,32 @@ export async function POST(request: Request): Promise<Response> {
 
   const gate = await usage.open();
   if (!gate.ok) return refuse(gate.reason);
+
+  // Realtime, when a key exists and the shopper's credits and the day's budget cover it.
+  const provider = realtimeProvider();
+  if (provider !== null) {
+    const begun = await (await voiceSessionStore()).begin({ actor, model: voiceModel(provider), locale });
+    if (begun.ok) {
+      return Response.json({
+        ok: true,
+        mode: "realtime",
+        provider,
+        sessionId: begun.session.id,
+        locale: voiceLocale(locale),
+        maxSessionMs: begun.session.reservedMinutes * 60_000,
+      } satisfies VoiceSessionResponse);
+    }
+    // Out of credits or budget for realtime: the browser's speech still works.
+  }
+
   const { turns } = await usage.remaining(actor);
   if (turns <= 0) return refuse("turns");
-
-  // The one place that decides how voice runs (docs/adr/026). Today it is
-  // always the browser's own speech; when a realtime key exists the token is
-  // minted here and nothing in the interface changes.
-  const live = realtimeVoiceConfigured();
-  const token = live ? liveSession() : undefined;
 
   // Recorded like every other AI surface, so /admin/ai shows voice being used
   // even while it costs nothing.
   await usage.record({
     feature: "voice",
-    model: live
-      ? { provider: "google", id: "gemini-live", pricing: { kind: "unverified" } }
-      : { provider: "browser", id: "web-speech", pricing: { kind: "tokens", inputUsdPerMillion: 0, outputUsdPerMillion: 0 } },
+    model: { provider: "browser", id: "web-speech", pricing: { kind: "tokens", inputUsdPerMillion: 0, outputUsdPerMillion: 0 } },
     surface: "voice",
     actorKey: actor.key,
     usage: { units: 1 },
@@ -81,11 +102,10 @@ export async function POST(request: Request): Promise<Response> {
 
   return Response.json({
     ok: true,
-    mode: live ? "live" : "browser",
+    mode: "browser",
     locale: voiceLocale(locale),
     maxSessionMs: MAX_SESSION_MS,
     maxTurns: MAX_TURNS,
     turnsLeft: turns,
-    ...(token === undefined ? {} : { token }),
   } satisfies VoiceSessionResponse);
 }

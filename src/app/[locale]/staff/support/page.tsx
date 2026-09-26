@@ -56,9 +56,14 @@ export default async function SupportQueuePage({ params, searchParams }: PagePro
           <h1 className="font-display text-3xl">{t("title")}</h1>
           <p className="text-slate mt-3 max-w-[70ch]">{t("lede")}</p>
         </div>
-        <p className="text-slate text-sm" data-agent-id="desk:counts">
-          {t("counts", { unanswered: counts.unanswered, late: counts.late })}
-        </p>
+        <div className="flex flex-col gap-2 lg:items-end">
+          <p className="text-slate text-sm" data-agent-id="desk:counts">
+            {t("counts", { unanswered: counts.unanswered, late: counts.late })}
+          </p>
+          <SmartLink href="/staff/support/answers" className="text-dusk text-sm underline underline-offset-4" data-agent-id="desk:answers-link">
+            {t("answersLink")}
+          </SmartLink>
+        </div>
       </div>
 
       <nav aria-label={t("filterLabel")} className="mt-8">

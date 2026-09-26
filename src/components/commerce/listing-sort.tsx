@@ -61,7 +61,7 @@ export function ListingSort({
           defaultValue={value}
           onChange={(event) => {
             const option = options.find((candidate) => candidate.value === event.currentTarget.value);
-            if (option !== undefined) router.push(option.href, { scroll: false });
+            if (option !== undefined) router.push(option.href, { scroll: false, transitionTypes: ["listing"] });
           }}
           className="border-hairline text-dusk hover:border-dusk/35 rounded-plinth h-11 w-full cursor-pointer appearance-none border bg-white pr-9 pl-3 transition-colors"
         >

@@ -18,6 +18,7 @@
  */
 
 import { guessTopic } from "@/lib/support/tickets";
+import { comfortRequestOf } from "@/lib/comfort/requests";
 
 export type DemoToolResult = { toolName: string; output: unknown; denied?: boolean };
 
@@ -34,7 +35,7 @@ export type DemoPrompt = {
 export type DemoCall = { toolName: string; input: Record<string, unknown> };
 export type DemoStep = { kind: "tools"; calls: DemoCall[] } | { kind: "text"; text: string };
 
-type Intent = "greet" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "room" | "browse";
+type Intent = "greet" | "comfort" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "room" | "browse";
 
 const ORDER_NUMBER = /\bvt-[0-9a-z]{4}-[0-9a-z]{4}\b/i;
 
@@ -53,6 +54,11 @@ export function intentOf(text: string): Intent {
   const t = fold(text);
   // Not \b: in JavaScript it only sees Latin letters as word characters, so it never matches after Greek.
   if (/^(hi|hello|hey|γεια|καλησπερα|καλημερα)(?!\p{L})/u.test(t)) return "greet";
+  // Asking for the shop to be easier to see or calmer to watch (docs/adr/032).
+  if (comfortRequestOf(text) !== null) return "comfort";
+  // Saying their size, or asking what the shop keeps about them (docs/adr/033).
+  if (sizeOf(text) !== null) return "remember_size";
+  if (/\bwhat do you (know|remember) about me\b|\bmy (preferences|sizes)\b|τι (ξερεις|θυμασαι) για μενα|τις προτιμησεις μου/.test(t)) return "preferences";
   // Asking for a person wins over everything else in the sentence: an order
   // number or a product named alongside it is what the person should look at.
   if (/\b(a person|a human|human being|real person|someone at the shop|customer service|an agent)\b|ανθρωπ|υπαλληλ|εκπροσωπ/.test(t)) return "person";
@@ -67,6 +73,19 @@ export function intentOf(text: string): Intent {
   if (/\bmy room\b|δωματιο μου/.test(t)) return "room";
   if (/\b(cart|basket)\b|καλαθι/.test(t)) return "cart";
   return "browse";
+}
+
+const SIZE_WORDS: Record<string, string> = { "extra small": "XS", "extra large": "XL", small: "S", medium: "M", large: "L", xs: "XS", s: "S", m: "M", l: "L", xl: "XL" };
+
+/** "I'm a medium", "I wear L", «φοράω M»: the size a shopper says they wear, or null. */
+export function sizeOf(text: string): string | null {
+  const t = fold(text);
+  // The size must end the thought ("I'm a medium", "I wear L in tops"): "I'm a large family" is not a size.
+  const after = String.raw`(?=\s*(?:$|[.,!?;]|\s(?:in|for|size|please|and)(?![\p{L}])))`;
+  const english = new RegExp(String.raw`\b(?:i'?m|i am|i wear|my size is)\s+(?:a |an |size )?(extra small|extra large|small|medium|large|xs|xl|s|m|l)` + after, "u");
+  const greek = new RegExp(String.raw`(?:φοραω|ειμαι|το νουμερο μου ειναι)\s+(?:νουμερο )?(xs|xl|s|m|l)` + after, "u");
+  const match = english.exec(t) ?? greek.exec(t);
+  return match === null ? null : (SIZE_WORDS[match[1]!] ?? null);
 }
 
 export function searchQueryOf(text: string): string {
@@ -124,6 +143,17 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
           ...(order === undefined ? {} : { orderNumber: order }),
         });
       }
+      case "remember_size": {
+        const size = sizeOf(text)!;
+        return call("remember_preference", {
+          patch: { sizes: { upper: size, lower: size, dress: size } },
+          caption: locale === "el" ? `Θα θυμάμαι το νούμερο ${size}` : `Remembering size ${size}`,
+        });
+      }
+      case "preferences":
+        return call("get_preferences", {});
+      case "comfort":
+        return call("adjust_comfort", { settings: comfortRequestOf(text), caption: locale === "el" ? "Αλλαγή της εμφάνισης" : "Changing how the shop looks" });
       case "cart":
         return call("navigate", { href: "/cart", caption: locale === "el" ? "Άνοιγμα του καλαθιού" : "Opening the cart" });
       case "checkout":
@@ -198,6 +228,30 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
       }
       return say(locale, "I couldn't pass that on just now. The contact page reaches the same people.", "Δεν μπόρεσα να το προωθήσω αυτή τη στιγμή. Η σελίδα επικοινωνίας φτάνει στους ίδιους ανθρώπους.");
     }
+    case "remember_preference":
+      return say(
+        locale,
+        "Kept. Sizes start there on every piece, and you can change it any time under Your shop in your account.",
+        "Το κράτησα. Τα νούμερα ξεκινούν από εκεί σε κάθε κομμάτι, και το αλλάζεις όποτε θέλεις από το Το κατάστημά σου στον λογαριασμό.",
+      );
+    case "get_preferences": {
+      const prefs = last.output as { sizes?: Record<string, string>; rooms?: unknown[]; empty?: boolean } | null;
+      if (prefs === null || prefs.empty === true)
+        return say(locale, "You haven't told me anything about yourself yet: sizes, rooms or what you like. Your shop, in your account, is where it all goes.", "Δεν μου έχεις πει τίποτα ακόμη: νούμερα, δωμάτια ή τι σου αρέσει. Όλα μπαίνουν στο Το κατάστημά σου, στον λογαριασμό σου.");
+      const sizes = [...new Set(Object.values(prefs.sizes ?? {}))].join(", ");
+      const rooms = prefs.rooms?.length ?? 0;
+      return say(
+        locale,
+        `I know ${sizes === "" ? "no sizes" : `your size (${sizes})`} and ${rooms} room${rooms === 1 ? "" : "s"}. Everything I keep is under What we know about you in your account, where you can delete any of it.`,
+        `Ξέρω ${sizes === "" ? "κανένα νούμερο" : `το νούμερό σου (${sizes})`} και ${rooms} ${rooms === 1 ? "δωμάτιο" : "δωμάτια"}. Ό,τι κρατάω είναι στο Τι ξέρουμε για σένα στον λογαριασμό σου, όπου μπορείς να σβήσεις οτιδήποτε.`,
+      );
+    }
+    case "adjust_comfort":
+      return say(
+        locale,
+        "Done: it's changed on this device. The Aa button at the top changes it back, or you can undo it from the actions list.",
+        "Έγινε: άλλαξε σε αυτή τη συσκευή. Το κουμπί Aa στην κορυφή το επαναφέρει, ή μπορείς να το αναιρέσεις από τη λίστα ενεργειών.",
+      );
     case "start_checkout": {
       const output = last.output as { ok: boolean };
       return output.ok ? say(locale, "Checkout is open: check your order and pay there.", "Άνοιξε η ολοκλήρωση αγοράς: έλεγξε την παραγγελία και πλήρωσε εκεί.") : say(locale, "Your cart is empty, so there's nothing to check out yet.", "Το καλάθι σου είναι άδειο, οπότε δεν υπάρχει κάτι για ολοκλήρωση ακόμη.");

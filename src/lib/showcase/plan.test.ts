@@ -12,6 +12,7 @@ import { describe, expect, it } from "vitest";
 import { ROLES } from "@/lib/auth/roles";
 import { transition, type OrderSnapshot, type OrderStatus } from "@/lib/commerce/order-state";
 import {
+  isShowcaseAddress,
   isShowcaseEmail,
   MIN_SHOWCASE_PASSWORD,
   ORDER_STORIES,
@@ -51,12 +52,24 @@ describe("the showcase accounts", () => {
     for (const role of ROLES) expect(SHOWCASE_ACCOUNTS.filter((account) => account.role === role).length, role).toBeGreaterThanOrEqual(2);
   });
 
-  it("uses addresses that can never receive mail, each once", () => {
+  it("uses one address each, all under the domain the shop never mails", () => {
     const emails = SHOWCASE_ACCOUNTS.map((account) => account.email);
     expect(new Set(emails).size).toBe(emails.length);
-    for (const email of emails) expect(email.endsWith(".test"), email).toBe(true);
-    expect(isShowcaseEmail("Admin1@vitrine.test")).toBe(true);
+    for (const email of emails) {
+      expect(email.endsWith("@vitrine.app"), email).toBe(true);
+      expect(isShowcaseAddress(email), email).toBe(true);
+    }
+    expect(isShowcaseEmail("Admin1@vitrine.app")).toBe(true);
     expect(isShowcaseEmail("someone@example.com")).toBe(false);
+  });
+
+  it("keeps guests' addresses under the domain too, and nothing else", () => {
+    expect(isShowcaseAddress("anna.martin@guests.vitrine.app")).toBe(true);
+    expect(isShowcaseAddress("Customer1@VITRINE.APP")).toBe(true);
+    // A look-alike is somebody else's domain, and is mailed like any other.
+    expect(isShowcaseAddress("eleni@notvitrine.app")).toBe(false);
+    expect(isShowcaseAddress("eleni@vitrine.app.example.com")).toBe(false);
+    expect(isShowcaseAddress("not an address")).toBe(false);
   });
 
   it("gives every account something of its own to show", () => {

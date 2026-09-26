@@ -65,6 +65,31 @@ describe("UI tools", () => {
     await expect(run("navigate", { href: "/cart", caption: "Opening the cart" }, ctx)).resolves.toEqual({ commands: [{ type: "navigate", href: "/cart", caption: "Opening the cart" }] });
   });
 
+  it("changes how the shop looks by pointing at the comfort button, and refuses a setting that does not exist", async () => {
+    const { ctx } = context();
+    const output = await run("adjust_comfort", { settings: { text: "125", motion: "reduce" }, caption: "Making the text larger" }, ctx);
+    expect(output.commands).toEqual([{ type: "comfort", agentId: "nav:comfort", settings: { text: "125", motion: "reduce" }, caption: "Making the text larger" }]);
+    const refused = await runTool(findTool("adjust_comfort", "chat")!, ctx, { settings: { colour: "red" }, caption: "Painting it red" });
+    expect(refused).toMatchObject({ ok: false, reason: "invalid_input" });
+    // Voice has it too: "the text is too small" is said as often as typed.
+    expect(findTool("adjust_comfort", "voice")).not.toBeNull();
+    expect(findTool("adjust_comfort", "support")).toBeNull();
+  });
+
+  it("reads the shopper's own preferences, and only proposes remembering more, for the page to save after approval", async () => {
+    const { ctx } = context();
+    await expect(run("get_preferences", {}, ctx)).resolves.toMatchObject({ empty: true, rooms: [] });
+    const tool = findTool("remember_preference", "chat")!;
+    expect(needsApproval(tool)).toBe(true);
+    const output = await run("remember_preference", { patch: { sizes: { upper: "M" }, rooms: [{ name: "Living room", wallCm: 240 }] }, caption: "Remembering your size" }, ctx);
+    expect(output.commands).toEqual([{ type: "preferences", agentId: "nav:account", patch: { sizes: { upper: "M" }, rooms: [{ name: "Living room", wallCm: 240 }] }, caption: "Remembering your size" }]);
+    // Nothing that is not a preference, and not an empty change.
+    await expect(runTool(tool, ctx, { patch: { address: "Ermou 10" }, caption: "Remembering" })).resolves.toMatchObject({ ok: false, reason: "invalid_input" });
+    await expect(runTool(tool, ctx, { patch: {}, caption: "Remembering" })).resolves.toMatchObject({ ok: false, reason: "invalid_input" });
+    // The support assistant neither reads nor keeps them.
+    expect(findTool("get_preferences", "support")).toBeNull();
+  });
+
   it("opens the room planner for a product", async () => {
     const { ctx } = context();
     const output = await run("open_viewer", { productId: LAMP, viewer: "room", caption: "Placing the lamp" }, ctx);
@@ -232,7 +257,7 @@ describe("registry", () => {
   });
 
   it("asks before sensitive and costly tools only", () => {
-    expect(TOOLS.filter(needsApproval).map((tool) => tool.name).sort()).toEqual(["hand_to_person", "start_checkout", "start_return", "try_on"]);
+    expect(TOOLS.filter(needsApproval).map((tool) => tool.name).sort()).toEqual(["hand_to_person", "remember_preference", "start_checkout", "start_return", "try_on"]);
   });
 
   it("gives the support assistant order and policy tools, not the cart or the page", () => {

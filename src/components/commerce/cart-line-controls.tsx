@@ -10,13 +10,15 @@
  */
 
 import { useLocale, useTranslations } from "next-intl";
-import { useTransition } from "react";
+import { useRef, useTransition } from "react";
 
 import { changeCart } from "@/components/commerce/cart-client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { useRouter } from "@/i18n/navigation";
 import { MAX_QUANTITY_PER_LINE } from "@/lib/commerce/pricing";
+import { DURATION, EASE } from "@/lib/ui/motion";
+import { prefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
  * Quantity and remove for one cart line. A native select: on a phone it opens
@@ -30,11 +32,16 @@ export function CartLineControls({ variantId, title, quantity, stock, available 
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const most = Math.max(quantity, Math.min(stock, MAX_QUANTITY_PER_LINE));
+  const controls = useRef<HTMLDivElement>(null);
 
   const set = (next: number) =>
     startTransition(async () => {
-      const result = await changeCart({ action: "set", variantId, quantity: next, locale });
+      // Removing: the line folds away first (docs/adr/031), and comes back if the shop says no.
+      const line = next === 0 && !prefersReducedMotion() ? controls.current?.closest<HTMLElement>("[data-flip-key]") : null;
+      const fold = line?.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(-12px) scale(0.98)" }], { duration: DURATION.quick, easing: EASE.exit, fill: "forwards" });
+      const [result] = await Promise.all([changeCart({ action: "set", variantId, quantity: next, locale }), fold?.finished.catch(() => undefined)]);
       if (!result.ok) {
+        fold?.cancel();
         toast({ title: result.reason === "out_of_stock" ? t("outOfStock") : t("failed"), tone: "danger" });
         return;
       }
@@ -43,7 +50,7 @@ export function CartLineControls({ variantId, title, quantity, stock, available 
     });
 
   return (
-    <div className="flex items-center gap-3" aria-busy={pending || undefined}>
+    <div ref={controls} className="flex items-center gap-3" aria-busy={pending || undefined}>
       {available ? (
         <select
           aria-label={t("quantityFor", { title })}

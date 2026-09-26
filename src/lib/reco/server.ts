@@ -11,6 +11,8 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 
 import { sql } from "@/lib/db/client";
+import { withTaste } from "@/lib/prefs/preferences";
+import { currentPreferences } from "@/lib/prefs/server";
 import { createTasteGraph, type TasteGraph } from "@/lib/reco/store";
 
 /**
@@ -38,7 +40,14 @@ export async function recommendationsForCurrentShopper(limit = 8) {
   await connection();
   const actor = await currentActor();
   if (actor === null) return { personalised: false as const, items: [] };
-  return { personalised: true as const, items: await tasteGraph().forActor(actor, { limit }) };
+  // What the shopper said they like and avoid refines the graph's ranking (docs/adr/033): twice
+  // as many are asked for, so leaving out avoided pieces still fills the shelf.
+  const [items, { preferences }] = await Promise.all([tasteGraph().forActor(actor, { limit: limit * 2 }), currentPreferences()]);
+  const rows = await sql<{ id: string; colors: string[]; materials: string[] }[]>`
+    SELECT id, colors, materials FROM products WHERE id = ANY(${items.map((item) => item.productId)}::uuid[])
+  `;
+  const features = new Map(rows.map((row) => [row.id, { colors: row.colors, materials: row.materials }]));
+  return { personalised: true as const, items: withTaste(items, features, preferences).slice(0, limit) };
 }
 
 export async function pairsWith(productId: string, limit = 4) {

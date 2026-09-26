@@ -70,6 +70,11 @@
   /* Motion. Two moments carry the motion (window light, Spotlight); everything
      else is quick feedback at 160ms or less. */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  /* Leaving accelerates away; arriving settles (docs/adr/031). */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  /* A spring as a curve: a critically damped settle with a 2% overshoot, for
+     things that arrive in answer to a touch (a count, a toast, a sheet). */
+  --ease-spring: linear(0, 0.013 0.6%, 0.05 1.2%, 0.2 2.6%, 0.472 5.1%, 0.667 7.3%, 0.81 9.6%, 0.906 12%, 0.966 14.6%, 1.002 17.6%, 1.02 21.1%, 1.022 25.9%, 1.011 33.2%, 1.002 43.5%, 0.999 60%, 1);
   --duration-instant: 90ms;
   --duration-quick: 160ms;
   --duration-calm: 280ms;
@@ -121,15 +126,27 @@
   }
 }
 
+/* Reduced motion, asked for by the system or chosen in the shop's comfort
+   settings (`data-motion="reduce"` on <html>, docs/adr/032): the same rule
+   either way, so one switch covers every animation in the stylesheet. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  :root:not([data-motion="full"]) *,
+  :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 /* ---------------------------------------------------------------------------
@@ -181,24 +198,24 @@
 
 @utility animate-overlay {
   &[data-state="open"] { animation: vitrine-fade-in var(--duration-calm) var(--ease-standard) }
-  &[data-state="closed"] { animation: vitrine-fade-out var(--duration-quick) var(--ease-standard) }
+  &[data-state="closed"] { animation: vitrine-fade-out var(--duration-quick) var(--ease-exit) }
 }
 
 @utility animate-pop {
   &[data-state="open"], &[data-state="delayed-open"], &[data-state="instant-open"] {
-    animation: vitrine-pop-in var(--duration-quick) var(--ease-standard);
+    animation: vitrine-pop-in var(--duration-quick) var(--ease-spring);
   }
-  &[data-state="closed"] { animation: vitrine-pop-out var(--duration-instant) var(--ease-standard) }
+  &[data-state="closed"] { animation: vitrine-pop-out var(--duration-instant) var(--ease-exit) }
 }
 
 @utility animate-sheet-right {
-  &[data-state="open"] { animation: vitrine-sheet-in-right var(--duration-calm) var(--ease-standard) }
-  &[data-state="closed"] { animation: vitrine-sheet-out-right var(--duration-quick) var(--ease-standard) }
+  &[data-state="open"] { animation: vitrine-sheet-in-right var(--duration-calm) var(--ease-spring) }
+  &[data-state="closed"] { animation: vitrine-sheet-out-right var(--duration-quick) var(--ease-exit) }
 }
 
 @utility animate-sheet-bottom {
-  &[data-state="open"] { animation: vitrine-sheet-in-bottom var(--duration-calm) var(--ease-standard) }
-  &[data-state="closed"] { animation: vitrine-sheet-out-bottom var(--duration-quick) var(--ease-standard) }
+  &[data-state="open"] { animation: vitrine-sheet-in-bottom var(--duration-calm) var(--ease-spring) }
+  &[data-state="closed"] { animation: vitrine-sheet-out-bottom var(--duration-quick) var(--ease-exit) }
 }
 
 /* The window light (4.5, moment 1): a soft band of Lumen crossing the hero
@@ -220,9 +237,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .window-light {
+  :root:not([data-motion="full"]) .window-light {
     display: none;
   }
+}
+
+:root[data-motion="reduce"] .window-light {
+  display: none;
 }
 
 /* The one soft shadow sheets and dialogs are allowed (4.2). Tiles get none. */
@@ -271,12 +292,173 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
+  :root:not([data-motion="full"])::view-transition-group(*),
+  :root:not([data-motion="full"])::view-transition-old(*),
+  :root:not([data-motion="full"])::view-transition-new(*) {
     animation: none !important;
   }
 }
+
+:root[data-motion="reduce"]::view-transition-group(*),
+:root[data-motion="reduce"]::view-transition-old(*),
+:root[data-motion="reduce"]::view-transition-new(*) {
+  animation: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Motion for every action (docs/adr/031)
+
+   The rule from 4.5, kept: motion shows what changed, and nothing moves only
+   to decorate. What George asked for on top of it is that *every* action
+   answers with motion — so each one here is tied to a change the shopper
+   caused, lasts at most a calm beat, moves only transform and opacity, leaves
+   faster than it arrives, and can be interrupted by the next action.
+--------------------------------------------------------------------------- */
+
+/* While a view transition runs, the page underneath stays clickable. */
+::view-transition {
+  pointer-events: none;
+}
+
+/* Arriving: a short rise into place. For content that appears because of an
+   action — a message in the conversation, an error under a field. */
+@keyframes vitrine-rise-in {
+  from { opacity: 0; transform: translateY(6px) }
+  to { opacity: 1; transform: none }
+}
+@utility animate-rise {
+  animation: vitrine-rise-in var(--duration-calm) var(--ease-spring) both;
+}
+
+/* Waiting, shown only if the wait is long enough to notice: a placeholder that
+   flashes for 80ms is worse than none. */
+@utility animate-appear-late {
+  animation: vitrine-fade-in var(--duration-calm) var(--ease-standard) 300ms both;
+}
+
+/* A count that changed answers with a small bump. */
+@keyframes vitrine-bump {
+  0% { transform: scale(1) }
+  35% { transform: scale(1.28) }
+  100% { transform: scale(1) }
+}
+@utility animate-bump {
+  animation: vitrine-bump var(--duration-stage) var(--ease-spring);
+}
+
+/* A number rolling to its new value: the new one rises in. */
+@keyframes vitrine-tick-in {
+  from { opacity: 0; transform: translateY(0.6em) }
+  to { opacity: 1; transform: none }
+}
+@utility animate-tick {
+  animation: vitrine-tick-in var(--duration-calm) var(--ease-spring) both;
+  display: inline-block;
+}
+
+/* A tick drawn, not shown: for "added" and "saved". */
+@keyframes vitrine-draw {
+  from { stroke-dashoffset: var(--draw-length, 24) }
+  to { stroke-dashoffset: 0 }
+}
+@utility animate-draw {
+  stroke-dasharray: var(--draw-length, 24);
+  animation: vitrine-draw var(--duration-calm) var(--ease-standard) 60ms both;
+}
+
+/* The listening light breathes; it is the one loop in the shop (4.5, moment 3). */
+@keyframes vitrine-breathe {
+  0%, 100% { transform: scale(1); opacity: 1 }
+  50% { transform: scale(1.35); opacity: 0.55 }
+}
+@utility animate-breathe {
+  animation: vitrine-breathe 2.4s ease-in-out infinite;
+}
+
+/* Admin charts draw once, from zero, so a figure reads as an amount. */
+@keyframes vitrine-grow-up {
+  from { transform: scaleY(0) }
+  to { transform: none }
+}
+@utility animate-grow {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: vitrine-grow-up var(--duration-stage) var(--ease-standard) both;
+}
+@keyframes vitrine-grow-across {
+  from { transform: scaleX(0) }
+  to { transform: none }
+}
+@utility animate-grow-x {
+  transform-origin: left;
+  animation: vitrine-grow-across var(--duration-stage) var(--ease-standard) both;
+}
+@keyframes vitrine-draw-line {
+  from { stroke-dashoffset: 1 }
+  to { stroke-dashoffset: 0 }
+}
+@utility animate-draw-line {
+  stroke-dasharray: 1;
+  animation: vitrine-draw-line var(--duration-stage) var(--ease-standard) both;
+}
+
+/* Pressing answers within a frame: the surface gives a little under the finger. */
+@utility press {
+  /* Not opacity: a control enabled at hydration should be solid at once, not fade in (an audit caught it mid-fade). */
+  transition-property: color, background-color, border-color, transform;
+  transition-duration: var(--duration-quick);
+  transition-timing-function: var(--ease-standard);
+  &:active:not(:disabled, [aria-disabled="true"]) {
+    transform: scale(0.97);
+    transition-duration: var(--duration-instant);
+  }
+}
+
+/* Toasts: in on a spring, out quickly, and a swipe moves them with the finger. */
+@keyframes vitrine-toast-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.96) }
+  to { opacity: 1; transform: none }
+}
+@keyframes vitrine-toast-swipe-out {
+  from { transform: translateY(var(--radix-toast-swipe-end-y)) }
+  to { transform: translateY(120%); opacity: 0 }
+}
+@utility animate-toast {
+  &[data-state="open"] { animation: vitrine-toast-in var(--duration-calm) var(--ease-spring) }
+  &[data-state="closed"] { animation: vitrine-fade-out var(--duration-quick) var(--ease-exit) }
+  &[data-swipe="move"] { transform: translateY(var(--radix-toast-swipe-move-y)) }
+  &[data-swipe="cancel"] { transform: none; transition: transform var(--duration-calm) var(--ease-spring) }
+  &[data-swipe="end"] { animation: vitrine-toast-swipe-out var(--duration-quick) var(--ease-exit) forwards }
+}
+
+/* The Concierge dock: up from the bottom on a phone, in from the side above
+   it; out faster than in. A drag sets --sheet-drag, so a sheet let go
+   mid-drag leaves from where the finger left it rather than jumping back. */
+@keyframes vitrine-dock-out-bottom {
+  from { transform: translateY(var(--sheet-drag, 0px)) }
+  to { transform: translateY(100%) }
+}
+@utility animate-dock {
+  &[data-state="open"] { animation: vitrine-sheet-in-bottom var(--duration-calm) var(--ease-spring) }
+  &[data-state="closed"] { animation: vitrine-dock-out-bottom var(--duration-quick) var(--ease-exit) forwards }
+  @media (min-width: 48rem) {
+    &[data-state="open"] { animation: vitrine-sheet-in-right var(--duration-calm) var(--ease-spring) }
+    &[data-state="closed"] { animation: vitrine-sheet-out-right var(--duration-quick) var(--ease-exit) forwards }
+  }
+}
+
+/* Moving between pages: the old page steps back quickly, the new one settles
+   in after it, and the header, outside the transition, never moves. */
+::view-transition-old(.page-out) {
+  animation: vitrine-fade-out var(--duration-instant) var(--ease-exit) both;
+}
+::view-transition-new(.page-in) {
+  animation: vitrine-rise-in var(--duration-calm) var(--ease-standard) var(--duration-instant) both;
+}
+
+/* Filters, sort and the cart rearrange with FLIP (src/components/motion/flip-group.tsx),
+   and figures roll with the Ticker: both run whenever new contents arrive, which a
+   view transition only covers when they arrive in the same moment as the click. */
 
 /* Listing filters: a disclosure on small screens, always open on large ones.
    A closed <details> hides its content through ::details-content; from the
@@ -289,4 +471,108 @@
   .listing-filters::details-content {
     content-visibility: visible;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Comfort settings (docs/adr/032)
+
+   Each setting is an attribute on <html>, written before the first paint by
+   the script in the layout's head (src/lib/comfort/settings.ts). Everything
+   here answers one of them; nothing else in the stylesheet needs to know.
+--------------------------------------------------------------------------- */
+
+/* Text size: the root size, so everything sized in rem grows together. */
+:root[data-text="112"] { font-size: 112.5%; }
+:root[data-text="125"] { font-size: 125%; }
+:root[data-text="150"] { font-size: 150%; }
+
+/* Text spacing, past what WCAG 1.4.12 asks a page to survive: taller lines,
+   wider words and letters, more room after a paragraph. */
+:root[data-spacing="wide"] :is(p, li, dd, dt, blockquote, label, td, th, h1, h2, h3, h4, span) {
+  line-height: 1.8 !important;
+  letter-spacing: 0.04em !important;
+  word-spacing: 0.14em !important;
+}
+:root[data-spacing="wide"] p {
+  margin-block-end: 0.6em;
+}
+
+/* More contrast: darker secondary text, stronger edges, a wider focus ring.
+   Also when the system asks for it and the shopper has not chosen otherwise. */
+:root[data-contrast="more"] {
+  --color-slate: #3a404c;
+  --color-mist: #c9ced7;
+  --color-hairline: color-mix(in oklab, #1d2330 38%, transparent);
+  --color-plinth: #dcdfda;
+}
+@media (prefers-contrast: more) {
+  :root:not([data-contrast]) {
+    --color-slate: #3a404c;
+    --color-mist: #c9ced7;
+    --color-hairline: color-mix(in oklab, #1d2330 38%, transparent);
+  }
+}
+:root[data-contrast="more"] :focus-visible {
+  outline-width: 3px;
+  box-shadow: 0 0 0 7px color-mix(in oklab, var(--color-lumen) 70%, transparent);
+}
+
+/* The readable font: Atkinson Hyperlegible Next for Latin letters. It has no
+   Greek, so Greek text falls through to the shop's own face, letter by letter. */
+:root[data-font="readable"] * {
+  font-family: var(--font-atkinson), var(--font-commissioner), ui-sans-serif, system-ui, sans-serif !important;
+  font-variation-settings: normal !important;
+}
+
+/* Links underlined wherever they sit in text; buttons and chips that are links keep their shape. */
+:root[data-links="underline"] :is(main, footer, [role="dialog"], [data-concierge-dock]) a:not([class*="rounded"]) {
+  text-decoration-line: underline !important;
+  text-underline-offset: 0.2em;
+}
+
+/* Larger targets: every button, field and chip at least 44px, whatever the pointer. */
+:root[data-targets="large"] :is(button, select, textarea, input:not([type="checkbox"], [type="radio"], [type="hidden"]), a[class*="rounded"]) {
+  min-height: 2.75rem;
+}
+:root[data-targets="large"] button {
+  min-width: 2.75rem;
+}
+
+/* The reading guide's dimmed bands (src/components/comfort/reading-guide.tsx). */
+.reading-guide-band {
+  position: fixed;
+  inset-inline: 0;
+  pointer-events: none;
+  z-index: 70;
+  background: color-mix(in oklab, var(--color-dusk) 38%, transparent);
+  will-change: transform;
+}
+
+/* Point by number (src/components/comfort/point-by-number.tsx). */
+.point-number {
+  position: fixed;
+  z-index: 85;
+  pointer-events: none;
+  min-width: 1.5rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: var(--color-dusk);
+  color: var(--color-glass);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px var(--color-lumen);
+  animation: vitrine-pop-in var(--duration-quick) var(--ease-spring) both;
+}
+.point-number[data-match="true"] {
+  background: var(--color-lumen);
+  color: var(--color-dusk);
+}
+
+/* The sentence being read aloud (src/components/comfort/listen-button.tsx). */
+::highlight(vitrine-reading) {
+  background-color: var(--color-lumen-glow);
+  color: var(--color-dusk);
 }

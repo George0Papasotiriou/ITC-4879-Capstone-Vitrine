@@ -12,7 +12,10 @@
 import { useLocale } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { requestNumbers } from "@/components/comfort/point-by-number";
 import { useConcierge } from "@/components/concierge/concierge-provider";
+import { numbersRequestOf } from "@/lib/comfort/requests";
+import type { RealtimeProvider, RealtimeVoice } from "@/components/concierge/realtime-voice";
 import type { VoiceSessionResponse } from "@/app/api/concierge/voice/session/route";
 import {
   caption,
@@ -32,7 +35,31 @@ import { browserVoiceAvailable, createBrowserVoiceDriver, createScriptedVoiceDri
  * the same approvals, the same undo and the same cost guard as typing. The
  * answer is spoken *and* written, and the dock stays open beside it — text is
  * always one tap away, as the plan asks.
+ *
+ * With a realtime key (docs/adr/030) the session route reserves a realtime
+ * session instead, and a model hears and speaks by itself: the browser's
+ * recogniser and voice step aside, the model's tool calls run through the
+ * Concierge, and its words are written into the same conversation. The first
+ * time, the shopper is told where their voice goes before anything is sent.
  */
+
+/** Remembered once the shopper has read where live voice sends their voice. */
+const NOTICE_KEY = "vt_voice_notice";
+
+function noticeRead(): boolean {
+  try {
+    return window.localStorage.getItem(NOTICE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+type RealtimeSession = Extract<VoiceSessionResponse, { mode: "realtime" }>;
+
+/** Gives a reservation back unused: the socket was never opened, so it costs nothing. */
+function giveBack(sessionId: string) {
+  void fetch("/api/concierge/voice/session/end", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId }) }).catch(() => {});
+}
 
 export type VoiceMode = "hands-free" | "hold";
 
@@ -53,6 +80,14 @@ export type Voice = {
   /** Push-to-talk: hearing starts when the button is held and the turn is sent when it is let go. */
   hold: () => void;
   release: () => void;
+  /** The realtime provider carrying this session, or null on the browser's own speech. */
+  live: RealtimeProvider | null;
+  /** Shown once before live voice first sends anything: which provider will hear the shopper. */
+  notice: RealtimeProvider | null;
+  acceptNotice: () => void;
+  declineNotice: () => void;
+  /** The microphone of a live session, so the presence light can follow the voice. */
+  stream: MediaStream | null;
 };
 
 /** The scripted driver a test drives by hand, published on the window when asked for. */
@@ -88,7 +123,7 @@ function lastAnswer(messages: { role: string; parts: { type: string; text?: stri
 
 export function useVoice(): Voice {
   const locale = useLocale();
-  const { ask, chat } = useConcierge();
+  const { ask, chat, runSpokenTool, writeSpoken, cancelSpokenApprovals } = useConcierge();
   const [state, setState] = useState<VoiceState>("idle");
   const [mode, setMode] = useState<VoiceMode>("hands-free");
   const [partial, setPartial] = useState("");
@@ -96,6 +131,11 @@ export function useVoice(): Voice {
   const [said, setSaid] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
   const [available, setAvailable] = useState(false);
+  const [live, setLive] = useState<RealtimeProvider | null>(null);
+  const [notice, setNotice] = useState<RealtimeProvider | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const realtime = useRef<RealtimeVoice | null>(null);
+  const pending = useRef<RealtimeSession | null>(null);
 
   const driver = useRef<VoiceDriver | null>(null);
   const session = useRef({ startedAt: 0, turns: 0 });
@@ -114,14 +154,20 @@ export function useVoice(): Voice {
 
   useEffect(() => {
     driver.current = chooseDriver();
-    setAvailable(driver.current.available || browserVoiceAvailable());
+    // A realtime session needs only a microphone, so it also speaks in browsers without their own recogniser.
+    setAvailable(driver.current.available || browserVoiceAvailable() || typeof navigator.mediaDevices?.getUserMedia === "function");
     return () => {
       driver.current?.stopListening();
       driver.current?.stopSpeaking();
+      realtime.current?.stop();
     };
   }, []);
 
   const stop = useCallback(() => {
+    if (realtime.current !== null) {
+      realtime.current.stop();
+      return;
+    }
     driver.current?.stopListening();
     driver.current?.stopSpeaking();
     setPartial("");
@@ -136,6 +182,14 @@ export function useVoice(): Voice {
       if (sessionSpent({ startedAt: session.current.startedAt, turns: session.current.turns })) {
         setProblem("spent");
         stop();
+        return;
+      }
+      // Point by number by voice (docs/adr/032): handled on the page, not a turn for the Concierge.
+      const numbers = numbersRequestOf(said, document.querySelector('[data-agent-id="numbers:layer"]') !== null);
+      if (numbers !== null) {
+        setPartial("");
+        setFinal(said);
+        requestNumbers(numbers);
         return;
       }
       session.current.turns += 1;
@@ -183,6 +237,80 @@ export function useVoice(): Voice {
     dispatch({ type: "listen" });
   }, [dispatch, hear, locale]);
 
+  const connect = useCallback(
+    async (reserved: RealtimeSession) => {
+      const stream = await navigator.mediaDevices?.getUserMedia({ audio: true }).catch(() => null);
+      if (stream === null || stream === undefined) {
+        setProblem("not-allowed");
+        giveBack(reserved.sessionId);
+        return;
+      }
+      const { startRealtimeVoice } = await import("@/components/concierge/realtime-voice");
+      setLive(reserved.provider);
+      setStream(stream);
+      setPartial("");
+      setFinal("");
+      setSaid("");
+      const set = (next: VoiceState) => {
+        current.current = next;
+        setState(next);
+      };
+      realtime.current = await startRealtimeVoice({
+        provider: reserved.provider,
+        sessionId: reserved.sessionId,
+        locale: locale === "el" ? "el" : "en",
+        maxSessionMs: reserved.maxSessionMs,
+        stream,
+        handlers: {
+          onState: set,
+          onHeard: (text) => {
+            setPartial("");
+            setFinal(text);
+          },
+          onSaid: setSaid,
+          onProblem: setProblem,
+          onMessages: writeSpoken,
+          runTool: runSpokenTool,
+          onEnded: () => {
+            realtime.current = null;
+            setLive(null);
+            setStream(null);
+            cancelSpokenApprovals();
+            set("idle");
+          },
+        },
+      }).catch(() => {
+        setProblem("generic");
+        setLive(null);
+        setStream(null);
+        set("idle");
+        stream.getTracks().forEach((track) => track.stop());
+        giveBack(reserved.sessionId);
+        return null;
+      });
+    },
+    [cancelSpokenApprovals, locale, runSpokenTool, writeSpoken],
+  );
+
+  const acceptNotice = useCallback(() => {
+    try {
+      window.localStorage.setItem(NOTICE_KEY, "1");
+    } catch {
+      // Without storage the notice is shown again next time, which is the safe side.
+    }
+    setNotice(null);
+    const reserved = pending.current;
+    pending.current = null;
+    if (reserved !== null) void connect(reserved);
+  }, [connect]);
+
+  const declineNotice = useCallback(() => {
+    setNotice(null);
+    const reserved = pending.current;
+    pending.current = null;
+    if (reserved !== null) giveBack(reserved.sessionId);
+  }, []);
+
   const start = useCallback(() => {
     setProblem(null);
     void (async () => {
@@ -197,18 +325,28 @@ export function useVoice(): Voice {
         return;
       }
       session.current = { startedAt: Date.now(), turns: 0 };
+      if (result.mode === "realtime") {
+        if (noticeRead()) {
+          await connect(result);
+          return;
+        }
+        pending.current = result;
+        setNotice(result.provider);
+        return;
+      }
       if (driver.current?.available !== true) {
         setProblem("unsupported");
         return;
       }
       listen();
     })();
-  }, [listen, locale]);
+  }, [connect, listen, locale]);
 
   // An answer that has finished streaming is spoken once, and the session goes
   // back to listening the moment it is said (or interrupted).
   useEffect(() => {
-    if (chat.status !== "ready" || current.current === "idle") return;
+    // A realtime model speaks for itself; the browser's voice stays quiet.
+    if (chat.status !== "ready" || current.current === "idle" || live !== null) return;
     const answer = lastAnswer(chat.messages as { role: string; parts: { type: string; text?: string }[] }[]);
     if (answer === "" || spoken.current === answer) return;
     spoken.current = answer;
@@ -221,9 +359,13 @@ export function useVoice(): Voice {
       dispatch({ type: "spoken" });
       if (mode === "hold") driver.current?.stopListening();
     });
-  }, [chat.status, chat.messages, dispatch, locale, mode]);
+  }, [chat.status, chat.messages, dispatch, locale, mode, live]);
 
   const hold = useCallback(() => {
+    if (realtime.current !== null) {
+      realtime.current.capture(true);
+      return;
+    }
     held.current = "";
     setFinal("");
     if (current.current === "idle") start();
@@ -231,6 +373,10 @@ export function useVoice(): Voice {
   }, [listen, start]);
 
   const release = useCallback(() => {
+    if (realtime.current !== null) {
+      realtime.current.capture(false);
+      return;
+    }
     driver.current?.stopListening();
     send(held.current);
     held.current = "";
@@ -243,13 +389,22 @@ export function useVoice(): Voice {
       heard: caption({ partial, final }),
       said,
       mode,
-      setMode,
+      setMode: (next: VoiceMode) => {
+        setMode(next);
+        // Live: hands-free hears everything; hold-to-talk hears only while held.
+        realtime.current?.capture(next === "hands-free");
+      },
       problem,
       start,
       stop,
       hold,
       release,
+      live,
+      notice,
+      acceptNotice,
+      declineNotice,
+      stream,
     }),
-    [state, available, partial, final, said, mode, problem, start, stop, hold, release],
+    [state, available, partial, final, said, mode, problem, start, stop, hold, release, live, notice, acceptNotice, declineNotice, stream],
   );
 }

@@ -12,6 +12,8 @@ import { getTranslations } from "next-intl/server";
 import { FilterLink } from "@/components/commerce/filter-link";
 import { ListingSort } from "@/components/commerce/listing-sort";
 import { ProductGrid } from "@/components/commerce/product-grid";
+import { FlipGroup } from "@/components/motion/flip-group";
+import { Ticker } from "@/components/motion/ticker";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/states";
 import {
@@ -157,7 +159,8 @@ export async function ListingView({
       <div className="border-hairline flex flex-col gap-4 border-y py-4 sm:flex-row sm:items-end sm:justify-between">
         {/* A heading, so the tiles' h3 titles sit under an h2 rather than straight under the page h1. */}
         <h2 className="text-slate text-sm font-normal" aria-live="polite">
-          {t("results", { count: listing.total })}
+          {/* The count rolls to its new value when a filter changes it (docs/adr/031). */}
+          <Ticker value={listing.total}>{t("results", { count: listing.total })}</Ticker>
         </h2>
         <ListingSort
           // Remount on a new sort, so the uncontrolled select shows the URL's order after navigation.
@@ -217,13 +220,16 @@ export async function ListingView({
               }
             />
           ) : (
-            <ProductGrid products={listing.products} locale={locale} />
+            // The grid rearranges itself when a filter, the sort or the page changes (docs/adr/031).
+            <FlipGroup agentId="listing:grid">
+              <ProductGrid products={listing.products} locale={locale} />
+            </FlipGroup>
           )}
 
           {listing.pageCount > 1 ? (
             <nav aria-label={t("pagination")} className="mt-16 flex items-center justify-between gap-4">
               {state.page > 1 ? (
-                <ButtonLink href={href(withChanges(state, { page: state.page - 1 }))} variant="secondary" rel="prev">
+                <ButtonLink href={href(withChanges(state, { page: state.page - 1 }))} variant="secondary" rel="prev" transitionTypes={["listing"]}>
                   {t("previous")}
                 </ButtonLink>
               ) : (
@@ -231,7 +237,7 @@ export async function ListingView({
               )}
               <p className="text-slate tabular text-sm">{t("pageOf", { page: state.page, count: listing.pageCount })}</p>
               {state.page < listing.pageCount ? (
-                <ButtonLink href={href(withChanges(state, { page: state.page + 1 }))} variant="secondary" rel="next">
+                <ButtonLink href={href(withChanges(state, { page: state.page + 1 }))} variant="secondary" rel="next" transitionTypes={["listing"]}>
                   {t("next")}
                 </ButtonLink>
               ) : (

@@ -40,20 +40,31 @@ export type ShowcaseKey = "customer1" | "customer2" | "support1" | "support2" | 
 
 export type ShowcaseAccount = { key: ShowcaseKey; role: Role; name: string; email: string; locale: "en" | "el" };
 
+/** The domain every showcase address is under, accounts and guests alike. */
+export const SHOWCASE_DOMAIN = "vitrine.app";
+
 /**
- * Addresses under `.test`, a name reserved so that it can never receive mail
- * (RFC 2606): the accounts are confirmed already, and nothing the shop sends
- * them can reach a real person.
+ * Whether the shop may never deliver mail to an address: anything under
+ * vitrine.app (George's choice of domain, 2026-09-26). It is a real,
+ * registrable domain, so whoever owns it could receive what the shop sends;
+ * the mailer keeps these messages in its own outbox instead
+ * (src/lib/email/server.ts), and nothing reaches a person.
  */
+export function isShowcaseAddress(email: string): boolean {
+  const domain = email.trim().toLowerCase().split("@")[1] ?? "";
+  return domain === SHOWCASE_DOMAIN || domain.endsWith(`.${SHOWCASE_DOMAIN}`);
+}
+
+/** The accounts are confirmed already: nothing needs to reach them for anyone to sign in. */
 export const SHOWCASE_ACCOUNTS: readonly ShowcaseAccount[] = [
-  { key: "customer1", role: "customer", name: "Eleni Papadopoulou", email: "customer1@vitrine.test", locale: "el" },
-  { key: "customer2", role: "customer", name: "Oliver Hughes", email: "customer2@vitrine.test", locale: "en" },
-  { key: "support1", role: "support", name: "Maria Konstantinou", email: "support1@vitrine.test", locale: "el" },
-  { key: "support2", role: "support", name: "Nikos Andreou", email: "support2@vitrine.test", locale: "en" },
-  { key: "merchandiser1", role: "merchandiser", name: "Sofia Christodoulou", email: "merchandiser1@vitrine.test", locale: "el" },
-  { key: "merchandiser2", role: "merchandiser", name: "Giorgos Ioannou", email: "merchandiser2@vitrine.test", locale: "en" },
-  { key: "admin1", role: "admin", name: "Katerina Vlachou", email: "admin1@vitrine.test", locale: "el" },
-  { key: "admin2", role: "admin", name: "Dimitris Alexiou", email: "admin2@vitrine.test", locale: "en" },
+  { key: "customer1", role: "customer", name: "Eleni Papadopoulou", email: "customer1@vitrine.app", locale: "el" },
+  { key: "customer2", role: "customer", name: "Oliver Hughes", email: "customer2@vitrine.app", locale: "en" },
+  { key: "support1", role: "support", name: "Maria Konstantinou", email: "support1@vitrine.app", locale: "el" },
+  { key: "support2", role: "support", name: "Nikos Andreou", email: "support2@vitrine.app", locale: "en" },
+  { key: "merchandiser1", role: "merchandiser", name: "Sofia Christodoulou", email: "merchandiser1@vitrine.app", locale: "el" },
+  { key: "merchandiser2", role: "merchandiser", name: "Giorgos Ioannou", email: "merchandiser2@vitrine.app", locale: "en" },
+  { key: "admin1", role: "admin", name: "Katerina Vlachou", email: "admin1@vitrine.app", locale: "el" },
+  { key: "admin2", role: "admin", name: "Dimitris Alexiou", email: "admin2@vitrine.app", locale: "en" },
 ];
 
 export const accountOf = (key: ShowcaseKey): ShowcaseAccount => SHOWCASE_ACCOUNTS.find((account) => account.key === key)!;
@@ -215,7 +226,7 @@ export const TICKET_STORIES: readonly TicketStory[] = [
   },
   {
     key: "t-guest-question",
-    from: { guest: { name: "Anna Martin", email: "anna.martin@guests.vitrine.test", locale: "en" } },
+    from: { guest: { name: "Anna Martin", email: "anna.martin@guests.vitrine.app", locale: "en" } },
     topic: "product",
     subject: "Assembly of the dining table",
     body: "Hello, does the Hayes dining table come assembled, or will I need tools? I live on the third floor without a lift.",

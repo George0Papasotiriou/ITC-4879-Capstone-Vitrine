@@ -20,7 +20,7 @@
  * a budget guard should err on the high side.
  */
 
-export const PRICES_CHECKED = "2026-09-11";
+export const PRICES_CHECKED = "2026-09-26";
 export const USD_TO_EUR = 1;
 
 export type Pricing =
@@ -44,7 +44,13 @@ export type ModelEntry = {
 export const AI_FEATURES = ["concierge", "support_chat", "support_draft", "voice", "embedding", "snap", "try_on", "animate", "capsule_image", "translation"] as const;
 export type AiFeature = (typeof AI_FEATURES)[number];
 
-const GEMINI_FLASH: ModelEntry = { provider: "google", id: "gemini-3.7-flash", pricing: { kind: "tokens", inputUsdPerMillion: 0.75, outputUsdPerMillion: 3.75 } };
+/**
+ * Gemini 3.8 Flash, Google's current Flash model (ai.google.dev, checked
+ * 2026-09-26; 3.7 Flash is no longer listed). The price is the one in force
+ * until 31 December 2026; from 1 January 2027 Google lists $1.50 in and $7.50
+ * out, and this line must change with it or the budget guard undercounts.
+ */
+const GEMINI_FLASH: ModelEntry = { provider: "google", id: "gemini-3.8-flash", pricing: { kind: "tokens", inputUsdPerMillion: 0.75, outputUsdPerMillion: 3.75 } };
 
 export const MODELS = {
   /** The Concierge's text model: the plan's leading candidate until the Phase 6 bake-off (ADR-007) decides. */
@@ -63,6 +69,23 @@ export const MODELS = {
   video: { provider: "google", id: "veo-3.1-lite-generate-preview", pricing: { kind: "per_unit", unit: "second", usdPerUnit: 0.05 } },
   /** Virtual try-on (FASHN). The model name is confirmed against FASHN's API reference in Phase 9 (src/lib/ai/providers/fashn.ts). */
   tryOn: { provider: "fashn", id: "tryon", pricing: { kind: "per_unit", unit: "call", usdPerUnit: 0.075 } },
+  /**
+   * Realtime voice, OpenAI (docs/adr/030). gpt-realtime-2.1 rather than the
+   * newer gpt-live-1: Live cannot be given a short-lived browser token or the
+   * shop's tools (@ai-sdk/openai 4.0.70 refuses both), so it would need a
+   * server relay for the audio. Billed per audio token ($32 in, $64 out per
+   * million; one token per 100 ms heard and per 50 ms spoken), which is at
+   * most about $0.10 for a minute of both, plus the instructions and tools
+   * sent with each answer. The browser holds the socket, so the shop cannot
+   * count those tokens; it charges by the minute at a rate that errs high.
+   */
+  voiceOpenai: { provider: "openai", id: "gpt-realtime-2.1", pricing: { kind: "per_unit", unit: "minute", usdPerUnit: 0.15 } },
+  /**
+   * Realtime voice, Google: Gemini 3.8 Live, $0.005 a minute heard and $0.018
+   * a minute spoken (ai.google.dev, 2026-09-26), plus the context each turn
+   * re-reads. Charged by the minute at a rate that errs high, like the above.
+   */
+  voiceGoogle: { provider: "google", id: "gemini-3.8-live", pricing: { kind: "per_unit", unit: "minute", usdPerUnit: 0.03 } },
 } as const satisfies Record<string, ModelEntry>;
 
 export type ModelKey = keyof typeof MODELS;

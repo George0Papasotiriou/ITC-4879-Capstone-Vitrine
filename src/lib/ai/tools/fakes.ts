@@ -12,6 +12,7 @@ import type { ToolContext, ToolServices } from "@/lib/ai/tools/types";
 import { createUndoToken } from "@/lib/ai/tools/undo";
 import type { ProductCard, ProductDetail } from "@/lib/catalog/queries";
 import { money } from "@/lib/commerce/money";
+import { EMPTY_PREFERENCES } from "@/lib/prefs/preferences";
 import type { CartLine, CartView } from "@/lib/commerce/store";
 
 /** Used only by the unit tests under src/lib/ai. */
@@ -87,6 +88,9 @@ export function context(overrides: Partial<ToolServices> = {}, cartLines: Partia
       get: async () => null,
       set: async () => ({ ok: true, watchId: "w1", created: true }),
       remove: async () => true,
+    },
+    preferences: {
+      read: async () => EMPTY_PREFERENCES,
     },
     support: {
       handOver: async () => ({ ok: true, id: "01890000-0000-7000-8000-0000000000d1", number: "VS-7K2M-Q4HD" }),

@@ -17,10 +17,22 @@ import { uuidv7 } from "uuidv7";
  * entry, or an entry for a change that was rolled back.
  */
 
-export const AUDIT_ACTIONS = ["product.update", "stock.set", "review.hide", "review.restore", "role.grant", "role.revoke", "ai.settings"] as const;
+export const AUDIT_ACTIONS = [
+  "product.update",
+  "stock.set",
+  "review.hide",
+  "review.restore",
+  "role.grant",
+  "role.revoke",
+  "ai.settings",
+  "macro.create",
+  "macro.update",
+  "macro.restore",
+  "macro.remove",
+] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
-export const AUDIT_ENTITIES = ["product", "variant", "review", "user", "setting"] as const;
+export const AUDIT_ENTITIES = ["product", "variant", "review", "user", "setting", "macro"] as const;
 export type AuditEntity = (typeof AUDIT_ENTITIES)[number];
 
 export type AuditChanges = Record<string, { before: unknown; after: unknown }>;
@@ -101,6 +113,8 @@ export type AuditListEntry = {
   sku: string | null;
   /** The account's email, for role entries. */
   userEmail: string | null;
+  /** A ready answer's title, for the desk's entries; null once it has been removed. */
+  macroTitle: string | null;
 };
 
 /** Newest first, optionally one kind of record, a page at a time. */
@@ -122,14 +136,16 @@ export async function listAudit(
     title_el: string | null;
     sku: string | null;
     user_email: string | null;
+    macro_title: string | null;
   }[]>`
     SELECT a.id, a.created_at, a.actor_email, a.action, a.entity_type, a.entity_id, a.changes, a.reason,
-           p.id AS product_id, p.title_en, p.title_el, v.sku, u.email AS user_email
+           p.id AS product_id, p.title_en, p.title_el, v.sku, u.email AS user_email, m.title_en AS macro_title
     FROM audit_log a
     LEFT JOIN product_variants v ON a.entity_type = 'variant' AND v.id::text = a.entity_id
     LEFT JOIN reviews r ON a.entity_type = 'review' AND r.id::text = a.entity_id
     LEFT JOIN products p ON p.id::text = CASE a.entity_type WHEN 'product' THEN a.entity_id WHEN 'variant' THEN v.product_id::text WHEN 'review' THEN r.product_id::text END
     LEFT JOIN users u ON a.entity_type = 'user' AND u.id::text = a.entity_id
+    LEFT JOIN support_macros m ON a.entity_type = 'macro' AND m.id::text = a.entity_id
     WHERE ${entity === null ? sql`TRUE` : sql`a.entity_type = ${entity}`}
     ORDER BY a.created_at DESC, a.id DESC
     LIMIT ${limit + 1} OFFSET ${offset}
@@ -149,6 +165,7 @@ export async function listAudit(
       product: row.product_id === null ? null : { id: row.product_id, titleEn: row.title_en!, titleEl: row.title_el },
       sku: row.sku,
       userEmail: row.user_email,
+      macroTitle: row.macro_title,
     })),
   };
 }

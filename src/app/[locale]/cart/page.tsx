@@ -11,6 +11,8 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 import { CartLineControls } from "@/components/commerce/cart-line-controls";
+import { FlipGroup } from "@/components/motion/flip-group";
+import { Ticker } from "@/components/motion/ticker";
 import { ProductImage } from "@/components/commerce/product-image";
 import { ButtonLink } from "@/components/ui/button";
 import { Price } from "@/components/ui/price";
@@ -79,12 +81,18 @@ export default async function CartPage({ params }: PageProps<"/[locale]/cart">) 
   return (
     <main className="mx-auto w-full max-w-[1440px] px-6 py-10 md:px-10 md:py-16">
       <h1 className="font-display text-3xl">{t("title")}</h1>
-      <p className="text-slate tabular mt-2">{t("items", { count: totals.itemCount })}</p>
+      <p className="text-slate tabular mt-2">
+        <Ticker value={totals.itemCount}>{t("items", { count: totals.itemCount })}</Ticker>
+      </p>
 
       <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
+        {/* A line removed folds away, and the lines below close the gap (docs/adr/031). */}
+        <FlipGroup>
         <ul className="border-hairline divide-hairline divide-y border-y" data-agent-id="cart:lines">
           {view.lines.map((line) => (
-            <li key={line.variantId} className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-5 py-6 md:grid-cols-[7rem_minmax(0,1fr)_auto]" data-agent-id={`cart-line:${line.variantId}`}>
+            <li
+              key={line.variantId}
+              data-flip-key={line.variantId} className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-5 py-6 md:grid-cols-[7rem_minmax(0,1fr)_auto]" data-agent-id={`cart-line:${line.variantId}`}>
               <SmartLink href={`/p/${line.slug}`} className="bg-plinth rounded-plinth relative block aspect-square overflow-hidden" tabIndex={-1} aria-hidden="true">
                 {line.image === null ? null : (
                   <span className="on-plinth absolute inset-2 block">
@@ -104,12 +112,15 @@ export default async function CartPage({ params }: PageProps<"/[locale]/cart">) 
                 ) : null}
               </div>
               <div className="col-start-2 flex flex-wrap items-center justify-between gap-3 md:col-start-3 md:row-start-1 md:flex-col md:items-end md:justify-start">
-                <Price amount={{ cents: line.unitPrice.cents * line.quantity, currency: line.unitPrice.currency }} locale={locale} size="sm" />
+                <Ticker value={line.unitPrice.cents * line.quantity}>
+                  <Price amount={{ cents: line.unitPrice.cents * line.quantity, currency: line.unitPrice.currency }} locale={locale} size="sm" />
+                </Ticker>
                 <CartLineControls variantId={line.variantId} title={line.title} quantity={line.quantity} stock={line.stock} available={line.available} />
               </div>
             </li>
           ))}
         </ul>
+        </FlipGroup>
 
         <aside aria-labelledby="summary-title" className="bg-plinth/60 rounded-plinth flex flex-col gap-5 p-6 lg:sticky lg:top-24">
           <h2 id="summary-title" className="font-display text-xl">
@@ -118,15 +129,21 @@ export default async function CartPage({ params }: PageProps<"/[locale]/cart">) 
           <dl className="flex flex-col gap-3 text-sm" data-agent-id="cart:totals">
             <div className="flex justify-between gap-4">
               <dt>{t("subtotal")}</dt>
-              <dd className="tabular">{formatMoney(totals.subtotal, locale)}</dd>
+              <dd className="tabular">
+                <Ticker value={totals.subtotal.cents}>{formatMoney(totals.subtotal, locale)}</Ticker>
+              </dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt>{t("shipping")}</dt>
-              <dd className="tabular">{totals.shipping.cents === 0 ? t("shippingFree") : formatMoney(totals.shipping, locale)}</dd>
+              <dd className="tabular">
+                <Ticker value={totals.shipping.cents}>{totals.shipping.cents === 0 ? t("shippingFree") : formatMoney(totals.shipping, locale)}</Ticker>
+              </dd>
             </div>
             <div className="border-hairline flex justify-between gap-4 border-t pt-3 text-base font-medium">
               <dt>{t("total")}</dt>
-              <dd className="tabular">{formatMoney(totals.total, locale)}</dd>
+              <dd className="tabular">
+                <Ticker value={totals.total.cents}>{formatMoney(totals.total, locale)}</Ticker>
+              </dd>
             </div>
           </dl>
           {totals.deliverable ? (

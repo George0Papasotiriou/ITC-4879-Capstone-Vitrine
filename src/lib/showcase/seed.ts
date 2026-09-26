@@ -26,6 +26,7 @@ import {
   ORDER_STORIES,
   SHOWCASE_ACCOUNTS,
   SHOWCASE_DATA_VERSION,
+  SHOWCASE_DOMAIN,
   SHOWCASE_MARKER,
   SPAM_REVIEWS,
   storySteps,
@@ -40,7 +41,8 @@ import { createSupportStore } from "@/lib/support/store";
  * docs/adr/028. Everything goes through the stores the shop itself uses —
  * the cart, the order state machine, the review rules, the desk — dated when
  * it happened, so stock, totals, VAT, histories and the dashboards are what
- * real use would leave. No email is sent: every address is under `.test`.
+ * real use would leave. No email is sent, and none ever could be: every
+ * address is under vitrine.app, which the mailer never delivers to.
  *
  * Each part checks for itself whether it has already been written, so a deploy
  * that stopped halfway finishes the job the next time instead of writing it
@@ -65,7 +67,7 @@ const ADDRESSES: readonly (readonly [Omit<ShippingAddress, "name">, number])[] =
 
 const GUEST_NAMES = ["Anna Pappa", "Kostas Vlachos", "Christina Kyriakou", "Yannis Alexiou", "Lena Hoffmann", "Giulia Rossi", "Marios Michael", "Katerina Nikolaou"];
 
-const guestEmail = (name: string) => `${name.toLowerCase().replace(/[^a-z]+/g, ".")}@guests.vitrine.test`;
+const guestEmail = (name: string) => `${name.toLowerCase().replace(/[^a-z]+/g, ".")}@guests.${SHOWCASE_DOMAIN}`;
 
 /** The accounts, created or brought up to date; returns them by key, and which were new. */
 export async function ensureAccounts(sql: Sql, password: string, log: Log): Promise<Map<ShowcaseKey, Person>> {
@@ -186,7 +188,7 @@ export async function ensureHistory(sql: Sql, people: Map<ShowcaseKey, Person>, 
   }
 
   // 1. The shop's recent weeks, from guests: what the dashboards are made of.
-  const [guests] = await sql<{ n: number }[]>`SELECT count(*)::int AS n FROM orders WHERE email LIKE '%@guests.vitrine.test'`;
+  const [guests] = await sql<{ n: number }[]>`SELECT count(*)::int AS n FROM orders WHERE email LIKE ${`%@guests.${SHOWCASE_DOMAIN}`}`;
   const delivered: Placed[] = [];
   if ((guests?.n ?? 0) === 0) {
     let count = 0;
@@ -278,7 +280,7 @@ export async function ensureHistory(sql: Sql, people: Map<ShowcaseKey, Person>, 
 
   // 5. The support desk: a conversation in every state its pages show.
   const desk = createSupportStore(sql);
-  const [tickets] = await sql<{ n: number }[]>`SELECT count(*)::int AS n FROM support_tickets WHERE email LIKE '%vitrine.test'`;
+  const [tickets] = await sql<{ n: number }[]>`SELECT count(*)::int AS n FROM support_tickets WHERE email LIKE ${`%${SHOWCASE_DOMAIN}`}`;
   if ((tickets?.n ?? 0) === 0) {
     for (const story of TICKET_STORIES) {
       const openedAt = new Date(now.getTime() - story.hoursAgo * 60 * 60 * 1000);

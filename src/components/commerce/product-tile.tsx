@@ -124,6 +124,8 @@ export function ProductTile({
               plinth rather than wrapping it, so the heading stays a heading. */}
           <SmartLink
             href={href}
+            // The photograph morphs into the product page; the page itself does not fade (docs/adr/031).
+            transitionTypes={["morph"]}
             className="after:absolute after:inset-0 after:content-[''] line-clamp-2 no-underline hover:underline underline-offset-4"
           >
             {title}

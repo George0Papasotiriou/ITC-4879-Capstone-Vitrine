@@ -6,7 +6,7 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * React hook for the reduced-motion preference.
+ * React hook for the reduced-motion preference: the system's, or the shopper's own choice in the shop.
  */
 
 import { useSyncExternalStore } from "react";
@@ -24,6 +24,11 @@ import { useSyncExternalStore } from "react";
  * agree; the real value arrives in the re-render immediately after hydration,
  * before anything has had time to move.
  *
+ * Two places can ask for it (docs/adr/032): the operating system, and the
+ * shop's comfort settings, which write `data-motion` on <html> — "reduce" to
+ * ask for less motion whatever the system says, "full" to keep it. The
+ * stylesheet reads the same attribute, so CSS and script always agree.
+ *
  * Reduced motion is honoured everywhere (docs/PLAN.md 4.7). The rule is that
  * turning it on removes animation, never function: the Spotlight still acts,
  * still captions, still announces and still records an undo.
@@ -34,10 +39,20 @@ const QUERY = "(prefers-reduced-motion: reduce)";
 function subscribe(onChange: () => void): () => void {
   const media = window.matchMedia(QUERY);
   media.addEventListener("change", onChange);
-  return () => media.removeEventListener("change", onChange);
+  const attribute = new MutationObserver(onChange);
+  attribute.observe(document.documentElement, { attributes: true, attributeFilter: ["data-motion"] });
+  return () => {
+    media.removeEventListener("change", onChange);
+    attribute.disconnect();
+  };
 }
 
-function getSnapshot(): boolean {
+/** The same decision the stylesheet makes, readable outside React. */
+export function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  const chosen = document.documentElement.dataset.motion;
+  if (chosen === "reduce") return true;
+  if (chosen === "full") return false;
   return window.matchMedia(QUERY).matches;
 }
 
@@ -46,5 +61,5 @@ function getServerSnapshot(): boolean {
 }
 
 export function usePrefersReducedMotion(): boolean {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  return useSyncExternalStore(subscribe, prefersReducedMotion, getServerSnapshot);
 }

@@ -28,7 +28,7 @@ import { cn } from "@/lib/ui/cn";
 
 const boxBase = cn(
   "border-dusk/35 inline-flex size-5 shrink-0 items-center justify-center border bg-white",
-  "transition-colors duration-quick ease-standard",
+  "press",
   "data-[state=checked]:bg-dusk data-[state=checked]:border-dusk data-[state=checked]:text-glass",
   "disabled:cursor-not-allowed disabled:opacity-40",
 );

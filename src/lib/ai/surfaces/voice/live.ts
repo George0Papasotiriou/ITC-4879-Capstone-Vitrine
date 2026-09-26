@@ -4,39 +4,105 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * The seam where a realtime voice model joins: what it would return, and why it does not yet.
+ * Realtime voice: which provider carries it, what the session is told, and the short-lived token the browser opens it with.
  */
 
-import { serverEnv } from "@/env";
+import { experimental_getRealtimeToolDefinitions as getRealtimeToolDefinitions, tool, type Experimental_RealtimeSessionConfig as RealtimeSessionConfig, type Experimental_RealtimeToolDefinition as RealtimeToolDefinition } from "ai";
+
+import { serverEnv, type ServerEnv } from "@/env";
+import { MODELS, type ModelEntry } from "@/lib/ai/models";
+import { voiceInstructions } from "@/lib/ai/prompts/voice-v1";
+import { toolsFor } from "@/lib/ai/tools/registry";
+import { OPEN_WINDOW_SECONDS } from "@/lib/ai/surfaces/voice/sessions";
 
 /**
- * Realtime voice (docs/adr/026, docs/PLAN.md Phase 7 step 1).
+ * docs/adr/026 built voice on the browser's own speech; docs/adr/030 adds a
+ * realtime model beside it. The browser opens the socket to the provider
+ * itself, with a token this file mints on the server — the key never leaves
+ * the server, and the token only opens a socket for a minute.
  *
- * The plan's voice is a realtime model: audio in, audio out, tool calls over
- * the same socket. The AI SDK has the client for it
- * (`Experimental_AbstractRealtimeSession`, `experimental_getRealtimeToolDefinitions`),
- * and the tools are already a registry the socket could be given
- * (`/api/concierge/tools`). What is missing is a key, and an API that is still
- * marked experimental in the SDK we pin.
+ * The token carries the session: the Concierge's instructions for talking
+ * live, the language, captions for both sides, and the tools of the registry
+ * offered to voice. The model's tool calls come back to the shop through
+ * `/api/concierge/tools`, so they run with the same checks, approvals and undo
+ * as a typed turn (CLAUDE.md rule 4).
  *
- * So this file is the seam, not a stub that pretends: `realtimeVoiceConfigured`
- * is the one place that decides, and it says no until a key and a verified API
- * exist. Until then the browser's own speech carries the audio and the
- * ordinary Concierge endpoint carries the thinking — the same tools, the same
- * guardrails, the same costs.
+ * Which provider: VOICE_PROVIDER, when its key exists; otherwise nobody, and
+ * voice stays on the browser's speech. Nothing here depends on the Concierge's
+ * text mode: a voice key beside a demo Concierge still speaks for real, and is
+ * charged for real (the usage guard's `paid`).
  */
 
-export type RealtimeToken = { value: string; url: string; expiresAt: number };
+export type RealtimeProvider = "openai" | "google";
+
+export type RealtimeSetup = { token: string; url: string; expiresAt?: number; tools: RealtimeToolDefinition[] };
+
+/** Mints a token for one session; the provider's own factory in production, a fake in tests. */
+export type RealtimeMinter = (options: { model: string; expiresAfterSeconds: number; sessionConfig: RealtimeSessionConfig }) => Promise<{ token: string; url: string; expiresAt?: number }>;
+
+/** The provider that carries realtime voice here, or null for the browser's own speech. */
+export function realtimeProvider(env: Pick<ServerEnv, "VOICE_PROVIDER" | "OPENAI_API_KEY" | "GOOGLE_GENERATIVE_AI_API_KEY"> = serverEnv()): RealtimeProvider | null {
+  switch (env.VOICE_PROVIDER) {
+    case "openai":
+      return env.OPENAI_API_KEY === undefined ? null : "openai";
+    case "google":
+      return env.GOOGLE_GENERATIVE_AI_API_KEY === undefined ? null : "google";
+    default:
+      return null;
+  }
+}
 
 /** Whether a realtime session can be minted at all. */
 export function realtimeVoiceConfigured(): boolean {
-  // Two things are needed, and only one of them is an environment variable.
-  // The second — a realtime API this project has read and pinned — is a change
-  // to this file, which is why it is not written as a variable check alone.
-  return serverEnv().aiMode === "google" && false;
+  return realtimeProvider() !== null;
 }
 
-/** The ephemeral token a browser would open the socket with. */
-export function liveSession(): RealtimeToken {
-  throw new Error("Realtime voice is not configured. See docs/adr/026; the browser's own speech is used instead.");
+export function voiceModel(provider: RealtimeProvider): ModelEntry {
+  return provider === "openai" ? MODELS.voiceOpenai : MODELS.voiceGoogle;
+}
+
+/** The registry's voice tools, described the way a realtime session takes them. */
+export async function realtimeTools(): Promise<RealtimeToolDefinition[]> {
+  const tools = Object.fromEntries(toolsFor("voice").map((entry) => [entry.name, tool({ description: entry.description, inputSchema: entry.input })]));
+  return getRealtimeToolDefinitions({ tools });
+}
+
+/**
+ * The session the token is minted for. OpenAI's voice is named; Google's
+ * default voice speaks both languages, so it is left to choose. Captions are
+ * asked for on both sides: what the shopper said and what was answered are
+ * always written as well as heard (docs/adr/026).
+ */
+export function realtimeSessionConfig({ provider, locale, signedIn, tools }: { provider: RealtimeProvider; locale: "en" | "el"; signedIn: boolean; tools: RealtimeToolDefinition[] }): RealtimeSessionConfig {
+  return {
+    instructions: voiceInstructions({ locale, signedIn }),
+    outputModalities: ["audio"],
+    inputAudioTranscription: { language: locale },
+    ...(provider === "google" ? { outputAudioTranscription: {} } : { voice: "marin" }),
+    tools,
+  };
+}
+
+/** The provider's own token factory, loaded only when a session is minted. */
+export async function providerMinter(provider: RealtimeProvider, env: ServerEnv = serverEnv()): Promise<RealtimeMinter> {
+  if (provider === "openai") {
+    const { createOpenAI } = await import("@ai-sdk/openai");
+    const realtime = createOpenAI({ apiKey: env.OPENAI_API_KEY }).experimental_realtime;
+    return (options) => realtime.getToken({ ...options, api: "realtime" });
+  }
+  const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
+  const realtime = createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY }).experimental_realtime;
+  return (options) => realtime.getToken(options);
+}
+
+/** Mints the token a browser opens one realtime session with. */
+export async function liveSession({ provider, locale, signedIn, mint }: { provider: RealtimeProvider; locale: "en" | "el"; signedIn: boolean; mint?: RealtimeMinter }): Promise<RealtimeSetup> {
+  const tools = await realtimeTools();
+  const minter = mint ?? (await providerMinter(provider));
+  const token = await minter({
+    model: voiceModel(provider).id,
+    expiresAfterSeconds: OPEN_WINDOW_SECONDS,
+    sessionConfig: realtimeSessionConfig({ provider, locale, signedIn, tools }),
+  });
+  return { ...token, tools };
 }

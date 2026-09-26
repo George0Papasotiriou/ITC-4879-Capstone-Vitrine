@@ -39,12 +39,18 @@ export type MailerOptions = {
   from: string;
   fetch?: typeof fetch;
   now?: () => Date;
+  /**
+   * Addresses the shop must never deliver to, whatever the transport: they are
+   * kept in the outbox, where staff can read them, and not handed to Resend
+   * (the showcase accounts, docs/adr/028).
+   */
+  keepInOutbox?: (address: string) => boolean;
 };
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const KEEP_DAYS = 7;
 
-export function createMailer({ sql, resendApiKey, from, fetch: send = fetch, now = () => new Date() }: MailerOptions) {
+export function createMailer({ sql, resendApiKey, from, fetch: send = fetch, now = () => new Date(), keepInOutbox = () => false }: MailerOptions) {
   async function deliverWithResend(email: OutgoingEmail): Promise<{ providerId: string | null; error: string | null }> {
     try {
       const response = await send(RESEND_ENDPOINT, {
@@ -62,7 +68,7 @@ export function createMailer({ sql, resendApiKey, from, fetch: send = fetch, now
 
   async function sendEmail(email: OutgoingEmail): Promise<SendResult> {
     const id = uuidv7();
-    const transport = resendApiKey === undefined ? "outbox" : "resend";
+    const transport = resendApiKey === undefined || keepInOutbox(email.to) ? "outbox" : "resend";
     const at = now();
     await sql`
       INSERT INTO email_outbox (id, to_address, kind, locale, subject, text_body, html_body, transport, created_at)

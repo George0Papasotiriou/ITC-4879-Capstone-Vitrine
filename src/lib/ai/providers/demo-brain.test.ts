@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { demoStep, intentOf, searchQueryOf, type DemoPrompt } from "@/lib/ai/providers/demo-brain";
+import { demoStep, intentOf, searchQueryOf, sizeOf, type DemoPrompt } from "@/lib/ai/providers/demo-brain";
 import { TOOLS } from "@/lib/ai/tools/registry";
 
 const ALL = TOOLS.map((tool) => tool.name);
@@ -91,6 +91,37 @@ describe("demoStep", () => {
 
   it("does not offer a tool the surface does not have", () => {
     expect(demoStep({ ...prompt("open my cart"), tools: ["get_orders"] })).toEqual({ kind: "text", text: "I can't do that here." });
+  });
+
+  it("makes the shop easier to see when asked, in either language, and says how to change it back", () => {
+    expect(intentOf("the text is too small")).toBe("comfort");
+    expect(demoStep(prompt("the text is too small and the animations make me dizzy"))).toMatchObject({ calls: [{ toolName: "adjust_comfort", input: { settings: { text: "125", motion: "reduce" } } }] });
+    expect(demoStep(prompt("μεγαλύτερα γράμματα", [], "el"))).toMatchObject({ calls: [{ toolName: "adjust_comfort", input: { settings: { text: "125" }, caption: "Αλλαγή της εμφάνισης" } }] });
+    const done = demoStep(prompt("the text is too small", [{ toolName: "adjust_comfort", output: { commands: [] } }]));
+    expect((done as { text: string }).text).toContain("Aa");
+    // A large sofa is shopping, not a request for large text.
+    expect(intentOf("a large sofa")).toBe("browse");
+  });
+
+  it("hears a shopper's size, and asks before keeping it", () => {
+    expect(sizeOf("I'm a medium")).toBe("M");
+    expect(sizeOf("I wear L in tops")).toBe("L");
+    expect(sizeOf("my size is extra small.")).toBe("XS");
+    expect(sizeOf("Φοράω M")).toBe("M");
+    // Not a size: a large family, a small flat.
+    expect(sizeOf("I'm a large family looking for a sofa")).toBeNull();
+    expect(sizeOf("I am in a small flat")).toBeNull();
+    expect(demoStep(prompt("I'm a medium"))).toMatchObject({ calls: [{ toolName: "remember_preference", input: { patch: { sizes: { upper: "M", lower: "M", dress: "M" } } } }] });
+    const kept = demoStep(prompt("I'm a medium", [{ toolName: "remember_preference", output: { commands: [] } }]));
+    expect((kept as { text: string }).text).toContain("Your shop");
+  });
+
+  it("says what it knows about the shopper, and where to see and delete it", () => {
+    expect(demoStep(prompt("What do you know about me?"))).toEqual({ kind: "tools", calls: [{ toolName: "get_preferences", input: {} }] });
+    const known = demoStep(prompt("What do you know about me?", [{ toolName: "get_preferences", output: { sizes: { upper: "M" }, rooms: [{ name: "Living room", wallCm: 240 }], empty: false } }]));
+    expect((known as { text: string }).text).toMatch(/M.*1 room.*delete/);
+    const nothing = demoStep(prompt("τι ξέρεις για μένα", [{ toolName: "get_preferences", output: { empty: true } }], "el"));
+    expect((nothing as { text: string }).text).toContain("Δεν μου έχεις πει");
   });
 
   it("answers in Greek on the Greek shop", () => {

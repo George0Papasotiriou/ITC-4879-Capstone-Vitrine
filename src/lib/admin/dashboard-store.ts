@@ -196,10 +196,12 @@ export function createDashboardStore(sql: Sql) {
     calls: number;
     demoCalls: number;
     unpriced: number;
+    /** Realtime voice sessions per provider (docs/adr/030): minutes used, or reserved while still open. */
+    voice: { provider: string; sessions: number; seconds: number; costMicros: number }[];
   }> {
     const from = period.from.toISOString();
     const to = period.to.toISOString();
-    const [features, days, totals] = await Promise.all([
+    const [features, days, totals, voice] = await Promise.all([
       sql<{ feature: string; calls: number; cost: string; input: string; output: string; unpriced: number }[]>`
         SELECT feature, count(*)::int AS calls, COALESCE(sum(cost_micros), 0)::bigint AS cost,
                COALESCE(sum(input_tokens), 0)::bigint AS input, COALESCE(sum(output_tokens), 0)::bigint AS output,
@@ -219,6 +221,14 @@ export function createDashboardStore(sql: Sql) {
                count(*) FILTER (WHERE provider <> 'demo' AND cost_micros IS NULL)::int AS unpriced
         FROM ai_usage WHERE occurred_at >= ${from}::timestamptz AND occurred_at <= ${to}::timestamptz
       `,
+      sql<{ provider: string; sessions: number; seconds: string; cost: string }[]>`
+        SELECT v.provider, count(*)::int AS sessions,
+               COALESCE(sum(COALESCE(v.used_seconds, v.reserved_minutes * 60)), 0)::bigint AS seconds,
+               COALESCE(sum(u.cost_micros), 0)::bigint AS cost
+        FROM voice_sessions v LEFT JOIN ai_usage u ON u.id = v.usage_id
+        WHERE v.created_at >= ${from}::timestamptz AND v.created_at <= ${to}::timestamptz
+        GROUP BY v.provider ORDER BY v.provider
+      `,
     ]);
     return {
       byFeature: features.map((row) => ({ feature: row.feature, calls: row.calls, costMicros: num(row.cost), inputTokens: num(row.input), outputTokens: num(row.output), unpriced: row.unpriced })),
@@ -227,6 +237,7 @@ export function createDashboardStore(sql: Sql) {
       calls: totals[0]!.calls,
       demoCalls: totals[0]!.demo,
       unpriced: totals[0]!.unpriced,
+      voice: voice.map((row) => ({ provider: row.provider, sessions: row.sessions, seconds: num(row.seconds), costMicros: num(row.cost) })),
     };
   }
 

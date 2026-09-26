@@ -14,12 +14,16 @@ import { cn } from "@/lib/ui/cn";
 /**
  * Loading placeholder. Sized by the caller so the layout does not shift when
  * content arrives — a skeleton that is the wrong size is worse than none.
+ *
+ * It does not pulse (nothing loops but the listening light, 4.5) and it fades
+ * in only after 300ms, so a fast answer never flashes a placeholder first
+ * (docs/adr/031).
  */
 export function Skeleton({ className }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={cn("bg-plinth animate-pulse rounded-plinth", className)}
+      className={cn("bg-plinth animate-appear-late rounded-plinth", className)}
     />
   );
 }
@@ -67,7 +71,7 @@ export function ErrorState({
   className?: string;
 }) {
   return (
-    <div role="alert" className={cn("flex flex-col items-start gap-3 py-8", className)}>
+    <div role="alert" className={cn("animate-rise flex flex-col items-start gap-3 py-8", className)}>
       <p className="text-danger font-medium">{title}</p>
       {description !== undefined ? (
         <p className="text-slate max-w-[60ch]">{description}</p>

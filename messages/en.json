@@ -102,7 +102,9 @@
       "chooseFirst": "Choose a size first",
       "chartTitle": "Size chart",
       "chartLede": "Body measurements in centimetres. The capsule is cut on one block, so these hold across the pieces.",
-      "measurement": "Measurement"
+      "measurement": "Measurement",
+      "yourSize": "Your size, {size}, is chosen from Your shop. Choose another any time.",
+      "yourSizeLabel": "{size}, your size"
     },
     "model": {
       "open": "See it in 3D",
@@ -113,6 +115,10 @@
       "loading": "Bringing up the shape…",
       "failed": "The 3D view could not start here. The dimensions below say the same thing.",
       "size": "{w} × {d} × {h} cm, the size you see here."
+    },
+    "fits": {
+      "yes": "Fits your {room} wall ({wall} cm), with room to walk past.",
+      "no": "Too big for your {room} ({wall} cm wall)."
     }
   },
   "cart": {
@@ -189,7 +195,11 @@
         "title": "Support inbox",
         "lede": "Answer what people have written, with a draft to start from."
       }
-    }
+    },
+    "preferencesLink": "Your shop",
+    "preferencesHint": "Your sizes, your rooms, what you like and what you'd rather not see.",
+    "dataLink": "What we know about you",
+    "dataHint": "Everything the shop keeps about you, with a delete next to each line, and a copy to download."
   },
   "concierge": {
     "title": "Concierge",
@@ -282,7 +292,9 @@
       "handOverTitle": "Send this to a person at the shop?",
       "handOverBody": "Someone at the support desk will read it and reply within one working day. If you are not signed in, the contact form opens with it written in, and you add your email there.",
       "genericTitle": "Go ahead?",
-      "genericBody": "Nothing happens until you say yes."
+      "genericBody": "Nothing happens until you say yes.",
+      "rememberTitle": "Keep this about you?",
+      "rememberBody": "The shop will remember it for next time. You can see and delete it in What we know about you."
     },
     "errors": {
       "turns": "You've used today's Concierge questions. They come back tomorrow; signing in gives you more.",
@@ -323,6 +335,17 @@
         "network": "The speech service could not be reached. Typing still works.",
         "generic": "Voice stopped working. Typing still works.",
         "credits": "The shop has used today's AI allowance for this feature."
+      },
+      "live": "Live voice, through {provider}",
+      "providers": {
+        "openai": "OpenAI",
+        "google": "Google"
+      },
+      "notice": {
+        "title": "Before you speak",
+        "body": "Live voice sends what you say to {provider} so it can be understood and answered. Vitrine keeps no recording: your words and the answers are written in this conversation, and nothing is sent until you start.",
+        "accept": "Start talking",
+        "decline": "Not now"
       }
     },
     "handOver": {
@@ -331,6 +354,20 @@
       "open": "Open the conversation",
       "contactForm": "Opening the contact form with your message written in.",
       "failed": "That could not be sent just now. The contact page reaches the same people."
+    },
+    "remember": {
+      "size": "Size {size} for {group}",
+      "sizeRemoved": "No size kept for {group}",
+      "groups": {
+        "upper": "tops, shirts, knitwear and coats",
+        "lower": "trousers and skirts",
+        "dress": "dresses"
+      },
+      "room": "{name}: a {wall} cm wall",
+      "like": "Likes: {items}",
+      "avoid": "Would rather not see: {items}",
+      "budget": "Up to €{amount} a piece",
+      "budgetRemoved": "No budget kept"
     }
   },
   "footer": {
@@ -1103,6 +1140,42 @@
         "no_draft": "Nothing came back. Write the reply yourself.",
         "forbidden": "You do not have the desk's permission.",
         "failed": "That did not work. Try again."
+      },
+      "answersLink": "Ready answers"
+    },
+    "answers": {
+      "title": "Ready answers",
+      "lede": "The words a draft starts from, for each queue. Edit them here and the next draft uses them; an answer you edit stays as you wrote it when the shop is deployed again, until you put the shop's words back.",
+      "back": "Back to the inbox",
+      "new": "Write a new ready answer",
+      "edit": "Edit",
+      "topic": "Queue",
+      "sort": "Order",
+      "sortHint": "Lower comes first.",
+      "titleEn": "Title (English)",
+      "titleEl": "Title (Greek)",
+      "bodyEn": "Text (English)",
+      "bodyEl": "Text (Greek)",
+      "blanks": "Blanks a draft fills in: {blanks}. The customer's first name, the conversation's number, and the order number when there is one.",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "restore": "Put the shop's words back",
+      "remove": "Remove",
+      "created": "Ready answer added.",
+      "saved": "Saved. The next draft uses it.",
+      "unchanged": "Nothing had changed.",
+      "restored": "The shop's words are back.",
+      "removed": "Removed.",
+      "sourceShop": "The shop's words",
+      "sourceEdited": "Edited by the desk on {when}",
+      "sourceDesk": "Written by the desk",
+      "errors": {
+        "too_short": "Too short to send to anyone.",
+        "too_long": "Too long for a ready answer.",
+        "unknown_placeholder": "A blank in braces that a draft cannot fill; use only the ones listed below the text.",
+        "invalid": "Check this field.",
+        "failed": "That did not save. Try again."
       }
     }
   },
@@ -1407,7 +1480,8 @@
         "variant": "Stock",
         "review": "Reviews",
         "user": "Roles",
-        "setting": "AI switches"
+        "setting": "AI switches",
+        "macro": "Ready answers"
       },
       "columns": {
         "when": "When",
@@ -1423,7 +1497,11 @@
         "review_restore": "Restored a review",
         "role_grant": "Gave a role",
         "role_revoke": "Took a role away",
-        "ai_settings": "Changed an AI switch"
+        "ai_settings": "Changed an AI switch",
+        "macro_create": "Wrote a ready answer",
+        "macro_update": "Edited a ready answer",
+        "macro_restore": "Restored a ready answer",
+        "macro_remove": "Removed a ready answer"
       },
       "reason": "Reason: {reason}",
       "empty": "Nothing recorded yet.",
@@ -1445,7 +1523,11 @@
         "role": "Roles",
         "moderationReason": "Reason shown to staff",
         "killSwitch": "Pause all AI",
-        "dailyBudgetEur": "Daily budget (€)"
+        "dailyBudgetEur": "Daily budget (€)",
+        "bodyEn": "Text (English)",
+        "bodyEl": "Text (Greek)",
+        "topic": "Queue",
+        "sort": "Order in the list"
       },
       "empty_value": "empty"
     },
@@ -1502,7 +1584,20 @@
       "save": "Save",
       "saved": "Saved.",
       "failed": "That did not save. Try again.",
-      "empty": "No AI calls in this period."
+      "empty": "No AI calls in this period.",
+      "voice": {
+        "title": "Live voice",
+        "lede": "Realtime sessions, reserved in full when they start and settled to the minutes used when they end. A session still open counts at its reserved length.",
+        "provider": "Provider",
+        "sessions": "Sessions",
+        "minutes": "Minutes",
+        "cost": "Cost",
+        "empty": "No live voice sessions in this period. Without a realtime key, voice runs on the browser's own speech and costs nothing.",
+        "providers": {
+          "openai": "OpenAI",
+          "google": "Google"
+        }
+      }
     }
   },
   "support": {
@@ -1638,5 +1733,208 @@
     "resultsTitle": "What the shop has like it",
     "nothing": "Nothing in those colours yet. Try another photograph, or type what you are after.",
     "refine": "Open these in search, where you can filter and sort"
+  },
+  "comfort": {
+    "open": "Reading and comfort settings",
+    "footerLink": "Reading and comfort",
+    "title": "Reading and comfort",
+    "description": "How the shop looks and moves for you. Changes apply as you make them.",
+    "text": {
+      "legend": "Text size",
+      "options": {
+        "100": "Standard",
+        "112": "Larger",
+        "125": "Large",
+        "150": "Largest"
+      }
+    },
+    "reading": "Easier to read",
+    "spacing": {
+      "label": "More space between lines and words",
+      "hint": "Taller lines and wider spacing, so the eye does not slip."
+    },
+    "contrast": {
+      "label": "More contrast",
+      "hint": "Darker secondary text, stronger edges and a wider focus ring."
+    },
+    "font": {
+      "label": "A more readable font",
+      "hint": "Atkinson Hyperlegible, drawn so letters are hard to mistake. Greek text keeps the shop's font."
+    },
+    "links": {
+      "label": "Underline links",
+      "hint": "Links are marked by a line, not only by colour or hover."
+    },
+    "targets": {
+      "label": "Larger buttons and fields",
+      "hint": "At least 44 pixels tall, easier to press."
+    },
+    "guide": {
+      "label": "Reading guide",
+      "hint": "A clear band follows your pointer or the keyboard, and the rest is dimmed."
+    },
+    "motion": {
+      "legend": "Motion",
+      "options": {
+        "system": "Follow my device",
+        "reduce": "Less motion",
+        "full": "Full motion"
+      },
+      "hints": {
+        "system": "Uses your device's setting.",
+        "reduce": "Nothing slides, flies or fades; everything still works.",
+        "full": "All transitions, even if your device asks for less."
+      }
+    },
+    "controls": "Controls",
+    "shortcuts": {
+      "label": "Single-key shortcuts",
+      "hint": "Press ? to see them. Off, no single key does anything.",
+      "title": "Keyboard shortcuts",
+      "description": "One key each, whenever you are not typing.",
+      "actions": {
+        "search": "Search the shop",
+        "concierge": "Open or close the Concierge",
+        "numbers": "Show a number on every control, then type the number to press it",
+        "comfort": "Reading and comfort settings",
+        "help": "This list",
+        "escape": "Hide the numbers, or close what is open"
+      },
+      "off": "You can switch these off in Reading and comfort."
+    },
+    "numbers": {
+      "button": "Show numbers on controls",
+      "hint": "Every button and link on screen gets a number; type or say the number to press it. The n key does the same.",
+      "shown": "{count, plural, one {# control is numbered} other {# controls are numbered}}. Type a number, or press Escape.",
+      "hidden": "Numbers hidden.",
+      "pressed": "Pressed number {number}.",
+      "missing": "There is no number {number} on screen.",
+      "prompt": "Type a number, or Esc",
+      "typed": "Number {number}"
+    },
+    "listen": {
+      "start": "Listen",
+      "stop": "Stop reading"
+    },
+    "done": "Done",
+    "reset": "Back to the shop's settings",
+    "kept": "Kept on this device. Signed in, they follow you to your other devices."
+  },
+  "prefs": {
+    "title": "Your shop",
+    "lede": "Tell the shop your sizes, your rooms and what you like, and it starts from there: your size already chosen, whether a sofa fits your wall, pieces in colours you like.",
+    "keptAccount": "Kept on your account: on every device you sign in on.",
+    "keptDevice": "Kept on this device only.",
+    "signIn": "Sign in to keep them on your account.",
+    "related": "More about your data",
+    "dataLink": "What we know about you",
+    "failed": "That could not be saved. Check your connection and try again.",
+    "remove": "Remove",
+    "sizes": {
+      "title": "Sizes",
+      "lede": "Press your size; press it again to clear it. Pieces in the Wear collection start at it.",
+      "groups": {
+        "upper": "Tops, shirts, knitwear and coats",
+        "lower": "Trousers and skirts",
+        "dress": "Dresses"
+      }
+    },
+    "rooms": {
+      "title": "Rooms",
+      "lede": "The wall a piece would stand against, in centimetres. Furniture then says whether it fits, leaving 20 cm to walk past.",
+      "none": "No rooms yet.",
+      "wall": "{wall} cm wall",
+      "wallDepth": "{wall} cm wall, {depth} cm deep",
+      "removed": "{name} removed",
+      "added": "{name} added",
+      "invalid": "Give the room a name and a wall between 50 and 2000 cm (depth, if you add it, between 30 and 2000 cm).",
+      "name": "Room",
+      "namePlaceholder": "Living room",
+      "wallLabel": "Wall, cm",
+      "depthLabel": "Depth, cm",
+      "optional": "Optional",
+      "add": "Add room"
+    },
+    "likes": {
+      "title": "What you like",
+      "lede": "Colours and materials you are drawn to. They count towards what the shop suggests to you."
+    },
+    "like": {
+      "colors": "Colours you like",
+      "materials": "Materials you like"
+    },
+    "avoid": {
+      "title": "Anything you'd rather not see",
+      "colors": "Colours to avoid",
+      "materials": "Materials to avoid"
+    },
+    "budget": {
+      "title": "Budget",
+      "lede": "What you are comfortable spending on one piece. The Concierge keeps it in mind when it suggests pieces.",
+      "label": "Up to, € a piece",
+      "save": "Save budget",
+      "saved": "Budget saved",
+      "cleared": "Budget cleared",
+      "invalid": "A budget is between €10 and €50,000 a piece; leave it empty for none."
+    }
+  },
+  "ledger": {
+    "title": "What we know about you",
+    "lede": "Everything the shop keeps about you, read from where it is kept. Delete any line, download all of it, or delete everything at once.",
+    "failed": "That could not be deleted. Check your connection and try again.",
+    "removed": "Deleted",
+    "everythingGone": "Everything is deleted.",
+    "remove": "Delete",
+    "forget": "Forget",
+    "size": "Size {size} for {group}",
+    "groups": {
+      "upper": "tops, shirts, knitwear and coats",
+      "lower": "trousers and skirts",
+      "dress": "dresses"
+    },
+    "room": "Room: {name}, a {wall} cm wall",
+    "like": "You like {item}",
+    "avoid": "You'd rather not see {item}",
+    "budget": "Budget: up to €{amount} a piece",
+    "preferencesTitle": "What you told us",
+    "keptAccount": "Kept on your account.",
+    "keptDevice": "Kept on this device only.",
+    "preferencesNone": "Nothing yet.",
+    "editPreferences": "Change them in Your shop",
+    "comfortTitle": "Reading and comfort settings",
+    "comfortNone": "The shop's own settings; nothing changed.",
+    "editComfort": "Change them",
+    "comfort": {
+      "text": "Text size {value}%",
+      "spacing": "More space between lines and words",
+      "contrast": "More contrast",
+      "font": "The more readable font",
+      "motion": "Motion: {value, select, reduce {less} full {full} other {as your device}}",
+      "links": "Links underlined",
+      "targets": "Larger buttons and fields",
+      "guide": "Reading guide on",
+      "shortcuts": "Single-key shortcuts {value, select, off {off} other {on}}"
+    },
+    "historyTitle": "What you looked at",
+    "historyOn": "Personal recommendations are on, so the shop records the pieces you look at, add or choose, on this device. Forget any of them below, or turn recommendations off in your account.",
+    "historyOff": "Personal recommendations are off: nothing you look at is recorded.",
+    "kinds": {
+      "view": "Looked at",
+      "dwell": "Looked at for a while",
+      "cart": "Added to your cart",
+      "purchase": "Bought",
+      "wishlist": "Saved",
+      "search_click": "Opened from a search",
+      "tot_choice": "Chosen in This or That"
+    },
+    "elsewhereTitle": "Kept elsewhere",
+    "elsewhereGuest": "Orders you placed as a guest are reached by the link in their email. The shop keeps orders as the law requires.",
+    "elsewhereAccount": "Your account ({email}) holds your orders, reviews, price watches and support conversations, each on its own page. The shop keeps orders as the law requires.",
+    "download": "Download everything as a file",
+    "deleteEverything": "Delete everything",
+    "confirmTitle": "Delete everything?",
+    "confirmBody": "Your preferences, your reading and comfort settings and everything you looked at will be deleted, and personal recommendations turned off. Your account and your orders stay.",
+    "confirmYes": "Delete everything",
+    "confirmNo": "Keep it"
   }
 }
