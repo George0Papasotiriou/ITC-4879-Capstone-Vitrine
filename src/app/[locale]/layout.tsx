@@ -16,8 +16,10 @@ import { notFound } from "next/navigation";
 import "../globals.css";
 
 import { ComfortLayer } from "@/components/comfort/comfort-layer";
-import { ConciergeDock } from "@/components/concierge/concierge-dock";
-import { ConciergeProvider } from "@/components/concierge/concierge-provider";
+import { ShelfTracker } from "@/components/reco/shelf-tracker";
+import { StudyPanel } from "@/components/study/study-panel";
+import { InstantSearchLayer } from "@/components/search/instant-search-layer";
+import { ConciergeShell } from "@/components/concierge/concierge-shell";
 import { Footer } from "@/components/shell/footer";
 import { Header } from "@/components/shell/header";
 import { MobileBar } from "@/components/shell/mobile-bar";
@@ -115,7 +117,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider>
           <Toaster>
           {/* The Concierge lives here so its conversation survives navigation between pages. */}
-          <ConciergeProvider>
+          <ConciergeShell>
           {/* The first thing in the tab order, visible only once focused. */}
           <a
             href="#main"
@@ -133,10 +135,12 @@ export default async function LocaleLayout({
 
           <Footer />
           <MobileBar />
-          <ConciergeDock />
           <ComfortLayer />
+          <InstantSearchLayer />
+          <ShelfTracker />
+          <StudyPanel />
           <ServiceWorker />
-          </ConciergeProvider>
+          </ConciergeShell>
           </Toaster>
         </NextIntlClientProvider>
       </body>

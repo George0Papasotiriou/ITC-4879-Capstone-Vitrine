@@ -24,7 +24,7 @@ import { defineConfig, devices } from "@playwright/test";
  */
 const LOCAL_PORT = 3100;
 /** Kept apart from `pnpm local` (5433), so a test run never touches dev data. */
-const TEST_DB_PORT = 5434;
+export const TEST_DB_PORT = 5434;
 
 /** Shared with tests that exercise the job queue through /api/dev/ping. */
 export const E2E_PING_TOKEN = "local-e2e-ping-token-0001";

@@ -13,6 +13,7 @@ import { connection } from "next/server";
 import { sql } from "@/lib/db/client";
 import { withTaste } from "@/lib/prefs/preferences";
 import { currentPreferences } from "@/lib/prefs/server";
+import { completeTheSet } from "@/lib/reco/complete-set";
 import { createTasteGraph, type TasteGraph } from "@/lib/reco/store";
 
 /**
@@ -53,6 +54,14 @@ export async function recommendationsForCurrentShopper(limit = 8) {
 export async function pairsWith(productId: string, limit = 4) {
   await connection();
   return tasteGraph().pairsWith(productId, limit);
+}
+
+/** Pieces that complete the cart's set (docs/adr/034), each with the cart piece it goes with. */
+export async function completeSetFor(productIds: readonly string[], limit = 4) {
+  await connection();
+  const anchors = [...new Set(productIds)];
+  const { neighbours, categories } = await tasteGraph().neighboursOf(anchors);
+  return completeTheSet({ anchors, neighbours, categoryOf: (id) => categories.get(id), limit });
 }
 
 type PoolRow = {

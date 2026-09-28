@@ -69,3 +69,15 @@ export function watchDecisions(rows: readonly WatchState[]): { notify: string[];
   }
   return { notify, reset };
 }
+
+/**
+ * Whether the shop shows an in-shop notice for a watch (docs/adr/034): the
+ * nightly pass has answered it (the email went), the shopper has not seen the
+ * notice since, and the price is still at or below their target — a price
+ * that has already gone back up is no longer news worth interrupting for.
+ */
+export function showsNotice(watch: { notifiedAt: Date | null; seenAt: Date | null; priceCents: number; targetCents: number }): boolean {
+  if (watch.notifiedAt === null) return false;
+  if (watch.seenAt !== null && watch.seenAt.getTime() >= watch.notifiedAt.getTime()) return false;
+  return watch.priceCents <= watch.targetCents;
+}

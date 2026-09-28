@@ -8,9 +8,10 @@
  */
 
 import type postgres from "postgres";
+import { uuidv7 } from "uuidv7";
 
 import { diffFields, recordAudit, type AuditActor } from "@/lib/admin/audit";
-import { LOW_STOCK, type ProductDetails } from "@/lib/admin/catalog";
+import { LOW_STOCK, staffSlug, type NewProduct, type ProductDetails } from "@/lib/admin/catalog";
 import { buildSearchDocument } from "@/lib/catalog/search-document";
 import { isCategorySlug, type CategorySlug } from "@/lib/catalog/taxonomy";
 
@@ -24,6 +25,9 @@ import { isCategorySlug, type CategorySlug } from "@/lib/catalog/taxonomy";
  */
 
 type Sql = postgres.Sql;
+
+/** Photographs per product: enough angles to decide, few enough to keep the gallery quick. */
+export const MAX_PRODUCT_PHOTOS = 8;
 
 export type ProductStatus = "draft" | "active" | "archived";
 
@@ -60,6 +64,8 @@ export type StaffProduct = {
   translation: "none" | "machine" | "reviewed";
   staffEditedAt: Date | null;
   image: string | null;
+  /** Every photograph, in gallery order (docs/adr/034). */
+  images: { src: string; whiteGround: boolean }[];
   variants: { id: string; sku: string; colorLabel: string | null; stock: number }[];
 };
 
@@ -168,6 +174,9 @@ export function createCatalogAdminStore(sql: Sql) {
     const variants = await db<{ id: string; sku: string; color_label: string | null; stock: number }[]>`
       SELECT id, sku, color_label, stock FROM product_variants WHERE product_id = ${id} ORDER BY position, sku
     `;
+    const images = await db<{ src: string; white_ground: boolean }[]>`
+      SELECT src, white_ground FROM product_media WHERE product_id = ${id} AND kind = 'image' ORDER BY position
+    `;
     return {
       id: row.id,
       slug: row.slug,
@@ -187,6 +196,7 @@ export function createCatalogAdminStore(sql: Sql) {
       translation: row.translation,
       staffEditedAt: row.staff_edited_at === null ? null : new Date(row.staff_edited_at),
       image: row.image,
+      images: images.map((image) => ({ src: image.src, whiteGround: image.white_ground })),
       variants: variants.map((variant) => ({ id: variant.id, sku: variant.sku, colorLabel: variant.color_label, stock: variant.stock })),
     };
   }
@@ -199,6 +209,8 @@ export function createCatalogAdminStore(sql: Sql) {
     return sql.begin(async (tx) => {
       const current = await readProduct(id, tx, { lock: true });
       if (current === null) return { ok: false, reason: "not_found" } as const;
+      // On sale needs a photograph: a shop window with an empty plinth is not a product (docs/adr/034).
+      if (details.status === "active" && current.status !== "active" && current.image === null) return { ok: false, reason: "needs_photo" } as const;
 
       const touchedGreek = details.titleEl !== current.titleEl || details.descriptionEl !== current.descriptionEl || JSON.stringify(details.highlightsEl) !== JSON.stringify(current.highlightsEl);
       // Greek text a person wrote or checked is reviewed, whatever produced it first.
@@ -261,7 +273,88 @@ export function createCatalogAdminStore(sql: Sql) {
     });
   }
 
-  return { listProducts, readProduct: (id: string) => readProduct(id), updateProduct, setStock };
+  /**
+   * Makes a product in the shop (docs/adr/034): a draft, not on sale, with one
+   * variant holding the counted stock, its search text built at once, marked
+   * as the shop's own so no deploy sync ever touches it, and audited in the
+   * same transaction. Its photographs are added next, then it is published.
+   */
+  async function createProduct(input: NewProduct, actor: AuditActor, now = new Date()): Promise<{ ok: true; id: string; slug: string } | { ok: false; reason: "no_category" }> {
+    return sql.begin(async (tx) => {
+      const [category] = await tx<{ id: string }[]>`SELECT id FROM categories WHERE slug = ${input.category} LIMIT 1`;
+      if (category === undefined) return { ok: false, reason: "no_category" } as const;
+      const id = uuidv7();
+      const slug = staffSlug(input.titleEn, id);
+      const search = buildSearchDocument({
+        kind: input.kind,
+        category: input.category,
+        brand: null,
+        colorLabel: null,
+        colors: [],
+        materials: [],
+        attributes: {},
+        titleEn: input.titleEn,
+        titleEl: input.titleEl,
+        descriptionEn: input.descriptionEn,
+        descriptionEl: input.descriptionEl,
+        highlightsEn: [],
+        highlightsEl: null,
+      });
+      const at = now.toISOString();
+      await tx`
+        INSERT INTO products (id, slug, source, source_id, status, category_id, kind, title_en, title_el, description_en, description_el,
+                              translation, dims_cm, price_cents, currency, license, attribution,
+                              search_title, search_meta, search_attributes, search_description, staff_edited_at, created_at, updated_at)
+        VALUES (${id}, ${slug}, 'staff', ${id}, 'draft', ${category.id}, ${input.kind}, ${input.titleEn}, ${input.titleEl}, ${input.descriptionEn}, ${input.descriptionEl},
+                ${input.titleEl === null && input.descriptionEl === null ? "none" : "reviewed"}, ${input.dimsCm === null ? null : JSON.stringify(input.dimsCm)}::text::jsonb,
+                ${input.priceCents}, 'EUR', 'Vitrine', 'Photographed and described by the shop.',
+                ${search.searchTitle}, ${search.searchMeta}, ${search.searchAttributes}, ${search.searchDescription}, ${at}::timestamptz, ${at}::timestamptz, ${at}::timestamptz)
+      `;
+      await tx`
+        INSERT INTO product_variants (id, product_id, sku, stock, position, created_at, updated_at)
+        VALUES (${uuidv7()}, ${id}, ${`VT-STAFF-${id.replace(/-/g, "").slice(-8).toUpperCase()}`}, ${input.stock}, 0, ${at}::timestamptz, ${at}::timestamptz)
+      `;
+      await recordAudit(
+        tx,
+        { actor, action: "product.create", entityType: "product", entityId: id, changes: { titleEn: { before: null, after: input.titleEn }, kind: { before: null, after: input.kind }, priceCents: { before: null, after: input.priceCents }, stock: { before: null, after: input.stock } } },
+        now,
+      );
+      return { ok: true, id, slug } as const;
+    });
+  }
+
+  /**
+   * Records a photograph already stored (docs/adr/034), after the others, and
+   * marks the product as the shop's own. Audited with where it is kept, never
+   * with its bytes.
+   */
+  async function addPhoto(
+    productId: string,
+    photo: { src: string; width: number; height: number; bytes: number; whiteGround: boolean },
+    actor: AuditActor,
+    now = new Date(),
+  ): Promise<{ ok: true; id: string; position: number } | { ok: false; reason: "not_found" | "too_many" }> {
+    return sql.begin(async (tx) => {
+      const [product] = await tx<{ title_en: string; title_el: string | null; photos: number }[]>`
+        SELECT p.title_en, p.title_el, (SELECT count(*)::int FROM product_media m WHERE m.product_id = p.id AND m.kind = 'image') AS photos
+        FROM products p WHERE p.id = ${productId} FOR UPDATE OF p
+      `;
+      if (product === undefined) return { ok: false, reason: "not_found" } as const;
+      if (product.photos >= MAX_PRODUCT_PHOTOS) return { ok: false, reason: "too_many" } as const;
+      const id = uuidv7();
+      const at = now.toISOString();
+      await tx`
+        INSERT INTO product_media (id, product_id, kind, src, width, height, bytes, alt_en, alt_el, position, white_ground, created_at, updated_at)
+        VALUES (${id}, ${productId}, 'image', ${photo.src}, ${photo.width}, ${photo.height}, ${photo.bytes}, ${product.title_en}, ${product.title_el},
+                ${product.photos}, ${photo.whiteGround}, ${at}::timestamptz, ${at}::timestamptz)
+      `;
+      await tx`UPDATE products SET staff_edited_at = ${at}::timestamptz, updated_at = ${at}::timestamptz WHERE id = ${productId}`;
+      await recordAudit(tx, { actor, action: "product.photo", entityType: "product", entityId: productId, changes: { photo: { before: null, after: photo.src } } }, now);
+      return { ok: true, id, position: product.photos } as const;
+    });
+  }
+
+  return { listProducts, readProduct: (id: string) => readProduct(id), updateProduct, setStock, createProduct, addPhoto };
 }
 
 export type CatalogAdminStore = ReturnType<typeof createCatalogAdminStore>;

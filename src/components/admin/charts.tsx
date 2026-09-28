@@ -174,8 +174,9 @@ export function ShareTable({
 }) {
   const max = Math.max(1, ...rows.map((row) => row.value));
   return (
-    // Its own scroll box: a wide table scrolls on a phone instead of widening the page.
-    <div className="-mx-1 overflow-x-auto px-1">
+    // Its own scroll box: a wide table scrolls on a phone instead of widening the page. Focusable and
+    // named, so it can be scrolled with the keyboard too (WCAG 2.1.1, axe scrollable-region-focusable).
+    <div className="-mx-1 overflow-x-auto px-1" tabIndex={0} role="region" aria-label={caption}>
       <table className="w-full text-sm" data-agent-id={agentId}>
         <caption className="sr-only">{caption}</caption>
         <thead>

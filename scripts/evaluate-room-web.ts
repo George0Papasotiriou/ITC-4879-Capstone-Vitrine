@@ -17,7 +17,7 @@
  *   pnpm evals:room-web --overlay    also draw the marks and the prediction on each photo (.local only)
  *
  * THE PHOTOS. Twelve lifestyle photographs from the Amazon Berkeley Objects
- * dataset (CC BY-NC 4.0): real rooms, each with a piece whose listing gives its
+ * dataset (CC BY 4.0): real rooms, each with a piece whose listing gives its
  * height. They were chosen for a clean ground truth — a vertical edge from the
  * floor to the top, a visible foot — and marked by hand; the marks are below.
  * The photos are downloaded into `.local/e4-web/` and never committed.
@@ -146,7 +146,7 @@ export const WEB_PHOTOS: readonly WebPhoto[] = [
   },
 ];
 
-type Manifest = {
+export type Manifest = {
   model: string;
   sha256: string;
   inputSize: number;
@@ -199,7 +199,7 @@ async function ensurePhoto(photo: WebPhoto): Promise<Buffer> {
   return bytes;
 }
 
-async function loadModel(): Promise<{ session: ort.InferenceSession; manifest: Manifest }> {
+export async function loadModel(): Promise<{ session: ort.InferenceSession; manifest: Manifest }> {
   const manifestPath = path.join(MODEL_DIR, "manifest.json");
   if (!existsSync(manifestPath)) {
     throw new Error("No depth model installed in public/models/depth. See `pnpm depth-model` and research/export_depth_model.py.");

@@ -18,7 +18,9 @@ import { uuidv7 } from "uuidv7";
  */
 
 export const AUDIT_ACTIONS = [
+  "product.create",
   "product.update",
+  "product.photo",
   "stock.set",
   "review.hide",
   "review.restore",

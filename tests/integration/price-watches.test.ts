@@ -130,6 +130,37 @@ describe.skipIf(url === undefined || url === "")("price watches", () => {
     await price(product.id, original);
   });
 
+  it("shows an answered drop in the shop until it is seen, and again after the next drop", async () => {
+    const product = products[2]!;
+    const original = product.priceCents;
+    const watch = await watches.set({ userId: shopper, productId: product.id, targetCents: original - 5_000, locale: "en" });
+    if (!watch.ok) throw new Error("watch not set");
+    // Not before the pass has answered it.
+    await price(product.id, original - 5_000);
+    expect(await watches.unseenDrops(shopper)).toEqual([]);
+
+    const first = await watches.pass();
+    await watches.markNotified(first.due.map((due) => due.id), new Date(Date.now() - 60_000));
+    expect(await watches.unseenDrops(shopper)).toEqual([{ id: watch.watchId, productId: product.id, targetCents: original - 5_000 }]);
+
+    // Seen: gone. Another person's ids change nothing.
+    expect(await watches.markSeen(uuidv7(), [watch.watchId])).toBe(0);
+    expect(await watches.markSeen(shopper, [watch.watchId])).toBe(1);
+    expect(await watches.unseenDrops(shopper)).toEqual([]);
+
+    // Up and down again: answered again, shown again.
+    await price(product.id, original);
+    await watches.pass();
+    await price(product.id, original - 6_000);
+    const second = await watches.pass();
+    await watches.markNotified(second.due.map((due) => due.id));
+    expect(await watches.unseenDrops(shopper)).toHaveLength(1);
+
+    // A price back above the target is no longer news, even unseen.
+    await price(product.id, original);
+    expect(await watches.unseenDrops(shopper)).toEqual([]);
+  });
+
   it("waits while the piece cannot be bought", async () => {
     const product = products[2]!;
     const original = product.priceCents;

@@ -32,12 +32,12 @@ const { positionals, values } = parseArgs({
 });
 const [command, name] = positionals;
 
-const RUNNABLE: readonly JobName[] = ["price-watches", "weekly-report", "photo-expiry", "rebuild-taste-graph", "ping"];
+const RUNNABLE: readonly JobName[] = ["price-watches", "weekly-report", "photo-expiry", "rebuild-taste-graph", "catalog-models", "ping"];
 
 function list(): void {
   console.log("Recurring jobs (UTC):");
   for (const schedule of SCHEDULES) {
-    console.log(`  ${schedule.job.padEnd(20)} ${schedule.pattern.padEnd(12)} locally every ${Math.round(schedule.localEveryMs / 60_000)} min`);
+    console.log(`  ${schedule.job.padEnd(20)} ${schedule.pattern.padEnd(12)} ${schedule.localEveryMs === null ? "locally only when run by hand" : `locally every ${Math.round(schedule.localEveryMs / 60_000)} min`}`);
   }
   console.log(`\nRun one now: pnpm jobs run <${RUNNABLE.join(" | ")}>`);
 }

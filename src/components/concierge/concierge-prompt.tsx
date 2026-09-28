@@ -12,7 +12,7 @@
 import { useTranslations } from "next-intl";
 import { useId, useState, type FormEvent } from "react";
 
-import { useConcierge } from "@/components/concierge/concierge-provider";
+import { useConciergeShell } from "@/components/concierge/concierge-shell";
 import { cx as cn } from "@/lib/ui/cx";
 
 /**
@@ -31,7 +31,7 @@ import { cx as cn } from "@/lib/ui/cx";
 export function ConciergePrompt({ className }: { className?: string }) {
   const t = useTranslations("home");
   const c = useTranslations("concierge");
-  const { ask } = useConcierge();
+  const { ask, warm } = useConciergeShell();
   const [value, setValue] = useState("");
   const id = useId();
   const submit = (event?: FormEvent) => {
@@ -49,6 +49,8 @@ export function ConciergePrompt({ className }: { className?: string }) {
         className,
       )}
       onSubmit={submit}
+      // Typing here is the moment to fetch the Concierge, before the question is sent (docs/adr/034).
+      onFocus={warm}
       data-agent-id="home:prompt"
     >
       <label htmlFor={id} className="sr-only">

@@ -16,9 +16,12 @@ import { ProductImage } from "@/components/commerce/product-image";
 import { ConciergePrompt } from "@/components/concierge/concierge-prompt";
 import { PersonalizationControl } from "@/components/reco/personalization-control";
 import { ButtonLink } from "@/components/ui/button";
+import { SmartLink } from "@/components/ui/smart-link";
 import { requireLocale } from "@/i18n/params";
 import { routing } from "@/i18n/routing";
-import { getCardsByIds, getFeatured } from "@/lib/catalog/server";
+import { getCardsByIds, getFeatured, getWallPieces } from "@/lib/catalog/server";
+import { AGAINST_A_WALL, fitsYourSpace, WALL_CLEARANCE_CM, WALL_PIECE_MIN_CM } from "@/lib/prefs/preferences";
+import { currentPreferences } from "@/lib/prefs/server";
 import { recommendationsForCurrentShopper } from "@/lib/reco/server";
 
 /**
@@ -67,6 +70,22 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       .map((item) => [item.productId, t("because", { title: seedTitles.get(item.because!)! })]),
   );
 
+  // "Fits your space" (docs/adr/034): only for someone who saved rooms, and never repeating a piece already on the page.
+  const { preferences } = await currentPreferences();
+  const onPage = new Set([hero?.id, ...rail.map((card) => card.id)]);
+  const widestWall = Math.max(0, ...preferences.rooms.map((room) => room.wallCm));
+  const wallPieces =
+    preferences.rooms.length === 0
+      ? []
+      : (await getWallPieces({ locale, kinds: [...AGAINST_A_WALL], minWidthCm: WALL_PIECE_MIN_CM, maxWidthCm: widestWall - WALL_CLEARANCE_CM, limit: 60 })).filter((entry) => !onPage.has(entry.card.id));
+  const spaceFits = fitsYourSpace(
+    wallPieces.map((entry) => ({ productId: entry.card.id, category: entry.card.category, dims: entry.dimsCm })),
+    preferences.rooms,
+    8,
+  );
+  const spaceCards = spaceFits.map((fit) => wallPieces.find((entry) => entry.card.id === fit.productId)!.card);
+  const spaceNotes = new Map(spaceFits.map((fit) => [fit.productId, t("fitsRoom", { room: fit.room, spare: fit.spareCm })]));
+
   return (
     <main className="mx-auto w-full max-w-[1440px] px-6 md:px-10">
       {/* ---- Hero: one lit object, and the prompt as its call to action ---- */}
@@ -100,7 +119,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       </section>
 
       {/* ---- The rail: where the Taste Graph lands in Phase 8 ---- */}
-      <section className="border-hairline border-t py-12">
+      <section className="border-hairline border-t py-12" data-shelf={showPersonal ? "for-you" : "popular"}>
         <div className="flex items-baseline justify-between gap-6">
           <h2 className="font-display text-2xl">{t("forYou")}</h2>
           <p className="text-slate max-w-[48ch] text-sm">{showPersonal ? t("forYouPersonalNote") : t("forYouPopularNote")}</p>
@@ -113,6 +132,23 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
         <ProductGrid products={rail} locale={locale} className="mt-8" priorityCount={0} notes={notes} />
       </section>
+
+      {spaceCards.length === 0 ? null : (
+        <section className="border-hairline border-t py-12" aria-labelledby="fits-space-title" data-agent-id="home:fits-your-space" data-shelf="fits-your-space">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            <h2 id="fits-space-title" className="font-display text-2xl">
+              {t("fitsSpace")}
+            </h2>
+            <p className="text-slate max-w-[48ch] text-sm">
+              {t("fitsSpaceNote")}{" "}
+              <SmartLink href="/account/preferences" className="underline underline-offset-4" data-agent-id="home:edit-rooms">
+                {t("fitsSpaceEdit")}
+              </SmartLink>
+            </p>
+          </div>
+          <ProductGrid products={spaceCards} locale={locale} className="mt-8" priorityCount={0} notes={spaceNotes} />
+        </section>
+      )}
     </main>
   );
 }

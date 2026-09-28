@@ -6,7 +6,7 @@
   "description": "AI-native e-shop. ITC 4949 Capstone Project.",
   "packageManager": "pnpm@12.4.1",
   "engines": {
-    "node": ">=24"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "next dev",
@@ -31,7 +31,7 @@
     "depth-model": "tsx scripts/depth-model.ts",
     "geoip": "tsx scripts/geoip.ts",
     "worker:dev": "tsx watch src/worker/index.ts",
-    "build": "tsx scripts/depth-model.ts build && next build && pnpm build:worker",
+    "build": "tsx scripts/depth-model.ts build && tsx scripts/geoip.ts ensure && next build && pnpm build:worker",
     "build:worker": "tsup",
     "start": "pnpm db:setup && next start",
     "start:app": "next start",
@@ -44,8 +44,15 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/lib/db/migrate.ts",
-    "db:setup": "pnpm db:migrate && tsx scripts/catalog.ts seed --collection --capsule --sync && tsx scripts/support.ts macros && tsx scripts/reco.ts simulate --if-empty && tsx scripts/reco.ts rebuild --if-empty && tsx scripts/showcase.ts ensure",
-    "db:studio": "drizzle-kit studio"
+    "db:setup": "pnpm db:migrate && tsx scripts/catalog.ts seed --collection --capsule --abo --sync && tsx scripts/support.ts macros && tsx scripts/reco.ts simulate --if-empty && tsx scripts/reco.ts rebuild --if-empty && tsx scripts/showcase.ts ensure",
+    "db:studio": "drizzle-kit studio",
+    "evals:search": "node scripts/local.mjs run scripts/evaluate-search.ts",
+    "evals:esci": "tsx scripts/evaluate-search-esci.ts",
+    "load:search": "node scripts/k6.mjs run tests/load/search.js",
+    "snap:wild": "tsx scripts/snap-wild.ts",
+    "e4:render": "tsx scripts/render-room-scenes.ts",
+    "evals:room-rendered": "tsx scripts/evaluate-room-rendered.ts",
+    "study": "node scripts/local.mjs run scripts/study.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "4.0.75",
@@ -54,6 +61,9 @@
     "@aws-sdk/client-s3": "3.1130.0",
     "@aws-sdk/s3-request-presigner": "3.1130.0",
     "@better-auth/passkey": "1.7.5",
+    "@gltf-transform/core": "4.5.0",
+    "@gltf-transform/extensions": "4.5.0",
+    "@gltf-transform/functions": "4.5.0",
     "@google/model-viewer": "4.3.1",
     "@sentry/nextjs": "10.74.0",
     "ai": "7.0.106",
@@ -89,6 +99,7 @@
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.5",
+    "hyparquet": "1.31.1",
     "lighthouse": "13.4.1",
     "onnxruntime-web": "1.30.0",
     "pino-pretty": "13.1.3",

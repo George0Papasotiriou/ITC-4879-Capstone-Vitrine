@@ -75,6 +75,10 @@ export type ProductDetail = ProductCard & {
   /** One per size for the capsule, one without a size for everything else (docs/adr/022). */
   variants: { id: string; sku: string; size: string | null; stock: number; priceCents: number | null }[];
   media: CatalogImage[];
+  /** A real 3D model of the piece (the ABO scan, compressed), when the shop has one (docs/adr/035). */
+  model: { src: string; bytes: number | null } | null;
+  /** Turntable photographs, in order round the piece (docs/adr/035); empty when there are none. */
+  spin: string[];
   ratingSum: number;
   ratingCount: number;
   attribution: string;
@@ -318,6 +322,26 @@ export function createCatalogQueries(sql: Sql) {
     return rows.map((row) => toCard(row, params.locale));
   }
 
+  /**
+   * In-stock pieces of the given kinds with measurements, no wider than
+   * `maxWidthCm`, most popular first, with their measurements: the candidates
+   * for "Fits your space" (docs/adr/034), which judges each against the rooms.
+   */
+  async function forWalls(params: { locale: string; kinds: readonly string[]; minWidthCm: number; maxWidthCm: number; limit: number }): Promise<{ card: ProductCard; dimsCm: DimensionsCm }[]> {
+    const rows = await sql<(CardRow & { dims_cm: DimensionsCm })[]>`
+      SELECT ${cardColumns}, p.dims_cm
+      ${fromProducts}
+      WHERE p.status = 'active'
+        AND p.dims_cm IS NOT NULL
+        AND p.kind = ANY(${[...params.kinds]}::text[])
+        AND (p.dims_cm->>'w')::float BETWEEN ${params.minWidthCm} AND ${params.maxWidthCm}
+        AND ${inStockCondition}
+      ORDER BY p.popularity DESC, p.source_id
+      LIMIT ${params.limit}
+    `;
+    return rows.map((row) => ({ card: toCard(row, params.locale), dimsCm: row.dims_cm }));
+  }
+
   /** Cards for ids in the caller's order (search results, recommendations). */
   async function cardsByIds(ids: readonly string[], locale: string): Promise<ProductCard[]> {
     if (ids.length === 0) return [];
@@ -353,6 +377,8 @@ export function createCatalogQueries(sql: Sql) {
       translation: "none" | "machine" | "reviewed";
       updated_at: Date;
       all_images: ImageRow[] | null;
+      model: { src: string; bytes: number | null } | null;
+      spin: string[] | null;
       variants: { id: string; sku: string; size: string | null; stock: number; price_cents: number | null }[] | null;
     };
 
@@ -369,6 +395,15 @@ export function createCatalogQueries(sql: Sql) {
           ) ORDER BY m.position)
           FROM product_media m WHERE m.product_id = p.id AND m.kind = 'image'
         ) AS all_images,
+        (
+          SELECT json_build_object('src', m.src, 'bytes', m.bytes)
+          FROM product_media m WHERE m.product_id = p.id AND m.kind = 'model'
+          ORDER BY m.position LIMIT 1
+        ) AS model,
+        (
+          SELECT json_agg(m.src ORDER BY m.position)
+          FROM product_media m WHERE m.product_id = p.id AND m.kind = 'spin'
+        ) AS spin,
         (
           SELECT json_agg(json_build_object('id', v.id, 'sku', v.sku, 'size', v.size, 'stock', v.stock, 'price_cents', v.price_cents) ORDER BY v.position, v.sku)
           FROM product_variants v WHERE v.product_id = p.id
@@ -394,6 +429,8 @@ export function createCatalogQueries(sql: Sql) {
       stock: row.stock,
       variants: (row.variants ?? []).map((variant) => ({ id: variant.id, sku: variant.sku, size: variant.size, stock: variant.stock, priceCents: variant.price_cents })),
       media: (row.all_images ?? []).map((media) => image(media, locale)!),
+      model: row.model,
+      spin: row.spin ?? [],
       ratingSum: row.rating_sum,
       ratingCount: row.rating_count,
       attribution: row.attribution,
@@ -409,7 +446,7 @@ export function createCatalogQueries(sql: Sql) {
     return rows.map((row) => ({ slug: row.slug, updatedAt: new Date(row.updated_at) }));
   }
 
-  return { listProducts, listCategories, featured, placeable, cardsByIds, productBySlug, allProductSlugs };
+  return { listProducts, listCategories, featured, placeable, forWalls, cardsByIds, productBySlug, allProductSlugs };
 }
 
 export type CatalogQueries = ReturnType<typeof createCatalogQueries>;

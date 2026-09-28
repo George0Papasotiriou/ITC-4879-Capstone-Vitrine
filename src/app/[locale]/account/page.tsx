@@ -15,6 +15,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { FormMessage } from "@/components/account/auth-forms";
 import { PasskeysPanel, PasswordPanel, SessionsPanel, SignOutButton, TwoFactorPanel, type PasskeyItem, type SessionItem } from "@/components/account/security";
 import { WatchList, type WatchItem } from "@/components/commerce/watch-list";
+import { MarkDropsSeen } from "@/components/commerce/drops-badge";
 import { PersonalizationControl } from "@/components/reco/personalization-control";
 import { DeskLinks } from "@/components/staff/desk-links";
 import { ButtonLink } from "@/components/ui/button";
@@ -24,7 +25,7 @@ import { describeDevice } from "@/lib/auth/paths";
 import { isStaff, type Role } from "@/lib/auth/roles";
 import { auth } from "@/lib/auth/server";
 import { currentUser } from "@/lib/auth/session";
-import { formatMoney } from "@/lib/commerce/money";
+import { formatMoney, money } from "@/lib/commerce/money";
 import { commerce, orderOwner, priceWatches } from "@/lib/commerce/server";
 import { getCardsByIds } from "@/lib/catalog/server";
 import { currentActor } from "@/lib/reco/server";
@@ -106,11 +107,12 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
   const requestHeaders = await headers();
   const store = await commerce();
   const format = await getFormatter();
-  const [orders, passkeys, sessions, watches] = await Promise.all([
+  const [orders, passkeys, sessions, watches, drops] = await Promise.all([
     store.ordersForOwner(orderOwner(user)),
     auth().api.listPasskeys({ headers: requestHeaders }),
     auth().api.listSessions({ headers: requestHeaders }),
     (await priceWatches()).forPerson(user.id),
+    (await priceWatches()).unseenDrops(user.id),
   ]);
   // The pieces themselves come from the catalogue, in this language and with this country's price.
   const watchedCards = watches.length === 0 ? [] : await getCardsByIds(watches.map((watch) => watch.productId), locale);
@@ -128,6 +130,11 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
       currency: card.price.currency,
       reached: card.price.cents <= watch.targetCents,
     }];
+  });
+  // Watched prices that dropped since the last visit (docs/adr/034), shown once and then marked seen.
+  const dropItems = drops.flatMap((drop) => {
+    const card = cardsById.get(drop.productId);
+    return card === undefined ? [] : [{ id: drop.id, card, targetCents: drop.targetCents }];
   });
   const verified = (await searchParams).verified === "1";
 
@@ -168,6 +175,27 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
         </div>
       ) : null}
       <DeskLinks roles={user.roles} className="mt-8" />
+
+      {dropItems.length === 0 ? null : (
+        <section className="border-hairline rounded-plinth mt-10 border bg-white p-5" aria-labelledby="drops-heading" data-agent-id="account:drops">
+          <h2 id="drops-heading" className="font-display text-xl">
+            {t("drops.title", { count: dropItems.length })}
+          </h2>
+          <ul className="mt-3 flex flex-col gap-2 text-sm">
+            {dropItems.map((drop) => (
+              <li key={drop.id} data-agent-id={`account:drop:${drop.card.id}`}>
+                <SmartLink href={`/p/${drop.card.slug}`} className="underline-offset-4">
+                  {drop.card.title}
+                </SmartLink>{" "}
+                <span className="text-slate tabular">
+                  {t("drops.line", { price: formatMoney(drop.card.price, locale), target: formatMoney(money(drop.targetCents, drop.card.price.currency), locale) })}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <MarkDropsSeen ids={dropItems.map((drop) => drop.id)} />
+        </section>
+      )}
 
       <section className="mt-12" aria-labelledby="orders-heading">
         <h2 id="orders-heading" className="font-display text-2xl">

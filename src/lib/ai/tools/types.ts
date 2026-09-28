@@ -61,7 +61,7 @@ export type ToolServices = {
     change(variantId: string, quantity: number, mode: "add" | "set"): Promise<CartChange>;
     defaultVariant(productId: string): Promise<string | null>;
     /** A signed token that puts the line back to `quantity` (src/lib/ai/tools/undo.ts). */
-    undoToken(payload: { cartId: string; variantId: string; quantity: number }): string;
+    undoToken(payload: { cartId: string; variantId: string; quantity: number; tool?: string }): string;
   };
   /** The Fitting Room (docs/adr/023): the photograph the shopper gave, and one try-on. */
   tryOn: {

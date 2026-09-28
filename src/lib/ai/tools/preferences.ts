@@ -11,8 +11,10 @@ import { z } from "zod";
 
 import type { VitrineTool } from "@/lib/ai/tools/types";
 import { uiCommandSchema } from "@/lib/ai/ui-commands";
-import { preferencesPatchSchema, roomSchema } from "@/lib/prefs/preferences";
-import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
+import { sizeChartFor } from "@/lib/catalog/capsule";
+import { adviseSize, ASKED_MEASURES, isAdvice, MEASURE_MAX_CM, MEASURE_MIN_CM } from "@/lib/catalog/size-advice";
+import { CAPSULE_SIZES, roomPlacement } from "@/lib/catalog/taxonomy";
+import { preferencesPatchSchema, roomFits, roomSchema, sizeGroupOf } from "@/lib/prefs/preferences";
 
 /**
  * docs/adr/033. Reading is ordinary: the shopper's own sizes, rooms and likes,
@@ -66,3 +68,80 @@ export const rememberPreference = define({
   },
 });
 
+/** The garments the size charts cover, as a shopper names them, and the kind whose chart each uses. */
+const GARMENTS = { top: "TOP", trousers: "TROUSERS", skirt: "SKIRT", dress: "DRESS" } as const;
+const MEASURES = ["chest", "waist", "hip"] as const;
+
+export const suggestSize = define({
+  name: "suggest_size",
+  description:
+    "Work out a clothing size from the shopper's body measurements in centimetres, using the shop's own size chart: garment top (also shirts, knitwear, jackets, coats), trousers, skirt or dress; chest, waist and/or hip. " +
+    "Use it when the shopper gives measurements and asks what size to take. It returns the size, which measurement decided it and whether their measurements are far apart; explain that in one sentence. " +
+    "Do not use it without measurements (ask for them, or point to \"Find your size\" on the piece's page), and do not guess sizes for shoes or furniture. To keep the size, offer remember_preference afterwards.",
+  scope: "read",
+  input: z.object({
+    garment: z.enum(Object.keys(GARMENTS) as [keyof typeof GARMENTS, ...(keyof typeof GARMENTS)[]]),
+    chestCm: z.number().optional(),
+    waistCm: z.number().optional(),
+    hipCm: z.number().optional(),
+  }),
+  output: z.union([
+    z.object({
+      size: z.enum(CAPSULE_SIZES),
+      beyondChart: z.boolean(),
+      decidedBy: z.enum(MEASURES),
+      apart: z.number().int(),
+      sizeGroup: z.enum(["upper", "lower", "dress"]),
+      verdicts: z.array(z.object({ measure: z.enum(MEASURES), cm: z.number(), size: z.enum(CAPSULE_SIZES), upToCm: z.number() })),
+    }),
+    z.object({ problem: z.enum(["no_measurements", "out_of_range", "not_on_chart"]), hint: z.string() }),
+  ]),
+  async run(_ctx, input) {
+    const kind = GARMENTS[input.garment];
+    const chart = sizeChartFor(kind)!;
+    // The chart's girth rows, by name: chest and waist above, waist and hip below.
+    const named = chart.slice(0, ASKED_MEASURES).map((row) => row.measure.en.toLowerCase() as (typeof MEASURES)[number]);
+    const given: Record<(typeof MEASURES)[number], number | undefined> = { chest: input.chestCm, waist: input.waistCm, hip: input.hipCm };
+    const unused = MEASURES.filter((measure) => given[measure] !== undefined && !named.includes(measure));
+    const result = adviseSize(chart, named.map((measure) => given[measure]));
+    if (!isAdvice(result)) {
+      if (result.problem === "no_measurements") {
+        return unused.length > 0
+          ? { problem: "not_on_chart" as const, hint: `This chart is read by ${named.join(" and ")}; ${unused.join(" and ")} is not on it.` }
+          : { problem: "no_measurements" as const, hint: `Ask for the shopper's ${named.join(" and ")} in centimetres.` };
+      }
+      return { problem: "out_of_range" as const, hint: `The ${named[result.index]} must be between ${MEASURE_MIN_CM} and ${MEASURE_MAX_CM} cm; inches times 2.54.` };
+    }
+    return {
+      size: result.size,
+      beyondChart: result.beyondChart,
+      decidedBy: named[result.decidedBy]!,
+      apart: result.apart,
+      sizeGroup: sizeGroupOf(kind)!,
+      verdicts: result.verdicts.map((verdict) => ({ measure: named[verdict.index]!, cm: verdict.cm, size: verdict.size, upToCm: verdict.upToCm })),
+    };
+  },
+});
+
+export const placeInRoom = define({
+  name: "place_in_room",
+  description:
+    "Say whether a piece of furniture fits the shopper's saved rooms (its width against each wall, leaving 20 cm to walk past, and its depth when known), and open the room planner with it, where they can see it at true size in a photo of their room. " +
+    "Use it for \"will this fit my living room\", \"show it in my room\". Name a saved room with `room` to point at it. Do not use it for clothing (try_on is for that) or for small things such as vases. With no rooms saved it still opens the planner, where the shopper can save one.",
+  scope: "ui",
+  input: z.object({ productId: z.uuid(), room: z.string().trim().min(1).max(40).optional(), caption }),
+  output: z.object({
+    placeable: z.boolean(),
+    fits: z.array(z.object({ room: z.string(), wallCm: z.number(), fits: z.boolean(), spareCm: z.number() })),
+    roomsSaved: z.number().int(),
+    commands: z.array(uiCommandSchema),
+  }),
+  async run(ctx, { productId, room, caption: text }) {
+    const [[detail], prefs] = await Promise.all([ctx.services.details([productId]), ctx.services.preferences.read()]);
+    if (detail === undefined || roomPlacement(detail.kind, detail.dimsCm) === null) return { placeable: false, fits: [], roomsSaved: prefs.rooms.length, commands: [] };
+    const fits = roomFits(detail.dimsCm, prefs.rooms);
+    const named = room === undefined ? undefined : prefs.rooms.find((saved) => saved.name.toLocaleLowerCase() === room.toLocaleLowerCase())?.name;
+    const href = `/room?${new URLSearchParams({ product: detail.slug, ...(named === undefined ? {} : { room: named }) }).toString()}`;
+    return { placeable: true, fits, roomsSaved: prefs.rooms.length, commands: [uiCommandSchema.parse({ type: "navigate", href, caption: text })] };
+  },
+});

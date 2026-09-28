@@ -9,7 +9,7 @@
 
 import { z } from "zod";
 
-import { comfortPatchSchema } from "@/lib/comfort/settings";
+import { comfortPatchSchema } from "@/lib/comfort/schema";
 import { preferencesPatchSchema } from "@/lib/prefs/preferences";
 
 /**

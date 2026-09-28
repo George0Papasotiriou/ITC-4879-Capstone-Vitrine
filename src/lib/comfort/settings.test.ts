@@ -11,7 +11,8 @@ import { runInNewContext } from "node:vm";
 
 import { describe, expect, it } from "vitest";
 
-import { COMFORT_KEYS, comfortAttributes, comfortPatchSchema, DEFAULT_COMFORT, parseComfort, patchComfort, prepaintScript, serializeComfort } from "@/lib/comfort/settings";
+import { comfortPatchSchema } from "@/lib/comfort/schema";
+import { COMFORT_KEYS, comfortAttributes, DEFAULT_COMFORT, parseComfort, patchComfort, prepaintScript, serializeComfort } from "@/lib/comfort/settings";
 
 describe("comfort settings", () => {
   it("keeps only what differs from the default, in characters a cookie can carry", () => {

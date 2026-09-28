@@ -119,10 +119,29 @@ function check(address: string | undefined) {
   console.log(`${address}: ${index.lookup(address) ?? "no country (private or unknown)"}  (database loaded in ${ms} ms)`);
 }
 
+/**
+ * Part of `pnpm build` (so a Railway deploy has prices by country from its
+ * first request): fetches and compiles the database unless a compiled copy is
+ * already there. A failed download never fails the build — the shop then
+ * shows Greek prices to everyone, and VAT still follows the delivery address.
+ */
+async function ensure() {
+  if (existsSync(DEFAULT_GEOIP_BINARY)) {
+    console.log(`[geoip] ${DEFAULT_GEOIP_BINARY} present`);
+    return;
+  }
+  try {
+    await update();
+  } catch (error) {
+    console.warn(`[geoip] not available (${error instanceof Error ? error.message : String(error)}); prices by country fall back to Greece`);
+  }
+}
+
 if (command === "update") await update();
+else if (command === "ensure") await ensure();
 else if (command === "compile") await compile();
 else if (command === "check") check(rest[0]);
 else {
-  console.error("Usage: pnpm geoip update [--dry-run] | pnpm geoip compile | pnpm geoip check <address>");
+  console.error("Usage: pnpm geoip update [--dry-run] | pnpm geoip ensure | pnpm geoip compile | pnpm geoip check <address>");
   process.exitCode = 1;
 }

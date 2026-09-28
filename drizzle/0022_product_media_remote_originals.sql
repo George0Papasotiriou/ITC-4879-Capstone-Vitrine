@@ -1,0 +1,2 @@
+ALTER TABLE "product_media" DROP CONSTRAINT "product_media_src_is_path";--> statement-breakpoint
+ALTER TABLE "product_media" ADD CONSTRAINT "product_media_src_allowed" CHECK ("product_media"."src" LIKE '/%' OR "product_media"."src" LIKE 'https://amazon-berkeley-objects.s3.amazonaws.com/images/original/%' OR "product_media"."src" LIKE 'https://amazon-berkeley-objects.s3.amazonaws.com/spins/original/%');

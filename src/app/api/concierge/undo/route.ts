@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 
+import { logConciergeEvents } from "@/lib/admin/server";
 import { readUndoToken } from "@/lib/ai/tools/undo";
 import { commerce, currentCart } from "@/lib/commerce/server";
 import { serverEnv } from "@/env";
@@ -35,5 +36,7 @@ export async function POST(request: Request): Promise<Response> {
   const store = await commerce();
   const result = await store.changeLine(cartId, payload.variantId, payload.quantity, "set", userId);
   if (!result.ok) return Response.json({ ok: false, reason: result.reason }, { status: 409 });
+  // The cart change a Concierge tool made, taken back (docs/adr/034).
+  logConciergeEvents([{ kind: "tool", surface: "chat", tool: payload.tool ?? "cart", outcome: "undone" }]);
   return Response.json({ ok: true, quantity: result.quantity, itemCount: await store.itemCount(cartId) });
 }

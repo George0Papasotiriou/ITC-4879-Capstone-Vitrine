@@ -28,6 +28,19 @@
  *       public/products/ from ABO listings. Both are committed, so a push
  *       carries new products to Railway.
  *
+ *   pnpm catalog abo-fixture [--dry-run] [--per-category 750] [--images 2] [--spins 300] [--frames 24] [--models 300]
+ *       Rebuild src/lib/catalog/fixtures/abo.json, the large catalogue, from all
+ *       ABO listing files (scripts/catalog-abo.ts, docs/adr/035). Committed text;
+ *       seeded on every deploy with `seed --abo`.
+ *
+ *   pnpm catalog models [--limit 300]
+ *       Compress the catalogue's ABO 3D scans into storage now, as the worker's
+ *       catalog-models job does after a deploy (docs/adr/035).
+ *
+ *   pnpm catalog spins [--dry-run] [--limit 300] [--frames 24]
+ *       Turntable frames for the imported products that have them, for the
+ *       360° view (docs/adr/035, scripts/catalog-media.ts).
+ *
  *   pnpm catalog specimen-fixture
  *       Rebuild src/lib/catalog/fixtures/specimen.json from the ABO metadata for
  *       the specimen products, reusing the photographs already in public/.
@@ -65,6 +78,9 @@ import * as schema from "@/lib/db/schema";
 import { SPECIMEN_CATALOG } from "@/lib/specimen/catalog";
 import { createTasteGraph } from "@/lib/reco/store";
 import { storage } from "@/lib/storage";
+
+import { ABO_FIXTURE, aboFixture } from "./catalog-abo";
+import { importSpins, processModels } from "./catalog-media";
 
 const CACHE = ".abo-cache";
 const SPECIMEN_FIXTURE = "src/lib/catalog/fixtures/specimen.json";
@@ -559,7 +575,7 @@ async function collectionFixture(options: { dryRun: boolean; files: string[]; pe
   products.sort((a, b) => a.category.localeCompare(b.category) || a.sourceId.localeCompare(b.sourceId));
   const fixture = {
     version: 1,
-    description: `The shop's collection beyond the specimen products: ${products.length} Amazon Berkeley Objects listings (CC BY-NC 4.0), photographs in public/products. Rebuilt by \`pnpm catalog collection-fixture\`.`,
+    description: `The shop's collection beyond the specimen products: ${products.length} Amazon Berkeley Objects listings (CC BY 4.0, by Amazon.com), photographs in public/products. Rebuilt by \`pnpm catalog collection-fixture\`.`,
     products,
   };
   catalogFixtureSchema.parse(fixture);
@@ -657,19 +673,24 @@ async function main(): Promise<void> {
       "if-empty": { type: "boolean", default: false },
       collection: { type: "boolean", default: false },
       capsule: { type: "boolean", default: false },
+      abo: { type: "boolean", default: false },
       sync: { type: "boolean", default: false },
       "dry-run": { type: "boolean", default: false },
       files: { type: "string", default: "0" },
       "per-category": { type: "string" },
       images: { type: "string" },
       concurrency: { type: "string", default: "6" },
+      limit: { type: "string" },
+      frames: { type: "string" },
+      spins: { type: "string" },
+      models: { type: "string" },
     },
   });
 
   switch (command) {
     case "seed":
       return seed({
-        fixtures: [values.fixture, ...(values.collection ? [COLLECTION_FIXTURE] : []), ...(values.capsule ? [CAPSULE_FIXTURE] : [])],
+        fixtures: [values.fixture, ...(values.collection ? [COLLECTION_FIXTURE] : []), ...(values.capsule ? [CAPSULE_FIXTURE] : []), ...(values.abo ? [ABO_FIXTURE] : [])],
         ifEmpty: values["if-empty"],
         sync: values.sync,
       });
@@ -692,15 +713,40 @@ async function main(): Promise<void> {
         perCategory: Math.max(1, Number.parseInt(values["per-category"] ?? "17", 10)),
         images: Math.min(4, Math.max(1, Number.parseInt(values.images ?? "2", 10))),
       });
+    case "abo-fixture":
+      return aboFixture({
+        dryRun: values["dry-run"],
+        files: [..."0123456789abcdef"],
+        perCategory: Math.max(1, Number.parseInt(values["per-category"] ?? "750", 10)),
+        images: Math.min(4, Math.max(1, Number.parseInt(values.images ?? "2", 10))),
+        spins: Math.max(0, Number.parseInt(values.spins ?? "300", 10)),
+        frames: Math.min(72, Math.max(8, Number.parseInt(values.frames ?? "24", 10))),
+        models: Math.max(0, Number.parseInt(values.models ?? "300", 10)),
+      });
+    case "models":
+      return processModels({ limit: Math.max(1, Number.parseInt(values.limit ?? "300", 10)) });
+    case "spins":
+      return importSpins({
+        dryRun: values["dry-run"],
+        limit: Math.max(1, Number.parseInt(values.limit ?? "300", 10)),
+        frames: Math.min(72, Math.max(8, Number.parseInt(values.frames ?? "24", 10))),
+        // Every listing file the import has downloaded; the others are skipped.
+        files: [..."0123456789abcdef"],
+        concurrency: Math.min(8, Math.max(1, Number.parseInt(values.concurrency, 10))),
+      });
     case "specimen-fixture":
       return specimenFixture();
     default:
-      out("Usage: pnpm catalog <seed|import-abo|collection-fixture|specimen-fixture> [options]");
+      out("Usage: pnpm catalog <seed|import-abo|abo-fixture|models|spins|collection-fixture|specimen-fixture> [options]");
       process.exitCode = 1;
   }
 }
 
 main().catch((error: unknown) => {
   process.stderr.write(`[catalog] ${error instanceof Error ? (error.stack ?? error.message) : String(error)}\n`);
+  // Drizzle wraps the database's own complaint; without it a failed insert shows only its SQL.
+  if (error instanceof Error && error.cause !== undefined) {
+    process.stderr.write(`[catalog] cause: ${error.cause instanceof Error ? error.cause.message : String(error.cause)}\n`);
+  }
   process.exitCode = 1;
 });

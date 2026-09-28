@@ -28,7 +28,7 @@ Lines marked **[George decides]** are the ones that are not in the code yet.
 Vitrine is a student project for ITC 4949 at the American College of Greece. The shop works end to
 end, but:
 
-- product photography comes from the Amazon Berkeley Objects dataset (CC BY-NC 4.0);
+- product photography comes from the Amazon Berkeley Objects dataset by Amazon.com (CC BY 4.0);
 - prices are synthetic — they are not any real shop's prices;
 - payment is a **test payment**: no card is charged and nothing is dispatched.
 

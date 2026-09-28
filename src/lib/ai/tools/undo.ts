@@ -21,11 +21,12 @@ import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
 
 export const UNDO_LIFETIME_MS = 60 * 60 * 1000;
 
-const payloadSchema = z.object({ c: z.uuid(), v: z.uuid(), q: z.number().int().min(0).max(99), e: z.number().int() });
-export type UndoPayload = { cartId: string; variantId: string; quantity: number };
+const payloadSchema = z.object({ c: z.uuid(), v: z.uuid(), q: z.number().int().min(0).max(99), e: z.number().int(), t: z.string().max(40).optional() });
+/** `tool`: which cart tool made the change, so the dashboard can say what was undone (docs/adr/034). */
+export type UndoPayload = { cartId: string; variantId: string; quantity: number; tool?: string };
 
-export function createUndoToken({ cartId, variantId, quantity }: UndoPayload, secret: string, now = Date.now()): string {
-  const json = JSON.stringify({ c: cartId, v: variantId, q: quantity, e: now + UNDO_LIFETIME_MS });
+export function createUndoToken({ cartId, variantId, quantity, tool }: UndoPayload, secret: string, now = Date.now()): string {
+  const json = JSON.stringify({ c: cartId, v: variantId, q: quantity, e: now + UNDO_LIFETIME_MS, ...(tool === undefined ? {} : { t: tool }) });
   return signValue(Buffer.from(json).toString("base64url"), secret);
 }
 
@@ -36,7 +37,7 @@ export function readUndoToken(token: string, secret: string, now = Date.now()): 
   try {
     const parsed = payloadSchema.safeParse(JSON.parse(Buffer.from(value, "base64url").toString("utf8")));
     if (!parsed.success || parsed.data.e < now) return null;
-    return { cartId: parsed.data.c, variantId: parsed.data.v, quantity: parsed.data.q };
+    return { cartId: parsed.data.c, variantId: parsed.data.v, quantity: parsed.data.q, ...(parsed.data.t === undefined ? {} : { tool: parsed.data.t }) };
   } catch {
     return null;
   }

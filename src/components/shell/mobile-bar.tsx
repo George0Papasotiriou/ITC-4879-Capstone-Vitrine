@@ -8,9 +8,12 @@
  */
 
 import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
+import { AccountDrops } from "@/components/commerce/account-drops";
 import { CartCount } from "@/components/commerce/cart-count";
 import { ConciergeToggle } from "@/components/concierge/concierge-toggle";
+import { InstantSearchTrigger } from "@/components/search/instant-search-layer";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/ui/cn";
 
@@ -39,7 +42,7 @@ export async function MobileBar() {
         <BarItem href="/" agentId="nav:home" label={t("home")}>
           <HomeGlyph />
         </BarItem>
-        <BarItem href="/search" agentId="nav:search" label={t("search")}>
+        <BarItem href="/search" agentId="nav:search" label={t("search")} instant>
           <SearchGlyph />
         </BarItem>
         <li className="flex-1">
@@ -52,7 +55,16 @@ export async function MobileBar() {
         <BarItem href="/cart" agentId="nav:cart" label={t("cart")} after={<CartCount variant="bar" />}>
           <CartGlyph />
         </BarItem>
-        <BarItem href="/account" agentId="nav:account" label={t("account")}>
+        <BarItem
+          href="/account"
+          agentId="nav:account"
+          label={t("account")}
+          after={
+            <Suspense fallback={null}>
+              <AccountDrops variant="bar" />
+            </Suspense>
+          }
+        >
           <AccountGlyph />
         </BarItem>
       </ul>
@@ -67,6 +79,7 @@ function BarItem({
   children,
   after,
   accent = false,
+  instant = false,
 }: {
   href: string;
   agentId: string;
@@ -74,9 +87,10 @@ function BarItem({
   children: React.ReactNode;
   after?: React.ReactNode;
   accent?: boolean;
+  /** Opens the instant search pop-up on a plain click (docs/adr/034). */
+  instant?: boolean;
 }) {
-  return (
-    <li className="flex-1">
+  const link = (
       <Link
         href={href}
         data-agent-id={agentId}
@@ -90,8 +104,8 @@ function BarItem({
         <span className="text-[0.6875rem] leading-none">{label}</span>
         {after}
       </Link>
-    </li>
   );
+  return <li className="flex-1">{instant ? <InstantSearchTrigger>{link}</InstantSearchTrigger> : link}</li>;
 }
 
 function HomeGlyph() {

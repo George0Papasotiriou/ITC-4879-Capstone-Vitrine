@@ -197,19 +197,11 @@ export function SpotlightProvider({
     skipped.current = true;
   }, []);
 
-  /**
-   * Marks the document once the command bus is live.
-   *
-   * Until this provider hydrates, the Concierge's controls are present in the
-   * HTML but inert — they render server-side and their handlers attach later.
-   * Anything that needs to know the difference (end-to-end tests today, and a
-   * dock that should not invite a click it will drop) can wait for
-   * `html[data-concierge-ready]`.
-   */
+  /** Marks the document once the engine and its command bus are live (docs/adr/034): `html[data-concierge-engine]`. */
   useEffect(() => {
-    document.documentElement.dataset["conciergeReady"] = "true";
+    document.documentElement.dataset["conciergeEngine"] = "true";
     return () => {
-      delete document.documentElement.dataset["conciergeReady"];
+      delete document.documentElement.dataset["conciergeEngine"];
     };
   }, []);
 

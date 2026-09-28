@@ -76,6 +76,28 @@ test("point by number: every control gets a number, and typing the number presse
   expect(await badges.count()).toBeGreaterThan(3);
   await expect(page.locator('[data-agent-id="numbers:status"]')).toContainText("numbered");
 
+  // Badges sit beside their controls, not over their words (docs/adr/034): number 1 leaves the shop's
+  // name readable, and hardly any badge covers the start of a control, where its words begin.
+  const overlap = await page.evaluate(() => {
+    const hits = (a: DOMRect, b: DOMRect) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    const badges = [...document.querySelectorAll(".point-number")].map((badge) => badge.getBoundingClientRect());
+    const starts = [...document.querySelectorAll("a[href], button, input, select, textarea")]
+      .map((control) => ({ control, box: control.getBoundingClientRect() }))
+      .filter(({ box }) => box.width > 4 && box.height > 4 && box.bottom > 0 && box.top < window.innerHeight)
+      // Only what can be seen: a control under the phone's bottom bar has no words showing to cover.
+      .filter(({ control, box }) => {
+        const hit = document.elementFromPoint(box.left + box.width / 2, Math.min(window.innerHeight - 1, box.top + box.height / 2));
+        return hit !== null && (control.contains(hit) || hit.contains(control));
+      })
+      // The first letters: the left end of each control.
+      .map(({ box }) => new DOMRect(box.left, box.top, Math.min(40, box.width * 0.3), box.height));
+    const home = document.querySelector('[data-agent-id="nav:home"]')!.getBoundingClientRect();
+    const covering = badges.filter((badge) => starts.some((start) => hits(badge, start) > 0.3 * badge.width * badge.height)).length;
+    return { first: hits(badges[0]!, home), covering, total: badges.length };
+  });
+  expect(overlap.first).toBe(0);
+  expect(overlap.covering / overlap.total).toBeLessThanOrEqual(0.05);
+
   // Number 1 is the first control at the top left: the shop's name, which goes home.
   await page.keyboard.press("1");
   await page.keyboard.press("Enter");
@@ -94,8 +116,11 @@ test("point by number: every control gets a number, and typing the number presse
 test("single-key shortcuts open the Concierge and their own list, and can be switched off", async ({ browser }) => {
   const page = await freshPage(browser, { country: "GR" });
   await ready(page);
-  await page.keyboard.press("?");
-  await expect(page.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeVisible();
+  // The list is fetched the first time it is asked for; on a cold server that can outlast one wait.
+  await expect(async () => {
+    await page.keyboard.press("?");
+    await expect(page.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeVisible({ timeout: 4_000 });
+  }).toPass({ timeout: 20_000 });
   await page.keyboard.press("Escape");
 
   await page.keyboard.press("c");

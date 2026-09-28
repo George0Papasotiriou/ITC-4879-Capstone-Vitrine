@@ -42,7 +42,8 @@ export async function POST(request: Request, { params }: RouteContext<"/api/staf
     const details = productDetailsSchema.safeParse(body.data.details);
     if (!details.success) return Response.json({ ok: false, reason: "invalid_fields", fields: fieldErrors(details.error) }, { status: 422 });
     const result = await store.updateProduct(id, details.data, actor);
-    if (!result.ok) return Response.json({ ok: false, reason: result.reason }, { status: 404 });
+    // A draft goes on sale only with a photograph (docs/adr/034).
+    if (!result.ok) return Response.json({ ok: false, reason: result.reason }, { status: result.reason === "needs_photo" ? 409 : 404 });
     if (result.changed.length > 0) logger.info({ product: id, fields: result.changed, staff: actor.userId }, "Product edited");
     return Response.json({ ok: true, changed: result.changed });
   }

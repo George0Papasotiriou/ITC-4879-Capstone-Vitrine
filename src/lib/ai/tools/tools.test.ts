@@ -15,6 +15,7 @@ import { findTool, needsApproval, runTool, TOOLS, toolsFor } from "@/lib/ai/tool
 import type { ToolContext } from "@/lib/ai/tools/types";
 import { createUndoToken, readUndoToken, UNDO_LIFETIME_MS } from "@/lib/ai/tools/undo";
 import type { OrderView } from "@/lib/commerce/store";
+import { EMPTY_PREFERENCES } from "@/lib/prefs/preferences";
 
 const run = async (name: string, input: unknown, ctx: ToolContext) => {
   const result = await runTool(findTool(name, ctx.surface)!, ctx, input);
@@ -90,6 +91,37 @@ describe("UI tools", () => {
     expect(findTool("get_preferences", "support")).toBeNull();
   });
 
+  it("works out a size from measurements with the shop's own chart, and says why", async () => {
+    const { ctx } = context();
+    await expect(run("suggest_size", { garment: "top", chestCm: 95, waistCm: 88 }, ctx)).resolves.toMatchObject({ size: "L", decidedBy: "waist", apart: 1, sizeGroup: "upper" });
+    await expect(run("suggest_size", { garment: "trousers", waistCm: 76, hipCm: 101 }, ctx)).resolves.toMatchObject({ size: "M", sizeGroup: "lower" });
+    // A measurement the chart does not use, none at all, and inches.
+    await expect(run("suggest_size", { garment: "trousers", chestCm: 98 }, ctx)).resolves.toMatchObject({ problem: "not_on_chart" });
+    await expect(run("suggest_size", { garment: "dress" }, ctx)).resolves.toMatchObject({ problem: "no_measurements" });
+    await expect(run("suggest_size", { garment: "top", chestCm: 38 }, ctx)).resolves.toMatchObject({ problem: "out_of_range" });
+    expect(needsApproval(findTool("suggest_size", "chat")!)).toBe(false);
+  });
+
+  it("says whether a piece fits the saved rooms and opens the planner, pointing at a named room", async () => {
+    const rooms = [{ name: "Hall", wallCm: 45 }, { name: "Living room", wallCm: 240 }];
+    const { ctx } = context({ preferences: { read: async () => ({ ...EMPTY_PREFERENCES, rooms }) } });
+    const output = await run("place_in_room", { productId: LAMP, room: "living ROOM", caption: "Placing the lamp" }, ctx);
+    expect(output).toMatchObject({
+      placeable: true,
+      roomsSaved: 2,
+      fits: [
+        { room: "Hall", fits: false, spareCm: -5 },
+        { room: "Living room", fits: true, spareCm: 190 },
+      ],
+      commands: [{ type: "navigate", href: "/room?product=faux-wood-table-lamp&room=Living+room", caption: "Placing the lamp" }],
+    });
+    // A room that is not saved is not invented into the address.
+    const unknown = await run("place_in_room", { productId: LAMP, room: "Garage", caption: "Placing the lamp" }, ctx);
+    expect(unknown.commands).toEqual([{ type: "navigate", href: "/room?product=faux-wood-table-lamp", caption: "Placing the lamp" }]);
+    // Nothing to place: an unknown product.
+    await expect(run("place_in_room", { productId: CHAIR, caption: "Placing the chair" }, ctx)).resolves.toMatchObject({ placeable: false, commands: [] });
+  });
+
   it("opens the room planner for a product", async () => {
     const { ctx } = context();
     const output = await run("open_viewer", { productId: LAMP, viewer: "room", caption: "Placing the lamp" }, ctx);
@@ -103,7 +135,7 @@ describe("cart tools", () => {
     const output = await run("add_to_cart", { productId: LAMP, quantity: 2 }, ctx);
     expect(changes).toEqual([{ variantId: LAMP_VARIANT, quantity: 2, mode: "add" }]);
     expect(output).toMatchObject({ ok: true, quantity: 2, itemsInCart: 2 });
-    expect(readUndoToken(output.undo as string, SECRET)).toEqual({ cartId: CART, variantId: LAMP_VARIANT, quantity: 0 });
+    expect(readUndoToken(output.undo as string, SECRET)).toEqual({ cartId: CART, variantId: LAMP_VARIANT, quantity: 0, tool: "add_to_cart" });
   });
 
   it("only changes lines that are in the cart", async () => {

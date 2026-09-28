@@ -11,13 +11,14 @@ import { convertToModelMessages, createUIMessageStreamResponse, safeValidateUIMe
 import { z } from "zod";
 
 import { routing } from "@/i18n/routing";
+import { logConciergeEvents } from "@/lib/admin/server";
 import { parsePageMap } from "@/lib/ai/guardrails/page-map";
 import { createRateLimiter } from "@/lib/ai/guardrails/rate-limit";
 import { MODELS } from "@/lib/ai/models";
 import { CONCIERGE_PROMPT_VERSION, conciergeInstructions } from "@/lib/ai/prompts/concierge-v1";
 import { textModel } from "@/lib/ai/providers";
 import { aiActor, aiMode, approvalSecret, conciergeCart, toolServices, toolUser, usageStore } from "@/lib/ai/server";
-import { runTurn } from "@/lib/ai/surfaces/chat";
+import { approvalAnswers, runTurn } from "@/lib/ai/surfaces/chat";
 import { currentUser } from "@/lib/auth/session";
 import { clientAddress } from "@/lib/geo/ip-country";
 import { loggerForRequest } from "@/lib/log";
@@ -67,7 +68,13 @@ export async function POST(request: Request): Promise<Response> {
   const env = serverEnv();
   // A new question takes a turn; answering an approval card continues the same turn.
   const gate = messages.at(-1)?.role === "user" ? await usage.takeTurn(actor) : await usage.open();
-  if (!gate.ok) return refuse(gate.reason, gate.reason === "off" ? 503 : 429);
+  const surface = body.data.spoken === true ? ("voice" as const) : ("chat" as const);
+  if (!gate.ok) {
+    logConciergeEvents([{ kind: "refused", surface, outcome: gate.reason }]);
+    return refuse(gate.reason, gate.reason === "off" ? 503 : 429);
+  }
+  // Approvals the shopper has just answered, yes or no (docs/adr/034).
+  logConciergeEvents(approvalAnswers(messages.at(-1)).map((answer) => ({ kind: "tool" as const, surface, tool: answer.tool, outcome: answer.approved ? ("approved" as const) : ("declined" as const) })));
 
   const chosen = textModel(aiMode(), MODELS.concierge, { locale, apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY });
   if (chosen === null) return refuse("off", 503);
@@ -85,8 +92,9 @@ export async function POST(request: Request): Promise<Response> {
     .filter((line): line is string => line !== null)
     .join("\n");
   const services = await toolServices({ locale, user, cart, conversation });
-  const ctx = { locale, surface: spoken ? ("voice" as const) : ("chat" as const), user: toolUser(user), actor, services };
+  const ctx = { locale, surface, user: toolUser(user), actor, services };
   const log = loggerForRequest(request.headers);
+  const started = performance.now();
   const result = runTurn({
     model: chosen.model,
     instructions: conciergeInstructions({ locale, pageMap: parsePageMap(body.data.pageMap), signedIn: user !== null, spoken }),
@@ -94,6 +102,7 @@ export async function POST(request: Request): Promise<Response> {
     ctx,
     approvalSecret: approvalSecret(),
     abortSignal: request.signal,
+    onEvents: logConciergeEvents,
     onUsage: async (turn) => {
       const cost = await usage.record({ feature: "concierge", model: chosen.entry, surface: "chat", actorKey: actor.key, usage: turn });
       // Counts only: no message text, no tool inputs (CLAUDE.md rule 9).
@@ -109,6 +118,7 @@ export async function POST(request: Request): Promise<Response> {
       messageMetadata: ({ part }) => (part.type === "start" ? { demo: aiMode() === "demo", prompt: CONCIERGE_PROMPT_VERSION } : undefined),
       onError: (error) => {
         log.error({ err: error }, "concierge turn failed");
+        logConciergeEvents([{ kind: "turn", surface, outcome: "error", latencyMs: performance.now() - started, steps: 0 }]);
         return "The Concierge could not answer that. Please try again.";
       },
     }),

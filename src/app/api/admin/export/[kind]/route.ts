@@ -4,7 +4,7 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * CSV exports for staff with dashboard access: the period's orders, or every variant's stock.
+ * CSV exports for staff with dashboard access: the period's orders, every variant's stock, and the Concierge's and shelves' figures.
  */
 
 import { centsToDecimal, toCsv } from "@/lib/admin/csv";
@@ -26,12 +26,24 @@ export async function GET(request: Request, { params }: RouteContext<"/api/admin
   if (!access.ok) return Response.json({ ok: false, reason: access.status === 401 ? "sign_in" : "forbidden" }, { status: access.status });
 
   const { kind } = await params;
-  if (kind !== "orders" && kind !== "stock") return Response.json({ ok: false, reason: "not_found" }, { status: 404 });
+  if (kind !== "orders" && kind !== "stock" && kind !== "concierge" && kind !== "recommendations") return Response.json({ ok: false, reason: "not_found" }, { status: 404 });
   const period = periodFor(parsePeriod(new URL(request.url).searchParams.get("days") ?? undefined));
   const store = await dashboards();
 
+  // The dashboards' tables as they are shown (docs/adr/034): counts only, nothing about any shopper.
+  const rate = (value: number | null) => (value === null ? null : value.toFixed(4));
   const body =
-    kind === "orders"
+    kind === "concierge"
+      ? toCsv(
+          ["tool", "runs", "refused_input", "approvals_asked", "approved", "declined", "undone"],
+          (await store.conciergeFigures(period)).tools.map((tool) => [tool.tool, tool.runs, tool.errors, tool.approvalsAsked, tool.approved, tool.declined, tool.undone]),
+        )
+      : kind === "recommendations"
+        ? toCsv(
+            ["shelf", "seen", "opened", "click_through", "added_to_cart", "add_rate"],
+            (await store.recoFigures(period)).shelves.map((shelf) => [shelf.shelf, shelf.impressions, shelf.clicks, rate(shelf.clickRate), shelf.adds, rate(shelf.addRate)]),
+          )
+        : kind === "orders"
       ? toCsv(
           ["number", "placed_at", "paid_at", "status", "email", "country", "items", "subtotal", "shipping", "vat", "total", "currency"],
           (await store.ordersForExport(period)).map((row) => [
@@ -55,7 +67,7 @@ export async function GET(request: Request, { params }: RouteContext<"/api/admin
         );
 
   logger.info({ export: kind, days: period.days, staff: access.user.id }, "CSV export");
-  const name = kind === "orders" ? `vitrine-orders-${dayKey(period.from)}-to-${dayKey(period.to)}.csv` : `vitrine-stock-${dayKey(period.to)}.csv`;
+  const name = kind === "stock" ? `vitrine-stock-${dayKey(period.to)}.csv` : `vitrine-${kind}-${dayKey(period.from)}-to-${dayKey(period.to)}.csv`;
   return new Response(body, {
     headers: {
       "content-type": "text/csv; charset=utf-8",

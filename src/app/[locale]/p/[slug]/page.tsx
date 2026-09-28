@@ -18,6 +18,7 @@ import { currentRegion } from "@/lib/commerce/region";
 import { PriceWatch } from "@/components/commerce/price-watch";
 import { SizePicker, type SizeOption } from "@/components/commerce/size-picker";
 import { ModelView } from "@/components/commerce/model-view";
+import { SpinView } from "@/components/commerce/spin-view";
 import { ProductGallery } from "@/components/commerce/product-gallery";
 import { ProductGrid } from "@/components/commerce/product-grid";
 import { TrackInterest } from "@/components/reco/track-interest";
@@ -39,7 +40,7 @@ import { currentUser } from "@/lib/auth/session";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
 import { sizeChartFor } from "@/lib/catalog/capsule";
 import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
-import { preferredSize, roomFits } from "@/lib/prefs/preferences";
+import { preferredSize, roomFits, sizeGroupOf } from "@/lib/prefs/preferences";
 import { currentPreferences } from "@/lib/prefs/server";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
@@ -144,6 +145,8 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   // What the shopper has told the shop (docs/adr/033): their size for this kind of garment, and their rooms.
   const { preferences } = await currentPreferences();
   const yourSize = sizes.length > 0 ? preferredSize(preferences, product.kind) : null;
+  const sizeGroup = sizeGroupOf(product.kind);
+  const finder = sizeChart === null || sizeGroup === null ? undefined : { chart: sizeChart, group: sizeGroup };
   const fits = roomFits(product.dimsCm, preferences.rooms);
 
   const imageLabels = product.media.map((_, index) => t("showImage", { index: index + 1, count: product.media.length }));
@@ -205,7 +208,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             <Rating value={product.ratingCount === 0 ? 0 : product.ratingSum / product.ratingCount} count={product.ratingCount} locale={locale} />
           </div>
 
-          {sizes.length === 0 ? null : <SizePicker productId={product.id} sizes={sizes} preferred={yourSize ?? undefined} agentId={`action:add-to-cart:${product.id}`} />}
+          {sizes.length === 0 ? null : <SizePicker productId={product.id} sizes={sizes} preferred={yourSize ?? undefined} finder={finder} agentId={`action:add-to-cart:${product.id}`} />}
 
           <div className="mt-8 flex flex-col gap-3">
             {sizes.length > 0 ? null : <AddToCart productId={product.id} inStock={product.inStock} agentId={`action:add-to-cart:${product.id}`} />}
@@ -217,8 +220,11 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                 title={product.title}
                 dims={product.dimsCm!}
                 startOpen={["ar", "model"].includes(String((await searchParams).view ?? ""))}
+                scan={product.model?.src}
               />
             )}
+            {/* Turntable photographs, when the piece has them (docs/adr/035). */}
+            {product.spin.length < 8 ? null : <SpinView frames={product.spin} title={product.title} productId={product.id} />}
             {roomPlacement(product.kind, product.dimsCm) === null ? null : (
               <ButtonLink href={`/${locale}/room?product=${product.slug}`} document variant="secondary" data-agent-id={`action:see-in-room:${product.id}`}>
                 {t("seeInYourRoom")}
@@ -331,7 +337,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
       <ProductReviews summary={reviews.summary} reviews={reviews.reviews} locale={locale} />
 
       {related.length === 0 ? null : (
-        <section className="border-hairline mt-20 border-t pt-10">
+        <section className="border-hairline mt-20 border-t pt-10" data-shelf={neighbours.source === "behavior" && neighbourCards.length > 0 ? "pairs-with" : "more-like-this"}>
           <h2 className="font-display text-2xl">{relatedTitle}</h2>
           <ProductGrid products={related} locale={locale} className="mt-8" priorityCount={0} />
         </section>

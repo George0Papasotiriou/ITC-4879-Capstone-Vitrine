@@ -12,7 +12,7 @@ import { z } from "zod";
 import { brief, inOrder, productBriefSchema } from "@/lib/ai/tools/briefs";
 import type { VitrineTool } from "@/lib/ai/tools/types";
 import { agentIdSchema, isAllowedRoute, uiCommandSchema, type UiCommand } from "@/lib/ai/ui-commands";
-import { comfortPatchSchema } from "@/lib/comfort/settings";
+import { comfortPatchSchema } from "@/lib/comfort/schema";
 import { EMPTY_LISTING, listingQuery, SORTS, type Sort } from "@/lib/catalog/listing";
 import { CATEGORY_SLUGS, type CategorySlug } from "@/lib/catalog/taxonomy";
 import { COLORS, MATERIALS } from "@/lib/search/vocabulary";

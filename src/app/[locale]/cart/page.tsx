@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 import { CartLineControls } from "@/components/commerce/cart-line-controls";
+import { ProductGrid } from "@/components/commerce/product-grid";
 import { FlipGroup } from "@/components/motion/flip-group";
 import { Ticker } from "@/components/motion/ticker";
 import { ProductImage } from "@/components/commerce/product-image";
@@ -26,6 +27,8 @@ import { commerce, currentCartId, lastOrder, orderPath } from "@/lib/commerce/se
 import { countryNames } from "@/lib/commerce/country-names";
 import { taxKey } from "@/lib/commerce/exports";
 import { formatVatRate } from "@/lib/commerce/vat";
+import { getCardsByIds } from "@/lib/catalog/server";
+import { completeSetFor } from "@/lib/reco/server";
 
 /**
  * The cart (Phase 5 step 2). Rendered on the server from the database for every
@@ -77,6 +80,12 @@ export default async function CartPage({ params }: PageProps<"/[locale]/cart">) 
 
   const { totals } = view;
   const blocked = view.lines.some((line) => !line.available);
+
+  // What completes the set (docs/adr/034): complements of the cart's pieces, each with the piece it goes with.
+  const suggestions = await completeSetFor(view.lines.map((line) => line.productId), 4);
+  const suggestionCards = suggestions.length === 0 ? [] : await getCardsByIds(suggestions.map((entry) => entry.productId), locale);
+  const titleOf = new Map(view.lines.map((line) => [line.productId, line.title]));
+  const goesWith = new Map(suggestions.map((entry) => [entry.productId, t("goesWith", { title: titleOf.get(entry.anchorId) ?? "" })]));
 
   return (
     <main className="mx-auto w-full max-w-[1440px] px-6 py-10 md:px-10 md:py-16">
@@ -177,6 +186,16 @@ export default async function CartPage({ params }: PageProps<"/[locale]/cart">) 
           )}
         </aside>
       </div>
+
+      {suggestionCards.length === 0 ? null : (
+        <section className="mt-20" aria-labelledby="complete-set-title" data-agent-id="cart:complete-set" data-shelf="complete-set">
+          <h2 id="complete-set-title" className="font-display text-2xl">
+            {t("completeSet")}
+          </h2>
+          <p className="text-slate mt-2 max-w-prose text-sm">{t("completeSetLede")}</p>
+          <ProductGrid products={suggestionCards} locale={locale} className="mt-8" priorityCount={0} notes={goesWith} />
+        </section>
+      )}
     </main>
   );
 }

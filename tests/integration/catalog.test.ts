@@ -165,6 +165,48 @@ describe.skipIf(url === undefined || url === "")("catalogue", () => {
     await expect(db.insert(schema.products).values({ ...base, priceCents: 1000, compareAtCents: 900 })).rejects.toThrow();
   });
 
+  it("keeps the worker's 3D scans through a deploy sync and records where each scan lives", async () => {
+    const piece = fixture[3]!;
+    const [product] = await db.select({ id: schema.products.id }).from(schema.products).where(eq(schema.products.sourceId, piece.sourceId));
+    // The worker has stored this piece's compressed scan (docs/adr/035).
+    await connection`
+      INSERT INTO product_media (id, product_id, kind, src, bytes, alt_en, position)
+      VALUES (gen_random_uuid(), ${product!.id}, 'model', '/media/catalog/abo-3d/test.glb', 1234, 'A 3D scan of the piece', 0)
+    `;
+    // The next deploy's fixture names the scan's source and changes the photographs.
+    const synced = { ...piece, modelSource: "9/B075QFCHM9.glb", media: piece.media.slice(0, 1) };
+    await upsertCatalog(db, [synced], { preserveStock: true });
+
+    const media = await connection<{ kind: string; n: number }[]>`
+      SELECT kind::text, count(*)::int AS n FROM product_media WHERE product_id = ${product!.id} GROUP BY kind ORDER BY kind
+    `;
+    // Photographs follow the repository; the stored scan stays, so it is not made again.
+    expect(media).toEqual([
+      { kind: "image", n: 1 },
+      { kind: "model", n: 1 },
+    ]);
+    const [row] = await db.select({ modelSource: schema.products.modelSource }).from(schema.products).where(eq(schema.products.id, product!.id));
+    expect(row?.modelSource).toBe("9/B075QFCHM9.glb");
+
+    await connection`DELETE FROM product_media WHERE product_id = ${product!.id} AND kind = 'model'`;
+    await upsertCatalog(db, fixture);
+    const [cleared] = await db.select({ modelSource: schema.products.modelSource }).from(schema.products).where(eq(schema.products.id, product!.id));
+    expect(cleared?.modelSource).toBeNull();
+  });
+
+  it("accepts the shop's own files and ABO's originals as media, and nothing else from outside", async () => {
+    const [product] = await connection<{ id: string }[]>`SELECT id FROM products ORDER BY source_id LIMIT 1`;
+    const insert = (src: string, position: number) => connection`
+      INSERT INTO product_media (id, product_id, kind, src, alt_en, position)
+      VALUES (gen_random_uuid(), ${product!.id}, 'spin', ${src}, 'frame', ${position})
+    `;
+    await insert("https://amazon-berkeley-objects.s3.amazonaws.com/spins/original/88/889847c8/889847c8_00.jpg", 900);
+    await insert("https://amazon-berkeley-objects.s3.amazonaws.com/images/original/14/14fe8812.jpg", 901);
+    await expect(insert("https://example.com/images/original/x.jpg", 902)).rejects.toThrow(/product_media_src_allowed/);
+    await expect(insert("https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B075QFCHM9.glb", 903)).rejects.toThrow(/product_media_src_allowed/);
+    await connection`DELETE FROM product_media WHERE product_id = ${product!.id} AND position >= 900`;
+  });
+
   it("archives excluded listings without deleting them, and a re-import does not revive them", async () => {
     const target = fixture[1]!;
     expect(await archiveExcluded(db, "abo", [target.sourceId])).toBe(1);

@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { MIN_TARGET_CENTS, parseTargetCents, suggestedTargetCents, watchDecisions, type WatchState } from "@/lib/commerce/price-watch";
+import { MIN_TARGET_CENTS, parseTargetCents, showsNotice, suggestedTargetCents, watchDecisions, type WatchState } from "@/lib/commerce/price-watch";
 
 describe("parseTargetCents", () => {
   it("reads a target as typed", () => {
@@ -61,5 +61,24 @@ describe("watchDecisions", () => {
   it("arms the watch again when the price goes back up", () => {
     expect(watchDecisions([watch({ priceCents: 51_900, notifiedAt: new Date() })])).toEqual({ notify: [], reset: ["w1"] });
     expect(watchDecisions([watch({ priceCents: 51_900 })])).toEqual({ notify: [], reset: [] });
+  });
+});
+
+describe("showsNotice", () => {
+  const at = (iso: string) => new Date(iso);
+  const answered = { notifiedAt: at("2026-09-20T03:00:00Z"), seenAt: null, priceCents: 8_900, targetCents: 9_000 };
+
+  it("shows a drop the pass has answered and the shopper has not seen", () => {
+    expect(showsNotice(answered)).toBe(true);
+  });
+
+  it("does not show before the pass, once seen, or when the price has gone back up", () => {
+    expect(showsNotice({ ...answered, notifiedAt: null })).toBe(false);
+    expect(showsNotice({ ...answered, seenAt: at("2026-09-20T09:00:00Z") })).toBe(false);
+    expect(showsNotice({ ...answered, priceCents: 9_100 })).toBe(false);
+  });
+
+  it("shows again when the watch is answered again after it was seen", () => {
+    expect(showsNotice({ ...answered, notifiedAt: at("2026-09-25T03:00:00Z"), seenAt: at("2026-09-20T09:00:00Z") })).toBe(true);
   });
 });

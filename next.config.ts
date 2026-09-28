@@ -22,7 +22,13 @@ const nextConfig: NextConfig = {
   // public URLs. Hosts are added in Phase 3 once the bucket domain is known.
   // Specimen photography currently lives in `public/`, which needs no pattern.
   images: {
-    remotePatterns: [],
+    // The large ABO catalogue's photographs and turntable frames, fetched and
+    // resized by this server — shoppers' browsers never contact the bucket
+    // (docs/adr/035 addendum).
+    remotePatterns: [
+      { protocol: "https", hostname: "amazon-berkeley-objects.s3.amazonaws.com", pathname: "/images/original/**" },
+      { protocol: "https", hostname: "amazon-berkeley-objects.s3.amazonaws.com", pathname: "/spins/original/**" },
+    ],
     formats: ["image/avif", "image/webp"],
   },
 

@@ -12,7 +12,7 @@
  * Do not edit by hand; rerun the script instead.
  *
  * Product photography and metadata: Amazon Berkeley Objects (ABO), licensed
- * CC BY-NC 4.0. Non-commercial use only, which is what this capstone is.
+ * CC BY 4.0, with credit to Amazon.com and a note of what was changed.
  * https://amazon-berkeley-objects.s3.amazonaws.com/index.html
  *
  * Prices are synthetic: ABO carries no prices, so each is derived
@@ -38,7 +38,7 @@ export type SpecimenProduct = {
 };
 
 export const ATTRIBUTION =
-  "Product images from the Amazon Berkeley Objects dataset, CC BY-NC 4.0.";
+  "Product images from the Amazon Berkeley Objects dataset by Amazon.com, CC BY 4.0; resized and re-encoded.";
 
 export const SPECIMEN_CATALOG: SpecimenProduct[] = [
   {

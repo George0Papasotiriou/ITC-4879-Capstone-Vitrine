@@ -13,7 +13,10 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { AddToCart } from "@/components/commerce/add-to-cart";
+import { SizeFinder } from "@/components/commerce/size-finder";
 import { useHydrated } from "@/components/ui/use-hydrated";
+import type { SizeChart } from "@/lib/catalog/capsule";
+import type { SizeGroup } from "@/lib/prefs/preferences";
 import { cn } from "@/lib/ui/cn";
 
 /**
@@ -30,7 +33,20 @@ export type SizeOption = { variantId: string; size: string; stock: number };
 /** Few enough left that it is worth saying, as on the rest of the shop. */
 const LOW_STOCK = 3;
 
-export function SizePicker({ productId, sizes, agentId, preferred }: { productId: string; sizes: readonly SizeOption[]; agentId: string; preferred?: string }) {
+export function SizePicker({
+  productId,
+  sizes,
+  agentId,
+  preferred,
+  finder,
+}: {
+  productId: string;
+  sizes: readonly SizeOption[];
+  agentId: string;
+  preferred?: string;
+  /** The piece's size chart, for "Find your size" (docs/adr/034). */
+  finder?: { chart: readonly SizeChart[]; group: SizeGroup };
+}) {
   const t = useTranslations("product.sizes");
   // The shopper's own size, from their preferences (docs/adr/033): chosen to start with when it is in stock.
   const [chosen, setChosen] = useState<SizeOption | null>(() => sizes.find((size) => size.size === preferred && size.stock > 0) ?? null);
@@ -81,6 +97,15 @@ export function SizePicker({ productId, sizes, agentId, preferred }: { productId
         <p className="text-slate text-xs" data-agent-id="sizes:yours">
           {t("yourSize", { size: preferred })}
         </p>
+      )}
+
+      {finder === undefined ? null : (
+        <SizeFinder
+          chart={finder.chart}
+          group={finder.group}
+          inStock={new Set(sizes.filter((size) => size.stock > 0).map((size) => size.size))}
+          onChoose={(size) => setChosen(sizes.find((option) => option.size === size) ?? null)}
+        />
       )}
 
       <AddToCart

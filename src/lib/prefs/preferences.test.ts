@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { applyPatch, EMPTY_PREFERENCES, isEmpty, mergePreferences, preferencesPatchSchema, preferencesSchema, preferredSize, roomFits, sizeGroupOf, undoPatch, withTaste } from "@/lib/prefs/preferences";
+import { applyPatch, EMPTY_PREFERENCES, isEmpty, mergePreferences, preferencesPatchSchema, preferencesSchema, fitsYourSpace, preferredSize, roomFits, sizeGroupOf, undoPatch, withTaste } from "@/lib/prefs/preferences";
 
 const living = { name: "Living room", wallCm: 240, depthCm: 400 };
 
@@ -103,5 +103,33 @@ describe("personal preferences", () => {
     // A lamp is not a question of walls, and a piece without measurements is not judged.
     expect(roomFits({ w: 25, d: 25, h: 60 }, rooms)).toEqual([]);
     expect(roomFits(null, rooms)).toEqual([]);
+  });
+});
+
+describe("fitsYourSpace", () => {
+  const living = { name: "Living room", wallCm: 240 };
+  const study = { name: "Study", wallCm: 120, depthCm: 50 };
+  const piece = (productId: string, category: string, w: number, d = 40) => ({ productId, category, dims: { w, d, h: 80 } });
+
+  it("keeps pieces that fit a room, naming the first of the shopper's rooms they fit and the room left", () => {
+    const result = fitsYourSpace([piece("sofa", "seating", 230), piece("desk", "tables", 100), piece("sideboard", "storage", 180, 45)], [study, living]);
+    // The sofa is too wide for either wall with clearance; the desk fits the study first; the sideboard only the living room.
+    expect(result).toEqual([
+      { productId: "desk", room: "Study", spareCm: 0 },
+      { productId: "sideboard", room: "Living room", spareCm: 40 },
+    ]);
+  });
+
+  it("respects the room's depth, leaves out narrow pieces, and takes at most two per category", () => {
+    const deep = piece("deep-desk", "tables", 90, 70);
+    expect(fitsYourSpace([deep], [study])).toEqual([]);
+    expect(fitsYourSpace([piece("stool", "seating", 45)], [living])).toEqual([]);
+    const tables = [piece("t1", "tables", 100), piece("t2", "tables", 110), piece("t3", "tables", 120), piece("c1", "storage", 90)];
+    expect(fitsYourSpace(tables, [living]).map((entry) => entry.productId)).toEqual(["t1", "t2", "c1"]);
+    expect(fitsYourSpace(tables, [living], 2)).toHaveLength(2);
+  });
+
+  it("has nothing to say without rooms", () => {
+    expect(fitsYourSpace([piece("desk", "tables", 100)], [])).toEqual([]);
   });
 });

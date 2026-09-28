@@ -12,14 +12,14 @@
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
-import { useConcierge } from "@/components/concierge/concierge-provider";
+import { useConciergeShell } from "@/components/concierge/concierge-shell";
 import { cn } from "@/lib/ui/cn";
 
 export function ConciergeToggle({ className, children, agentId = "nav:concierge" }: { className?: string; children: ReactNode; agentId?: string }) {
   const t = useTranslations("concierge");
-  const { open, setOpen } = useConcierge();
+  const { open, setOpen, warm } = useConciergeShell();
   return (
-    <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? t("close") : t("open")} className={cn(className)} data-agent-id={agentId}>
+    <button type="button" onClick={() => setOpen(!open)} onPointerEnter={warm} onFocus={warm} aria-expanded={open} aria-label={open ? t("close") : t("open")} className={cn(className)} data-agent-id={agentId}>
       {children}
     </button>
   );

@@ -6,7 +6,7 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * The Concierge's state for the whole shop: the conversation, the dock, and turning tool results into page actions.
+ * The Concierge's engine: the conversation, and turning tool results into page actions. Loaded when the Concierge is first opened.
  */
 
 import { useChat, type UseChatHelpers } from "@ai-sdk/react";
@@ -26,9 +26,11 @@ import { undoPatch, type Preferences, type PreferencesPatch } from "@/lib/prefs/
 import { CONTACT_DRAFT_KEY } from "@/lib/support/tickets";
 
 /**
- * Mounted once in the layout, so the conversation survives navigation: when
- * the Concierge opens a page, the dock stays open on the new page with the same
- * conversation. Tool results that carry page commands run through the
+ * Mounted once, by the shell in the layout (concierge-shell.tsx), the first
+ * time the Concierge is opened or asked something — so the chat engine is not
+ * part of every page's download (docs/adr/034) — and then kept, so the
+ * conversation survives navigation: when the Concierge opens a page, the dock
+ * stays open on the new page with the same conversation. Tool results that carry page commands run through the
  * Spotlight (each shown, validated again and recorded with an undo); cart
  * changes are recorded too, with an undo that redeems the tool's signed token.
  */
@@ -73,11 +75,17 @@ async function announceCart(locale: string) {
   if (response?.ok === true) window.dispatchEvent(new CustomEvent<CartSummary>(CART_EVENT, { detail: (await response.json()) as CartSummary }));
 }
 
-function ConciergeState({ children }: { children: ReactNode }) {
+type EngineProps = {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  /** Hands the shell this engine's `ask`, which also sends what was asked before the engine had loaded. */
+  attach: (ask: (text: string, options?: { spoken?: boolean }) => void) => () => void;
+};
+
+function ConciergeState({ children, open, setOpen, attach }: { children: ReactNode } & EngineProps) {
   const locale = useLocale();
   const t = useTranslations("concierge");
   const spotlight = useSpotlight();
-  const [open, setOpen] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
   const handled = useRef(new Set<string>());
   // Approvals a spoken turn is waiting on, by approval id.
@@ -165,8 +173,10 @@ function ConciergeState({ children }: { children: ReactNode }) {
       // does not make the next typed one spoken too.
       void chat.sendMessage({ text: trimmed }, { body: { spoken: options?.spoken === true } });
     },
-    [chat],
+    [chat, setOpen],
   );
+
+  useEffect(() => attach(ask), [attach, ask]);
 
   const reset = useCallback(() => {
     chat.stop();
@@ -235,17 +245,17 @@ function ConciergeState({ children }: { children: ReactNode }) {
       show({ state: "output-error", input, errorText: reason } as Omit<ToolPart, "type" | "toolCallId">);
       return { ok: false, reason };
     },
-    [locale, setMessages],
+    [locale, setMessages, setOpen],
   );
 
   const value = useMemo<ConciergeValue>(
     () => ({ open, setOpen, chat, ask, refusal, reset, approve, runSpokenTool, writeSpoken, cancelSpokenApprovals }),
-    [open, chat, ask, refusal, reset, approve, runSpokenTool, writeSpoken, cancelSpokenApprovals],
+    [open, setOpen, chat, ask, refusal, reset, approve, runSpokenTool, writeSpoken, cancelSpokenApprovals],
   );
   return <ConciergeContext.Provider value={value}>{children}</ConciergeContext.Provider>;
 }
 
-export function ConciergeProvider({ children }: { children: ReactNode }) {
+export function ConciergeProvider({ children, ...engine }: { children: ReactNode } & EngineProps) {
   const router = useRouter();
   // Navigation keeps the shopper's language: the i18n router adds the locale to allowlisted paths.
   const executors = useMemo<Executors>(
@@ -273,7 +283,7 @@ export function ConciergeProvider({ children }: { children: ReactNode }) {
   );
   return (
     <SpotlightProvider executors={executors}>
-      <ConciergeState>{children}</ConciergeState>
+      <ConciergeState {...engine}>{children}</ConciergeState>
     </SpotlightProvider>
   );
 }

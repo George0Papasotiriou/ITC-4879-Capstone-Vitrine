@@ -35,7 +35,7 @@ export type DemoPrompt = {
 export type DemoCall = { toolName: string; input: Record<string, unknown> };
 export type DemoStep = { kind: "tools"; calls: DemoCall[] } | { kind: "text"; text: string };
 
-type Intent = "greet" | "comfort" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "room" | "browse";
+type Intent = "greet" | "comfort" | "size_advice" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "room" | "browse";
 
 const ORDER_NUMBER = /\bvt-[0-9a-z]{4}-[0-9a-z]{4}\b/i;
 
@@ -56,6 +56,8 @@ export function intentOf(text: string): Intent {
   if (/^(hi|hello|hey|γεια|καλησπερα|καλημερα)(?!\p{L})/u.test(t)) return "greet";
   // Asking for the shop to be easier to see or calmer to watch (docs/adr/032).
   if (comfortRequestOf(text) !== null) return "comfort";
+  // Giving measurements to be told a size (docs/adr/034), before saying a size they already know.
+  if (measurementsOf(text) !== null) return "size_advice";
   // Saying their size, or asking what the shop keeps about them (docs/adr/033).
   if (sizeOf(text) !== null) return "remember_size";
   if (/\bwhat do you (know|remember) about me\b|\bmy (preferences|sizes)\b|τι (ξερεις|θυμασαι) για μενα|τις προτιμησεις μου/.test(t)) return "preferences";
@@ -70,7 +72,7 @@ export function intentOf(text: string): Intent {
   // A budget with a room or a set is a bundle, even when it says "put together".
   if (/\b(set|bundle|corner|budget)\b|σετ|γωνια/.test(t) && /\d/.test(t)) return "bundle";
   if (/\b(add|put|buy)\b|προσθεσ|βαλε/.test(t)) return "add";
-  if (/\bmy room\b|δωματιο μου/.test(t)) return "room";
+  if (/\bmy room\b|\bfits? (in|into|against)?\s*(my|the)\b|δωματιο μου|χωρα(ει|νε)/.test(t)) return "room";
   if (/\b(cart|basket)\b|καλαθι/.test(t)) return "cart";
   return "browse";
 }
@@ -87,6 +89,34 @@ export function sizeOf(text: string): string | null {
   const match = english.exec(t) ?? greek.exec(t);
   return match === null ? null : (SIZE_WORDS[match[1]!] ?? null);
 }
+
+const MEASURE_WORDS: [RegExp, "chestCm" | "waistCm" | "hipCm"][] = [
+  [/chest|bust|στηθος/, "chestCm"],
+  [/waist|μεση/, "waistCm"],
+  [/hips?|γοφ|περιφερεια/, "hipCm"],
+];
+
+/**
+ * "Chest 98, waist 84", «στήθος 96 εκ.»: body measurements in centimetres,
+ * each named next to its number (either side), with the garment asked about.
+ * Null without at least one named measurement.
+ */
+export function measurementsOf(text: string): { garment: "top" | "trousers" | "skirt" | "dress"; chestCm?: number; waistCm?: number; hipCm?: number } | null {
+  const t = fold(text);
+  const found: Partial<Record<"chestCm" | "waistCm" | "hipCm", number>> = {};
+  for (const [word, key] of MEASURE_WORDS) {
+    const source = word.source;
+    const pattern = new RegExp(String.raw`(?:(?:${source})\p{L}*\s*(?:is|of|:|=|ειναι)?\s*(\d{2,3}(?:[.,]\d)?))|(?:(\d{2,3}(?:[.,]\d)?)\s*(?:cm|εκ\.?)?\s*(?:${source}))`, "u");
+    const match = pattern.exec(t);
+    const value = match?.[1] ?? match?.[2];
+    if (value !== undefined) found[key] = Number(value.replace(",", "."));
+  }
+  if (Object.keys(found).length === 0) return null;
+  const garment = /trousers|pants|jeans|παντελον/.test(t) ? "trousers" : /skirt|φουστα/.test(t) ? "skirt" : /dress|φορεμα/.test(t) ? "dress" : "top";
+  return { garment, ...found };
+}
+
+const MEASURE_NAMES: Record<string, { en: string; el: string }> = { chest: { en: "chest", el: "στήθος" }, waist: { en: "waist", el: "μέση" }, hip: { en: "hip", el: "γοφούς" } };
 
 export function searchQueryOf(text: string): string {
   const words = text.replace(ORDER_NUMBER, " ").split(/[^\p{L}\p{N}€.,-]+/u).filter((word) => word !== "" && !COMMAND_WORDS.has(fold(word)));
@@ -143,6 +173,8 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
           ...(order === undefined ? {} : { orderNumber: order }),
         });
       }
+      case "size_advice":
+        return call("suggest_size", measurementsOf(text)!);
       case "remember_size": {
         const size = sizeOf(text)!;
         return call("remember_preference", {
@@ -178,7 +210,7 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
       if (products.length === 0) return say(locale, "I couldn't find anything for that. Try other words, or a category.", "Δεν βρήκα κάτι γι' αυτό. Δοκίμασε άλλες λέξεις ή μια κατηγορία.");
       if (intent === "add") return call("add_to_cart", { productId: (products.find((product) => product.inStock !== false) ?? products[0])!.id, quantity: 1 });
       if (intent === "compare" && products.length >= 2) return call("compare_products", { ids: products.slice(0, Math.min(3, products.length)).map((product) => product.id) });
-      if (intent === "room") return call("open_viewer", { productId: products[0]!.id, viewer: "room", caption: locale === "el" ? "Άνοιγμα στο δωμάτιό σου" : "Opening it in your room" });
+      if (intent === "room") return call("place_in_room", { productId: products[0]!.id, caption: locale === "el" ? "Άνοιγμα στο δωμάτιό σου" : "Opening it in your room" });
       return call("show_products", { productIds: products.map((product) => product.id), caption: locale === "el" ? "Εμφάνιση προτάσεων" : "Showing what I found" });
     }
     case "show_products":
@@ -227,6 +259,50 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
         );
       }
       return say(locale, "I couldn't pass that on just now. The contact page reaches the same people.", "Δεν μπόρεσα να το προωθήσω αυτή τη στιγμή. Η σελίδα επικοινωνίας φτάνει στους ίδιους ανθρώπους.");
+    }
+    case "suggest_size": {
+      const output = last.output as { size?: string; decidedBy?: string; apart?: number; beyondChart?: boolean; verdicts?: { measure: string; cm: number; upToCm: number }[]; problem?: string } | null;
+      if (output?.size === undefined) {
+        return say(
+          locale,
+          "I need your measurements in centimetres to work out a size: chest and waist for tops and dresses, waist and hip for trousers and skirts. \"Find your size\" on a piece's page does the same.",
+          "Χρειάζομαι τις μετρήσεις σου σε εκατοστά: στήθος και μέση για μπλούζες και φορέματα, μέση και γοφούς για παντελόνια και φούστες. Το «Βρες το νούμερό σου» στη σελίδα κάθε κομματιού κάνει το ίδιο.",
+        );
+      }
+      const decider = output.verdicts?.find((verdict) => verdict.measure === output.decidedBy);
+      const name = MEASURE_NAMES[output.decidedBy ?? "chest"]!;
+      const why = decider === undefined ? "" : locale === "el" ? ` Για ${name.el} ${decider.cm} εκ. το ${output.size} φτάνει έως ${decider.upToCm} εκ.` : ` For a ${name.en} of ${decider.cm} cm, ${output.size} goes up to ${decider.upToCm} cm.`;
+      const apart = (output.apart ?? 0) >= 2 ? (locale === "el" ? " Οι μετρήσεις σου απέχουν αρκετά, οπότε κανένα νούμερο δεν εφαρμόζει καλά και στις δύο." : " Your measurements are far apart, so no size fits both closely.") : "";
+      return say(
+        locale,
+        `I'd take ${output.size}.${why}${apart} Shall I remember ${output.size} as your size?`,
+        `Θα έπαιρνα ${output.size}.${why}${apart} Να θυμάμαι το ${output.size} ως νούμερό σου;`,
+      );
+    }
+    case "place_in_room": {
+      const output = last.output as { placeable?: boolean; roomsSaved?: number; fits?: { room: string; fits: boolean; spareCm: number }[] } | null;
+      if (output?.placeable !== true) return say(locale, "That piece can't be placed in a room photo: it has no floor measurements.", "Αυτό το κομμάτι δεν μπαίνει σε φωτογραφία δωματίου: δεν έχει μετρήσεις δαπέδου.");
+      if ((output.roomsSaved ?? 0) === 0) {
+        return say(
+          locale,
+          "I've opened it in the room planner. Save your room's wall below the photo and I can tell you whether it fits.",
+          "Το άνοιξα στο εργαλείο δωματίου. Αποθήκευσε τον τοίχο σου κάτω από τη φωτογραφία και θα σου πω αν χωράει.",
+        );
+      }
+      const fitting = (output.fits ?? []).filter((fit) => fit.fits);
+      if (fitting.length === 0) {
+        return say(
+          locale,
+          "It's too wide for the walls you saved, leaving room to walk past. I've opened it in the planner so you can see it anyway.",
+          "Είναι πολύ φαρδύ για τους τοίχους που αποθήκευσες, αν αφήσεις χώρο για να περνάς. Το άνοιξα στο εργαλείο δωματίου για να το δεις.",
+        );
+      }
+      const first = fitting[0]!;
+      return say(
+        locale,
+        `It fits your ${first.room} wall with ${first.spareCm} cm to spare. I've opened it in the planner so you can see it in a photo of the room.`,
+        `Χωράει στον τοίχο «${first.room}» με ${first.spareCm} εκ. περιθώριο. Το άνοιξα στο εργαλείο δωματίου για να το δεις σε φωτογραφία του χώρου.`,
+      );
     }
     case "remember_preference":
       return say(

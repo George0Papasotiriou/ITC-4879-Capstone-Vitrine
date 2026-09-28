@@ -21,8 +21,6 @@
  * The first value of each list is the default and writes no attribute.
  */
 
-import { z } from "zod";
-
 export const COMFORT_COOKIE = "vt_comfort";
 
 export const COMFORT_OPTIONS = {
@@ -84,25 +82,8 @@ export function parseComfort(raw: string | null | undefined): Comfort {
   return comfort;
 }
 
-/** A partial update, validated: at least one known setting, each with a value from its list. */
-const option = <K extends ComfortKey>(key: K) => z.enum(COMFORT_OPTIONS[key]).optional();
-
-export const comfortPatchSchema = z
-  .object({
-    text: option("text"),
-    spacing: option("spacing"),
-    contrast: option("contrast"),
-    font: option("font"),
-    motion: option("motion"),
-    links: option("links"),
-    targets: option("targets"),
-    guide: option("guide"),
-    shortcuts: option("shortcuts"),
-  })
-  .strict()
-  .refine((patch) => Object.values(patch).some((value) => value !== undefined), "Name at least one setting to change.");
-
-export type ComfortPatch = z.infer<typeof comfortPatchSchema>;
+/** A partial update: some settings, each with a value from its list (validated at the boundaries by ./schema.ts). */
+export type ComfortPatch = Partial<Comfort>;
 
 /** Keeps only known keys and values from a partial update (from a form, the Concierge or an account). */
 export function patchComfort(current: Comfort, patch: Partial<Record<string, unknown>>): Comfort {

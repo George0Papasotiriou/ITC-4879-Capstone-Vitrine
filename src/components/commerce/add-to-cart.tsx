@@ -12,7 +12,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 
-import { announceCart, changeCart, type CartSummary } from "@/components/commerce/cart-client";
+import { ADDED_EVENT, announceCart, changeCart, type CartSummary } from "@/components/commerce/cart-client";
 import { ProductImage } from "@/components/commerce/product-image";
 import { sessionId } from "@/components/reco/track-interest";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -82,6 +82,7 @@ export function AddToCart({
         return;
       }
       setCart(result.cart);
+      window.dispatchEvent(new CustomEvent(ADDED_EVENT, { detail: { productId } }));
       setNote(result.limitedTo === null ? null : t("addedLimited", { count: result.limitedTo }));
       setAdded((value) => value + 1);
       // Outside the transition, so the button is not held "pending" while the piece flies.

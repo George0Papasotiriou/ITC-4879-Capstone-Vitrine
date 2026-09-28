@@ -37,8 +37,12 @@ export type ScheduledJob = {
   job: ScheduledJobName;
   /** Cron, UTC, for BullMQ. */
   pattern: string;
-  /** What the local stand-in does instead of cron. */
-  localEveryMs: number;
+  /**
+   * What the local stand-in does instead of cron; null for a job that runs only
+   * in production and locally only when asked (it would download gigabytes on
+   * a laptop that never asked for them).
+   */
+  localEveryMs: number | null;
 };
 
 const MINUTE = 60_000;
@@ -53,6 +57,9 @@ export const SCHEDULES: readonly ScheduledJob[] = [
   // Photographs are kept for a day; the sweep runs often enough that "deleted
   // after 24 hours" is true to the quarter hour (docs/adr/023).
   { id: "photo-expiry", job: "photo-expiry", pattern: "*/15 * * * *", localEveryMs: 15 * MINUTE },
+  // After a deploy, the pieces with a 3D scan get it a few at a time; once all have, a run finds nothing to do (docs/adr/035).
+  // Not on a local timer: locally, `pnpm catalog models` does it when asked.
+  { id: "catalog-models", job: "catalog-models", pattern: "*/5 * * * *", localEveryMs: null },
 ];
 
 /** Enqueues one scheduled job now. Used by the two schedulers and by "run it now" buttons. */
@@ -95,7 +102,8 @@ export async function registerBullSchedules(): Promise<void> {
 export function startLocalSchedules({ now = Date.now, setTimer = setInterval, clearTimer = clearInterval }: LocalSchedulerOptions = {}): () => void {
   const log = loggerFor({ scheduler: "local" });
   const running = new Set<ScheduledJobName>();
-  const timers = SCHEDULES.map((schedule) => {
+  const timers = SCHEDULES.flatMap((schedule) => {
+    if (schedule.localEveryMs === null) return [];
     const startedAt = now();
     const timer = setTimer(() => {
       // Never two at once: a slow pass on a laptop must not pile up behind itself.
@@ -108,7 +116,7 @@ export function startLocalSchedules({ now = Date.now, setTimer = setInterval, cl
     }, schedule.localEveryMs);
     // Node keeps running for a timer; a scheduler must not be the reason a process stays alive.
     (timer as { unref?: () => void }).unref?.();
-    return timer;
+    return [timer];
   });
   return () => timers.forEach((timer) => clearTimer(timer as ReturnType<typeof setInterval>));
 }

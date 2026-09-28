@@ -23,6 +23,10 @@ export const runtime = "nodejs";
 export async function GET(_request: Request, context: RouteContext<"/api/models/[slug]">): Promise<Response> {
   const { slug } = await context.params;
   const product = await getProduct(slug.replace(/\.glb$/, ""), "en");
+  // The piece's own scan, when the shop has one, is the better answer (docs/adr/035).
+  if (product?.model != null) {
+    return new Response(null, { status: 302, headers: { location: product.model.src, "cache-control": "public, max-age=3600" } });
+  }
   if (product === null || !hasShape(product.kind, product.dimsCm)) {
     return Response.json({ error: "no_model", message: "This piece has no 3D shape." }, { status: 404 });
   }

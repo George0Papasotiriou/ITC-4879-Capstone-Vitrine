@@ -13,10 +13,12 @@ import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import { ProductEditor } from "@/components/staff/product-editor";
+import { ProductPhotos } from "@/components/staff/product-photos";
 import { StockForm } from "@/components/staff/stock-form";
 import { SmartLink } from "@/components/ui/smart-link";
 import { requireLocale } from "@/i18n/params";
 import { centsToInput } from "@/lib/admin/catalog";
+import { MAX_PRODUCT_PHOTOS } from "@/lib/admin/catalog-store";
 import { catalogAdmin } from "@/lib/admin/server";
 import { requirePermission } from "@/lib/auth/session";
 
@@ -26,7 +28,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/staff/pr
   return { title: t("title"), robots: { index: false, follow: false } };
 }
 
-export default async function EditProductPage({ params }: PageProps<"/[locale]/staff/products/[id]">) {
+export default async function EditProductPage({ params, searchParams }: PageProps<"/[locale]/staff/products/[id]">) {
   const locale = await requireLocale(params);
   const { id } = await params;
   await requirePermission(locale, `/${locale}/staff/products/${id}`, "catalog:edit");
@@ -37,6 +39,7 @@ export default async function EditProductPage({ params }: PageProps<"/[locale]/s
   const t = await getTranslations("admin.edit");
   const format = await getFormatter();
   const title = locale === "el" ? (product.titleEl ?? product.titleEn) : product.titleEn;
+  const created = (await searchParams).created === "1";
 
   return (
     <main className="mx-auto w-full max-w-[1100px] px-6 py-10 md:px-10 md:py-16" data-agent-id={`staff:product-edit:${product.id}`}>
@@ -60,6 +63,11 @@ export default async function EditProductPage({ params }: PageProps<"/[locale]/s
           </p>
         </div>
       </div>
+      {created ? (
+        <p role="status" className="border-hairline rounded-plinth mt-6 border bg-white p-4 text-sm" data-agent-id="product-edit:created">
+          {t("createdNote")}
+        </p>
+      ) : null}
       <p className="bg-plinth/60 rounded-plinth mt-6 p-4 text-sm" data-agent-id="product-edit:ownership">
         {product.staffEditedAt === null ? t("importedNote") : t("editedNote", { date: format.dateTime(product.staffEditedAt, { dateStyle: "medium", timeStyle: "short" }) })}
       </p>
@@ -76,9 +84,11 @@ export default async function EditProductPage({ params }: PageProps<"/[locale]/s
             highlightsEl: (product.highlightsEl ?? []).join("\n"),
             price: centsToInput(product.priceCents),
             compareAt: centsToInput(product.compareAtCents),
-            status: product.status === "archived" ? "archived" : "active",
+            status: product.status,
           }}
         />
+        <div className="flex flex-col gap-12">
+        <ProductPhotos productId={product.id} images={product.images} max={MAX_PRODUCT_PHOTOS} />
         <aside aria-labelledby="stock-heading" className="flex flex-col gap-4">
           <h2 id="stock-heading" className="font-display text-xl">
             {t("stock.title")}
@@ -89,6 +99,7 @@ export default async function EditProductPage({ params }: PageProps<"/[locale]/s
             <StockForm key={`${variant.id}:${variant.stock}`} productId={product.id} variant={variant} />
           ))}
         </aside>
+        </div>
       </div>
     </main>
   );

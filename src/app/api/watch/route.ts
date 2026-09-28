@@ -32,6 +32,8 @@ const bodySchema = z.discriminatedUnion("action", [
     locale: z.enum(routing.locales).catch(routing.defaultLocale),
   }),
   z.object({ action: z.literal("remove"), productId: z.uuid() }),
+  // The account page showed these drops (docs/adr/034).
+  z.object({ action: z.literal("seen"), ids: z.array(z.uuid()).min(1).max(20) }),
 ]);
 
 export type WatchResponse =
@@ -46,6 +48,9 @@ export async function POST(request: Request): Promise<Response> {
   if (!body.success) return Response.json({ ok: false, reason: "invalid_request" } satisfies WatchResponse, { status: 400 });
 
   const store = await priceWatches();
+  if (body.data.action === "seen") {
+    return Response.json({ ok: true, seen: await store.markSeen(user.id, body.data.ids) } satisfies { ok: true; seen: number });
+  }
   if (body.data.action === "remove") {
     await store.remove({ userId: user.id, productId: body.data.productId });
     return Response.json({ ok: true, watching: false, targetCents: null } satisfies WatchResponse);

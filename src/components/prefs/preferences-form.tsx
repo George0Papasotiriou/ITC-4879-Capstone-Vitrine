@@ -20,6 +20,7 @@ import { useToast } from "@/components/ui/toast";
 import { useHydrated } from "@/components/ui/use-hydrated";
 import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
 import { MAX_ROOMS, SIZE_GROUPS, type Preferences, type PreferencesPatch } from "@/lib/prefs/preferences";
+import { withRoom } from "@/lib/prefs/rooms";
 
 /**
  * docs/adr/033. Every choice is kept as it is made, like the comfort settings:
@@ -69,9 +70,15 @@ export function PreferencesForm({ initial, colors, materials }: { initial: Prefe
       setRoomError(t("rooms.invalid"));
       return;
     }
+    // Saving a room under a name already there corrects it rather than adding a second one (docs/adr/034).
+    const rooms = withRoom(prefs.rooms, { name, wallCm, ...(depthCm === undefined ? {} : { depthCm }) });
+    if (rooms === null) {
+      setRoomError(t("rooms.invalid"));
+      return;
+    }
     setRoomError(null);
     const form = event.currentTarget;
-    if (await save({ rooms: [...prefs.rooms, { name, wallCm, ...(depthCm === undefined ? {} : { depthCm }) }] }, t("rooms.added", { name }))) form.reset();
+    if (await save({ rooms }, t("rooms.added", { name }))) form.reset();
   };
 
   const saveBudget = (event: FormEvent<HTMLFormElement>) => {

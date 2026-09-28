@@ -14,8 +14,8 @@ import { useEffect, useState } from "react";
 
 import { openComfortPanel, useComfort } from "@/components/comfort/comfort-store";
 import { requestNumbers } from "@/components/comfort/point-by-number";
-import { useConcierge } from "@/components/concierge/concierge-provider";
-import { useRouter } from "@/i18n/navigation";
+import { useConciergeShell } from "@/components/concierge/concierge-shell";
+import { openInstantSearch } from "@/components/search/search-events";
 
 // The list itself (a dialog) is loaded the first time it is asked for, not on every page.
 const ShortcutsHelp = dynamic(() => import("@/components/comfort/shortcuts-help").then((module) => module.ShortcutsHelp), { ssr: false });
@@ -40,26 +40,16 @@ function typing(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && (target.isContentEditable || target.matches("input, textarea, select, [role='textbox'], [role='combobox']"));
 }
 
-/** Focuses the page's search field, or opens the search page and focuses it there. */
-function focusSearch(go: () => void) {
+/** Focuses the page's own search field when it has one (the results page), otherwise opens the instant search. */
+function focusSearch() {
   const field = document.querySelector<HTMLInputElement>("main input[type='search']");
-  if (field !== null) {
-    field.focus();
-    return;
-  }
-  go();
-  const started = Date.now();
-  const wait = window.setInterval(() => {
-    const arrived = document.querySelector<HTMLInputElement>("main input[type='search']");
-    if (arrived !== null || Date.now() - started > 4_000) window.clearInterval(wait);
-    arrived?.focus();
-  }, 100);
+  if (field !== null) field.focus();
+  else openInstantSearch();
 }
 
 export function Shortcuts() {
   const comfort = useComfort();
-  const { open, setOpen } = useConcierge();
-  const router = useRouter();
+  const { open, setOpen } = useConciergeShell();
   const [help, setHelp] = useState(false);
 
   useEffect(() => {
@@ -71,7 +61,7 @@ export function Shortcuts() {
       switch (event.key) {
         case "/":
           event.preventDefault();
-          focusSearch(() => router.push("/search"));
+          focusSearch();
           break;
         case "c":
           event.preventDefault();
@@ -93,7 +83,7 @@ export function Shortcuts() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [comfort.shortcuts, open, router, setOpen]);
+  }, [comfort.shortcuts, open, setOpen]);
 
   return help ? <ShortcutsHelp onClose={() => setHelp(false)} /> : null;
 }

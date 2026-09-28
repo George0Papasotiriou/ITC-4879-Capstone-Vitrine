@@ -95,8 +95,8 @@ const tsvector = customType<{ data: string }>({
   dataType: () => "tsvector",
 });
 
-/** Where a product came from; drives licensing and attribution. */
-export const productSource = pgEnum("product_source", ["abo", "capsule"]);
+/** Where a product came from; drives licensing and attribution. "staff": made in the shop at /staff/products/new (docs/adr/034). */
+export const productSource = pgEnum("product_source", ["abo", "capsule", "staff"]);
 
 export const productStatus = pgEnum("product_status", ["draft", "active", "archived"]);
 
@@ -220,6 +220,14 @@ export const products = pgTable(
     textEmbedding: vector("text_embedding", { dimensions: 768 }),
 
     /**
+     * Where the piece's own 3D scan lives in the ABO bucket ("9/B075QFCHM9.glb"),
+     * when it has one (docs/adr/035). The worker's catalog-models job compresses
+     * it into the shop's storage and adds it as `model` media; until then the
+     * 3D view shows the stand-in shape.
+     */
+    modelSource: text("model_source"),
+
+    /**
      * Set when staff edit the product (docs/adr/018). From then on the shop owns
      * its text, prices and photos: the catalogue sync that runs on every deploy
      * still adds new products, but leaves an edited one as staff left it.
@@ -302,7 +310,13 @@ export const productMedia = pgTable(
   (t) => [
     uniqueIndex("product_media_position_key").on(t.productId, t.kind, t.position),
     index("product_media_image_embedding_idx").using("hnsw", t.imageEmbedding.op("vector_cosine_ops")),
-    check("product_media_src_is_path", sql`${t.src} LIKE '/%'`),
+    // The shop's own files, or the ABO bucket's original photographs and
+    // turntable frames, served through the image optimizer (docs/adr/035
+    // addendum). Nothing else from outside: the list matches next.config.ts.
+    check(
+      "product_media_src_allowed",
+      sql`${t.src} LIKE '/%' OR ${t.src} LIKE 'https://amazon-berkeley-objects.s3.amazonaws.com/images/original/%' OR ${t.src} LIKE 'https://amazon-berkeley-objects.s3.amazonaws.com/spins/original/%'`,
+    ),
   ],
 );
 
@@ -778,6 +792,53 @@ export const auditLog = pgTable(
 
 export const searchSource = pgEnum("search_source", ["page", "api"]);
 
+/** What happened in the Concierge (docs/adr/034): a turn, one tool run, or a turn the cost guard refused. */
+export const conciergeEventKind = pgEnum("concierge_event_kind", ["turn", "tool", "refused"]);
+
+/**
+ * The Concierge dashboard's raw material (docs/adr/034): one row per turn and
+ * per tool run, with what came of it and how long it took. Anonymous like the
+ * search log — no shopper, no words, no tool inputs — and kept 90 days.
+ */
+export const conciergeEvents = pgTable(
+  "concierge_events",
+  {
+    id: id(),
+    kind: conciergeEventKind("kind").notNull(),
+    /** chat | voice | support. */
+    surface: text("surface").notNull(),
+    /** The tool's name for a tool run; null for a turn. */
+    tool: text("tool"),
+    /** ok | approval_asked | approved | declined | undone | error, or the guard's reason for a refused turn. */
+    outcome: text("outcome").notNull(),
+    latencyMs: integer("latency_ms"),
+    /** Model steps in a turn. */
+    steps: integer("steps"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("concierge_events_occurred_idx").on(t.occurredAt), check("concierge_events_latency_nonnegative", sql`${t.latencyMs} IS NULL OR ${t.latencyMs} >= 0`)],
+);
+
+export const recoEventKind = pgEnum("reco_event_kind", ["impression", "click", "add_to_cart"]);
+
+/**
+ * How the recommendation shelves do (docs/adr/034): a shelf seen, a piece on it
+ * opened, and that piece then added to the cart. Anonymous and kept 90 days;
+ * the product is kept so the dashboard can say which suggestions work.
+ */
+export const recoEvents = pgTable(
+  "reco_events",
+  {
+    id: id(),
+    /** for-you | popular | pairs-with | more-like-this | complete-set | fits-your-space. */
+    shelf: text("shelf").notNull(),
+    kind: recoEventKind("kind").notNull(),
+    productId: uuid("product_id").references(() => products.id, { onDelete: "set null" }),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("reco_events_occurred_idx").on(t.occurredAt)],
+);
+
 /**
  * What people search for, for the search dashboard: top queries and the ones
  * that find nothing. No user, session or address is kept, digit runs that
@@ -801,6 +862,50 @@ export const searchEvents = pgTable(
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("search_events_occurred_idx").on(t.occurredAt), check("search_events_results_nonnegative", sql`${t.results} >= 0`)],
+);
+
+/**
+ * Evaluation E6, the user study (docs/adr/037): when a participant started a
+ * task and how it ended, under a code like P07 and nothing else — no name, no
+ * account, no address. The moderator keeps the list of who is who on paper.
+ */
+export const studyEvents = pgTable(
+  "study_events",
+  {
+    id: id(),
+    participant: text("participant").notNull(),
+    task: text("task").notNull(),
+    /** start | success | partial | fail. */
+    event: text("event").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("study_events_participant_idx").on(t.participant, t.occurredAt)],
+);
+
+/**
+ * Evaluation E1's relevance judgements (docs/adr/036): how well a product
+ * answers a query, graded 0–3 by a person at /admin/labeling on the ESCI
+ * scale (irrelevant, complement, substitute, exact). One grade per query,
+ * language and product; judging again replaces it.
+ */
+export const searchJudgments = pgTable(
+  "search_judgments",
+  {
+    id: id(),
+    /** The query folded by src/lib/search/normalize.ts, so "Sofá" and "sofa" are one query. */
+    query: text("query").notNull(),
+    locale: text("locale").notNull(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    grade: integer("grade").notNull(),
+    judgedBy: uuid("judged_by").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("search_judgments_query_product_key").on(t.query, t.locale, t.productId),
+    check("search_judgments_grade_range", sql`${t.grade} BETWEEN 0 AND 3`),
+  ],
 );
 
 /* -------------------------------------------------------------------------- */
@@ -927,6 +1032,12 @@ export const priceWatches = pgTable(
     targetCents: integer("target_cents").notNull(),
     locale: text("locale").notNull().default("en"),
     notifiedAt: timestamp("notified_at", { withTimezone: true }),
+    /**
+     * When the shopper saw the in-shop notice of the drop (docs/adr/034). A
+     * notice shows while the watch has been answered (notified) and not seen
+     * since; a watch armed again and answered again shows a new one.
+     */
+    seenAt: timestamp("seen_at", { withTimezone: true }),
     ...timestamps,
   },
   (t) => [

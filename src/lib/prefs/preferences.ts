@@ -10,6 +10,7 @@
 import { z } from "zod";
 
 import { CAPSULE_SIZES, type CapsuleSize } from "@/lib/catalog/taxonomy";
+import { MAX_ROOMS } from "@/lib/prefs/rooms";
 
 /**
  * docs/adr/033. The Taste Graph learns from what a shopper does, with their
@@ -59,7 +60,7 @@ export const roomSchema = z.object({
 });
 export type Room = z.infer<typeof roomSchema>;
 
-export const MAX_ROOMS = 5;
+export { MAX_ROOMS };
 
 export const preferencesSchema = z.object({
   sizes: z.object({ upper: size.optional(), lower: size.optional(), dress: size.optional() }).default({}),
@@ -200,4 +201,33 @@ export function roomFits(dims: { w: number; d: number; h: number } | null, rooms
     const deepEnough = room.depthCm === undefined || dims.d <= room.depthCm;
     return { room: room.name, wallCm: room.wallCm, fits: spareCm >= 0 && deepEnough, spareCm };
   });
+}
+
+/** Pieces that stand against a wall, where "does it fit my wall" is the question (not lamps, baskets or rugs). */
+export const AGAINST_A_WALL = new Set(["SOFA", "BENCH", "TABLE", "DESK", "CABINET", "SHELF", "DRESSER", "STORAGE_DRAWER", "CLOTHES_RACK", "BED", "OTTOMAN"]);
+
+/** Narrower pieces fit almost any wall, so a shelf of them would say nothing. */
+export const WALL_PIECE_MIN_CM = 60;
+
+export type SpaceFit = { productId: string; room: string; spareCm: number };
+
+/**
+ * "Fits your space" (docs/adr/034): from candidate pieces with measurements,
+ * those that fit at least one of the shopper's rooms, each with the first of
+ * their rooms it fits (their own order) and the room it leaves. At most two
+ * per category, so a shelf of eight is not eight sofas. The candidates arrive
+ * in the shop's order (in stock, then popular), which is kept.
+ */
+export function fitsYourSpace(candidates: readonly { productId: string; category: string; dims: { w: number; d: number; h: number } }[], rooms: readonly Room[], limit = 8): SpaceFit[] {
+  const perCategory = new Map<string, number>();
+  const chosen: SpaceFit[] = [];
+  for (const candidate of candidates) {
+    if (chosen.length >= limit) break;
+    if (candidate.dims.w < WALL_PIECE_MIN_CM || (perCategory.get(candidate.category) ?? 0) >= 2) continue;
+    const fit = roomFits(candidate.dims, rooms).find((entry) => entry.fits);
+    if (fit === undefined) continue;
+    perCategory.set(candidate.category, (perCategory.get(candidate.category) ?? 0) + 1);
+    chosen.push({ productId: candidate.productId, room: fit.room, spareCm: fit.spareCm });
+  }
+  return chosen;
 }

@@ -113,6 +113,55 @@
       "when": 1790421095844,
       "tag": "0015_user_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1790437286327,
+      "tag": "0016_price_watch_seen",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790437547882,
+      "tag": "0017_staff_products",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790438057057,
+      "tag": "0018_concierge_and_reco_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790441592234,
+      "tag": "0019_search_judgments",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790442320946,
+      "tag": "0020_study_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790551636483,
+      "tag": "0021_product_model_source",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790553340346,
+      "tag": "0022_product_media_remote_originals",
+      "breakpoints": true
     }
   ]
 }

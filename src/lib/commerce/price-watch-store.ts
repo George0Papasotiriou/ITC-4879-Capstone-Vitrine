@@ -10,7 +10,7 @@
 import type postgres from "postgres";
 import { uuidv7 } from "uuidv7";
 
-import { MAX_WATCHES, watchDecisions, type WatchState } from "@/lib/commerce/price-watch";
+import { MAX_WATCHES, showsNotice, watchDecisions, type WatchState } from "@/lib/commerce/price-watch";
 
 /**
  * The store behind the watches (docs/adr/020). One watch per person and
@@ -172,7 +172,39 @@ export function createPriceWatchStore(sql: Sql) {
     await sql`UPDATE price_watches SET notified_at = ${at.toISOString()}::timestamptz, updated_at = now() WHERE id = ANY(${[...ids]}::uuid[])`;
   }
 
-  return { set, remove, forProduct, forPerson, pass, markNotified };
+  /**
+   * The drops to tell this person about in the shop (docs/adr/034): watches
+   * the nightly pass has answered, not yet seen, still at or under the
+   * target. Ids only: the page reads titles and prices from the catalogue.
+   */
+  async function unseenDrops(userId: string): Promise<{ id: string; productId: string; targetCents: number }[]> {
+    const rows = await sql<{ id: string; product_id: string; target_cents: number; price_cents: number; notified_at: Date | null; seen_at: Date | null }[]>`
+      SELECT w.id, w.product_id, w.target_cents, p.price_cents, w.notified_at, w.seen_at
+      FROM price_watches w JOIN products p ON p.id = w.product_id
+      WHERE w.user_id = ${userId} AND w.notified_at IS NOT NULL AND p.status = 'active'
+      ORDER BY w.notified_at DESC
+      LIMIT ${MAX_WATCHES}
+    `;
+    return rows
+      .filter((row) =>
+        showsNotice({
+          notifiedAt: new Date(row.notified_at!),
+          seenAt: row.seen_at === null ? null : new Date(row.seen_at),
+          priceCents: row.price_cents,
+          targetCents: row.target_cents,
+        }),
+      )
+      .map((row) => ({ id: row.id, productId: row.product_id, targetCents: row.target_cents }));
+  }
+
+  /** Marks this person's notices seen; another person's ids change nothing. */
+  async function markSeen(userId: string, ids: readonly string[], at = new Date()): Promise<number> {
+    if (ids.length === 0) return 0;
+    const rows = await sql`UPDATE price_watches SET seen_at = ${at.toISOString()}::timestamptz WHERE user_id = ${userId} AND id = ANY(${[...ids]}::uuid[]) RETURNING id`;
+    return rows.length;
+  }
+
+  return { set, remove, forProduct, forPerson, pass, markNotified, unseenDrops, markSeen };
 }
 
 export type PriceWatchStore = ReturnType<typeof createPriceWatchStore>;

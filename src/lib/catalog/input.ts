@@ -21,10 +21,18 @@ import { CATEGORY_SLUGS, type CategorySlug } from "@/lib/catalog/taxonomy";
 const slug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const cents = z.number().int().nonnegative();
 
+/**
+ * Photographs and turntable frames of the large ABO catalogue are served from
+ * the dataset's own public bucket, through the shop's image optimizer — never
+ * straight to a shopper's browser (docs/adr/035 addendum). Only those two
+ * folders of that one bucket are accepted.
+ */
+export const ABO_MEDIA_URL = /^https:\/\/amazon-berkeley-objects\.s3\.amazonaws\.com\/(images|spins)\/original\/(?!.*\.\.)[A-Za-z0-9/_.+-]+\.(jpg|jpeg|png)$/;
+
 export const mediaInputSchema = z.object({
   kind: z.enum(["image", "spin", "model", "video"]),
-  /** An application path: `/media/<storage key>` or `/products/<file>`. */
-  src: z.string().regex(/^\/(media|products)\/[A-Za-z0-9/_.-]+$/),
+  /** An application path — `/media/<storage key>` or `/products/<file>` — or an ABO original (ABO_MEDIA_URL). */
+  src: z.string().refine((src) => /^\/(media|products)\/[A-Za-z0-9/_.-]+$/.test(src) || ABO_MEDIA_URL.test(src), "an application path or an ABO original"),
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),
   bytes: z.number().int().positive().nullable(),
@@ -71,6 +79,8 @@ export const productInputSchema = z
     media: z.array(mediaInputSchema).min(1),
     /** Sizes, for products sold in them. Without it the product has one variant, as furniture does. */
     variants: z.array(variantInputSchema).min(1).max(12).optional(),
+    /** The piece's ABO 3D scan ("9/B075QFCHM9.glb"), for the worker to compress into storage (docs/adr/035). */
+    modelSource: z.string().regex(/^[0-9A-Za-z]\/[0-9A-Za-z]+\.glb$/).optional(),
   })
   .refine((product) => product.variants === undefined || new Set(product.variants.map((variant) => variant.size)).size === product.variants.length, {
     message: "each size may appear only once",

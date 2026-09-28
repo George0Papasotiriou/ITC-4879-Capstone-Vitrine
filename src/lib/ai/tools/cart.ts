@@ -53,7 +53,7 @@ async function change(ctx: ToolContext, productId: string, quantity: number, mod
     quantity: changed.quantity,
     limitedTo: changed.limitedTo,
     itemsInCart: after.lines.reduce((sum, entry) => sum + entry.quantity, 0),
-    undo: ctx.services.cart.undoToken({ cartId: changed.cartId, variantId, quantity: existing?.quantity ?? 0 }),
+    undo: ctx.services.cart.undoToken({ cartId: changed.cartId, variantId, quantity: existing?.quantity ?? 0, tool: mode === "add" ? "add_to_cart" : quantity === 0 ? "remove_from_cart" : "update_cart_item" }),
   };
 }
 

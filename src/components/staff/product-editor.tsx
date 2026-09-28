@@ -28,11 +28,14 @@ export type ProductFormValues = {
   highlightsEl: string;
   price: string;
   compareAt: string;
-  status: "active" | "archived";
+  status: "draft" | "active" | "archived";
 };
 
 type FieldName = keyof ProductFormValues;
 const KNOWN_ERRORS = ["required", "too_long", "invalid_price", "compare_not_above", "too_many", "line_too_long"];
+
+/** A draft can stay a draft; once on sale, a product is taken off sale rather than made a draft again. */
+const statusesFor = (current: ProductFormValues["status"]) => (current === "draft" ? (["draft", "active", "archived"] as const) : (["active", "archived"] as const));
 
 /**
  * Sends what was typed; the server parses prices and lines and answers with a
@@ -61,7 +64,7 @@ export function ProductEditor({ productId, initial }: { productId: string; initi
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ kind: "details", details }),
     }).catch(() => null);
-    const result = (await response?.json().catch(() => null)) as { ok: boolean; changed?: string[]; fields?: Record<string, string> } | null;
+    const result = (await response?.json().catch(() => null)) as { ok: boolean; reason?: string; changed?: string[]; fields?: Record<string, string> } | null;
     setPending(false);
     if (result?.ok === true) {
       setErrors({});
@@ -73,7 +76,8 @@ export function ProductEditor({ productId, initial }: { productId: string; initi
       setErrors({ ...Object.fromEntries(Object.entries(result.fields).map(([key, value]) => [key, errorFor(value)])), form: t("fixFields") });
       return;
     }
-    setErrors({ form: t("failed") });
+    // Publishing a draft that has no photograph yet (docs/adr/034).
+    setErrors({ form: result?.reason === "needs_photo" ? t("needsPhoto") : t("failed") });
   };
 
   const area = (name: FieldName, label: string, rows: number, hint?: string) => (
@@ -128,12 +132,12 @@ export function ProductEditor({ productId, initial }: { productId: string; initi
 
       <fieldset className="flex flex-col gap-3">
         <legend className="font-display mb-4 text-xl">{t("availability")}</legend>
-        {(["active", "archived"] as const).map((status) => (
+        {statusesFor(initial.status).map((status) => (
           <label key={status} className="flex cursor-pointer items-start gap-3">
             <input type="radio" name="status" value={status} defaultChecked={initial.status === status} className="accent-dusk mt-1 size-4" data-agent-id={`product-edit:status:${status}`} />
             <span>
-              <span className="block font-medium">{status === "active" ? t("statusActive") : t("statusArchived")}</span>
-              <span className="text-slate block text-sm">{status === "active" ? t("statusActiveHint") : t("statusArchivedHint")}</span>
+              <span className="block font-medium">{status === "active" ? t("statusActive") : status === "draft" ? t("statusDraft") : t("statusArchived")}</span>
+              <span className="text-slate block text-sm">{status === "active" ? t("statusActiveHint") : status === "draft" ? t("statusDraftHint") : t("statusArchivedHint")}</span>
             </span>
           </label>
         ))}

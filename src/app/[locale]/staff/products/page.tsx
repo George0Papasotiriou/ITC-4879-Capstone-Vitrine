@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { SmartLink } from "@/components/ui/smart-link";
 import { requireLocale } from "@/i18n/params";
 import { LOW_STOCK } from "@/lib/admin/catalog";
@@ -26,7 +26,7 @@ import { cn } from "@/lib/ui/cn";
  * parameters, so a list can be bookmarked and shared between staff.
  */
 
-const VIEWS = ["all", "active", "archived", "low"] as const;
+const VIEWS = ["all", "active", "draft", "archived", "low"] as const;
 type View = (typeof VIEWS)[number];
 const PAGE_SIZE = 50;
 
@@ -49,7 +49,7 @@ export default async function StaffProductsPage({ params, searchParams }: PagePr
   const { total, rows } = await (await catalogAdmin()).listProducts({
     query: search,
     category,
-    status: view === "active" || view === "archived" ? view : null,
+    status: view === "active" || view === "archived" || view === "draft" ? view : null,
     lowStock: view === "low",
     limit: PAGE_SIZE,
     offset: (page - 1) * PAGE_SIZE,
@@ -68,7 +68,13 @@ export default async function StaffProductsPage({ params, searchParams }: PagePr
 
   return (
     <main className="mx-auto w-full max-w-[1440px] px-6 py-10 md:px-10 md:py-16" data-agent-id="staff:products">
-      <h1 className="font-display text-3xl">{t("title")}</h1>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h1 className="font-display text-3xl">{t("title")}</h1>
+        {/* Making a product in the shop, with its own photographs (docs/adr/034). */}
+        <ButtonLink href="/staff/products/new" variant="secondary" data-agent-id="staff:new-product">
+          {t("newProduct")}
+        </ButtonLink>
+      </div>
       <p className="text-slate mt-3 max-w-[70ch]">{t("lede")}</p>
 
       <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">

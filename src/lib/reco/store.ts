@@ -11,6 +11,7 @@ import type postgres from "postgres";
 import { uuidv7 } from "uuidv7";
 
 import { contentVector, dot, SIMILARITY_WEIGHTS, type ProductFeatures } from "@/lib/reco/content-vector";
+import type { Neighbour } from "@/lib/reco/complete-set";
 import { behaviourEdges, blend, contentEdges, type InteractionEvent, type InteractionKind, type Neighbours } from "@/lib/reco/graph";
 import { recommend, type Recommendation } from "@/lib/reco/recommend";
 import { seedVector } from "@/lib/reco/walk";
@@ -224,6 +225,38 @@ export function createTasteGraph(sql: Sql) {
     return { source: "content", ids: rows.filter((row) => row.kind === "content").map((row) => row.neighbor_id).slice(0, limit) };
   }
 
+  /**
+   * The stored behaviour and content lists of several products at once, with
+   * every product's category, for "Complete the set" (docs/adr/034). Only
+   * neighbours that are active and in stock: a suggestion must be buyable.
+   */
+  async function neighboursOf(productIds: readonly string[]): Promise<{ neighbours: Map<string, Neighbour[]>; categories: Map<string, string> }> {
+    const neighbours = new Map<string, Neighbour[]>();
+    const categories = new Map<string, string>();
+    if (productIds.length === 0) return { neighbours, categories };
+    const [rows, anchors] = await Promise.all([
+      sql<{ product_id: string; neighbor_id: string; kind: "behavior" | "content"; rank: number; category: string }[]>`
+        SELECT n.product_id, n.neighbor_id, n.kind, n.rank, c.slug AS category
+        FROM item_neighbors n
+        JOIN products p ON p.id = n.neighbor_id
+        JOIN categories c ON c.id = p.category_id
+        WHERE n.product_id = ANY(${productIds}::uuid[]) AND n.kind IN ('behavior', 'content') AND p.status = 'active'
+          AND EXISTS (SELECT 1 FROM product_variants v WHERE v.product_id = p.id AND v.stock > 0)
+      `,
+      sql<{ id: string; category: string }[]>`
+        SELECT p.id, c.slug AS category FROM products p JOIN categories c ON c.id = p.category_id WHERE p.id = ANY(${productIds}::uuid[])
+      `,
+    ]);
+    for (const row of anchors) categories.set(row.id, row.category);
+    for (const row of rows) {
+      categories.set(row.neighbor_id, row.category);
+      const list = neighbours.get(row.product_id) ?? [];
+      list.push({ neighborId: row.neighbor_id, kind: row.kind, rank: Number(row.rank) });
+      neighbours.set(row.product_id, list);
+    }
+    return { neighbours, categories };
+  }
+
   async function record(event: { actorId: string; sessionId: string; productId: string; kind: InteractionKind; dwellSeconds?: number | null }): Promise<boolean> {
     const rows = await sql`
       INSERT INTO interactions (id, actor_id, session_id, product_id, kind, dwell_seconds)
@@ -261,7 +294,7 @@ export function createTasteGraph(sql: Sql) {
     return rows.length === 1;
   }
 
-  return { rebuild, forActor, pairsWith, record, forget, history, forgetOne };
+  return { rebuild, forActor, pairsWith, neighboursOf, record, forget, history, forgetOne };
 }
 
 export type TasteGraph = ReturnType<typeof createTasteGraph>;

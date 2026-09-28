@@ -12,7 +12,7 @@ import { addToCart, removeFromCart, updateCartItem } from "@/lib/ai/tools/cart";
 import { buildBundle, compareProducts, findByPhoto, getProducts, recommend, searchProducts, summarizeReviews } from "@/lib/ai/tools/catalog";
 import { handToPerson } from "@/lib/ai/tools/support";
 import { APPROVAL_SCOPES, type Surface, type ToolContext, type VitrineTool } from "@/lib/ai/tools/types";
-import { getPreferences, rememberPreference } from "@/lib/ai/tools/preferences";
+import { getPreferences, placeInRoom, rememberPreference, suggestSize } from "@/lib/ai/tools/preferences";
 import { highlight, navigate, adjustComfort, openViewer, setFilters, showProducts } from "@/lib/ai/tools/ui";
 
 /**
@@ -40,6 +40,8 @@ export const TOOLS: readonly VitrineTool<unknown, unknown>[] = [
   adjustComfort,
   getPreferences,
   rememberPreference,
+  suggestSize,
+  placeInRoom,
   addToCart,
   updateCartItem,
   removeFromCart,

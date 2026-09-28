@@ -38,7 +38,11 @@
     "forYouPersonalNote": "Picked from what you have looked at. Nothing is sponsored.",
     "forYouPopularNote": "Popular in the collection. Turn on personal recommendations to see picks based on what you look at.",
     "because": "Because you viewed {title}",
-    "tasteLink": "Not sure what you like? Take the This-or-That quiz"
+    "tasteLink": "Not sure what you like? Take the This-or-That quiz",
+    "fitsSpace": "Fits your space",
+    "fitsSpaceNote": "Pieces that fit the walls you saved, with room to walk past.",
+    "fitsSpaceEdit": "Change your rooms",
+    "fitsRoom": "Fits the {room} wall, {spare} cm to spare"
   },
   "product": {
     "addToCart": "Add to cart",
@@ -104,7 +108,29 @@
       "chartLede": "Body measurements in centimetres. The capsule is cut on one block, so these hold across the pieces.",
       "measurement": "Measurement",
       "yourSize": "Your size, {size}, is chosen from Your shop. Choose another any time.",
-      "yourSizeLabel": "{size}, your size"
+      "yourSizeLabel": "{size}, your size",
+      "finder": {
+        "open": "Find your size",
+        "title": "Find your size",
+        "description": "Measure around the fullest part, with the tape snug but not tight. One measurement is enough; two are better.",
+        "measureLabel": "{measure}",
+        "hint": "In centimetres, between {min} and {max}.",
+        "waiting": "Type a measurement and your size appears here.",
+        "outOfRange": "That {measure} is outside {min}–{max} cm. If it was in inches, multiply by 2.54.",
+        "suggested": "Your size:",
+        "verdict": "{measure} {cm} cm fits {size} (up to {upTo} cm).",
+        "verdictBeyond": "{measure} {cm} cm is larger than {size}, the largest size (up to {upTo} cm).",
+        "larger": "{size} is suggested so the piece also closes around your {measure}.",
+        "farApart": "Your measurements are two or more sizes apart, so no size fits both closely. {size} closes around your {measure}; a tailor can take in the rest.",
+        "beyond": "This piece may be tight on you. The desk can tell you how it is cut before you buy.",
+        "soldOut": "{size} is sold out in this piece.",
+        "choose": "Choose {size}",
+        "chooseNone": "Choose this size",
+        "keep": "Keep {size} as my size for {group}",
+        "kept": "Kept in Your shop. Change or delete it there any time.",
+        "keepFailed": "It couldn’t be kept just now. Choosing the size here still works; try keeping it later.",
+        "private": "Your measurements stay on this page: they are not sent or kept."
+      }
     },
     "model": {
       "open": "See it in 3D",
@@ -114,11 +140,24 @@
       "inYourSpace": "Stand it in your room",
       "loading": "Bringing up the shape…",
       "failed": "The 3D view could not start here. The dimensions below say the same thing.",
-      "size": "{w} × {d} × {h} cm, the size you see here."
+      "size": "{w} × {d} × {h} cm, the size you see here.",
+      "scan": "A 3D scan of this very piece, from the Amazon Berkeley Objects dataset by Amazon.com, at the size it was scanned. Turn it round, or stand it in your room.",
+      "scanAlt": "A 3D scan of {title}, at its real size"
     },
     "fits": {
       "yes": "Fits your {room} wall ({wall} cm), with room to walk past.",
       "no": "Too big for your {room} ({wall} cm wall)."
+    },
+    "spin": {
+      "open": "Turn it round (360°)",
+      "title": "{title}, all the way round",
+      "description": "Photographs taken all the way round the piece. Drag across it, or use the arrow keys.",
+      "label": "Turn the piece",
+      "angle": "Turned {degrees}°",
+      "frameAlt": "{title}, seen from {degrees}° round",
+      "left": "Turn left",
+      "right": "Turn right",
+      "source": "Turntable photography: Amazon Berkeley Objects by Amazon.com, CC BY 4.0; 24 of 72 photographs, resized."
     }
   },
   "cart": {
@@ -153,7 +192,10 @@
     "vatIncludedCountry": "Includes {amount} VAT ({rate}% for {country})",
     "noDelivery": "We do not deliver to this country yet. Prices are shown without VAT; at checkout, choose an address in a country we deliver to.",
     "exportTaxIncluded": "Includes {amount} {tax, select, vat {VAT} gst {GST} consumption {consumption tax} other {sales tax}} ({rate}% for {country}), which we collect on an order of this size",
-    "exportTaxOnDelivery": "No VAT charged: an export to {country}. {tax, select, vat {Import VAT at {rate}%} gst {GST at {rate}%} consumption {Consumption tax at {rate}%} other {Local sales tax}} and any duties are paid on delivery."
+    "exportTaxOnDelivery": "No VAT charged: an export to {country}. {tax, select, vat {Import VAT at {rate}%} gst {GST at {rate}%} consumption {Consumption tax at {rate}%} other {Local sales tax}} and any duties are paid on delivery.",
+    "completeSet": "Complete the set",
+    "completeSetLede": "Pieces from other categories that go with what is in your cart: bought together with it by other shoppers or, until there is enough of that, closest to it in colour, material and style.",
+    "goesWith": "Goes with {title}"
   },
   "account": {
     "title": "Account",
@@ -199,7 +241,12 @@
     "preferencesLink": "Your shop",
     "preferencesHint": "Your sizes, your rooms, what you like and what you'd rather not see.",
     "dataLink": "What we know about you",
-    "dataHint": "Everything the shop keeps about you, with a delete next to each line, and a copy to download."
+    "dataHint": "Everything the shop keeps about you, with a delete next to each line, and a copy to download.",
+    "drops": {
+      "badge": "{count, plural, one {# price drop} other {# price drops}}",
+      "title": "{count, plural, one {A price you were waiting for} other {# prices you were waiting for}}",
+      "line": "is now {price}; you were waiting for {target}."
+    }
   },
   "concierge": {
     "title": "Concierge",
@@ -380,7 +427,7 @@
     "language": "Language",
     "english": "English",
     "greek": "Ελληνικά",
-    "attribution": "Product photography from the Amazon Berkeley Objects dataset, CC BY-NC 4.0. Prices are synthetic; this is a student project, not a shop.",
+    "attribution": "Product photography from the Amazon Berkeley Objects dataset by Amazon.com, CC BY 4.0. Prices are synthetic; this is a student project, not a shop.",
     "capstone": "ITC 4949 Capstone Project",
     "credits": "Credits and data",
     "stylist": "Budget Stylist",
@@ -473,7 +520,7 @@
     "contactBody": "Vitrine is the ITC 4949 capstone project of George Papasotiriou. The shop works from end to end, but the payment is a test payment: nothing is charged and nothing is dispatched. The desk is real, though — ask about an order, a return, a piece, or the project itself.",
     "creditsTitle": "Credits and data",
     "creditsIntro": "Where the products, photographs and numbers on this site come from.",
-    "creditsDataset": "Product data and photography: the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0. It is used here non-commercially, for education.",
+    "creditsDataset": "Product data, photography and 3D models: the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0. Photographs are resized and re-encoded and 3D models compressed for the shop; prices are the shop's own.",
     "creditsSynthetic": "Prices, stock levels and sale prices are synthetic. The dataset has none, so each is derived from the product identifier within a documented range for its kind of product. They are plausible, not real.",
     "creditsTranslation": "Category and colour names are translated by hand. Product titles and descriptions stay in English until they have been translated and reviewed.",
     "creditsGeo": "Finding your country for prices and VAT: <link>IP Geolocation by DB-IP</link>, the free “IP to Country Lite” database, licensed CC BY 4.0. It is kept on the shop's own server; your address is never sent to DB-IP.",
@@ -665,7 +712,19 @@
     "placeThis": "Place {title} in your room",
     "notPlaceable": "{title} cannot be placed in a room photo yet: it hangs on a wall or ceiling, or its size is not known.",
     "viewProduct": "View the product",
-    "change": "Choose another piece"
+    "change": "Choose another piece",
+    "yourRooms": {
+      "title": "Your rooms",
+      "lede": "Whether the {product} fits each wall you saved, leaving 20 cm to walk past. Worked out from the widths you typed, not from the photograph.",
+      "none": "No rooms saved yet. Save one here and every piece will say whether it fits.",
+      "fits": "Fits the {wall} cm wall, {spare} cm to spare",
+      "tooBig": "Too wide for the {wall} cm wall",
+      "saveTitle": "Save a room",
+      "saveLede": "Measure the wall a piece would stand against. A room saved under a name you already use replaces it.",
+      "save": "Save room",
+      "full": "You have {max} rooms already. Remove one in Your shop, or save under one of their names to replace it.",
+      "failed": "The room wasn’t saved. Check the connection and try again."
+    }
   },
   "checkout": {
     "title": "Checkout",
@@ -1261,6 +1320,18 @@
       "support": {
         "title": "Support inbox",
         "lede": "Answer what people have written, with a draft to start from."
+      },
+      "concierge": {
+        "title": "Concierge",
+        "lede": "How often it is used, how quick it is, and whether people accept and keep what it does."
+      },
+      "recommendations": {
+        "title": "Recommendations",
+        "lede": "Which shelves are looked at, opened and bought from."
+      },
+      "labeling": {
+        "title": "Search evaluation",
+        "lede": "Grade search results, and see each version of the search scored (E1)."
       }
     },
     "products": {
@@ -1275,7 +1346,8 @@
         "all": "All",
         "active": "On sale",
         "archived": "Off sale",
-        "low": "Low stock"
+        "low": "Low stock",
+        "draft": "Drafts"
       },
       "viewsLabel": "Product lists",
       "columns": {
@@ -1296,7 +1368,8 @@
       "showing": "{from}–{to} of {total}",
       "previous": "Previous",
       "next": "Next",
-      "pages": "Pages"
+      "pages": "Pages",
+      "newProduct": "New product"
     },
     "edit": {
       "back": "All products",
@@ -1358,7 +1431,11 @@
           "reason_required": "Say why the stock changed.",
           "too_long": "That is too long."
         }
-      }
+      },
+      "createdNote": "Made as a draft. Add a photograph below, then choose “On sale” and save to publish it.",
+      "needsPhoto": "A product goes on sale only with a photograph. Add one, then publish.",
+      "statusDraft": "Draft",
+      "statusDraftHint": "Only staff can see it. Publishing needs a photograph."
     },
     "dashboard": {
       "title": "Dashboards",
@@ -1501,7 +1578,9 @@
         "macro_create": "Wrote a ready answer",
         "macro_update": "Edited a ready answer",
         "macro_restore": "Restored a ready answer",
-        "macro_remove": "Removed a ready answer"
+        "macro_remove": "Removed a ready answer",
+        "product_create": "Made a product",
+        "product_photo": "Added a product photograph"
       },
       "reason": "Reason: {reason}",
       "empty": "Nothing recorded yet.",
@@ -1597,6 +1676,196 @@
           "openai": "OpenAI",
           "google": "Google"
         }
+      }
+    },
+    "create": {
+      "title": "New product",
+      "back": "Back to products",
+      "lede": "Make a product the shop sells itself. It starts as a draft that shoppers cannot see; on its page you add photographs and put it on sale.",
+      "what": "What it is",
+      "kind": "Kind",
+      "kindChoose": "Choose a kind",
+      "kindHint": "The kind decides the category and how search reads it. Clothing in sizes is made with the capsule tool.",
+      "optional": "Optional",
+      "priceAndStock": "Price and stock",
+      "stock": "In stock",
+      "stockHint": "The number counted on the shelf.",
+      "measurements": "Measurements, cm",
+      "measurementsHint": "All three or none. With them, the piece can be placed in a room and checked against a shopper’s walls.",
+      "width": "Width",
+      "depth": "Depth",
+      "height": "Height",
+      "create": "Make the draft",
+      "creating": "Making…",
+      "draftNote": "Nothing appears in the shop until you publish it.",
+      "failed": "The product wasn’t made. Check the connection and try again.",
+      "errors": {
+        "required": "Fill this in.",
+        "too_long": "That is too long.",
+        "invalid_price": "Write a price in euros, for example 129 or 129,90.",
+        "whole_number": "Write a whole number, 0 or more.",
+        "invalid_size": "Write centimetres between 1 and 1000.",
+        "all_three": "Give all three measurements, or none."
+      }
+    },
+    "photos": {
+      "title": "Photographs",
+      "lede": "JPEG, PNG or WebP, at least {edge} px on each side, up to {megabytes} MB. A white studio background blends into the shop’s plinths.",
+      "none": "No photograph yet. The product can’t go on sale without one.",
+      "photoAlt": "Photograph {index}",
+      "add": "Add a photograph",
+      "full": "This product has {max} photographs, the most it can have.",
+      "sending": "Adding the photograph…",
+      "kept": "Photograph added.",
+      "keptScene": "Photograph added. Its background isn’t white, so it will show as a scene rather than on the plinth.",
+      "tryAnother": "Choose another file",
+      "refused": {
+        "type": "That file isn’t a JPEG, PNG or WebP photograph.",
+        "too_large": "That file is over 12 MB. Export it smaller and try again.",
+        "too_small": "That photograph is under {edge} px on a side and would look soft. Use a larger one.",
+        "unreadable": "That file couldn’t be opened as a photograph.",
+        "too_many": "This product already has {max} photographs.",
+        "failed": "The photograph wasn’t added. Check the connection and try again."
+      }
+    },
+    "concierge": {
+      "title": "Concierge",
+      "lede": "Every turn and tool run, counted without any words or anything that identifies the shopper, kept for {days} days.",
+      "spendLink": "What it costs, per day and per feature",
+      "summary": "Summary",
+      "turns": "Turns",
+      "refusedNote": "{count, plural, =0 {None refused} one {# refused by the spending limits} other {# refused by the spending limits}}",
+      "latency": "Typical answer time",
+      "latencyNote": "Median; 1 in 20 took {p95} or longer",
+      "approvalRate": "Approvals accepted",
+      "approvalNote": "Of the changes it asked permission for",
+      "undoRate": "Undone",
+      "undoNote": "Of the cart, comfort and preference changes it made",
+      "costPerTurn": "Cost per turn {cost}; {total} in this period.",
+      "empty": "Nothing in this period.",
+      "byDay": {
+        "title": "Turns per day",
+        "day": "Day",
+        "value": "Turns",
+        "chartLabel": "Concierge turns per day, highest {max}"
+      },
+      "tools": {
+        "title": "Tools",
+        "lede": "Each tool's runs, and what came of the ones that ask first or can be undone.",
+        "tool": "Tool",
+        "runs": "Runs",
+        "errors": "Refused input",
+        "approved": "Accepted",
+        "declined": "Declined",
+        "undone": "Undone"
+      },
+      "refused": {
+        "title": "Turns refused",
+        "lede": "Before any model ran: the spending limits at work.",
+        "none": "No turn was refused.",
+        "reason": "Why",
+        "count": "Turns"
+      },
+      "refusedReasons": {
+        "off": "No AI key",
+        "budget": "Daily budget reached",
+        "credits": "Shopper's credits used up",
+        "turns": "Too many turns",
+        "kill_switch": "AI paused by an admin"
+      },
+      "export": "Download the tools table (CSV)"
+    },
+    "reco": {
+      "title": "Recommendations",
+      "lede": "Each shelf counted as seen once per page visit, a click when a piece on it is opened, and an add when that piece goes into the cart within half an hour. Nothing identifies the shopper; kept for {days} days.",
+      "shelvesTitle": "Shelves",
+      "shelvesLede": "Click-through is clicks over times seen; the add rate is adds over clicks.",
+      "empty": "Nothing in this period.",
+      "columns": {
+        "shelf": "Shelf",
+        "seen": "Seen",
+        "clicks": "Opened",
+        "clickRate": "Click-through",
+        "adds": "Added to cart",
+        "addRate": "Add rate"
+      },
+      "shelves": {
+        "for-you": "For you (home, personal)",
+        "popular": "Popular (home)",
+        "pairs-with": "Pairs with (product page)",
+        "more-like-this": "More like this (product page)",
+        "complete-set": "Complete the set (cart)",
+        "fits-your-space": "Fits your space (home)"
+      },
+      "byDay": {
+        "title": "Pieces opened from shelves, per day",
+        "day": "Day",
+        "value": "Opened",
+        "chartLabel": "Pieces opened from shelves per day, highest {max}"
+      },
+      "top": {
+        "title": "Most opened",
+        "piece": "Piece"
+      },
+      "export": "Download the shelves table (CSV)"
+    },
+    "labeling": {
+      "title": "Search evaluation (E1)",
+      "lede": "{queries} fixed queries in English, Greek and Greeklish. Every version of the search runs each query; their top ten are pooled and graded here. {judged} grades so far.",
+      "viewsLabel": "Evaluation",
+      "views": {
+        "judge": "Grade results",
+        "results": "Scores"
+      },
+      "queriesLabel": "Queries",
+      "queryOf": "Query {index} of {count} · {kind}",
+      "progress": "{judged} graded for this query, {left} left to grade.",
+      "queryDone": "Everything the search shows for this query is graded. Choose another query below.",
+      "done": "Every query is graded. See the scores.",
+      "keys": "Keys 0 to 3 grade the product and bring up the next.",
+      "failed": "That grade wasn’t saved. Check the connection and try again.",
+      "grades": {
+        "0": {
+          "name": "Irrelevant",
+          "hint": "Irrelevant: nothing to do with the query."
+        },
+        "1": {
+          "name": "Complement",
+          "hint": "Complement: related, but not an answer (a shade for “lamp”)."
+        },
+        "2": {
+          "name": "Substitute",
+          "hint": "Substitute: not quite it, but a reasonable answer."
+        },
+        "3": {
+          "name": "Exact",
+          "hint": "Exact: the product is what was asked for."
+        }
+      },
+      "kinds": {
+        "plain": "plain words",
+        "attribute": "colour or material",
+        "budget": "with a budget",
+        "misspelt": "misspelt",
+        "greek": "Greek",
+        "greeklish": "Greeklish"
+      },
+      "systems": {
+        "lexical": "Words only",
+        "fuzzy": "Fuzzy only",
+        "fusion": "Words + fuzzy (fusion)",
+        "full": "The shop’s search (fusion + re-ranking)"
+      },
+      "results": {
+        "title": "Each version of the search, scored",
+        "lede": "Means over the queries with at least one relevant product graded. Products nobody has graded count as irrelevant, so scores rise as grading goes on.",
+        "empty": "Nothing is graded yet.",
+        "system": "Version",
+        "queries": "Queries",
+        "recall": "Recall@10",
+        "semantic": "Search by meaning joins this table once an embedding model is set up (it needs a key and a paid embedding run).",
+        "byKind": "NDCG@10 by kind of query",
+        "kind": "Kind of query"
       }
     }
   },
@@ -1936,5 +2205,49 @@
     "confirmBody": "Your preferences, your reading and comfort settings and everything you looked at will be deleted, and personal recommendations turned off. Your account and your orders stay.",
     "confirmYes": "Delete everything",
     "confirmNo": "Keep it"
+  },
+  "instantSearch": {
+    "title": "Search",
+    "label": "Search the collection",
+    "placeholder": "Try “oak table under €400”",
+    "recent": "Recent searches",
+    "forgetRecent": "Clear",
+    "results": "Suggestions",
+    "seeAll": "See all results for “{query}”",
+    "count": "{count, plural, =0 {No products found} one {# product found} other {# products found}}",
+    "nothing": "Nothing matches “{query}” yet. Press Enter for the full search, which also checks the spelling.",
+    "searching": "Searching…",
+    "error": "The search didn’t answer. Press Enter to open the search page instead.",
+    "soldOut": "Sold out",
+    "hint": "Type in English, Greek or Greeklish. A colour, a material or a budget helps."
+  },
+  "study": {
+    "title": "User study session",
+    "lede": "For the moderator: type the participant's code (P01, P02 …) on the device they will use. The shop then shows the tasks one at a time in a small panel. Only the code, the task and the time it took are recorded; nothing about who the participant is.",
+    "code": "Participant code",
+    "codeHint": "P and two digits, as on the moderator's sheet.",
+    "codeInvalid": "Write a code like P07.",
+    "begin": "Begin the session",
+    "panelLabel": "Study task",
+    "session": "Study session {code}",
+    "fold": "Fold",
+    "unfold": "Show the task",
+    "taskOf": "Task {index} of {count}",
+    "start": "Start this task",
+    "finished": "That was the last task. Thank you! The moderator will give you a short questionnaire.",
+    "end": "End the session",
+    "outcomes": {
+      "success": "Done",
+      "partial": "Partly done",
+      "fail": "I couldn't do it"
+    },
+    "tasks": {
+      "find": "Find a table lamp that costs less than €100, and open its page.",
+      "size": "Find out which size of the Heavy cotton tee would fit you (if you'd rather not measure, use a 96 cm chest and an 80 cm waist), and put that size in your cart.",
+      "room": "Find out whether the Canova 3-seater sofa would fit on a 250 cm wall in your living room.",
+      "concierge": "Ask the Concierge to put together a reading corner for under €600, and add one piece it suggests to your cart.",
+      "comfort": "Make the shop's text larger and turn its animations off.",
+      "data": "See what the shop keeps about you, and delete one thing from it."
+    }
   }
 }

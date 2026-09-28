@@ -22,9 +22,10 @@
  * shape the design was drawn for. It is also the dataset Phase 3 imports, so
  * this script is a small, honest rehearsal of that import.
  *
- * Licence: ABO is CC BY-NC 4.0 — free to use with attribution, non-commercial
- * only, which is exactly what a capstone is. Attribution is emitted into the
- * generated catalogue and belongs on the credits page built in Phase 3.
+ * Licence: ABO is CC BY 4.0 — free to use with credit to Amazon.com and a note
+ * of what was changed (checked 2026-09-26 in the bucket's README; it was read
+ * as CC BY-NC earlier). Attribution is emitted into the generated catalogue and
+ * is on the credits page.
  *
  * The full image archive is 3.2 GB and is never downloaded (plan, Phase 3
  * step 2): only the metadata and the handful of images actually used.
@@ -459,7 +460,7 @@ async function main() {
  * Do not edit by hand; rerun the script instead.
  *
  * Product photography and metadata: Amazon Berkeley Objects (ABO), licensed
- * CC BY-NC 4.0. Non-commercial use only, which is what this capstone is.
+ * CC BY 4.0, with credit to Amazon.com and a note of what was changed.
  * https://amazon-berkeley-objects.s3.amazonaws.com/index.html
  *
  * Prices are synthetic: ABO carries no prices, so each is derived
@@ -485,7 +486,7 @@ export type SpecimenProduct = {
 };
 
 export const ATTRIBUTION =
-  "Product images from the Amazon Berkeley Objects dataset, CC BY-NC 4.0.";
+  "Product images from the Amazon Berkeley Objects dataset by Amazon.com, CC BY 4.0; resized and re-encoded.";
 
 export const SPECIMEN_CATALOG: SpecimenProduct[] = ${JSON.stringify(output, null, 2)};
 `,

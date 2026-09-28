@@ -184,6 +184,7 @@ export async function upsertCatalog(
               compareAtCents: product.compareAtCents,
               license: product.license,
               attribution: product.attribution,
+              modelSource: product.modelSource ?? null,
               ...buildSearchDocument(product),
             };
           }),
@@ -194,7 +195,7 @@ export async function upsertCatalog(
             ...excluded(schema.products, [
               "slug", "categoryId", "brandId", "kind", "titleEn", "titleEl", "descriptionEn", "descriptionEl",
               "highlightsEn", "highlightsEl", "translation", "colorLabel", "colors", "materials", "attributes",
-              "dimsCm", "weightGrams", "priceCents", "compareAtCents", "license", "attribution",
+              "dimsCm", "weightGrams", "priceCents", "compareAtCents", "license", "attribution", "modelSource",
               "searchTitle", "searchMeta", "searchAttributes", "searchDescription",
             ]),
             updatedAt: sql`now()`,
@@ -215,7 +216,12 @@ export async function upsertCatalog(
       summary.keptStaffEdits += batch.length - refreshed.length;
 
       const refreshedIds = refreshed.map((product) => idFor.get(`${product.source}:${product.sourceId}`)!);
-      if (refreshedIds.length > 0) await tx.delete(schema.productMedia).where(inArray(schema.productMedia.productId, refreshedIds));
+      // The fixtures own a product's photographs and turntable frames; its 3D
+      // model is made by the worker from `modelSource` (docs/adr/035), so a
+      // deploy's sync must not throw away what the worker has already done.
+      if (refreshedIds.length > 0) {
+        await tx.delete(schema.productMedia).where(and(inArray(schema.productMedia.productId, refreshedIds), ne(schema.productMedia.kind, "model")));
+      }
       const media = refreshed.flatMap((product) => {
         const productId = idFor.get(`${product.source}:${product.sourceId}`)!;
         const positions = new Map<string, number>();

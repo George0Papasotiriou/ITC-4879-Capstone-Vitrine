@@ -10,7 +10,7 @@
 import { can, type Permission, type Role } from "@/lib/auth/roles";
 
 export type StaffDesk = {
-  key: "orders" | "support" | "reviews" | "products" | "dashboard" | "ai" | "audit";
+  key: "orders" | "support" | "reviews" | "products" | "dashboard" | "concierge" | "recommendations" | "labeling" | "ai" | "audit";
   href: string;
   permission: Permission;
   /** The Concierge's handle on the link (CLAUDE.md conventions). */
@@ -23,6 +23,9 @@ export const STAFF_DESKS: readonly StaffDesk[] = [
   { key: "reviews", href: "/staff/reviews", permission: "reviews:moderate", agentId: "action:open-review-desk" },
   { key: "products", href: "/staff/products", permission: "catalog:edit", agentId: "action:open-products" },
   { key: "dashboard", href: "/admin", permission: "reports:read", agentId: "action:open-dashboard" },
+  { key: "concierge", href: "/admin/concierge", permission: "reports:read", agentId: "action:open-concierge-dashboard" },
+  { key: "recommendations", href: "/admin/recommendations", permission: "reports:read", agentId: "action:open-reco-dashboard" },
+  { key: "labeling", href: "/admin/labeling", permission: "reports:read", agentId: "action:open-labeling" },
   { key: "ai", href: "/admin/ai", permission: "reports:read", agentId: "action:open-ai" },
   { key: "audit", href: "/admin/audit", permission: "audit:read", agentId: "action:open-audit" },
 ];

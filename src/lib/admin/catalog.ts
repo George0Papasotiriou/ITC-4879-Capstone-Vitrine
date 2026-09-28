@@ -9,6 +9,8 @@
 
 import { z } from "zod";
 
+import { ABO_PRODUCT_KINDS } from "@/lib/catalog/taxonomy";
+
 /**
  * Staff edit a product's words, prices and whether it is on sale
  * (docs/adr/018). Prices are typed as euros the way people write them, in
@@ -91,7 +93,7 @@ export const productDetailsSchema = z
       }
       return cents;
     }),
-    status: z.enum(["active", "archived"]),
+    status: z.enum(["draft", "active", "archived"]),
   })
   .superRefine((details, context) => {
     // A "was" price at or below the price would advertise a discount that is not one.
@@ -135,4 +137,98 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
     fields[key] ??= issue.message;
   }
   return fields;
+}
+
+/** The kinds staff can create: the ABO furniture and home kinds, one variant each (clothing in sizes comes from the capsule tool). */
+export const STAFF_KINDS = Object.keys(ABO_PRODUCT_KINDS) as [string, ...string[]];
+
+const centimetres = z.string().transform((value, context) => {
+  const text = value.trim().replace(",", ".");
+  if (text === "") return null;
+  const cm = Number(text);
+  if (!Number.isFinite(cm) || cm < 1 || cm > 1_000) {
+    context.addIssue({ code: "custom", message: "invalid_size" });
+    return z.NEVER;
+  }
+  return Math.round(cm * 10) / 10;
+});
+
+/**
+ * A new product, as the form sends it (docs/adr/034). It starts as a draft:
+ * the words, the kind (which decides the category), the price and the stock
+ * counted. Measurements are optional, all three or none — with them the piece
+ * can be placed in a room and judged against a wall. It goes on sale only
+ * once it has a photograph (checked when it is published).
+ */
+export const newProductSchema = z
+  .object({
+    kind: z.enum(STAFF_KINDS, "required"),
+    titleEn: z.string().trim().min(1, "required").max(200, "too_long"),
+    titleEl: optionalText(200),
+    descriptionEn: optionalText(5000),
+    descriptionEl: optionalText(5000),
+    price: euros,
+    stock: z.string().transform((value, context) => {
+      const text = value.trim();
+      const count = /^\d+$/.test(text) ? Number(text) : Number.NaN;
+      if (!Number.isInteger(count) || count > 100_000) {
+        context.addIssue({ code: "custom", message: "whole_number" });
+        return z.NEVER;
+      }
+      return count;
+    }),
+    width: centimetres,
+    depth: centimetres,
+    height: centimetres,
+  })
+  .superRefine((input, context) => {
+    const given = [input.width, input.depth, input.height].filter((value) => value !== null).length;
+    if (given !== 0 && given !== 3) context.addIssue({ code: "custom", path: [input.width === null ? "width" : input.depth === null ? "depth" : "height"], message: "all_three" });
+  })
+  .transform(({ price, width, depth, height, ...rest }) => ({
+    ...rest,
+    category: ABO_PRODUCT_KINDS[rest.kind]!.category,
+    priceCents: price,
+    dimsCm: width === null || depth === null || height === null ? null : { w: width, d: depth, h: height },
+  }));
+
+export type NewProduct = z.output<typeof newProductSchema>;
+
+/** A staff product's address: its words, then a short piece of its id, which keeps it unique. */
+export function staffSlug(titleEn: string, id: string): string {
+  const words = titleEn
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .split("-")
+    .filter((word) => word !== "")
+    .slice(0, 8)
+    .join("-");
+  const suffix = id.replace(/-/g, "").slice(-8);
+  return words === "" ? `piece-${suffix}` : `${words}-${suffix}`;
+}
+
+/** A product photograph's shortest side, below which it would look soft on the product page. */
+export const MIN_PRODUCT_PHOTO_EDGE = 600;
+export const PRODUCT_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const MAX_PRODUCT_PHOTO_BYTES = 12 * 1024 * 1024;
+
+export type ProductPhotoProblem = "type" | "too_large" | "too_small";
+
+/** Before the file is read: what the browser says it is, and its size. */
+export function checkProductPhoto(input: { contentType: string; bytes: number }): ProductPhotoProblem | null {
+  if (!(PRODUCT_PHOTO_TYPES as readonly string[]).includes(input.contentType)) return "type";
+  if (input.bytes > MAX_PRODUCT_PHOTO_BYTES) return "too_large";
+  if (input.bytes <= 0) return "too_small";
+  return null;
+}
+
+/** After it is opened: what it really is, and whether it is large enough. */
+export function checkDecodedProductPhoto(input: { format: string | undefined; width: number | undefined; height: number | undefined }): ProductPhotoProblem | null {
+  const format = input.format === "jpg" ? "jpeg" : input.format;
+  if (format === undefined || !(PRODUCT_PHOTO_TYPES as readonly string[]).includes(`image/${format}`)) return "type";
+  if ((input.width ?? 0) < MIN_PRODUCT_PHOTO_EDGE || (input.height ?? 0) < MIN_PRODUCT_PHOTO_EDGE) return "too_small";
+  return null;
 }

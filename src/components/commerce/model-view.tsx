@@ -29,6 +29,11 @@ import { usePrefersReducedMotion } from "@/lib/ui/use-reduced-motion";
  * `@google/model-viewer` is imported only when the dialog opens: it is the
  * largest script in the shop, and a shopper who never asks for 3D never pays
  * for it.
+ *
+ * docs/adr/035. When the shop has the piece's own 3D scan (the ABO model,
+ * compressed and scaled to the listed measurements), that is shown instead,
+ * and the dialog says it is a scan. `quick-look` lets an iPhone stand it in
+ * the room too: model-viewer writes the USDZ that Quick Look needs itself.
  */
 
 /**
@@ -48,9 +53,11 @@ export type ModelViewProps = {
   dims: { w: number; d: number; h: number };
   /** Opened straight away by the Concierge's open_viewer (?view=ar or ?view=model). */
   startOpen?: boolean;
+  /** The piece's own 3D scan, when the shop has one; otherwise the stand-in shape is built from the measurements. */
+  scan?: string;
 };
 
-export function ModelView({ slug, productId, title, dims, startOpen = false }: ModelViewProps) {
+export function ModelView({ slug, productId, title, dims, startOpen = false, scan }: ModelViewProps) {
   const t = useTranslations("product.model");
   const hydrated = useHydrated();
   const reduced = usePrefersReducedMotion();
@@ -81,15 +88,15 @@ export function ModelView({ slug, productId, title, dims, startOpen = false }: M
       </Button>
 
       {!open ? null : (
-        <DialogContent title={t("title", { title })} description={t("standIn")} className="max-w-3xl">
+        <DialogContent title={t("title", { title })} description={scan === undefined ? t("standIn") : t("scan")} className="max-w-3xl">
           {/* Tall enough to turn the piece around, short enough that its size stays on screen under it. */}
           <div className="bg-plinth rounded-plinth flex max-h-[46vh] w-full items-center justify-center overflow-hidden" style={{ aspectRatio: "3 / 2" }} data-agent-id={`model:${slug}`}>
             {state === "ready" ? (
               <model-viewer
-                src={`/api/models/${slug}`}
-                alt={t("alt", { title })}
+                src={scan ?? `/api/models/${slug}`}
+                alt={scan === undefined ? t("alt", { title }) : t("scanAlt", { title })}
                 ar
-                ar-modes="webxr scene-viewer"
+                ar-modes="webxr scene-viewer quick-look"
                 // The point of the whole feature: what appears on the floor is the size it would be.
                 ar-scale="fixed"
                 camera-controls
@@ -101,6 +108,7 @@ export function ModelView({ slug, productId, title, dims, startOpen = false }: M
                 exposure="1.1"
                 style={{ width: "100%", height: "100%" }}
                 data-agent-id="model:viewer"
+                data-model-kind={scan === undefined ? "stand-in" : "scan"}
               >
                 <button slot="ar-button" className="border-hairline rounded-plinth absolute bottom-4 left-1/2 -translate-x-1/2 border bg-white px-4 py-2 text-sm" data-agent-id="action:view-in-space">
                   {t("inYourSpace")}

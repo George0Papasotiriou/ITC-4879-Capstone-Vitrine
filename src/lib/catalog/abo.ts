@@ -22,7 +22,7 @@ import { COLORS, extractTerms, MATERIALS, type ColorId, type MaterialId } from "
 /**
  * Amazon Berkeley Objects listings → Vitrine products (docs/PLAN.md Phase 3).
  *
- * ABO is a research dataset of real Amazon listings (CC BY-NC 4.0): 147,702
+ * ABO is a research dataset of real Amazon listings (CC BY 4.0, credit to Amazon.com): 147,702
  * listings, most with studio photography on white, some with 360° spins and 3D
  * models. It is multilingual and inconsistent — the same field can be missing,
  * duplicated per marketplace, or carry HTML — so every listing goes through
@@ -30,9 +30,9 @@ import { COLORS, extractTerms, MATERIALS, type ColorId, type MaterialId } from "
  * the listing was rejected. Pure: no network, no database, fully tested.
  */
 
-export const ABO_LICENSE = "CC BY-NC 4.0";
+export const ABO_LICENSE = "CC BY 4.0";
 export const ABO_ATTRIBUTION =
-  "Product data and photography from the Amazon Berkeley Objects dataset (Collins et al., CVPR 2022), licensed CC BY-NC 4.0.";
+  "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.";
 export const ABO_BUCKET = "https://amazon-berkeley-objects.s3.amazonaws.com";
 
 const localized = z.array(

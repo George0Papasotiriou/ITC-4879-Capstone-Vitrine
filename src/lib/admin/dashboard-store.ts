@@ -10,6 +10,7 @@
 import type postgres from "postgres";
 
 import { LOW_STOCK } from "@/lib/admin/catalog";
+import { conciergeSummary, recoSummary, type ConciergeRow, type ConciergeSummary, type RecoRow, type ShelfFigures } from "@/lib/admin/events";
 import { fillDays, funnel, returnReasonCode, share, type FunnelStep, type Period, type SalesSummary } from "@/lib/admin/metrics";
 import type { OrderStatus } from "@/lib/commerce/order-state";
 import type { ReturnReason } from "@/lib/commerce/returns";
@@ -241,6 +242,64 @@ export function createDashboardStore(sql: Sql) {
     };
   }
 
+  /**
+   * The Concierge dashboard (docs/adr/034): turns one by one (their latency
+   * matters), tool runs and refusals counted per day by the database, and the
+   * Concierge's spend from the usage log, for a cost per turn.
+   */
+  async function conciergeFigures(period: Period): Promise<ConciergeSummary & { costMicros: number; costPerTurnMicros: number | null }> {
+    const from = period.from.toISOString();
+    const to = period.to.toISOString();
+    const [turns, counted, cost] = await Promise.all([
+      sql<{ latency_ms: number | null; occurred_at: Date }[]>`
+        SELECT latency_ms, occurred_at FROM concierge_events
+        WHERE kind = 'turn' AND occurred_at >= ${from}::timestamptz AND occurred_at <= ${to}::timestamptz
+      `,
+      sql<{ kind: "tool" | "refused"; tool: string | null; outcome: string; day: string; count: number }[]>`
+        SELECT kind, tool, outcome, to_char(occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS day, count(*)::int AS count
+        FROM concierge_events
+        WHERE kind <> 'turn' AND occurred_at >= ${from}::timestamptz AND occurred_at <= ${to}::timestamptz
+        GROUP BY 1, 2, 3, 4
+      `,
+      sql<{ cost: string }[]>`
+        SELECT COALESCE(sum(cost_micros), 0)::bigint AS cost FROM ai_usage
+        WHERE feature = 'concierge' AND provider <> 'demo' AND occurred_at >= ${from}::timestamptz AND occurred_at <= ${to}::timestamptz
+      `,
+    ]);
+    const rows: ConciergeRow[] = [
+      ...turns.map((row) => ({ kind: "turn" as const, tool: null, outcome: "ok", latencyMs: row.latency_ms, occurredAt: new Date(row.occurred_at) })),
+      ...counted.map((row) => ({ kind: row.kind, tool: row.tool, outcome: row.outcome, latencyMs: null, occurredAt: new Date(`${row.day}T00:00:00Z`), count: row.count })),
+    ];
+    const summary = conciergeSummary(rows, period);
+    const costMicros = num(cost[0]!.cost);
+    return { ...summary, costMicros, costPerTurnMicros: summary.turns === 0 ? null : Math.round(costMicros / summary.turns) };
+  }
+
+  /** The recommendations dashboard (docs/adr/034): shelves counted per day, and the pieces most opened from them. */
+  async function recoFigures(period: Period, locale = "en"): Promise<{ shelves: ShelfFigures[]; clicksByDay: { day: string; value: number }[]; topPieces: { id: string; title: string; clicks: number; adds: number }[] }> {
+    const from = period.from.toISOString();
+    const to = period.to.toISOString();
+    const [counted, top] = await Promise.all([
+      sql<{ shelf: string; kind: RecoRow["kind"]; day: string; count: number }[]>`
+        SELECT shelf, kind, to_char(occurred_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS day, count(*)::int AS count
+        FROM reco_events WHERE occurred_at >= ${from}::timestamptz AND occurred_at <= ${to}::timestamptz
+        GROUP BY 1, 2, 3
+      `,
+      sql<{ id: string; title: string; clicks: number; adds: number }[]>`
+        SELECT p.id, COALESCE(CASE WHEN ${locale} = 'el' THEN p.title_el END, p.title_en) AS title,
+               count(*) FILTER (WHERE r.kind = 'click')::int AS clicks, count(*) FILTER (WHERE r.kind = 'add_to_cart')::int AS adds
+        FROM reco_events r JOIN products p ON p.id = r.product_id
+        WHERE r.product_id IS NOT NULL AND r.occurred_at >= ${from}::timestamptz AND r.occurred_at <= ${to}::timestamptz
+        GROUP BY p.id, 2 ORDER BY clicks DESC, adds DESC, title LIMIT 10
+      `,
+    ]);
+    const summary = recoSummary(
+      counted.map((row) => ({ shelf: row.shelf, kind: row.kind, occurredAt: new Date(`${row.day}T00:00:00Z`), count: row.count })),
+      period,
+    );
+    return { ...summary, topPieces: top.filter((row) => row.clicks > 0) };
+  }
+
   /** Orders placed in the period, for the CSV export: one row per order. */
   async function ordersForExport(period: Period) {
     return sql<{
@@ -275,7 +334,7 @@ export function createDashboardStore(sql: Sql) {
     `;
   }
 
-  return { overview, aiSpend, ordersForExport, stockForExport };
+  return { overview, aiSpend, conciergeFigures, recoFigures, ordersForExport, stockForExport };
 }
 
 export type DashboardStore = ReturnType<typeof createDashboardStore>;

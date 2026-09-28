@@ -12,6 +12,8 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { placeBadges } from "@/lib/comfort/badges";
+
 /**
  * docs/adr/032. For someone who cannot use a mouse, or can only speak, the
  * long way to a control is tabbing through everything before it. Numbers make
@@ -67,6 +69,9 @@ function visibleControls(): HTMLElement[] {
     if (box.width < 4 || box.height < 4 || box.bottom < 0 || box.right < 0 || box.top > height || box.left > width) continue;
     const style = getComputedStyle(element);
     if (style.visibility === "hidden" || style.display === "none" || Number(style.opacity) === 0) continue;
+    // Covered by something fixed on top (the phone's bottom bar, the header): it cannot be seen or pressed, so no number (docs/adr/034).
+    const hit = document.elementFromPoint(Math.min(width - 1, Math.max(0, box.left + box.width / 2)), Math.min(height - 1, Math.max(0, box.top + box.height / 2)));
+    if (hit !== null && !element.contains(hit) && !hit.contains(element)) continue;
     // A stretched link covering a tile and the heading link inside it are one control: keep the first.
     if (seen.some((other) => Math.abs(other.box.left - box.left) < 2 && Math.abs(other.box.top - box.top) < 2)) continue;
     seen.push({ element, box });
@@ -87,10 +92,16 @@ export function PointByNumber() {
   const settle = useRef<number | undefined>(undefined);
 
   const measure = useCallback((): Target[] => {
-    const found = visibleControls().map((element, index) => {
+    const elements = visibleControls();
+    // Fields are marked: their label sits above them, so their badge goes on their right end (docs/adr/034).
+    const boxes = elements.map((element) => {
       const box = element.getBoundingClientRect();
-      return { number: index + 1, element, x: Math.max(2, Math.min(window.innerWidth - 28, box.left - 6)), y: Math.max(2, Math.min(window.innerHeight - 20, box.top - 8)) };
+      return { left: box.left, top: box.top, width: box.width, height: box.height, field: isField(element) };
     });
+    // The badge's size follows the text size (it is set in rem), so the comfort setting is respected here too.
+    const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const spots = placeBadges(boxes, { width: window.innerWidth, height: window.innerHeight }, { width: Math.ceil(1.5 * rem) + 4, height: Math.ceil(1.1 * rem) + 4 });
+    const found = elements.map((element, index) => ({ number: index + 1, element, x: spots[index]!.x, y: spots[index]!.y }));
     setTargets(found);
     return found;
   }, []);

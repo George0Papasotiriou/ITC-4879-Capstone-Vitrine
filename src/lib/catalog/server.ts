@@ -15,6 +15,7 @@ import { createCatalogQueries, type CatalogQueries } from "@/lib/catalog/queries
 import { currentRegion } from "@/lib/commerce/region";
 import { toBaseBound } from "@/lib/commerce/vat";
 import { sql } from "@/lib/db/client";
+import { E1_SYSTEMS, type E1System } from "@/lib/search/evaluation";
 import { searchProducts, type SearchOptions } from "@/lib/search/pipeline";
 import { createRetrievers } from "@/lib/search/retrieve";
 
@@ -68,6 +69,12 @@ export async function getPlaceable(params: Parameters<CatalogQueries["placeable"
   return (await queries().placeable(params)).map((card) => localizeCard(card, country));
 }
 
+export async function getWallPieces(params: Parameters<CatalogQueries["forWalls"]>[0]) {
+  await connection();
+  const { country } = await currentRegion();
+  return (await queries().forWalls(params)).map((entry) => ({ card: localizeCard(entry.card, country), dimsCm: entry.dimsCm }));
+}
+
 export async function getCardsByIds(ids: readonly string[], locale: string) {
   await connection();
   const { country } = await currentRegion();
@@ -84,4 +91,14 @@ export async function runSearch(query: string, options?: SearchOptions) {
   const { country } = await currentRegion();
   // "Under €200" means €200 in the shopper's prices.
   return searchProducts(retrievers(), query, { ...options, priceToBase: (cents, bound) => toBaseBound(cents, bound, country) });
+}
+
+/**
+ * One E1 system's ranking for a query (docs/adr/036): the shop's search with
+ * stages switched off, prices read as stored (the Greek prices), so the
+ * evaluation does not depend on where the person judging is.
+ */
+export async function rankForSystem(query: string, system: E1System, limit = 10): Promise<string[]> {
+  await connection();
+  return (await searchProducts(retrievers(), query, { ...E1_SYSTEMS[system], limit })).ids.slice(0, limit);
 }

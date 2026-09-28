@@ -12,11 +12,15 @@ import { getTranslations } from "next-intl/server";
 
 import { ProductImage } from "@/components/commerce/product-image";
 import { RoomPlanner } from "@/components/room/room-planner";
+import { YourRooms } from "@/components/room/your-rooms";
 import { SmartLink } from "@/components/ui/smart-link";
 import { requireLocale } from "@/i18n/params";
 import { routing } from "@/i18n/routing";
 import { getPlaceable, getProduct } from "@/lib/catalog/server";
+import { sameOriginImage } from "@/lib/catalog/media-url";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
+import { roomFits } from "@/lib/prefs/preferences";
+import { currentPreferences } from "@/lib/prefs/server";
 
 /**
  * See it in your room (docs/PLAN.md Phase 10, graded algorithm A4).
@@ -45,6 +49,8 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/[lo
   const tp = await getTranslations("product");
   const search = await searchParams;
   const slug = typeof search.product === "string" ? search.product : null;
+  // A saved room to point at, when the Concierge opens the page for one (docs/adr/034).
+  const roomName = typeof search.room === "string" ? search.room.slice(0, 40) : undefined;
 
   const product = slug === null ? null : await getProduct(slug, locale);
   const mode = product === null ? null : roomPlacement(product.kind, product.dimsCm);
@@ -88,6 +94,8 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/[lo
     );
   }
 
+  const { preferences } = await currentPreferences();
+
   return (
     <main className="mx-auto w-full max-w-[1440px] px-6 py-10 md:px-10 md:py-14">
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -121,9 +129,11 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/[lo
       <div className="mt-10">
         <RoomPlanner
           locale={locale}
-          product={{ title: product.title, dims: product.dimsCm, mode, imageSrc: product.image?.src ?? null }}
+          product={{ title: product.title, dims: product.dimsCm, mode, imageSrc: product.image === null ? null : sameOriginImage(product.image.src, 1080) }}
         />
       </div>
+
+      <YourRooms rooms={preferences.rooms} fits={roomFits(product.dimsCm, preferences.rooms)} product={product.title} highlight={roomName} />
     </main>
   );
 }

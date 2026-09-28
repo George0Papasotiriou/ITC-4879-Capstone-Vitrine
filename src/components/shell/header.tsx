@@ -8,12 +8,15 @@
  */
 
 import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
 import { CartCount } from "@/components/commerce/cart-count";
+import { AccountDrops } from "@/components/commerce/account-drops";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/ui/cn";
 import { ComfortButton } from "@/components/comfort/comfort-button";
 import { ConciergeToggle } from "@/components/concierge/concierge-toggle";
+import { InstantSearchTrigger } from "@/components/search/instant-search-layer";
 
 /**
  * The header (docs/PLAN.md 4.3)
@@ -56,20 +59,28 @@ export async function Header({ className }: { className?: string }) {
           </ConciergeToggle>
           {/* Text size, contrast, motion and the rest: on every page, found before it is needed (docs/adr/032). */}
           <ComfortButton />
-          <HeaderAction
-            href="/search"
-            agentId="nav:search"
-            label={t("openSearch")}
-            short={t("search")}
-          >
-            <SearchGlyph />
-          </HeaderAction>
+          {/* A link to /search that opens the instant search pop-up when JavaScript is there (docs/adr/034). */}
+          <InstantSearchTrigger>
+            <HeaderAction
+              href="/search"
+              agentId="nav:search"
+              label={t("openSearch")}
+              short={t("search")}
+            >
+              <SearchGlyph />
+            </HeaderAction>
+          </InstantSearchTrigger>
 
           <HeaderAction
             href="/account"
             agentId="nav:account"
             label={t("openAccount")}
             short={t("account")}
+            after={
+              <Suspense fallback={null}>
+                <AccountDrops variant="header" />
+              </Suspense>
+            }
           >
             <AccountGlyph />
           </HeaderAction>

@@ -23,6 +23,9 @@ export type { CartSummary };
 
 export const CART_EVENT = "vitrine:cart";
 
+/** A piece put in the cart from its page, for the shelves that suggested it (docs/adr/034). */
+export const ADDED_EVENT = "vitrine:added";
+
 export type CartChangeResponse =
   | { ok: true; quantity: number; limitedTo: number | null; cart: CartSummary }
   | { ok: false; reason: "invalid_request" | "not_found" | "out_of_stock" | "cart_full" | "network" };

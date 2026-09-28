@@ -7,10 +7,13 @@
  * Unit tests for the chat surface: the AI SDK tool loop over the registry, with the demo model, approvals and usage.
  */
 
+import type { UIMessage } from "ai";
 import { describe, expect, it } from "vitest";
 
+import type { ConciergeEventInput } from "@/lib/admin/events";
+
 import { createDemoModel } from "@/lib/ai/providers/demo";
-import { runTurn, type TurnUsage } from "@/lib/ai/surfaces/chat";
+import { approvalAnswers, runTurn, type TurnUsage } from "@/lib/ai/surfaces/chat";
 import { context, LAMP, LAMP_VARIANT } from "@/lib/ai/tools/fakes";
 
 /**
@@ -57,5 +60,43 @@ describe("a Concierge turn", () => {
     const { steps } = await turn("oak lamp");
     const shown = steps.flatMap((step) => step.toolResults).find((result) => result.toolName === "show_products");
     expect(shown?.output).toMatchObject({ commands: [{ type: "show_products" }] });
+  });
+});
+
+describe("what a turn tells the Concierge dashboard", () => {
+  it("reports each tool run, each approval asked and the turn, with no words", async () => {
+    const { ctx } = context();
+    const events: ConciergeEventInput[] = [];
+    const result = runTurn({
+      model: createDemoModel({ locale: "en" }),
+      instructions: "test",
+      messages: [{ role: "user", content: [{ type: "text", text: "I'm ready to check out" }] }],
+      ctx,
+      approvalSecret: "a".repeat(32),
+      onUsage: () => undefined,
+      onEvents: (batch) => void events.push(...batch),
+    });
+    await result.consumeStream();
+    expect(events).toContainEqual({ kind: "tool", surface: "chat", tool: "start_checkout", outcome: "approval_asked" });
+    expect(events.at(-1)).toMatchObject({ kind: "turn", surface: "chat", outcome: "ok", steps: 1 });
+    expect(JSON.stringify(events)).not.toContain("check out");
+  });
+
+  it("reads the approvals just answered, yes or no, from the last assistant message only", () => {
+    const message = {
+      id: "m1",
+      role: "assistant",
+      parts: [
+        { type: "tool-start_checkout", toolCallId: "c1", state: "approval-responded", input: {}, approval: { id: "a1", approved: true } },
+        { type: "dynamic-tool", toolName: "remember_preference", toolCallId: "c2", state: "approval-responded", input: {}, approval: { id: "a2", approved: false } },
+        { type: "tool-add_to_cart", toolCallId: "c3", state: "output-available", input: {}, output: {} },
+      ],
+    } as unknown as UIMessage;
+    expect(approvalAnswers(message)).toEqual([
+      { tool: "start_checkout", approved: true },
+      { tool: "remember_preference", approved: false },
+    ]);
+    expect(approvalAnswers({ ...message, role: "user" } as UIMessage)).toEqual([]);
+    expect(approvalAnswers(undefined)).toEqual([]);
   });
 });

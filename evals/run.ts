@@ -40,10 +40,18 @@ type Expectation = {
   refundClaimed?: boolean;
 };
 
-type Task = { id: string; locale: "en" | "el"; message: string; expect: Expectation };
+/**
+ * `modelOnly`: a task the demo rules are not built to do (reading a review, a
+ * photograph, a price in words). Run against the demo it is reported as not
+ * run rather than counted, so the demo's score says what the rules do; run
+ * against a model it counts like any other (docs/adr/036).
+ */
+type Task = { id: string; locale: "en" | "el"; message: string; expect: Expectation; modelOnly?: boolean };
 type Tasks = { golden: Task[]; adversarial: Task[] };
 
 type Turn = {
+  /** From the stream's first chunk: whether the demo rules answered. */
+  demo: boolean;
   toolCalls: { name: string; input: unknown; output: unknown }[];
   approvals: string[];
   text: string;
@@ -91,7 +99,7 @@ function shopper() {
 
 /** Reads the dock's own stream format: one `data:` line per chunk. */
 async function readTurn(response: Response): Promise<Turn> {
-  const turn: Turn = { toolCalls: [], approvals: [], text: "", errors: [] };
+  const turn: Turn = { demo: false, toolCalls: [], approvals: [], text: "", errors: [] };
   if (!response.ok) {
     turn.errors.push(`http_${response.status}:${((await response.json().catch(() => ({}))) as { reason?: string }).reason ?? ""}`);
     return turn;
@@ -110,6 +118,7 @@ async function readTurn(response: Response): Promise<Turn> {
       if (payload === "" || payload === "[DONE]") continue;
       const event = JSON.parse(payload) as Record<string, unknown>;
       const type = String(event.type);
+      if (type === "start" && (event.messageMetadata as { demo?: boolean } | undefined)?.demo === true) turn.demo = true;
       if (type === "tool-input-available") inputs.set(String(event.toolCallId), { name: String(event.toolName), input: event.input });
       if (type === "tool-output-available") {
         const call = inputs.get(String(event.toolCallId));
@@ -163,7 +172,7 @@ function grade(task: Task, turn: Turn, cartItems: number): { passed: boolean; fa
   return { passed: failures.length === 0, failures };
 }
 
-type Result = { task: Task; passed: boolean; failures: string[]; ms: number; tools: string[] };
+type Result = { task: Task; passed: boolean; skipped: boolean; failures: string[]; ms: number; tools: string[] };
 
 async function runTask(task: Task): Promise<Result> {
   const person = shopper();
@@ -177,7 +186,7 @@ async function runTask(task: Task): Promise<Result> {
   const ms = Date.now() - started;
   const cart = (await (await person.get(`/api/cart?locale=${task.locale}`)).json().catch(() => ({ itemCount: 0 }))) as { itemCount: number };
   const { passed, failures } = grade(task, turn, cart.itemCount);
-  return { task, passed, failures, ms, tools: turn.toolCalls.map((call) => call.name) };
+  return { task, passed, skipped: task.modelOnly === true && turn.demo, failures, ms, tools: turn.toolCalls.map((call) => call.name) };
 }
 
 async function main() {
@@ -195,11 +204,12 @@ async function main() {
   for (const task of chosen) {
     const result = await runTask(task);
     results.push(result);
-    console.log(`${result.passed ? "pass" : "FAIL"}  ${task.id.padEnd(22)} ${String(result.ms).padStart(5)} ms  ${result.tools.join(" → ") || "(no tools)"}${result.passed ? "" : `\n      ${result.failures.join("; ")}`}`);
+    console.log(`${result.skipped ? "----" : result.passed ? "pass" : "FAIL"}  ${task.id.padEnd(22)} ${String(result.ms).padStart(5)} ms  ${result.tools.join(" → ") || "(no tools)"}${result.skipped ? "  (needs a model; not counted)" : result.passed ? "" : `\n      ${result.failures.join("; ")}`}`);
   }
 
-  const golden = results.filter((result) => result.task.id.startsWith("g"));
-  const adversarial = results.filter((result) => result.task.id.startsWith("a"));
+  const counted = results.filter((result) => !result.skipped);
+  const golden = counted.filter((result) => result.task.id.startsWith("g"));
+  const adversarial = counted.filter((result) => result.task.id.startsWith("a"));
   const share = (list: typeof results) => (list.length === 0 ? 1 : list.filter((result) => result.passed).length / list.length);
   const summary = {
     at: new Date().toISOString(),
@@ -207,11 +217,12 @@ async function main() {
     suite: values.suite,
     golden: { total: golden.length, passed: golden.filter((result) => result.passed).length },
     adversarial: { total: adversarial.length, passed: adversarial.filter((result) => result.passed).length },
+    notRun: results.filter((result) => result.skipped).map((result) => result.task.id),
     medianMs: results.map((result) => result.ms).sort((a, b) => a - b)[Math.floor(results.length / 2)] ?? 0,
-    tasks: results.map((result) => ({ id: result.task.id, passed: result.passed, ms: result.ms, tools: result.tools, failures: result.failures })),
+    tasks: results.map((result) => ({ id: result.task.id, passed: result.passed, skipped: result.skipped, ms: result.ms, tools: result.tools, failures: result.failures })),
   };
 
-  console.log(`\nGolden ${summary.golden.passed}/${summary.golden.total} · adversarial ${summary.adversarial.passed}/${summary.adversarial.total} · median ${summary.medianMs} ms`);
+  console.log(`\nGolden ${summary.golden.passed}/${summary.golden.total} · adversarial ${summary.adversarial.passed}/${summary.adversarial.total} · median ${summary.medianMs} ms${summary.notRun.length === 0 ? "" : ` · ${summary.notRun.length} need a model`}`);
   const file = values.out ?? path.join("docs", "report", "evaluations", `e5-concierge-${summary.at.slice(0, 10)}.json`);
   await mkdir(path.dirname(file), { recursive: true });
   await writeFile(file, `${JSON.stringify(summary, null, 2)}\n`);
