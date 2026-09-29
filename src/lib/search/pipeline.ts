@@ -73,12 +73,13 @@ export const DEFAULT_WEIGHTS = { lexical: 1, fuzzy: 0.7, semantic: 1 };
 
 /** Vocabulary cache: rebuilt at most every five minutes per process. */
 const VOCABULARY_TTL_MS = 5 * 60 * 1000;
-let vocabularyCache: { index: TrigramIndex; words: Set<string>; loadedAt: number } | null = null;
+let vocabularyCache: { index: TrigramIndex; words: Set<string>; frequency: Map<string, number>; loadedAt: number } | null = null;
 
 async function vocabularyIndex(retrievers: Retrievers) {
   if (vocabularyCache !== null && Date.now() - vocabularyCache.loadedAt < VOCABULARY_TTL_MS) return vocabularyCache;
-  const words = await retrievers.vocabulary();
-  vocabularyCache = { index: new TrigramIndex(words), words: new Set(words), loadedAt: Date.now() };
+  const rows = await retrievers.vocabulary();
+  const words = rows.map((row) => row.word);
+  vocabularyCache = { index: new TrigramIndex(words), words: new Set(words), frequency: new Map(rows.map((row) => [row.word, row.products])), loadedAt: Date.now() };
   return vocabularyCache;
 }
 
@@ -103,7 +104,7 @@ export function resetSearchVocabulary(): void {
  */
 export function expandTerms(
   terms: readonly string[],
-  vocabulary: { index: TrigramIndex; words: ReadonlySet<string> },
+  vocabulary: { index: TrigramIndex; words: ReadonlySet<string>; frequency?: ReadonlyMap<string, number> },
 ): { terms: string[]; readings: SearchResult["readings"]; corrections: SearchResult["corrections"]; translations: SearchResult["translations"] } {
   const expanded: string[] = [];
   const readings: SearchResult["readings"] = [];
@@ -128,7 +129,7 @@ export function expandTerms(
       }
     }
 
-    const words = spellingCorrections(term, vocabulary.words).map((correction) => correction.word);
+    const words = spellingCorrections(term, vocabulary.words, 2, vocabulary.frequency).map((correction) => correction.word);
     if (words.length > 0) {
       corrections.push({ term, words });
       expanded.push(...words);

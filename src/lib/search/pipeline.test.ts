@@ -40,3 +40,11 @@ describe("expandTerms", () => {
     expect(expanded.terms).toEqual(["chiar", "chair", "leather"]);
   });
 });
+
+describe("expandTerms with word counts", () => {
+  it("offers first the correction more of the catalogue uses", () => {
+    const words = ["char", "chair"];
+    const counted = { index: new TrigramIndex(words), words: new Set(words), frequency: new Map([["chair", 312], ["char", 2]]) };
+    expect(expandTerms(["chiar"], counted).corrections).toEqual([{ term: "chiar", words: ["chair", "char"] }]);
+  });
+});

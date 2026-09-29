@@ -90,3 +90,24 @@ describe("corrections", () => {
     ]);
   });
 });
+
+describe("corrections with the catalogue's word counts (docs/adr/047)", () => {
+  it("prefers the word more products use when two are equally close", () => {
+    // Found on production: "chiar" is one edit from "char" (a dropped letter) and "chair" (two swapped).
+    const frequency = new Map([
+      ["chair", 312],
+      ["char", 2],
+    ]);
+    expect(corrections("chiar", ["char", "chair"]).map((entry) => entry.word)).toEqual(["char", "chair"]);
+    expect(corrections("chiar", ["char", "chair"], 2, frequency).map((entry) => entry.word)).toEqual(["chair", "char"]);
+  });
+
+  it("never lets a common word beat a closer one", () => {
+    const frequency = new Map([
+      ["table", 900],
+      ["cable", 1],
+    ]);
+    // "cabel" is one edit from "cable" and two from "table".
+    expect(corrections("cabel", ["table", "cable"], 2, frequency)[0]?.word).toBe("cable");
+  });
+});

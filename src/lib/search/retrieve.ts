@@ -181,14 +181,16 @@ export function createRetrievers(sql: Sql) {
    * you mean". Taken from titles, kinds, brands, categories and attributes —
    * not descriptions, whose long tail would only add noise to suggestions.
    */
-  async function vocabulary(): Promise<string[]> {
-    const rows = await sql<{ word: string }[]>`
-      SELECT DISTINCT word
+  /** Every word of the active catalogue, with how many products use it (spelling's tie-break). */
+  async function vocabulary(): Promise<{ word: string; products: number }[]> {
+    const rows = await sql<{ word: string; products: number }[]>`
+      SELECT word, count(DISTINCT p.id)::int AS products
       FROM products p,
            regexp_split_to_table(p.search_title || ' ' || p.search_meta || ' ' || p.search_attributes, ' ') AS word
       WHERE p.status = 'active' AND length(word) >= 3
+      GROUP BY word
     `;
-    return rows.map((row) => row.word);
+    return rows.map((row) => ({ word: row.word, products: row.products }));
   }
 
   return { lexical, fuzzy, semantic, browse, hasEmbeddings, signals, ratingTotals, vocabulary };

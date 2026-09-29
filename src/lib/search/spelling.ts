@@ -85,10 +85,15 @@ export type Correction = { word: string; distance: number };
 
 /**
  * The vocabulary words within the allowed edit distance of a term, closest
- * first; ties go to the word sharing more trigrams, then to the shorter word.
- * A term already in the vocabulary needs no correction and gets none.
+ * first. Ties go to the word more products use, when that is known — the
+ * prior of a noisy-channel corrector (Norvig, "How to Write a Spelling
+ * Corrector"): "chiar" is one edit from both "char" and "chair", and a shopper
+ * in a furniture shop almost certainly meant the word in hundreds of titles,
+ * not the one in a few (found on production, docs/adr/047). Then to the word
+ * sharing more trigrams, then to the shorter word. A term already in the
+ * vocabulary needs no correction and gets none.
  */
-export function corrections(term: string, vocabulary: Iterable<string>, limit = 2): Correction[] {
+export function corrections(term: string, vocabulary: Iterable<string>, limit = 2, frequency?: ReadonlyMap<string, number>): Correction[] {
   const ceiling = allowedEdits(term);
   if (ceiling === 0) return [];
 
@@ -102,7 +107,14 @@ export function corrections(term: string, vocabulary: Iterable<string>, limit = 
   }
 
   return found
-    .sort((a, b) => a.distance - b.distance || b.similarity - a.similarity || a.word.length - b.word.length || a.word.localeCompare(b.word))
+    .sort(
+      (a, b) =>
+        a.distance - b.distance ||
+        (frequency?.get(b.word) ?? 0) - (frequency?.get(a.word) ?? 0) ||
+        b.similarity - a.similarity ||
+        a.word.length - b.word.length ||
+        a.word.localeCompare(b.word),
+    )
     .slice(0, limit)
     .map(({ word, distance }) => ({ word, distance }));
 }
