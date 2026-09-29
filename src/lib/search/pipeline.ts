@@ -15,6 +15,7 @@ import { catalogRatingPrior, diversify, rerank, type RerankSignals } from "@/lib
 import { corrections as spellingCorrections } from "@/lib/search/spelling";
 import { NO_FILTERS, type RetrievalFilters, type Retrievers } from "@/lib/search/retrieve";
 import { TrigramIndex, trigramSimilarity } from "@/lib/search/trigram";
+import { englishPieceNames } from "@/lib/search/vocabulary";
 
 /**
  * The A1 search pipeline, end to end (docs/PLAN.md 2.6):
@@ -52,6 +53,8 @@ export type SearchResult = {
   readings: { term: string; readings: GreeklishReading[] }[];
   /** Spelling corrections from the catalogue vocabulary ("chiar" → chair). */
   corrections: { term: string; words: string[] }[];
+  /** English names searched for a Greek piece name ("πολυθρονα" → armchair), docs/adr/047. */
+  translations: { term: string; words: string[] }[];
   filters: RetrievalFilters;
   /** Constraints dropped because they left nothing, so the page can say so. */
   relaxed: Relaxation[];
@@ -91,16 +94,29 @@ export function resetSearchVocabulary(): void {
  * misspelling and the nearest catalogue words by edit distance are added
  * ("chiar" → chair). The original word is always kept, so expansion can only
  * add candidates, never lose the literal match.
+ *
+ * A Greek word that names a piece is also searched by its English names
+ * ("πολυθρονα" → armchair, docs/adr/047): most titles are English, and the
+ * lexical retriever joins terms with OR, so this only adds the products
+ * described in English. Such a word is not spelling-corrected as well: it is
+ * known, just in the other language.
  */
 export function expandTerms(
   terms: readonly string[],
   vocabulary: { index: TrigramIndex; words: ReadonlySet<string> },
-): { terms: string[]; readings: SearchResult["readings"]; corrections: SearchResult["corrections"] } {
+): { terms: string[]; readings: SearchResult["readings"]; corrections: SearchResult["corrections"]; translations: SearchResult["translations"] } {
   const expanded: string[] = [];
   const readings: SearchResult["readings"] = [];
   const corrections: SearchResult["corrections"] = [];
+  const translations: SearchResult["translations"] = [];
   for (const term of terms) {
     expanded.push(term);
+    const english = englishPieceNames(term);
+    if (english.length > 0) {
+      translations.push({ term, words: [...english] });
+      for (const word of english) if (!expanded.includes(word)) expanded.push(word);
+      continue;
+    }
     if (vocabulary.words.has(term)) continue;
 
     if (scriptOf(term) === "latin") {
@@ -118,7 +134,7 @@ export function expandTerms(
       expanded.push(...words);
     }
   }
-  return { terms: expanded, readings, corrections };
+  return { terms: expanded, readings, corrections, translations };
 }
 
 const toBase = (cents: number | null, bound: "min" | "max", convert: (cents: number, bound: "min" | "max") => number) =>
@@ -161,8 +177,12 @@ export async function searchProducts(retrievers: Retrievers, raw: string, option
   const query = parseQuery(raw);
   const vocabulary = await time("vocabulary", () => vocabularyIndex(retrievers));
   const baseTerms = tokenize(query.text);
-  const { terms, readings, corrections } = expandTerms(baseTerms, vocabulary);
-  const fuzzyText = [query.text, ...readings.flatMap((entry) => entry.readings.map((reading) => reading.greek))].join(" ").trim();
+  const { terms, readings, corrections, translations } = expandTerms(baseTerms, vocabulary);
+  const fuzzyText = [
+    query.text,
+    ...readings.flatMap((entry) => entry.readings.map((reading) => reading.greek)),
+    ...translations.flatMap((entry) => entry.words),
+  ].join(" ").trim();
 
   let filters = mergeFilters(query, options.filters, options.priceToBase);
   const relaxed: SearchResult["relaxed"] = [];
@@ -289,6 +309,7 @@ export async function searchProducts(retrievers: Retrievers, raw: string, option
     query,
     readings,
     corrections,
+    translations,
     filters,
     relaxed,
     ids: ids.slice(0, limit),

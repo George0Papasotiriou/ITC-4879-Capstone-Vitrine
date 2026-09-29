@@ -80,6 +80,7 @@ export async function GET(request: Request): Promise<Response> {
         filters: result.filters,
         readings: result.readings.map((entry) => ({ term: entry.term, greek: entry.readings.map((reading) => reading.greek) })),
         corrections: result.corrections,
+        translations: result.translations ?? [],
         relaxed: result.relaxed,
       },
       results: cards.map((card) => ({

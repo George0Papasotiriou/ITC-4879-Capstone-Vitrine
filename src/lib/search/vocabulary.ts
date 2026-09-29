@@ -163,6 +163,65 @@ export const CATEGORY_TERMS: Record<CategorySlug, Entry> = {
   },
 };
 
+/**
+ * The names of pieces, Greek to English (docs/adr/047).
+ *
+ * A category word is a filter *and* a search word ("λάμπα" means "only
+ * lighting" and "rank lamps first"). The search word must also appear in the
+ * products' own text, and most of the catalogue's titles are English: so a
+ * Greek piece name found nothing unless some product happened to carry a Greek
+ * label with the same word. «πολυθρόνα» (armchair), «λάμπα» (lamp) and
+ * «βιβλιοθήκη» (bookcase) returned no results in production while their English
+ * names returned dozens.
+ *
+ * Each entry names one kind of piece: the key is its English name, `english`
+ * every English word a title might use for it, and the Greek stems and words
+ * are matched exactly as the categories are. The retrievers then look for the
+ * Greek word OR its English names (the lexical query joins terms with OR), so a
+ * product described either way is found, and nothing found before is lost.
+ * Only names of pieces are translated: colours and materials are already
+ * filters with their own ids, and a word-for-word dictionary of everything
+ * else would add noise, not recall.
+ */
+export const PIECE_NAMES: Record<string, Entry> = {
+  armchair: { english: ["armchair"], greekStems: ["πολυθρον"] },
+  chair: { english: ["chair"], greekStems: ["καρεκλ"] },
+  sofa: { english: ["sofa", "couch"], greekStems: ["καναπ"] },
+  stool: { english: ["stool"], greekStems: ["σκαμπ", "σκαμν"] },
+  bench: { english: ["bench"], greekStems: ["παγκ"] },
+  ottoman: { english: ["ottoman", "pouf"], greekStems: ["πουφ"] },
+  table: { english: ["table"], greekStems: ["τραπεζ"] },
+  desk: { english: ["desk"], greekStems: ["γραφει"] },
+  nightstand: { english: ["nightstand", "bedside"], greekStems: ["κομοδιν"] },
+  lamp: { english: ["lamp"], greekStems: ["φωτιστικ", "λαμπ"] },
+  chandelier: { english: ["chandelier"], greekStems: ["πολυελαι"] },
+  sconce: { english: ["sconce"], greekStems: ["απλικ"] },
+  rug: { english: ["rug", "carpet"], greekStems: ["χαλακ"], greekWords: ["χαλι", "χαλια"] },
+  wardrobe: { english: ["wardrobe", "cabinet"], greekStems: ["ντουλαπ"] },
+  bookcase: { english: ["bookcase", "bookshelf"], greekStems: ["βιβλιοθηκ"] },
+  dresser: { english: ["dresser", "drawer"], greekStems: ["συρταρ"] },
+  basket: { english: ["basket"], greekStems: ["καλαθ"] },
+  shelf: { english: ["shelf", "shelves"], greekStems: [], greekWords: ["ραφι", "ραφια"] },
+  bed: { english: ["bed"], greekStems: ["κρεβατ"] },
+  headboard: { english: ["headboard"], greekStems: ["κεφαλαρ"] },
+  pillow: { english: ["pillow", "cushion"], greekStems: ["μαξιλαρ"] },
+  mirror: { english: ["mirror"], greekStems: ["καθρεφτ", "καθρεπτ"] },
+  clock: { english: ["clock"], greekStems: ["ρολογ"], greekWords: ["ρολοι"] },
+  frame: { english: ["frame"], greekStems: ["κορνιζ"] },
+  poster: { english: ["poster"], greekStems: ["αφισ"] },
+  art: { english: ["art", "print", "painting"], greekStems: ["πινακ"] },
+  planter: { english: ["planter", "pot"], greekStems: ["γλαστρ"] },
+  vase: { english: ["vase"], greekStems: [], greekWords: ["βαζο", "βαζα"] },
+  candle: { english: ["candle"], greekStems: [], greekWords: ["κερι", "κερια"] },
+};
+
+/** The English names of the piece a folded Greek word names, or none. */
+export function englishPieceNames(token: string): readonly string[] {
+  if (scriptOf(token) !== "greek") return [];
+  const id = lookup(token, PIECE_NAMES, { greeklish: false });
+  return id === null ? [] : PIECE_NAMES[id]!.english;
+}
+
 export type ColorId = keyof typeof COLORS;
 export type MaterialId = keyof typeof MATERIALS;
 

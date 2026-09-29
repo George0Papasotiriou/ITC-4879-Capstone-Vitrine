@@ -501,6 +501,7 @@
     "understood": "Understood as",
     "readingNote": "Read “{term}” as “{reading}”",
     "correctionNote": "Also searched for “{word}”",
+    "translationNote": "Also searched in English for “{word}”",
     "relaxedNote": "Nothing matched in that category, so results from every category are shown.",
     "noResultsTitle": "Nothing matches “{query}”",
     "noResultsDescription": "Try fewer words or another spelling, or describe what the piece is for.",

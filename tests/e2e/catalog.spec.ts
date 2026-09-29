@@ -158,6 +158,15 @@ test("Greeklish and misspellings are read, and the page says how", async ({ page
   await expect(page.getByText("Also searched for “chair”")).toBeVisible();
 });
 
+test("a Greek piece name finds the pieces titled in English, and the page says so (docs/adr/047)", async ({ page }) => {
+  // «λάμπα» (lamp) is in no product's text: production found nothing for it before.
+  await page.goto("/el/search?q=%CE%BB%CE%AC%CE%BC%CF%80%CE%B1", { waitUntil: "domcontentloaded" });
+  await expect(page.getByText("Αναζητήθηκε επίσης στα αγγλικά το «lamp»")).toBeVisible();
+  const results = page.locator('article[data-agent-id^="product:"]');
+  await expect(results).not.toHaveCount(0);
+  await expect(results.first()).toContainText(/Lamp|Λάμπα|Φωτιστικό/i);
+});
+
 test("a search with no results offers a way forward", async ({ page }) => {
   await page.goto("/en/search?q=xylophone", { waitUntil: "domcontentloaded" });
   await expect(page.getByText("Nothing matches “xylophone”")).toBeVisible();

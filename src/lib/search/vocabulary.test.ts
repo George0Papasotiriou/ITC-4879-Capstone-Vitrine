@@ -14,8 +14,10 @@ import {
   CATEGORY_TERMS,
   colorLabel,
   COLORS,
+  englishPieceNames,
   extractTerms,
   lookup,
+  PIECE_NAMES,
   materialLabel,
   MATERIALS,
 } from "@/lib/search/vocabulary";
@@ -98,5 +100,35 @@ describe("the vocabulary as a whole", () => {
     expect(colorLabel("black", "en")).toBe("Black");
     expect(materialLabel("oak", "el")).toBe("Δρυς");
     expect(materialLabel("unknown", "en")).toBe("unknown");
+  });
+});
+
+describe("englishPieceNames (docs/adr/047)", () => {
+  it("names in English the pieces production could not find in Greek", () => {
+    expect(englishPieceNames("πολυθρονα")).toEqual(["armchair"]);
+    expect(englishPieceNames("λαμπα")).toEqual(["lamp"]);
+    expect(englishPieceNames("βιβλιοθηκη")).toEqual(["bookcase", "bookshelf"]);
+  });
+
+  it("covers the inflected forms, as the categories do", () => {
+    expect(englishPieceNames("πολυθρονεσ")).toEqual(["armchair"]);
+    expect(englishPieceNames("καναπεδεσ")).toEqual(["sofa", "couch"]);
+    expect(englishPieceNames("καρεκλεσ")).toEqual(["chair"]);
+    expect(englishPieceNames("ραφια")).toEqual(["shelf", "shelves"]);
+  });
+
+  it("translates only Greek names of pieces: not colours, not materials, not English", () => {
+    expect(englishPieceNames("μαυρη")).toEqual([]);
+    expect(englishPieceNames("δερματινη")).toEqual([]);
+    expect(englishPieceNames("armchair")).toEqual([]);
+    expect(englishPieceNames("polythrona")).toEqual([]);
+  });
+
+  it("keeps every piece inside a category, so a translation never contradicts the category filter", () => {
+    for (const [name, entry] of Object.entries(PIECE_NAMES)) {
+      const greek = [...entry.greekStems, ...(entry.greekWords ?? [])];
+      expect(greek.length, name).toBeGreaterThan(0);
+      for (const word of greek) expect(lookup(word, CATEGORY_TERMS, { greeklish: false }), `${name}: ${word}`).not.toBeNull();
+    }
   });
 });

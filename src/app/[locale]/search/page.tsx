@@ -180,6 +180,10 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/[
             {result.corrections.map((entry) => (
               <p key={entry.term}>{t("correctionNote", { word: entry.words[0]! })}</p>
             ))}
+            {/* A Greek piece name also searched in English (docs/adr/047); a result cached before that change has none. */}
+            {(result.translations ?? []).map((entry) => (
+              <p key={`translation-${entry.term}`}>{t("translationNote", { word: entry.words[0]! })}</p>
+            ))}
             {result.relaxed.includes("categories") ? <p>{t("relaxedNote")}</p> : null}
             {result.relaxed.includes("colors") ? <p>{t("relaxedColors")}</p> : null}
             {result.relaxed.includes("materials") ? <p>{t("relaxedMaterials")}</p> : null}

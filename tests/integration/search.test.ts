@@ -70,6 +70,17 @@ describe.skipIf(url === undefined || url === "")("hybrid search", () => {
     expect(cards.every((card) => card.category === "lighting")).toBe(true);
   });
 
+  it("finds lamps for «λάμπα» too, a Greek name no product carries, through its English name (docs/adr/047)", async () => {
+    const english = await search("lamp");
+    const { cards, result } = await search("λάμπα");
+    expect(result.translations).toEqual([{ term: "λαμπα", words: ["lamp"] }]);
+    expect(cards.length).toBeGreaterThanOrEqual(7);
+    expect(cards.slice(0, 5).every((card) => card.category === "lighting")).toBe(true);
+    // Every lamp the English word finds, the Greek one finds as well.
+    const greekIds = new Set(result.ids);
+    expect(english.result.ids.filter((id) => !greekIds.has(id))).toEqual([]);
+  });
+
   it("reads Greeklish as Greek", async () => {
     const { cards, result } = await search("fotistiko");
     expect(result.readings[0]?.readings[0]?.greek).toBe("φωτιστικο");
