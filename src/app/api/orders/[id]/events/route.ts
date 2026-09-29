@@ -11,7 +11,8 @@ import { z } from "zod";
 
 import type { OrderEventType } from "@/lib/commerce/order-state";
 import { RETURN_REASONS } from "@/lib/commerce/returns";
-import { accessibleOrder, commerce, notifyOrder, PAYMENT_PROVIDER } from "@/lib/commerce/server";
+import { accessibleOrder, commerce, LOCAL_TEST_PROVIDER } from "@/lib/commerce/server";
+import { afterOrderEvent } from "@/lib/payments/service";
 
 /**
  * What a guest can do to their own order, holding its link token.
@@ -55,7 +56,7 @@ export async function POST(request: Request, { params }: RouteContext<"/api/orde
   const { order, user } = access;
 
   const testPayment = parsed.data.action === "test_pay" || parsed.data.action === "test_decline";
-  if (testPayment && order.paymentProvider !== PAYMENT_PROVIDER) {
+  if (testPayment && order.paymentProvider !== LOCAL_TEST_PROVIDER) {
     return Response.json({ ok: false, reason: "not_allowed" }, { status: 403 });
   }
   // A test payment cannot rescue an order whose payment window has passed.
@@ -70,6 +71,6 @@ export async function POST(request: Request, { params }: RouteContext<"/api/orde
     actorUserId: actor === "customer" ? (user?.id ?? null) : null,
   });
   if (!result.ok) return Response.json({ ok: false, reason: result.reason }, { status: 409 });
-  await notifyOrder(id, result.effects);
+  await afterOrderEvent(id, result.effects, result.to);
   return Response.json({ ok: true, status: result.to });
 }

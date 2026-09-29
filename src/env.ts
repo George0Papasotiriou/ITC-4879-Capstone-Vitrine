@@ -9,6 +9,8 @@
 
 import { z } from "zod";
 
+import { isLocalStack, servesHttps } from "@/lib/local-stack";
+
 /**
  * Environment contract.
  *
@@ -68,6 +70,15 @@ const rawSchema = z.object({
   S3_BUCKET: optionalString,
   S3_ACCESS_KEY_ID: optionalString,
   S3_SECRET_ACCESS_KEY: optionalString,
+  /**
+   * `1` for providers that need path-style addresses (MinIO, Railway buckets
+   * made before it switched). Railway's new buckets, AWS and R2 use the
+   * virtual-hosted style, the default.
+   */
+  S3_FORCE_PATH_STYLE: z
+    .enum(["0", "1"])
+    .optional()
+    .transform((value) => value === "1"),
   /** Where the `local` storage driver keeps files. */
   LOCAL_STORAGE_DIR: z.string().min(1).default(".local/storage"),
   /** Signs local storage URLs. Required by the `local` driver. */
@@ -89,6 +100,21 @@ const rawSchema = z.object({
   BETTER_AUTH_SECRET: optionalString.pipe(z.string().min(32).optional()),
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
+
+  /**
+   * Stripe in test mode (docs/adr/038): all three or none. Without them the
+   * local test payment stands in. Live keys are refused: this shop must never
+   * take real money.
+   */
+  STRIPE_SECRET_KEY: optionalString.pipe(z.string().startsWith("sk_test_", "Only a Stripe test key (sk_test_…) is accepted.").optional()),
+  STRIPE_PUBLISHABLE_KEY: optionalString.pipe(z.string().startsWith("pk_test_", "Only a Stripe test key (pk_test_…) is accepted.").optional()),
+  STRIPE_WEBHOOK_SECRET: optionalString.pipe(z.string().startsWith("whsec_", "The webhook's signing secret starts with whsec_.").optional()),
+  /** The Content Security Policy (docs/adr/046): enforced by default; "report" only reports, "off" sends none. */
+  CSP_MODE: optionalString.pipe(z.enum(["enforce", "report", "off"]).optional()),
+  /** Web Push (docs/adr/044): the shop's VAPID key pair, from `pnpm push keys`, and a contact for the push services. All three or none. */
+  VAPID_PUBLIC_KEY: optionalString.pipe(z.string().regex(/^[A-Za-z0-9_-]{87}$/, "The VAPID public key is 87 base64url characters (a P-256 point); make one with pnpm push keys.").optional()),
+  VAPID_PRIVATE_KEY: optionalString.pipe(z.string().regex(/^[A-Za-z0-9_-]{43}$/, "The VAPID private key is 43 base64url characters; make one with pnpm push keys.").optional()),
+  VAPID_SUBJECT: optionalString.pipe(z.string().regex(/^(mailto:[^\s@]+@[^\s@]+|https:\/\/\S+)$/, "A mailto: address or an https: page where the push services can reach the shop.").optional()),
   /**
    * Comma-separated addresses that become admins once they sign in with the
    * address confirmed (docs/adr/016): how the first admin exists in production.
@@ -198,6 +224,14 @@ const serverSchema = rawSchema
     if (raw.NODE_ENV === "production") require("COOKIE_SECRET", "in production to sign cart cookies and order links (at least 32 characters)");
     if (raw.NODE_ENV === "production") require("BETTER_AUTH_SECRET", "in production to sign sessions (at least 32 characters)");
     if (raw.AI_PROVIDER === "google") require("GOOGLE_GENERATIVE_AI_API_KEY", "by AI_PROVIDER=google");
+    const stripeKeys = [raw.STRIPE_SECRET_KEY, raw.STRIPE_PUBLISHABLE_KEY, raw.STRIPE_WEBHOOK_SECRET].filter((value) => value !== undefined).length;
+    if (stripeKeys !== 0 && stripeKeys !== 3) {
+      ctx.addIssue({ code: "custom", path: ["STRIPE_SECRET_KEY"], message: "Set STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY and STRIPE_WEBHOOK_SECRET together, or none of them." });
+    }
+    const vapidKeys = [raw.VAPID_PUBLIC_KEY, raw.VAPID_PRIVATE_KEY, raw.VAPID_SUBJECT].filter((value) => value !== undefined).length;
+    if (vapidKeys !== 0 && vapidKeys !== 3) {
+      ctx.addIssue({ code: "custom", path: ["VAPID_PUBLIC_KEY"], message: "Set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT together, or none of them." });
+    }
     if ((raw.GOOGLE_CLIENT_ID === undefined) !== (raw.GOOGLE_CLIENT_SECRET === undefined)) {
       ctx.addIssue({ code: "custom", path: ["GOOGLE_CLIENT_SECRET"], message: "Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, or neither." });
     }
@@ -217,7 +251,21 @@ const serverSchema = rawSchema
       });
     }
   })
-  .transform((raw) => ({ ...raw, ...resolveDrivers(raw) }));
+  .transform((raw) => ({
+    ...raw,
+    ...resolveDrivers(raw),
+    /** The flag and an address on this machine: never true for a deployment (src/lib/local-stack.ts). */
+    localStack: isLocalStack(raw),
+    /** Cookies carry Secure whenever the shop is served over https. */
+    secureCookies: servesHttps(raw.APP_URL),
+    /** Who takes payment: Stripe (test mode) when its keys are set, else the local test payment. */
+    paymentProvider: raw.STRIPE_SECRET_KEY !== undefined ? ("stripe" as const) : ("local_test" as const),
+    /** Web Push when its keys are set; without them the shop offers no notifications. */
+    vapid:
+      raw.VAPID_PUBLIC_KEY !== undefined && raw.VAPID_PRIVATE_KEY !== undefined && raw.VAPID_SUBJECT !== undefined
+        ? { publicKey: raw.VAPID_PUBLIC_KEY, privateKey: raw.VAPID_PRIVATE_KEY, subject: raw.VAPID_SUBJECT }
+        : null,
+  }));
 
 export type ServerEnv = z.infer<typeof serverSchema>;
 

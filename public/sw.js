@@ -118,3 +118,44 @@ self.addEventListener("fetch", (event) => {
     })(),
   );
 });
+
+/**
+ * Web Push (docs/adr/044). The shop sends only what a signed-in shopper turned
+ * on at /account/preferences: an order moving, a watched price reached, a reply
+ * from the desk. The message arrives already decrypted by the browser; it is
+ * shown as it is, and tapping it opens the page it names — a page of this
+ * shop only.
+ */
+self.addEventListener("push", (event) => {
+  let message = null;
+  try {
+    message = event.data ? event.data.json() : null;
+  } catch {
+    message = null;
+  }
+  if (message === null || typeof message.title !== "string") return;
+  event.waitUntil(
+    self.registration.showNotification(message.title, {
+      body: typeof message.body === "string" ? message.body : "",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: typeof message.tag === "string" ? message.tag : undefined,
+      data: { url: typeof message.url === "string" ? message.url : "/" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url ?? "/", self.location.origin);
+  // A notification can only ever open this shop.
+  const url = target.origin === self.location.origin ? target.href : self.location.origin;
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      const open = windows.find((client) => client.url === url);
+      if (open !== undefined) return open.focus();
+      return self.clients.openWindow(url);
+    })(),
+  );
+});

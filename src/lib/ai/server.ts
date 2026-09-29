@@ -13,14 +13,14 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { uuidv7 } from "uuidv7";
 
-import { createRateLimiter } from "@/lib/ai/guardrails/rate-limit";
+import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 import { createUndoToken } from "@/lib/ai/tools/undo";
 import type { ToolServices, ToolUser } from "@/lib/ai/tools/types";
 import { createUsageStore, type Actor, type UsageStore } from "@/lib/ai/usage";
 import type { CurrentUser } from "@/lib/auth/session";
 import { getCardsByIds, getProduct, runSearch } from "@/lib/catalog/server";
 import { currentRegion } from "@/lib/commerce/region";
-import { accessibleOrder, commerce, currentCart, lastOrder, notifyOrder, orderOwner, priceWatches, rememberCart, reviewsStore } from "@/lib/commerce/server";
+import { accessibleOrder, commerce, currentCart, lastOrder, orderOwner, priceWatches, rememberCart, reviewsStore } from "@/lib/commerce/server";
 import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
 import { sql } from "@/lib/db/client";
 import { enqueue } from "@/lib/jobs/queue";
@@ -34,6 +34,7 @@ import { buildBundles } from "@/lib/stylist/server";
 import { serverEnv } from "@/env";
 import { currentPreferences } from "@/lib/prefs/server";
 import { createVoiceSessionStore, type VoiceSessionStore } from "@/lib/ai/surfaces/voice/sessions";
+import { afterOrderEvent } from "@/lib/payments/service";
 
 /**
  * Everything here reads the request (cookies, the signed-in person, the
@@ -87,7 +88,7 @@ export async function aiActor(user: CurrentUser | null): Promise<Actor> {
   const existing = verifySignedValue(jar.get(AI_GUEST_COOKIE)?.value, secret());
   const id = existing ?? randomUUID();
   if (existing === null) {
-    jar.set(AI_GUEST_COOKIE, signValue(id, secret()), { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 30 });
+    jar.set(AI_GUEST_COOKIE, signValue(id, secret()), { httpOnly: true, sameSite: "lax", secure: serverEnv().secureCookies, path: "/", maxAge: 60 * 60 * 24 * 30 });
   }
   return { key: `guest:${id}`, kind: "guest" };
 }
@@ -130,7 +131,7 @@ export async function conciergeCart(): Promise<{ cartId: string | null; userId: 
  * Hand-overs from the Concierge, per account: a person reads each one, so a
  * handful an hour is plenty, and a loop in a model cannot fill the queue.
  */
-const handOversPerAccount = createRateLimiter({ limit: 3, windowMs: 60 * 60 * 1000 });
+const handOversPerAccount = sharedRateLimiter({ name: "hand-over", limit: 3, windowMs: 60 * 60 * 1000 });
 
 /** The longest conversation a hand-over carries to the desk, as an internal note. */
 const MAX_CONVERSATION = 4_000;
@@ -180,7 +181,8 @@ export async function toolServices({
       return mine.items.map((item) => item.productId);
     },
     bundles: (request) => buildBundles(request),
-    reviews: (productId) => reviews.productReviews(productId, { limit: 4 }),
+    // Enough reviews for the points to count (docs/adr/041); the tool quotes four.
+    reviews: (productId) => reviews.productReviews(productId, { limit: 50 }),
     productIdBySlug: async (slug) => (await getProduct(slug, locale))?.id ?? null,
     cart: {
       view: async () => store.viewCart((await cart()).cartId, locale, { country }),
@@ -259,7 +261,7 @@ export async function toolServices({
     support: {
       handOver: async ({ summary, topic, orderNumber }) => {
         if (user === null) return { ok: false, reason: "failed" };
-        if (!handOversPerAccount(user.id)) return { ok: false, reason: "slow_down" };
+        if (!(await handOversPerAccount(user.id))) return { ok: false, reason: "slow_down" };
         // An order number is attached only when it is one of this person's own.
         const order = orderNumber === undefined ? undefined : (await myOrders()).find((entry) => entry.number === orderNumber);
         const desk = await supportStore();
@@ -297,7 +299,7 @@ export async function toolServices({
       requestReturn: async (orderId, reason) => {
         const result = await store.applyEvent(orderId, "request_return", "customer", { reason, actorUserId: user?.id ?? null });
         if (!result.ok) return { ok: false, reason: result.reason };
-        await notifyOrder(orderId, result.effects);
+        await afterOrderEvent(orderId, result.effects, result.to);
         return { ok: true };
       },
     },

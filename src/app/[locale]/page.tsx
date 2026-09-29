@@ -114,6 +114,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             <ButtonLink href="/taste" variant="tertiary" className="h-auto min-h-11 py-2 text-left whitespace-normal">
               {t("tasteLink")}
             </ButtonLink>
+            <ButtonLink href="/showcase" variant="tertiary" className="h-auto min-h-11 py-2 text-left whitespace-normal" data-agent-id="home:showcase">
+              {t("showcaseLink")}
+            </ButtonLink>
           </div>
         </div>
       </section>

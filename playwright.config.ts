@@ -9,6 +9,8 @@
 
 import { defineConfig, devices } from "@playwright/test";
 
+import { generateVapidKeys } from "./src/lib/push/webpush";
+
 /**
  * End-to-end tests.
  *
@@ -67,6 +69,11 @@ export default defineConfig({
             LOG_LEVEL: "warn",
             GEO_COUNTRY_HEADER: E2E_COUNTRY_HEADER,
             ADMIN_EMAILS: Object.values(E2E_ADMIN_EMAILS).join(","),
+            // Web Push on, with a key pair made for this run only (docs/adr/044); the local stack logs pushes instead of sending them.
+            ...(() => {
+              const keys = generateVapidKeys();
+              return { VAPID_PUBLIC_KEY: keys.publicKey, VAPID_PRIVATE_KEY: keys.privateKey, VAPID_SUBJECT: "mailto:e2e@vitrine.test" };
+            })(),
           },
         }
       : undefined,

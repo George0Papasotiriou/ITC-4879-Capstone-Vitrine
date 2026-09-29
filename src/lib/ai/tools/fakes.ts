@@ -40,8 +40,18 @@ export const card = (id: string, title: string, cents: number): ProductCard => (
 
 export function context(overrides: Partial<ToolServices> = {}, cartLines: Partial<CartLine>[] = []): { ctx: ToolContext; changes: unknown[] } {
   const changes: unknown[] = [];
-  let lines = cartLines as CartLine[];
-  const view = async (): Promise<CartView> => ({ cartId: lines.length === 0 ? null : CART, lines, totals: {} as CartView["totals"] });
+  // Lines priced like the lamp unless a test says otherwise, so get_cart has figures to report.
+  let lines = cartLines.map((line) => ({ slug: "faux-wood-table-lamp", unitPrice: money(3900), ...line })) as CartLine[];
+  const view = async (): Promise<CartView> => ({
+    cartId: lines.length === 0 ? null : CART,
+    lines,
+    totals: (() => {
+      const subtotal = lines.reduce((sum, line) => sum + line.unitPrice.cents * line.quantity, 0);
+      // Flat delivery once there is something to deliver, as the shop's zone table would give.
+      const shipping = subtotal === 0 ? 0 : 900;
+      return { itemCount: lines.reduce((sum, line) => sum + line.quantity, 0), subtotal: money(subtotal), shipping: money(shipping), total: money(subtotal + shipping) };
+    })() as CartView["totals"],
+  });
   const services: ToolServices = {
     // Matches titles by word, as a shopper would expect; everything when nothing matches.
     search: async (query) => {
@@ -70,7 +80,7 @@ export function context(overrides: Partial<ToolServices> = {}, cartLines: Partia
         changes.push({ variantId, quantity, mode });
         const current = lines.find((line) => line.variantId === variantId);
         const next = mode === "add" ? (current?.quantity ?? 0) + quantity : quantity;
-        lines = [...lines.filter((line) => line.variantId !== variantId), ...(next > 0 ? [{ variantId, productId: LAMP, title: "Faux Wood Table Lamp", quantity: next, available: true } as CartLine] : [])];
+        lines = [...lines.filter((line) => line.variantId !== variantId), ...(next > 0 ? [{ variantId, productId: LAMP, slug: "faux-wood-table-lamp", title: "Faux Wood Table Lamp", quantity: next, unitPrice: money(3900), available: true } as CartLine] : [])];
         return { ok: true, cartId: CART, quantity: next, limitedTo: null };
       },
       defaultVariant: async (productId) => (productId === LAMP ? LAMP_VARIANT : null),

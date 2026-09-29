@@ -13,6 +13,8 @@ import { getTranslations } from "next-intl/server";
 
 import { ItemReview } from "@/components/commerce/item-review";
 import { OrderActions } from "@/components/commerce/order-actions";
+import { OrderLive } from "@/components/commerce/order-live";
+import { StripePayment } from "@/components/commerce/stripe-payment";
 import { ReturnRequest } from "@/components/commerce/return-request";
 import { ButtonLink } from "@/components/ui/button";
 import { requireLocale } from "@/i18n/params";
@@ -24,8 +26,9 @@ import { availableEvents } from "@/lib/commerce/order-state";
 import { formatVatRate } from "@/lib/commerce/vat";
 import { currentUser, signInPath } from "@/lib/auth/session";
 import { returnDeadline } from "@/lib/commerce/returns";
-import { commerce, orderOwner, PAYMENT_PROVIDER, reviewsStore } from "@/lib/commerce/server";
+import { commerce, LOCAL_TEST_PROVIDER, orderOwner, reviewsStore } from "@/lib/commerce/server";
 import type { OrderView } from "@/lib/commerce/store";
+import { STRIPE_PROVIDER } from "@/lib/payments/stripe-payments";
 import { cn } from "@/lib/ui/cn";
 
 /**
@@ -74,7 +77,9 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   const ownReviews = order.deliveredAt === null ? null : await (await reviewsStore()).orderReviews(order.id);
   const tr = await getTranslations("reviews");
   const dateOnly = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
-  const canTestPay = order.status === "pending_payment" && order.paymentProvider === PAYMENT_PROVIDER;
+  const canTestPay = order.status === "pending_payment" && order.paymentProvider === LOCAL_TEST_PROVIDER;
+  // Stripe (docs/adr/038): the order keeps the provider it was placed with.
+  const canPayWithStripe = order.status === "pending_payment" && order.paymentProvider === STRIPE_PROVIDER;
   const released = order.events.some((event) => event.event === "payment_expired");
   const finished = order.status === "cancelled" || order.status === "refunded";
 
@@ -100,6 +105,8 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
 
       <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex flex-col gap-10">
+          {finished ? null : <OrderLive orderId={order.id} token={token} />}
+          {canPayWithStripe ? <StripePayment orderId={order.id} token={token} amount={formatMoney(order.total, locale)} /> : null}
           <OrderActions orderId={order.id} token={token} amount={formatMoney(order.total, locale)} canTestPay={canTestPay} canCancel={canCancel} paid={order.paid} />
           {canReturn ? <ReturnRequest orderId={order.id} token={token} deadline={dateOnly.format(returnDeadline(order.deliveredAt!))} /> : null}
 

@@ -42,7 +42,8 @@
     "fitsSpace": "Fits your space",
     "fitsSpaceNote": "Pieces that fit the walls you saved, with room to walk past.",
     "fitsSpaceEdit": "Change your rooms",
-    "fitsRoom": "Fits the {room} wall, {spare} cm to spare"
+    "fitsRoom": "Fits the {room} wall, {spare} cm to spare",
+    "showcaseLink": "See the shop windows"
   },
   "product": {
     "addToCart": "Add to cart",
@@ -195,7 +196,12 @@
     "exportTaxOnDelivery": "No VAT charged: an export to {country}. {tax, select, vat {Import VAT at {rate}%} gst {GST at {rate}%} consumption {Consumption tax at {rate}%} other {Local sales tax}} and any duties are paid on delivery.",
     "completeSet": "Complete the set",
     "completeSetLede": "Pieces from other categories that go with what is in your cart: bought together with it by other shoppers or, until there is enough of that, closest to it in colour, material and style.",
-    "goesWith": "Goes with {title}"
+    "goesWith": "Goes with {title}",
+    "handoff": {
+      "agent": "An AI assistant put these pieces together for you. The prices and totals are the shop's own; check them, and go to checkout when you are ready. Nothing has been ordered or paid.",
+      "gone": "That checkout link was already used, so its pieces are in the cart of whoever opened it first. Ask your assistant for a new one.",
+      "invalid": "That checkout link does not work. Ask your assistant for a new one."
+    }
   },
   "account": {
     "title": "Account",
@@ -246,7 +252,9 @@
       "badge": "{count, plural, one {# price drop} other {# price drops}}",
       "title": "{count, plural, one {A price you were waiting for} other {# prices you were waiting for}}",
       "line": "is now {price}; you were waiting for {target}."
-    }
+    },
+    "agentsLink": "Your AI assistants",
+    "agentsHint": "Let an assistant you use search the shop and, if you allow it, fill your cart."
   },
   "concierge": {
     "title": "Concierge",
@@ -431,7 +439,8 @@
     "capstone": "ITC 4949 Capstone Project",
     "credits": "Credits and data",
     "stylist": "Budget Stylist",
-    "prices": "Prices and VAT"
+    "prices": "Prices and VAT",
+    "showcase": "Shop windows"
   },
   "common": {
     "loading": "Loading",
@@ -510,8 +519,8 @@
   },
   "pages": {
     "shippingTitle": "Shipping and returns",
-    "shippingIntro": "Vitrine is a student project, so nothing is shipped and nothing needs to be returned.",
-    "shippingBody": "When checkout is built, it will run in Stripe test mode: you can place an order with a test card and follow it through every status, but no money changes hands and no parcel leaves a warehouse.",
+    "shippingIntro": "Vitrine is a student project: orders, deliveries and returns move through the shop as they would for real, but nothing is shipped and no money is taken.",
+    "shippingBody": "Checkout works in test mode: you pay with the shop's test payment, or with a Stripe test card once Stripe is connected, and can follow the order through every status, but no money changes hands and no parcel leaves a warehouse. A delivered order can be returned within 14 days from its page; the refund is the price paid for the returned pieces, and you get an email when it is made.",
     "privacyTitle": "Privacy",
     "privacyIntro": "Vitrine collects as little as it can, and says what it does with it.",
     "privacyBody": "Photos you show the Concierge are used only for the request you made, need your consent first, are deleted after 24 hours by default, and are never sent to free AI services or written to logs. Search terms are recorded without your name to improve search quality.",
@@ -724,7 +733,8 @@
       "save": "Save room",
       "full": "You have {max} rooms already. Remove one in Your shop, or save under one of their names to replace it.",
       "failed": "The room wasn’t saved. Check the connection and try again."
-    }
+    },
+    "matchLight": "Match the room's light"
   },
   "checkout": {
     "title": "Checkout",
@@ -829,7 +839,17 @@
     "continueShopping": "Continue shopping",
     "releasedNote": "This order was released because it was not paid in time. Your cart is empty; add the pieces again to order them.",
     "vatCharged": "Includes {amount} VAT ({rate}% for {country})",
-    "vatExport": "No VAT charged: an export to {country}. Import tax and any duties are paid on delivery."
+    "vatExport": "No VAT charged: an export to {country}. Import tax and any duties are paid on delivery.",
+    "payTitle": "Pay for your order",
+    "payBody": "By card, Apple Pay or Google Pay. The shop is in test mode: pay with card 4242 4242 4242 4242, any future date and any three digits. No money moves.",
+    "payButton": "Pay {amount}",
+    "paying": "Paying…",
+    "confirming": "Payment made. Waiting for the bank to confirm it…",
+    "payError": "The payment did not go through: {message} Try again or use another card.",
+    "payUnavailable": "Payment cannot start right now. Refresh the page, or try again in a minute.",
+    "payLoading": "Loading the secure payment form…",
+    "liveUpdated": "Order updated: {status}.",
+    "liveUpdatedPlain": "The order has changed."
   },
   "region": {
     "loading": "Finding your country",
@@ -1268,7 +1288,24 @@
     "errorShort": "Write at least {min} characters, so others can learn something from it.",
     "errorLong": "Keep it under {max} characters.",
     "errorFailed": "The review was not saved. Try again in a moment.",
-    "outOfFive": "out of 5"
+    "outOfFive": "out of 5",
+    "insights": {
+      "title": "What buyers say",
+      "lede": "Read from {total, plural, one {# verified review} other {# verified reviews}}: each point shows the sentences it comes from.",
+      "likes": "Buyers like",
+      "dislikes": "Buyers mention against",
+      "support": "{count} of {total}",
+      "read": "Read the review",
+      "aspects": {
+        "build": "Build quality",
+        "comfort": "Comfort",
+        "size": "Size and fit",
+        "colour": "Colour and look",
+        "assembly": "Assembly",
+        "delivery": "Delivery",
+        "value": "Value for money"
+      }
+    }
   },
   "returns": {
     "open": "Return this order",
@@ -1332,6 +1369,10 @@
       "labeling": {
         "title": "Search evaluation",
         "lede": "Grade search results, and see each version of the search scored (E1)."
+      },
+      "system": {
+        "title": "Store and caches",
+        "lede": "Redis: shared rate limits, the search cache, trending searches, live updates."
       }
     },
     "products": {
@@ -1435,7 +1476,29 @@
       "createdNote": "Made as a draft. Add a photograph below, then choose “On sale” and save to publish it.",
       "needsPhoto": "A product goes on sale only with a photograph. Add one, then publish.",
       "statusDraft": "Draft",
-      "statusDraftHint": "Only staff can see it. Publishing needs a photograph."
+      "statusDraftHint": "Only staff can see it. Publishing needs a photograph.",
+      "copy": {
+        "title": "Copy help",
+        "lede": "Ask for a draft of the Greek from the English, or for the English made shorter and plainer. You see the draft here first; it changes the form only if you use it, and the shop only when you save.",
+        "greek": "Draft the Greek from the English",
+        "tighten": "Tighten the English",
+        "working": "Writing a draft…",
+        "needsEnglish": "Write the English title first; the draft is made from it.",
+        "from": "Draft by {model}. Check it before you use it.",
+        "figures": "Check these figures: {figures} are in the English but not in the draft.",
+        "useGreek": "Use this draft in the Greek fields",
+        "useEnglish": "Use this draft in the English fields",
+        "discard": "Discard",
+        "used": "Draft placed in the form. Nothing is saved until you save.",
+        "pending": "The fields hold an AI draft you chose to use. Saving records that in the audit log.",
+        "errors": {
+          "needs_key": "Drafting needs the shop's AI key (AI_PROVIDER=google). Nothing was changed.",
+          "ai_paused": "AI is paused: the switch is off or today's budget is spent. Nothing was changed.",
+          "ai_off": "AI is turned off for this shop. Nothing was changed.",
+          "no_draft": "No usable draft came back this time. Try again, or write it yourself.",
+          "failed": "The draft could not be made. Check your connection and try again."
+        }
+      }
     },
     "dashboard": {
       "title": "Dashboards",
@@ -1558,7 +1621,8 @@
         "review": "Reviews",
         "user": "Roles",
         "setting": "AI switches",
-        "macro": "Ready answers"
+        "macro": "Ready answers",
+        "agent": "Agent keys"
       },
       "columns": {
         "when": "When",
@@ -1580,7 +1644,9 @@
         "macro_restore": "Restored a ready answer",
         "macro_remove": "Removed a ready answer",
         "product_create": "Made a product",
-        "product_photo": "Added a product photograph"
+        "product_photo": "Added a product photograph",
+        "agent_create": "Made an agent key",
+        "agent_revoke": "Revoked an agent key"
       },
       "reason": "Reason: {reason}",
       "empty": "Nothing recorded yet.",
@@ -1649,7 +1715,8 @@
         "try_on": "Try-on",
         "animate": "Animate me",
         "capsule_image": "Capsule photography",
-        "translation": "Greek copy"
+        "translation": "Greek copy",
+        "copy_draft": "Staff copy drafts"
       },
       "settings": "Switches",
       "settingsLede": "Both changes take effect at once, for everyone, and are recorded in the audit log.",
@@ -1867,6 +1934,54 @@
         "byKind": "NDCG@10 by kind of query",
         "kind": "Kind of query"
       }
+    },
+    "system": {
+      "title": "Store and caches",
+      "lede": "What the shop keeps beside its database: shared rate limits, cached search rankings, trending searches and live order updates. Every value here can be lost without harm.",
+      "storeTitle": "The key-value store",
+      "storeKind": "Where it lives",
+      "kindRedis": "Redis, shared by every service",
+      "kindMemory": "This process's memory (the local stack)",
+      "memory": "Memory used",
+      "keys": "Keys",
+      "keysLede": "Keys the shop wrote, by what they are for.",
+      "keysTruncated": "At least this many: counting stopped at {cap}.",
+      "namespace": "Kind",
+      "count": "Keys",
+      "namespaces": {
+        "limit": "Rate-limit windows",
+        "cache": "Cached search rankings",
+        "trend": "Trending counts",
+        "stats": "Counters for this page",
+        "catalog": "Catalogue version",
+        "order": "Live order messages"
+      },
+      "cacheTitle": "Search cache, today",
+      "cacheLede": "A ranking is kept for two minutes and forgotten when the catalogue changes. Prices and stock are always read fresh.",
+      "hits": "Answered from the cache",
+      "misses": "Computed",
+      "hitRate": "Hit rate",
+      "limitsTitle": "Requests refused by a rate limit",
+      "limitsLede": "Per limit, today and yesterday (UTC). A refusal means one address asked faster than the limit allows.",
+      "limitColumn": "Limit",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "limits": {
+        "concierge": "Concierge messages",
+        "concierge-tools": "Concierge actions",
+        "reco-events": "Shelf events",
+        "study": "User-study events",
+        "support-new": "New support messages",
+        "support-reply": "Support replies",
+        "hand-over": "Hand-overs to a person",
+        "mcp": "Agent requests (MCP)"
+      },
+      "trendingTitle": "Trending now",
+      "trendingLede": "What several people searched for in the last day; each person counts once per term and hour. Shown in the search pop-up.",
+      "trendingEmpty": "Nothing yet: a term needs three people in a day.",
+      "term": "Search",
+      "people": "People",
+      "score": "Score"
     }
   },
   "support": {
@@ -2145,6 +2260,28 @@
       "saved": "Budget saved",
       "cleared": "Budget cleared",
       "invalid": "A budget is between €10 and €50,000 a piece; leave it empty for none."
+    },
+    "push": {
+      "title": "Notifications on this device",
+      "lede": "The shop can tell this device when your order moves, when a price you are watching is reached, or when the desk replies to you. Nothing else: no offers, no reminders. Your browser asks you first.",
+      "notOffered": "The shop does not send notifications yet.",
+      "signIn": "Sign in to get notifications about your orders on this device.",
+      "state": {
+        "checking": "Checking this browser…",
+        "unsupported": "This browser cannot show the shop's notifications.",
+        "blocked": "Notifications are blocked for this shop in your browser. To allow them, open the site settings next to the address bar.",
+        "off": "Notifications are off on this device.",
+        "on": "Notifications are on for this device."
+      },
+      "topicsLabel": "Tell me when",
+      "topics": {
+        "orders": "my order moves",
+        "prices": "a price I watch is reached",
+        "desk": "the desk replies to me"
+      },
+      "turnOn": "Turn on notifications",
+      "turnOff": "Turn off on this device",
+      "failed": "That did not work. Try again, or check that notifications are allowed for this site."
     }
   },
   "ledger": {
@@ -2204,7 +2341,15 @@
     "confirmTitle": "Delete everything?",
     "confirmBody": "Your preferences, your reading and comfort settings and everything you looked at will be deleted, and personal recommendations turned off. Your account and your orders stay.",
     "confirmYes": "Delete everything",
-    "confirmNo": "Keep it"
+    "confirmNo": "Keep it",
+    "devicesTitle": "Devices that get notifications",
+    "devicesNone": "No device gets the shop's notifications.",
+    "deviceUnknown": "A browser",
+    "topics": {
+      "orders": "orders",
+      "prices": "prices",
+      "desk": "desk replies"
+    }
   },
   "instantSearch": {
     "title": "Search",
@@ -2219,7 +2364,10 @@
     "searching": "Searching…",
     "error": "The search didn’t answer. Press Enter to open the search page instead.",
     "soldOut": "Sold out",
-    "hint": "Type in English, Greek or Greeklish. A colour, a material or a budget helps."
+    "hint": "Type in English, Greek or Greeklish. A colour, a material or a budget helps.",
+    "suggestions": "Recent and trending searches",
+    "trending": "Trending now",
+    "trendingPrefix": "Trending:"
   },
   "study": {
     "title": "User study session",
@@ -2249,5 +2397,91 @@
       "comfort": "Make the shop's text larger and turn its animations off.",
       "data": "See what the shop keeps about you, and delete one thing from it."
     }
+  },
+  "showcase": {
+    "title": "Shop windows",
+    "lede": "Themed shop windows: pieces that go together, at true relative size, priced as a set and bought in one tap.",
+    "themes": "Windows",
+    "custom": "Your window",
+    "customLine": "A set made for you, under {budget}.",
+    "windowLabel": "Shop window: {title}. Use the arrow keys to move between the pieces.",
+    "pieceLabel": "{title}, {size}",
+    "dims": "{w} × {d} × {h} cm",
+    "notMeasured": "size not measured",
+    "quantity": "× {count}",
+    "total": "The whole window: {total}",
+    "totalNote": "Chosen and priced by the Budget Stylist for your country; the pieces go together by colour.",
+    "fallback": "No set in stock fits this budget right now; these are the pieces a search for the theme finds.",
+    "empty": "Nothing to show in this window right now. Try another one.",
+    "inWindow": "In the window",
+    "hero": "The centre of the window",
+    "addAll": "Add the whole window to the cart",
+    "adding": "Adding…",
+    "addedAll": "Everything in the window is in your cart.",
+    "addedSome": "Added, except: {missed}.",
+    "toCart": "Go to the cart",
+    "share": "Copy the link",
+    "copied": "Link copied."
+  },
+  "agents": {
+    "title": "Your AI assistants",
+    "back": "Back to your account",
+    "lede": "Let an AI assistant you already use — Claude, ChatGPT or any other that speaks MCP — look through the shop for you and, if you allow it, fill your cart and check on your orders. Paying always happens here, and only you do it.",
+    "connectTitle": "Connect an assistant",
+    "connectLede": "Give your assistant this address as an MCP server. Searching and reading the shop needs nothing more; your cart and your orders need a key.",
+    "copyAddress": "Copy address",
+    "copied": "Copied",
+    "keysTitle": "Keys",
+    "keysLede": "A key lets one assistant act for you. Give each assistant its own, allow only what it needs, and revoke it when you stop using it. The shop keeps only a fingerprint of each key, never the key.",
+    "makeTitle": "Make a key",
+    "nameLabel": "Name",
+    "nameHint": "Which assistant it is for, so you can tell keys apart, for example “Claude on my laptop”.",
+    "scopesLabel": "What it may do",
+    "scopesHint": "Looking at the shop needs no permission.",
+    "scopes": {
+      "cart": {
+        "title": "Your cart",
+        "detail": "See and change what is in it, and give you the link to checkout. It cannot pay."
+      },
+      "orders": {
+        "title": "Your orders",
+        "detail": "See your orders and where each one is."
+      }
+    },
+    "daysLabel": "Stops working after",
+    "days": "{days, plural, one {# day} other {# days}}",
+    "make": "Make key",
+    "newKeyTitle": "Your key for {name}",
+    "newKeyOnce": "Copy it now and give it to your assistant. It is shown only this once; if you lose it, revoke it and make another.",
+    "copyKey": "Copy key",
+    "configHint": "Many assistants take a setting like this one:",
+    "copyConfig": "Copy setting",
+    "hideKey": "Done, hide the key",
+    "listTitle": "Your keys",
+    "none": "No keys yet.",
+    "state": {
+      "active": "Active",
+      "expired": "Ended",
+      "revoked": "Revoked"
+    },
+    "dates": "Made {made} · ends {ends}",
+    "neverUsed": "not used yet",
+    "lastUsed": "last used {when}",
+    "revoke": "Revoke",
+    "revokeNamed": "Revoke the key {name}",
+    "revoked": "Key revoked. It stopped working at once.",
+    "verifyFirst": "Confirm your email address first; then you can make keys here.",
+    "errors": {
+      "name": "Give the key a name, so you can tell it apart later.",
+      "scopes": "Choose at least one thing it may do.",
+      "tooMany": "You have five active keys, the most at once. Revoke one you no longer use to make another.",
+      "verify": "Confirm your email address first; then you can make keys here.",
+      "failed": "That did not work. Check your connection and try again."
+    },
+    "browserTitle": "Assistants in your browser",
+    "browserLede": "A browser that supports WebMCP can let its own assistant use the shop's tools on the page you are on — search, compare, your cart — as you, without a key. Checkout still happens only when you do it.",
+    "webmcpChecking": "Checking this browser…",
+    "webmcpOn": "This browser supports WebMCP: {count, plural, one {# tool is} other {# tools are}} ready for its assistant.",
+    "webmcpOff": "This browser does not support WebMCP yet. The address above works with any assistant that speaks MCP."
   }
 }

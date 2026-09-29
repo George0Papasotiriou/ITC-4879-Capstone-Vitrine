@@ -16,6 +16,7 @@ import { sql } from "@/lib/db/client";
 import { appMailer } from "@/lib/email/server";
 import { emailLocale, supportUpdate, type SupportEmailKind } from "@/lib/email/templates";
 import { logger } from "@/lib/log";
+import { queuePush } from "@/lib/push/queue";
 import { createSupportStore, type SupportStore, type Ticket, type TicketSummary } from "@/lib/support/store";
 
 /**
@@ -99,4 +100,6 @@ export async function notifyTicket(kind: SupportEmailKind, ticket: { id: string;
   } catch (error) {
     logger.warn({ err: error, ticket: ticket.number }, "support email not written");
   }
+  // A reply from a person at the desk also reaches the shopper's devices, when they asked for it (docs/adr/044).
+  if (kind === "reply") await queuePush({ type: "desk", ticketId: ticket.id });
 }

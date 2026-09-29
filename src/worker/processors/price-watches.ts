@@ -15,6 +15,7 @@ import { appMailer } from "@/lib/email/server";
 import { emailLocale, priceDrop } from "@/lib/email/templates";
 import type { JobPayloads } from "@/lib/jobs/types";
 import { loggerFor } from "@/lib/log";
+import { queuePush } from "@/lib/push/queue";
 
 /**
  * The nightly price-watch pass (docs/adr/020).
@@ -47,6 +48,8 @@ export async function processPriceWatches(payload: JobPayloads["price-watches"],
     try {
       await mailer.sendEmail({ to: watch.email, kind: "price_drop", locale, content });
       sent.push(watch.id);
+      // And on the watcher's devices, if they asked for price news there (docs/adr/044); queued, so a slow push service cannot hold up the emails.
+      await queuePush({ type: "price", userId: watch.userId, slug: watch.slug, title: watch.title, price: formatMoney(money(watch.priceCents), locale) });
     } catch (error) {
       // The next pass tries again: the watch is not marked.
       failed += 1;

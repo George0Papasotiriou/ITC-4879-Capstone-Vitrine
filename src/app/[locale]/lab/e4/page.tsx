@@ -34,7 +34,7 @@ export const dynamic = "force-dynamic";
 export default async function E4Page({ params }: PageProps<"/[locale]/lab/e4">) {
   await requireLocale(params);
   const env = serverEnv();
-  if (env.NODE_ENV === "production" && env.VITRINE_LOCAL !== true) notFound();
+  if (env.NODE_ENV === "production" && !env.localStack) notFound();
 
   return (
     <main className="mx-auto w-full max-w-[1200px] px-6 py-10 md:px-10 md:py-16">

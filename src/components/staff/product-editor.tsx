@@ -10,7 +10,7 @@
  */
 
 import { useTranslations } from "next-intl";
-import { useId, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -42,14 +42,62 @@ const statusesFor = (current: ProductFormValues["status"]) => (current === "draf
  * message key per field it refuses (src/lib/admin/catalog.ts), so the rules
  * live in one place.
  */
+type CopyTask = "greek" | "tighten";
+type CopyDraft = { task: CopyTask; title: string; description: string; highlights: string[]; missingFigures: string[]; model: string };
+
 export function ProductEditor({ productId, initial }: { productId: string; initial: ProductFormValues }) {
   const t = useTranslations("admin.edit");
   const router = useRouter();
   const toast = useToast();
   const hydrated = useHydrated();
   const id = useId();
+  const formRef = useRef<HTMLFormElement>(null);
   const [pending, setPending] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<FieldName | "form", string>>>({});
+  // A copy draft (docs/adr/045): shown beside the form, used only if the person chooses to, saved only by Save.
+  const [drafting, setDrafting] = useState<CopyTask | null>(null);
+  const [draft, setDraft] = useState<CopyDraft | null>(null);
+  const [draftError, setDraftError] = useState<string | null>(null);
+  const [draftedBy, setDraftedBy] = useState<string | null>(null);
+
+  const fieldOf = (name: FieldName) => formRef.current?.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | null;
+
+  const askForDraft = async (task: CopyTask) => {
+    const title = fieldOf("titleEn")?.value.trim() ?? "";
+    if (title === "") {
+      setDraftError(t("copy.needsEnglish"));
+      return;
+    }
+    setDrafting(task);
+    setDraftError(null);
+    setDraft(null);
+    const source = { title, description: fieldOf("descriptionEn")?.value ?? "", highlights: (fieldOf("highlightsEn")?.value ?? "").split(/\r?\n/).map((line) => line.trim()).filter((line) => line !== "") };
+    const response = await fetch(`/api/staff/products/${productId}/draft`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ task, source }) }).catch(() => null);
+    const result = (await response?.json().catch(() => null)) as ({ ok: true; model: string; missingFigures: string[]; draft: { title: string; description: string; highlights: string[] } } | { ok: false; reason: string }) | null;
+    setDrafting(null);
+    if (result?.ok === true) {
+      setDraft({ task, ...result.draft, missingFigures: result.missingFigures, model: result.model });
+      return;
+    }
+    const reason = result?.reason;
+    setDraftError(t(`copy.errors.${reason === "needs_key" || reason === "ai_paused" || reason === "ai_off" || reason === "no_draft" ? reason : "failed"}`));
+  };
+
+  const useDraft = () => {
+    if (draft === null) return;
+    const [title, description, highlights] = draft.task === "greek" ? (["titleEl", "descriptionEl", "highlightsEl"] as const) : (["titleEn", "descriptionEn", "highlightsEn"] as const);
+    const set = (name: FieldName, value: string) => {
+      const field = fieldOf(name);
+      if (field !== null) field.value = value;
+    };
+    set(title, draft.title);
+    set(description, draft.description);
+    set(highlights, draft.highlights.join("\n"));
+    setDraftedBy(draft.model);
+    setDraft(null);
+    toast({ title: t("copy.used"), tone: "success" });
+    fieldOf(title)?.focus();
+  };
 
   const errorFor = (key: string | undefined) => (key === undefined ? undefined : t(`errors.${KNOWN_ERRORS.includes(key) ? key : "too_long"}`));
 
@@ -62,12 +110,13 @@ export function ProductEditor({ productId, initial }: { productId: string; initi
     const response = await fetch(`/api/staff/products/${productId}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ kind: "details", details }),
+      body: JSON.stringify({ kind: "details", details, ...(draftedBy === null ? {} : { draftedBy }) }),
     }).catch(() => null);
     const result = (await response?.json().catch(() => null)) as { ok: boolean; reason?: string; changed?: string[]; fields?: Record<string, string> } | null;
     setPending(false);
     if (result?.ok === true) {
       setErrors({});
+      setDraftedBy(null);
       toast({ title: (result.changed?.length ?? 0) === 0 ? t("nothingChanged") : t("saved"), tone: "success" });
       router.refresh();
       return;
@@ -109,7 +158,7 @@ export function ProductEditor({ productId, initial }: { productId: string; initi
   );
 
   return (
-    <form onSubmit={submit} method="post" noValidate className="flex flex-col gap-10" data-agent-id="product-edit:form">
+    <form ref={formRef} onSubmit={submit} method="post" noValidate className="flex flex-col gap-10" data-agent-id="product-edit:form">
       <fieldset className="flex flex-col gap-5">
         <legend className="font-display mb-4 text-xl">{t("words")}</legend>
         <div className="grid gap-5 md:grid-cols-2">
@@ -120,6 +169,54 @@ export function ProductEditor({ productId, initial }: { productId: string; initi
           {area("highlightsEn", t("highlightsEn"), 5, t("highlightsHint"))}
           {area("highlightsEl", t("highlightsEl"), 5, t("highlightsHint"))}
         </div>
+
+        <section aria-labelledby={`${id}-copy`} className="bg-plinth/60 rounded-plinth flex flex-col gap-4 p-5" data-agent-id="product-edit:copy">
+          <h2 id={`${id}-copy`} className="font-medium">
+            {t("copy.title")}
+          </h2>
+          <p className="text-slate max-w-[62ch] text-sm">{t("copy.lede")}</p>
+          <div className="flex flex-wrap gap-3">
+            <Button type="button" variant="secondary" disabled={!hydrated || drafting !== null} onClick={() => void askForDraft("greek")} data-agent-id="action:draft-greek">
+              {drafting === "greek" ? t("copy.working") : t("copy.greek")}
+            </Button>
+            <Button type="button" variant="secondary" disabled={!hydrated || drafting !== null} onClick={() => void askForDraft("tighten")} data-agent-id="action:draft-tighten">
+              {drafting === "tighten" ? t("copy.working") : t("copy.tighten")}
+            </Button>
+          </div>
+          {draftError === null ? null : (
+            <p role="alert" className="text-danger text-sm" data-agent-id="product-edit:copy-error">
+              {draftError}
+            </p>
+          )}
+          {draft === null ? null : (
+            <div className="border-hairline flex flex-col gap-3 rounded-plinth border bg-white p-4" data-agent-id="product-edit:copy-draft" lang={draft.task === "greek" ? "el" : "en"}>
+              <p className="text-slate text-xs">{t("copy.from", { model: draft.model })}</p>
+              <p className="font-medium">{draft.title}</p>
+              <p className="text-sm whitespace-pre-line">{draft.description}</p>
+              {draft.highlights.length === 0 ? null : (
+                <ul className="list-disc pl-5 text-sm">
+                  {draft.highlights.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              )}
+              {draft.missingFigures.length === 0 ? null : (
+                <p className="text-danger text-sm" data-agent-id="product-edit:copy-figures" lang="en">
+                  {t("copy.figures", { figures: draft.missingFigures.join(", ") })}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-3">
+                <Button type="button" onClick={useDraft} data-agent-id="action:use-draft">
+                  {draft.task === "greek" ? t("copy.useGreek") : t("copy.useEnglish")}
+                </Button>
+                <Button type="button" variant="tertiary" onClick={() => setDraft(null)} data-agent-id="action:discard-draft">
+                  {t("copy.discard")}
+                </Button>
+              </div>
+            </div>
+          )}
+          {draftedBy === null ? null : <p className="text-slate text-sm" role="status">{t("copy.pending")}</p>}
+        </section>
       </fieldset>
 
       <fieldset className="flex flex-col gap-5">

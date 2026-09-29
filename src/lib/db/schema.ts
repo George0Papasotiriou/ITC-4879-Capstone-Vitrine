@@ -549,6 +549,28 @@ export const orderEvents = pgTable(
   (t) => [index("order_events_order_idx").on(t.orderId, t.createdAt)],
 );
 
+/**
+ * Every verified event a payment provider sent, once (docs/adr/038). The
+ * provider's own event id is the key, so a webhook delivered twice — Stripe
+ * retries until it hears 200 — is recognised and changes nothing the second
+ * time. What the shop decided is kept beside it, for the desk and the report.
+ */
+export const paymentEvents = pgTable(
+  "payment_events",
+  {
+    /** The provider's event id ("evt_…"). */
+    id: text("id").primaryKey(),
+    provider: text("provider").notNull(),
+    type: text("type").notNull(),
+    orderId: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+    /** apply | refund | alert | ignore, and why. */
+    outcome: text("outcome").notNull(),
+    detail: text("detail"),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("payment_events_order_idx").on(t.orderId, t.receivedAt)],
+);
+
 /* -------------------------------------------------------------------------- */
 /* Accounts (Phase 5, Better Auth, docs/adr/016)                              */
 /* -------------------------------------------------------------------------- */
@@ -1014,6 +1036,73 @@ export const userPreferences = pgTable("user_preferences", {
 });
 
 /**
+ * A shopper's keys for their own AI agents (docs/adr/043): an assistant that
+ * speaks MCP uses one to reach this person's cart and orders at /api/mcp. Only
+ * a SHA-256 of the key is kept — the key itself is shown once, when made — with
+ * its last four characters so the person can tell keys apart. Each key names
+ * what it may do, ends on a date, and can be revoked; deleting the account
+ * deletes them.
+ */
+export const agentTokens = pgTable(
+  "agent_tokens",
+  {
+    id: id(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    tokenHash: text("token_hash").notNull(),
+    hint: text("hint").notNull(),
+    /** "cart" and/or "orders" (src/lib/agents/tokens.ts). Looking at the catalogue needs no key. */
+    scopes: text("scopes").array().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("agent_tokens_hash_key").on(t.tokenHash),
+    index("agent_tokens_user_idx").on(t.userId, t.createdAt),
+    check("agent_tokens_scopes_known", sql`${t.scopes} <@ ARRAY['cart', 'orders']::text[] AND cardinality(${t.scopes}) > 0`),
+    check("agent_tokens_name_length", sql`char_length(${t.name}) BETWEEN 1 AND 60`),
+  ],
+);
+
+/**
+ * A browser a signed-in shopper allowed to receive notifications (docs/adr/044).
+ * The endpoint is the browser maker's push service address for that browser;
+ * p256dh and auth are the browser's public key and secret the messages are
+ * encrypted for. `topics` is what the person asked to hear about. A
+ * subscription the push service reports gone is deleted; one that keeps
+ * failing is dropped after ten tries. Deleting the account deletes them.
+ */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: id(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    topics: text("topics").array().notNull(),
+    locale: text("locale").notNull().default("en"),
+    /** "Chrome on Windows": so the person can tell their devices apart at /account/data. */
+    device: text("device"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastSentAt: timestamp("last_sent_at", { withTimezone: true }),
+    failures: integer("failures").notNull().default(0),
+  },
+  (t) => [
+    uniqueIndex("push_subscriptions_endpoint_key").on(t.endpoint),
+    index("push_subscriptions_user_idx").on(t.userId),
+    check("push_subscriptions_topics_known", sql`${t.topics} <@ ARRAY['orders', 'prices', 'desk']::text[]`),
+    check("push_subscriptions_endpoint_https", sql`${t.endpoint} LIKE 'https://%'`),
+  ],
+);
+
+/**
  * A shopper waiting for a price to fall (docs/PLAN.md Phase 11 step 5). One
  * watch per person per product; the nightly job emails them when the shop's
  * price for their country reaches the target, and then rests that watch.
@@ -1256,3 +1345,5 @@ export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
 export type ProductVariant = typeof productVariants.$inferSelect;
 export type ProductMedia = typeof productMedia.$inferSelect;
+export type AgentTokenRow = typeof agentTokens.$inferSelect;
+export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;

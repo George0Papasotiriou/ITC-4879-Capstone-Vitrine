@@ -13,7 +13,10 @@ import { isLocale } from "@/i18n/routing";
 import { logSearch } from "@/lib/admin/server";
 import { getCardsByIds, runSearch } from "@/lib/catalog/server";
 import { CATEGORY_SLUGS, type CategorySlug } from "@/lib/catalog/taxonomy";
+import { clientAddress } from "@/lib/geo/ip-country";
+import { anonymous, kv } from "@/lib/kv";
 import { loggerForRequest } from "@/lib/log";
+import { recordTrending } from "@/lib/search/trending";
 
 /**
  * Typed search endpoint (docs/PLAN.md Phase 4, step 4) for the instant search
@@ -61,6 +64,8 @@ export async function GET(request: Request): Promise<Response> {
       tookMs,
       source: "api",
     });
+    // "Trending now" (docs/adr/039): once per person, term and hour, only for plain words that found something.
+    void recordTrending(kv(), q, anonymous(clientAddress(request.headers) ?? "unknown"), result.ids.length).catch(() => {});
   }
   loggerForRequest(request.headers).info(
     { search: { results: cards.length, tookMs, retrievers: result.retrieversUsed, relaxed: result.relaxed } },

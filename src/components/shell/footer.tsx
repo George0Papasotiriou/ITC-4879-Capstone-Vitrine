@@ -46,6 +46,9 @@ export async function Footer() {
           <Link href="/stylist" className="text-slate text-sm no-underline hover:underline underline-offset-4">
             {t("stylist")}
           </Link>
+          <Link href="/showcase" className="text-slate text-sm no-underline hover:underline underline-offset-4">
+            {t("showcase")}
+          </Link>
         </nav>
 
         <nav aria-label={t("help")} className="flex flex-col gap-3">

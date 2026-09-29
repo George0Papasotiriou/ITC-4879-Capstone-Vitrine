@@ -11,14 +11,11 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 
 import { currentUser, type CurrentUser } from "@/lib/auth/session";
-import { createOrderNotifier, type OrderNotifier } from "@/lib/commerce/notify";
-import type { SideEffect } from "@/lib/commerce/order-state";
+import { commerceStore, cookieSecret, notifyOrder } from "@/lib/commerce/services";
 import { createPriceWatchStore, type PriceWatchStore } from "@/lib/commerce/price-watch-store";
 import { createReviewStore, type ReviewStore } from "@/lib/commerce/review-store";
-import { createCommerceStore, type CommerceStore, type OrderOwner, type OrderView } from "@/lib/commerce/store";
-import { orderLinkToken, signValue, verifySignedValue } from "@/lib/commerce/tokens";
-import { appMailer } from "@/lib/email/server";
-import { logger } from "@/lib/log";
+import type { CommerceStore, OrderOwner, OrderView } from "@/lib/commerce/store";
+import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
 import { sql } from "@/lib/db/client";
 import { serverEnv } from "@/env";
 
@@ -36,43 +33,22 @@ export const CART_COOKIE = "vt_cart";
 export const ORDER_COOKIE = "vt_order";
 const SIXTY_DAYS = 60 * 24 * 60 * 60;
 
-/** The only payment driver until Stripe is connected (Phase 5, needs George's account). */
-export const PAYMENT_PROVIDER = "local_test";
-
-let store: CommerceStore | undefined;
+/** The local test payment: what pays for orders while Stripe's keys are not set (docs/adr/038). */
+export const LOCAL_TEST_PROVIDER = "local_test";
 
 export async function commerce(): Promise<CommerceStore> {
   await connection();
-  // Order links are derived from the order id and the secret, so emails can rebuild them later.
-  return (store ??= createCommerceStore(sql, { orderToken: (orderId) => orderLinkToken(orderId, secret()) }));
+  return commerceStore();
 }
 
-let notifier: OrderNotifier | undefined;
+export { notifyOrder };
 
-/** Sends the customer the emails an order transition calls for (payment confirmed, shipped, …). */
-export async function notifyOrder(orderId: string, effects: readonly SideEffect[]): Promise<void> {
-  notifier ??= createOrderNotifier({
-    store: await commerce(),
-    mailer: appMailer(),
-    appUrl: serverEnv().APP_URL,
-    secret: secret(),
-    log: (message) => logger.error({ orderEmail: true }, message),
-  });
-  await notifier.notify(orderId, effects);
-}
-
-function secret(): string {
-  const value = serverEnv().COOKIE_SECRET;
-  if (value === undefined) {
-    throw new Error("COOKIE_SECRET is not set. `pnpm local` generates one; in production it is required.");
-  }
-  return value;
-}
+const secret = cookieSecret;
 
 const cookieOptions = () => ({
   httpOnly: true,
   sameSite: "lax" as const,
-  secure: serverEnv().NODE_ENV === "production" && !serverEnv().VITRINE_LOCAL,
+  secure: serverEnv().secureCookies,
   path: "/",
   maxAge: SIXTY_DAYS,
 });

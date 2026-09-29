@@ -31,6 +31,7 @@ import { parseArgs } from "node:util";
 import postgres from "postgres";
 import { uuidv7 } from "uuidv7";
 
+import { isLocalStack } from "@/lib/local-stack";
 import type { ShippingAddress } from "@/lib/db/schema";
 import { demoPlacedAt, pickWeighted, planDemoOrder, type DemoPlan } from "@/lib/commerce/demo-orders";
 import { transition, type OrderSnapshot, type OrderStatus } from "@/lib/commerce/order-state";
@@ -130,7 +131,7 @@ function finalStatus(plan: DemoPlan): OrderStatus {
 }
 
 async function demo(sql: postgres.Sql) {
-  if (process.env.VITRINE_LOCAL !== "1") throw new Error("Demo orders are for the local stack only (run through `pnpm orders`).");
+  if (!isLocalStack(process.env)) throw new Error("Demo orders are for the local stack only (run through `pnpm orders`).");
   const count = Number.parseInt(values.count, 10);
   const days = Number.parseInt(values.days, 10);
   if (!(count >= 1 && count <= 500) || !(days >= 1 && days <= 365)) throw new Error("--count must be 1 to 500 and --days 1 to 365.");

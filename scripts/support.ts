@@ -25,6 +25,7 @@ import { parseArgs } from "node:util";
 import postgres from "postgres";
 import { uuidv7 } from "uuidv7";
 
+import { isLocalStack } from "@/lib/local-stack";
 import { hashToken, newTicketNumber, ticketLinkToken } from "@/lib/commerce/tokens";
 import { DEFAULT_MACROS } from "@/lib/support/macros";
 import { createSupportStore } from "@/lib/support/store";
@@ -112,7 +113,7 @@ async function macros(sql: postgres.Sql): Promise<void> {
 }
 
 async function demo(sql: postgres.Sql): Promise<void> {
-  if (process.env.VITRINE_LOCAL !== "1" && process.env.VITRINE_LOCAL !== "true") {
+  if (!isLocalStack(process.env)) {
     throw new Error("Demo tickets are for the local shop only (VITRINE_LOCAL).");
   }
   const desk = createSupportStore(sql);

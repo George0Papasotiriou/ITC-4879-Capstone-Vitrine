@@ -35,7 +35,7 @@ export type DemoPrompt = {
 export type DemoCall = { toolName: string; input: Record<string, unknown> };
 export type DemoStep = { kind: "tools"; calls: DemoCall[] } | { kind: "text"; text: string };
 
-type Intent = "greet" | "comfort" | "size_advice" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "room" | "browse";
+type Intent = "greet" | "comfort" | "size_advice" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "showcase" | "room" | "browse";
 
 const ORDER_NUMBER = /\bvt-[0-9a-z]{4}-[0-9a-z]{4}\b/i;
 
@@ -69,6 +69,8 @@ export function intentOf(text: string): Intent {
   if (/\border|παραγγελ/.test(t)) return "orders";
   if (/\b(check ?out|pay)\b|ολοκληρωσ|πληρωμ/.test(t)) return "checkout";
   if (/\b(compare|versus|vs)\b|συγκριν/.test(t)) return "compare";
+  // A shop window to look at (docs/adr/040), before a set in the chat.
+  if (/\b(window display|shop window|showcase|inspire me)\b|βιτριν|εμπνευσ/.test(t)) return "showcase";
   // A budget with a room or a set is a bundle, even when it says "put together".
   if (/\b(set|bundle|corner|budget)\b|σετ|γωνια/.test(t) && /\d/.test(t)) return "bundle";
   if (/\b(add|put|buy)\b|προσθεσ|βαλε/.test(t)) return "add";
@@ -138,6 +140,21 @@ function bundleInput(text: string): Record<string, unknown> {
   return { template, budgetEuros: Math.max(10, Math.min(50_000, Math.round(budget))) };
 }
 
+/** Which window the words ask for: a curated theme, or a room and a budget of their own. */
+function showcaseInput(text: string, locale: "en" | "el"): Record<string, unknown> {
+  const t = fold(text);
+  const caption = locale === "el" ? "Στήνω τη βιτρίνα" : "Setting up the window";
+  if (/\d/.test(t)) return { ...bundleInput(text), caption };
+  const themes: [RegExp, string][] = [
+    [/\bgift|δωρ/, "small-gifts"],
+    [/\bdining|τραπεζαρ/, "black-dining"],
+    [/\bbed|υπνοδωματ|κρεβατ/, "oak-bedroom"],
+    [/\bleather|δερμ/, "leather-living"],
+    [/\bliving|lounge|σαλον/, "calm-living"],
+  ];
+  return { theme: themes.find(([pattern]) => pattern.test(t))?.[1] ?? "reading-corner", caption };
+}
+
 const say = (locale: "en" | "el", en: string, el: string): DemoStep => ({ kind: "text", text: locale === "el" ? el : en });
 
 type Brief = { id: string; title: string; inStock?: boolean };
@@ -198,6 +215,8 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
         return call("start_return", { number: ORDER_NUMBER.exec(text)![0].toUpperCase(), reason: "changed_mind" });
       case "bundle":
         return call("build_bundle", bundleInput(text));
+      case "showcase":
+        return call("compose_showcase", showcaseInput(text, locale));
       default:
         return call("search_products", { query, limit: intent === "compare" ? 4 : 6 });
     }
@@ -222,6 +241,12 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
     }
     case "compare_products":
       return say(locale, "Here they are side by side. The table shows prices, sizes, materials and ratings from the shop.", "Να τα δίπλα-δίπλα. Ο πίνακας δείχνει τιμές, διαστάσεις, υλικά και βαθμολογίες από το κατάστημα.");
+    case "compose_showcase": {
+      const found = (last.output as { found?: boolean }).found === true;
+      return found
+        ? say(locale, "Here is the window: pieces that go together, at their real sizes. Buy the whole window in one tap, or any piece on its own.", "Να η βιτρίνα: κομμάτια που ταιριάζουν, στο πραγματικό τους μέγεθος. Πάρε όλη τη βιτρίνα με ένα άγγιγμα ή όποιο κομμάτι θέλεις.")
+        : say(locale, "I opened the window, but no complete set in stock fits that budget right now, so it shows what a search finds instead.", "Άνοιξα τη βιτρίνα, αλλά κανένα ολόκληρο σετ σε απόθεμα δεν χωρά τώρα σε αυτό το ποσό, οπότε δείχνει ό,τι βρίσκει μια αναζήτηση.");
+    }
     case "build_bundle": {
       const bundles = (last.output as { bundles?: unknown[] }).bundles ?? [];
       return bundles.length === 0

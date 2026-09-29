@@ -10,6 +10,7 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
 
+import { serverEnv } from "@/env";
 import { COUNTRY_COOKIE, currentRegion, regionFor } from "@/lib/commerce/region";
 
 /**
@@ -36,6 +37,6 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return Response.json({ ok: false, reason: "invalid_country" }, { status: 400 });
   const jar = await cookies();
   // A display preference: no script on the page needs to read it.
-  jar.set(COUNTRY_COOKIE, parsed.data.country, { path: "/", sameSite: "lax", maxAge: ONE_YEAR, httpOnly: true });
+  jar.set(COUNTRY_COOKIE, parsed.data.country, { path: "/", sameSite: "lax", maxAge: ONE_YEAR, httpOnly: true, secure: serverEnv().secureCookies });
   return Response.json({ ok: true, region: regionFor(parsed.data.country, "choice") });
 }

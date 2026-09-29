@@ -199,3 +199,31 @@ test("the mini cart, cart, checkout and order pages have no accessibility violat
   await page.waitForLoadState("load");
   await audit("order page");
 });
+
+test("an open order page shows a payment made elsewhere, without being reloaded (docs/adr/039)", async ({ page, request }) => {
+  await addToCart(page, LAMP);
+  await placeOrder(page);
+  const url = new URL(page.url());
+  const orderId = url.pathname.split("/").pop()!;
+  const token = url.searchParams.get("t")!;
+  // The page listens for changes once it is running.
+  await expect(page.locator('[data-agent-id="order:live"]')).toBeAttached();
+  await page.waitForLoadState("networkidle").catch(() => {});
+  // A mark on this very document: a reload would wipe it, a refresh of the page's data does not.
+  await page.evaluate(() => {
+    (window as unknown as { vitrineSamePage?: boolean }).vitrineSamePage = true;
+  });
+
+  // Paid from somewhere else: another tab, the bank, the desk.
+  const paid = await request.post(`/api/orders/${orderId}/events`, { data: { token, action: "test_pay" } });
+  expect(paid.ok()).toBe(true);
+
+  await expect(page.locator('[data-agent-id="order:status"]')).toHaveText("Paid", { timeout: 10_000 });
+  expect(await page.evaluate(() => (window as unknown as { vitrineSamePage?: boolean }).vitrineSamePage)).toBe(true);
+  await expect(page.locator('[data-agent-id="order:live"]')).toHaveText(/Paid/);
+});
+
+test("the live order stream refuses anyone without the order's link", async ({ request }) => {
+  const response = await request.get(`/api/orders/01a0e559-7ce9-7daa-8335-e0390e571257/live?token=not-the-right-token-at-all`);
+  expect(response.status()).toBe(404);
+});

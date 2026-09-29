@@ -88,6 +88,14 @@ export function createLocalDriver(env: ServerEnv): StorageDriver {
       const object = await readObject(config.root, key);
       return object === null ? null : { body: new Uint8Array(object.body), contentType: object.meta.contentType };
     },
+    exists: async (key) => {
+      try {
+        await stat(resolveKeyPath(config.root, key));
+        return true;
+      } catch {
+        return false;
+      }
+    },
     deleteObject: (key) => removeObject(config.root, key),
     check: async () => {
       // Writable, not just present: a read-only folder would pass a stat and

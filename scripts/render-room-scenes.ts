@@ -10,7 +10,7 @@
 /**
  * docs/adr/036 (addendum).
  *
- *   pnpm e4:render [--per-category 4] [--seed 4949]
+ *   pnpm e4:render [--per-category 4] [--seed 4949] [--out .local/e4-render]
  *
  * The web-photo proxy (evaluate-room-web.ts) has hand marks, manufacturers'
  * heights and product photographers' low, level cameras. This tier removes
@@ -50,6 +50,8 @@ import { seededRandom } from "@/lib/reco/simulate";
 
 export const RENDER_DIR = path.join(".local", "e4-render");
 export const RENDER_MANIFEST = path.join(RENDER_DIR, "manifest.json");
+/** Another set of rooms (`--out`), such as E4-H's development rooms, keeps its manifest beside its images. */
+export const manifestIn = (dir: string) => path.join(dir, "manifest.json");
 const SCANS = path.join(".local", "storage");
 const WIDTH = 1600;
 const HEIGHT = 1200;
@@ -71,6 +73,10 @@ export type RenderedScene = {
   distanceM: number;
   /** The renderer's exact depth (Float32, little-endian, row by row), for the control run. */
   exactDepth: { file: string; width: number; height: number };
+  /** E4-H's images (docs/adr/042): in the room, the room alone, the studio photograph, the outline. */
+  harmonise: { truth: string; room: string; studio: string; mask: string };
+  /** The scene's light: colour (0xRRGGBB) and strength. */
+  light: { colour: number; level: number };
 };
 
 type SceneParams = { glbUrl: string; seed: number; cameraHeight: number; distance: number; sideways: number; yawDegrees: number; wallGap: number; hfovDegrees: number };
@@ -181,8 +187,15 @@ window.renderScene = async (p) => {
   skirting.position.set(0, 0.04, back.position.z + 0.01);
   scene.add(skirting);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a7f70, 0.5));
-  const sun = new THREE.DirectionalLight(0xfff4e6, 1.8);
+  // Each scene its own light (docs/adr/042): warm lamp, neutral bulb or cool daylight, bright to dim,
+  // so harmonisation has something to match.
+  const LIGHT_COLOURS = [0xffc58f, 0xfff4e6, 0xd6e6ff];
+  const lightColour = LIGHT_COLOURS[p.seed % 3];
+  const lightLevel = 0.8 + (p.seed % 5) * 0.35;
+  scene.environmentIntensity = 0.3 + ((p.seed * 7) % 5) * 0.1;
+  const sky = new THREE.HemisphereLight(lightColour, 0x8a7f70, 0.25 + ((p.seed * 3) % 5) * 0.1);
+  scene.add(sky);
+  const sun = new THREE.DirectionalLight(lightColour, lightLevel);
   sun.position.set(1.5 + (p.seed % 3), 4, 2.5);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -230,9 +243,42 @@ window.renderScene = async (p) => {
   let binary = "";
   for (let i = 0; i < bytes.length; i += 32768) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 32768));
 
+  // E4-H (docs/adr/042): the room as a shopper would photograph it, without the piece; the piece alone
+  // under neutral studio light from the same camera, as a product photograph; and its exact outline.
+  piece.visible = false;
+  renderer.render(scene, camera);
+  const roomUrl = renderer.domElement.toDataURL("image/png");
+  piece.visible = true;
+
+  const others = scene.children.filter((child) => child !== piece);
+  others.forEach((child) => { child.visible = false; });
+  const studioLights = [new THREE.HemisphereLight(0xffffff, 0xffffff, 1.0), new THREE.DirectionalLight(0xffffff, 1.4)];
+  studioLights[1].position.copy(camera.position).add(new THREE.Vector3(0.5, 1.5, 0));
+  studioLights.forEach((light) => scene.add(light));
+  const roomEnvironmentIntensity = scene.environmentIntensity;
+  scene.environmentIntensity = 0.7;
+  scene.background = new THREE.Color(0xffffff);
+  renderer.render(scene, camera);
+  const studioUrl = renderer.domElement.toDataURL("image/png");
+  studioLights.forEach((light) => { scene.remove(light); light.dispose(); });
+  scene.environmentIntensity = roomEnvironmentIntensity;
+
+  scene.background = new THREE.Color(0x000000);
+  scene.overrideMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  renderer.render(scene, camera);
+  const maskUrl = renderer.domElement.toDataURL("image/png");
+  scene.overrideMaterial.dispose();
+  scene.overrideMaterial = null;
+  others.forEach((child) => { child.visible = true; });
+  scene.background = background;
+
   const pixel = (v) => { const n = v.clone().project(camera); return [((n.x + 1) / 2) * W, ((1 - n.y) / 2) * H]; };
   const result = {
     dataUrl,
+    roomUrl,
+    studioUrl,
+    maskUrl,
+    light: { colour: lightColour, level: lightLevel },
     exactDepth: { width: DW, height: DH, base64: btoa(binary) },
     base: pixel(new THREE.Vector3(0, 0, 0)),
     top: pixel(new THREE.Vector3(0, height, 0)),
@@ -271,7 +317,8 @@ function serve(threeDir: string): Promise<{ server: Server; port: number }> {
 }
 
 async function main(): Promise<void> {
-  const { values } = parseArgs({ options: { "per-category": { type: "string" }, seed: { type: "string" } } });
+  const { values } = parseArgs({ options: { "per-category": { type: "string" }, seed: { type: "string" }, out: { type: "string" } } });
+  const outDir = values.out ?? RENDER_DIR;
   const perCategory = Math.max(1, Number.parseInt(values["per-category"] ?? "4", 10));
   const seed = Number.parseInt(values.seed ?? "4949", 10);
 
@@ -296,7 +343,7 @@ async function main(): Promise<void> {
   await page.goto(`http://127.0.0.1:${port}/`);
   await page.waitForFunction(() => (window as unknown as { ready?: boolean }).ready === true, undefined, { timeout: 60_000 });
 
-  await mkdir(RENDER_DIR, { recursive: true });
+  await mkdir(outDir, { recursive: true });
   const random = seededRandom(seed);
   const scenes: RenderedScene[] = [];
   for (const [index, product] of chosen.entries()) {
@@ -311,14 +358,21 @@ async function main(): Promise<void> {
       hfovDegrees: RENDER_FOV,
     };
     const result = await page.evaluate(
-      (p) => (window as unknown as { renderScene: (p: SceneParams) => Promise<{ dataUrl: string; base: [number, number]; top: [number, number]; heightM: number; distanceM: number; exactDepth: { width: number; height: number; base64: string } }> }).renderScene(p),
+      (p) => (window as unknown as { renderScene: (p: SceneParams) => Promise<{ dataUrl: string; base: [number, number]; top: [number, number]; heightM: number; distanceM: number; exactDepth: { width: number; height: number; base64: string }; roomUrl: string; studioUrl: string; maskUrl: string; light: { colour: number; level: number } }> }).renderScene(p),
       params,
     );
     const file = `${String(index + 1).padStart(2, "0")}-${product.sourceId.toLowerCase()}.jpg`;
     const png = Buffer.from(result.dataUrl.slice(result.dataUrl.indexOf(",") + 1), "base64");
-    await sharp(png).jpeg({ quality: 90 }).toFile(path.join(RENDER_DIR, file));
+    await sharp(png).jpeg({ quality: 90 }).toFile(path.join(outDir, file));
     const depthFile = file.replace(/\.jpg$/, ".depth.f32");
-    await writeFile(path.join(RENDER_DIR, depthFile), Buffer.from(result.exactDepth.base64, "base64"));
+    // E4-H's four images, lossless: the truth in the room, the room without the piece, the studio photo, the outline.
+    const passes = { truth: result.dataUrl, room: result.roomUrl, studio: result.studioUrl, mask: result.maskUrl } as const;
+    const harmonise: Record<keyof typeof passes, string> = { truth: "", room: "", studio: "", mask: "" };
+    for (const [name, url] of Object.entries(passes) as [keyof typeof passes, string][]) {
+      harmonise[name] = file.replace(/\.jpg$/, `.${name}.png`);
+      await writeFile(path.join(outDir, harmonise[name]), Buffer.from(url.slice(url.indexOf(",") + 1), "base64"));
+    }
+    await writeFile(path.join(outDir, depthFile), Buffer.from(result.exactDepth.base64, "base64"));
     const inFrame = (point: [number, number]) => point[0] >= 0 && point[0] < WIDTH && point[1] >= 0 && point[1] < HEIGHT;
     if (!inFrame(result.base) || !inFrame(result.top)) {
       process.stdout.write(`  ${file}: the piece leaves the frame, skipped\n`);
@@ -338,13 +392,15 @@ async function main(): Promise<void> {
       cameraHeightM: Math.round(params.cameraHeight * 1000) / 1000,
       distanceM: Math.round(result.distanceM * 1000) / 1000,
       exactDepth: { file: depthFile, width: result.exactDepth.width, height: result.exactDepth.height },
+      harmonise,
+      light: result.light,
     });
     process.stdout.write(`  ${file}  ${product.category.padEnd(10)} ${String(Math.round(result.heightM * 100)).padStart(3)} cm, camera ${params.cameraHeight.toFixed(2)} m\n`);
   }
   await browser.close();
   server.close();
-  await writeFile(RENDER_MANIFEST, `${JSON.stringify({ seed, renderedAt: new Date().toISOString(), fovDegrees: RENDER_FOV, scenes }, null, 2)}\n`);
-  process.stdout.write(`${scenes.length} scenes written to ${RENDER_DIR}\n`);
+  await writeFile(manifestIn(outDir), `${JSON.stringify({ seed, renderedAt: new Date().toISOString(), fovDegrees: RENDER_FOV, scenes }, null, 2)}\n`);
+  process.stdout.write(`${scenes.length} scenes written to ${outDir}\n`);
 }
 
 // Run only when executed, so the measuring script can import the scene type and paths.

@@ -84,6 +84,20 @@ describe("demoStep", () => {
     expect(demoStep(prompt("a living room set for 1.500 euros"))).toEqual({ kind: "tools", calls: [{ toolName: "build_bundle", input: { template: "living-room", budgetEuros: 1500 } }] });
   });
 
+  it("opens a shop window: a theme from its words, or a room and budget of the shopper's own (docs/adr/040)", () => {
+    expect(intentOf("show me a shop window for a bedroom")).toBe("showcase");
+    expect(intentOf("δείξε μου μια βιτρίνα")).toBe("showcase");
+    expect(demoStep(prompt("show me a shop window for a bedroom"))).toEqual({
+      kind: "tools",
+      calls: [{ toolName: "compose_showcase", input: { theme: "oak-bedroom", caption: "Setting up the window" } }],
+    });
+    expect(demoStep(prompt("inspire me: a living room window for 1200 euros"))).toMatchObject({
+      calls: [{ toolName: "compose_showcase", input: { template: "living-room", budgetEuros: 1200 } }],
+    });
+    expect(demoStep(prompt("δείξε μου μια βιτρίνα", [], "el"))).toMatchObject({ calls: [{ toolName: "compose_showcase", input: { theme: "reading-corner", caption: "Στήνω τη βιτρίνα" } }] });
+    expect(demoStep(prompt("show me a shop window", [{ toolName: "compose_showcase", output: { found: true } }]))).toMatchObject({ kind: "text", text: expect.stringContaining("Here is the window") });
+  });
+
   it("goes to checkout only through the tool that asks first", () => {
     expect(demoStep(prompt("let's check out"))).toEqual({ kind: "tools", calls: [{ toolName: "start_checkout", input: {} }] });
     expect(demoStep(prompt("let's check out", [{ toolName: "start_checkout", output: null, denied: true }]))).toEqual({ kind: "text", text: "Understood, I haven't done that." });

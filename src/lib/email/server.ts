@@ -26,5 +26,6 @@ export function appMailer(): Mailer {
  * only an admin, and the caller checks the role.
  */
 export function outboxIsOpen(): boolean {
-  return serverEnv().VITRINE_LOCAL;
+  // The local stack proper, never a deployment that carries the flag (src/lib/local-stack.ts).
+  return serverEnv().localStack;
 }

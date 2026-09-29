@@ -39,6 +39,8 @@ export type PersonWatch = {
 /** A watch the price has answered, with everything the email needs. */
 export type DueWatch = {
   id: string;
+  /** The watcher, for a notification on their devices as well as the email (docs/adr/044). */
+  userId: string;
   email: string;
   name: string;
   locale: string;
@@ -116,6 +118,7 @@ export function createPriceWatchStore(sql: Sql) {
   async function pass(): Promise<{ due: DueWatch[]; rearmed: number }> {
     const rows = await sql<{
       id: string;
+      user_id: string;
       email: string;
       name: string | null;
       locale: string;
@@ -129,7 +132,7 @@ export function createPriceWatchStore(sql: Sql) {
       price_cents: number;
       notified_at: Date | null;
     }[]>`
-      SELECT w.id, u.email, u.name, w.locale, p.id AS product_id, p.slug, p.title_en, p.title_el, p.status, w.target_cents, p.price_cents, w.notified_at,
+      SELECT w.id, w.user_id, u.email, u.name, w.locale, p.id AS product_id, p.slug, p.title_en, p.title_el, p.status, w.target_cents, p.price_cents, w.notified_at,
              COALESCE((SELECT sum(v.stock)::int FROM product_variants v WHERE v.product_id = p.id), 0) AS stock
       FROM price_watches w
       JOIN users u ON u.id = w.user_id
@@ -153,6 +156,7 @@ export function createPriceWatchStore(sql: Sql) {
       const row = byId.get(id)!;
       return {
         id: row.id,
+        userId: row.user_id,
         email: row.email,
         name: row.name ?? row.email.split("@")[0]!,
         locale: row.locale,

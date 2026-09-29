@@ -22,6 +22,7 @@ import { useRouter } from "@/i18n/navigation";
 import { COMFORT_KEYS, DEFAULT_COMFORT } from "@/lib/comfort/settings";
 import { SIZE_GROUPS, type PreferencesPatch } from "@/lib/prefs/preferences";
 import type { Ledger } from "@/lib/prefs/ledger";
+import { PUSH_TOPICS } from "@/lib/push/notices";
 
 /**
  * docs/adr/033. Read from where the data is kept, never from a description of
@@ -60,6 +61,17 @@ export function DataLedger({ ledger, labels }: { ledger: Ledger; labels: { color
     toast({ title: t("removed"), tone: "success" });
   };
 
+  const [devices, setDevices] = useState(ledger.devices);
+  const forgetDevice = async (id: string) => {
+    const response = await fetch("/api/my-data", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "forget-device", id }) }).catch(() => null);
+    if (response?.ok !== true) {
+      toast({ title: t("failed"), tone: "danger" });
+      return;
+    }
+    setDevices((entries) => entries.filter((entry) => entry.id !== id));
+    toast({ title: t("removed"), tone: "success" });
+  };
+
   const forgetEverything = async () => {
     const response = await fetch("/api/my-data", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "forget-everything" }) }).catch(() => null);
     setConfirm(false);
@@ -70,6 +82,7 @@ export function DataLedger({ ledger, labels }: { ledger: Ledger; labels: { color
     // The device's own copy of the comfort settings goes with the rest.
     setComfort({ ...DEFAULT_COMFORT });
     setHistory([]);
+    setDevices([]);
     toast({ title: t("everythingGone"), tone: "success" });
     router.refresh();
   };
@@ -158,6 +171,33 @@ export function DataLedger({ ledger, labels }: { ledger: Ledger; labels: { color
           </ul>
         )}
       </section>
+
+      {ledger.account === null ? null : (
+        <section aria-labelledby="ledger-devices" className="flex flex-col gap-3">
+          <h2 id="ledger-devices" className="font-display text-xl">
+            {t("devicesTitle")}
+          </h2>
+          {devices.length === 0 ? (
+            <p className="text-slate text-sm">{t("devicesNone")}</p>
+          ) : (
+            <ul className="border-hairline divide-hairline divide-y border-y" data-agent-id="ledger:devices">
+              {devices.map((entry) => (
+                <li key={entry.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <span className="flex flex-col">
+                    <span>{entry.device ?? t("deviceUnknown")}</span>
+                    <span className="text-slate text-sm">
+                      {PUSH_TOPICS.filter((topic) => entry.topics.includes(topic)).map((topic) => t(`topics.${topic}`)).join(" · ")}, {format.dateTime(new Date(entry.createdAt), { dateStyle: "medium" })}
+                    </span>
+                  </span>
+                  <Button variant="tertiary" size="sm" disabled={!hydrated} onClick={() => void forgetDevice(entry.id)} data-agent-id={`ledger:forget-device:${entry.id}`}>
+                    {t("remove")}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <section aria-labelledby="ledger-elsewhere" className="flex flex-col gap-3">
         <h2 id="ledger-elsewhere" className="font-display text-xl">

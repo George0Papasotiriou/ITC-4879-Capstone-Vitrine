@@ -205,7 +205,8 @@ export function createCatalogAdminStore(sql: Sql) {
    * Saves an edit. Returns the fields that changed; an edit that changes
    * nothing writes nothing, not even the audit entry or the edited mark.
    */
-  async function updateProduct(id: string, details: ProductDetails, actor: AuditActor, now = new Date()) {
+  /** `reason` is kept with the audit entry: which model drafted the words the person accepted (docs/adr/045). */
+  async function updateProduct(id: string, details: ProductDetails, actor: AuditActor, now = new Date(), reason: string | null = null) {
     return sql.begin(async (tx) => {
       const current = await readProduct(id, tx, { lock: true });
       if (current === null) return { ok: false, reason: "not_found" } as const;
@@ -250,7 +251,7 @@ export function createCatalogAdminStore(sql: Sql) {
           staff_edited_at = ${at}::timestamptz, updated_at = ${at}::timestamptz
         WHERE id = ${id}
       `;
-      await recordAudit(tx, { actor, action: "product.update", entityType: "product", entityId: id, changes }, now);
+      await recordAudit(tx, { actor, action: "product.update", entityType: "product", entityId: id, changes, reason }, now);
       return { ok: true, changed: fields } as const;
     });
   }

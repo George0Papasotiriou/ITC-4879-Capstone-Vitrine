@@ -119,7 +119,7 @@ test("a customer gets 404 on staff pages and cannot export or edit", async ({ br
   const signedOut = await page.request.get("/api/admin/export/orders");
   expect(signedOut.status()).toBe(401);
   await signUpAndConfirm(page, uniqueEmail("customer"));
-  for (const path of ["/en/staff", "/en/staff/products", "/en/admin", "/en/admin/audit"]) {
+  for (const path of ["/en/staff", "/en/staff/products", "/en/admin", "/en/admin/audit", "/en/admin/system"]) {
     expect((await page.goto(path))?.status(), path).toBe(404);
   }
   expect((await page.request.get("/api/admin/export/orders")).status()).toBe(403);
@@ -149,10 +149,44 @@ test("the staff pages pass the accessibility checks", async ({ browser }, info) 
   await signInAdmin(staff, info);
   await openEditor(staff, PRODUCTS[info.project.name as keyof typeof PRODUCTS].sku);
   const editor = staff.url();
-  for (const path of ["/en/staff", "/en/staff/products", editor, "/en/admin", "/en/admin/audit", "/el/admin"]) {
+  for (const path of ["/en/staff", "/en/staff/products", editor, "/en/admin", "/en/admin/audit", "/el/admin", "/en/admin/system", "/el/admin/system"]) {
     await staff.goto(path, { waitUntil: "networkidle" });
     const results = await new AxeBuilder({ page: staff }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
     expect(results.violations, `${path}: ${results.violations.map((violation) => `${violation.id} (${violation.nodes[0]?.target.join(" ")})`).join(", ")}`).toEqual([]);
   }
+  await staff.context().close();
+});
+
+test("the store page says where the shop's shared state lives and what it holds (docs/adr/039)", async ({ browser }, info) => {
+  const staff = await freshPage(browser);
+  await signInAdmin(staff, info);
+  // A search, so the cache and the store have something to show.
+  await staff.request.get("/api/search?q=lamp&locale=en&limit=6");
+  await staff.goto("/en/admin/system", { waitUntil: "domcontentloaded" });
+  // The local stack has no Redis: the page says so rather than pretending.
+  await expect(staff.locator('[data-agent-id="system:kind"]')).toContainText("This process's memory");
+  await expect(staff.locator('[data-agent-id="system:limits"]')).toContainText("Concierge messages");
+  await expect(staff.locator('[data-agent-id="dashboard:system-trending"]')).toBeVisible();
+  await expect(staff.locator('[data-agent-id="action:open-system"]')).toHaveCount(0);
+  await staff.goto("/en/staff", { waitUntil: "domcontentloaded" });
+  await expect(staff.locator('[data-agent-id="action:open-system"]')).toBeVisible();
+  await staff.context().close();
+});
+
+
+test("copy help offers a draft only with the shop's AI key, and says so without one (docs/adr/045)", async ({ browser }, info) => {
+  const product = PRODUCTS[info.project.name as keyof typeof PRODUCTS];
+  const staff = await freshPage(browser);
+  await signInAdmin(staff, info);
+  await openEditor(staff, product.sku);
+  const greekTitle = await staff.locator('[data-agent-id="product-edit:titleEl"]').inputValue();
+
+  // The e2e shop runs in demo mode: rules cannot write copy, so there is no draft and nothing changes.
+  await staff.locator('[data-agent-id="action:draft-greek"]').click();
+  await expect(staff.locator('[data-agent-id="product-edit:copy-error"]')).toHaveText("Drafting needs the shop's AI key (AI_PROVIDER=google). Nothing was changed.");
+  await expect(staff.locator('[data-agent-id="product-edit:copy-draft"]')).toHaveCount(0);
+  await expect(staff.locator('[data-agent-id="product-edit:titleEl"]')).toHaveValue(greekTitle);
+  const axe = await new AxeBuilder({ page: staff }).include('[data-agent-id="product-edit:copy"]').analyze();
+  expect(axe.violations).toEqual([]);
   await staff.context().close();
 });

@@ -38,7 +38,8 @@ import type { TicketTopic } from "@/lib/support/tickets";
  */
 
 export type ToolScope = "read" | "ui" | "cart" | "account" | "costly" | "sensitive";
-export type Surface = "chat" | "voice" | "support" | "eval";
+/** Where a tool is called from: the Concierge (chat, voice), the support assistant, evaluations, an outside agent over MCP, or an agent in the browser over WebMCP. */
+export type Surface = "chat" | "voice" | "support" | "eval" | "mcp" | "webmcp";
 
 export type ToolUser = { id: string; email: string; emailVerified: boolean; roles: Role[] };
 

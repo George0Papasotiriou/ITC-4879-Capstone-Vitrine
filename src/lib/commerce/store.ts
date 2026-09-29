@@ -498,6 +498,27 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
     return result.ok;
   }
 
+  /**
+   * Every unpaid order whose payment window has passed, oldest first, expired
+   * through the state machine — with the side effects returned, so the caller
+   * can void a payment that could otherwise still be made (docs/adr/038). The
+   * scheduled sweep; expireIfDue stays for the one order a page is showing.
+   */
+  async function expireDue(now = new Date(), limit = 50): Promise<{ orderId: string; effects: SideEffect[] }[]> {
+    const due = await sql<{ id: string }[]>`
+      SELECT id FROM orders
+      WHERE status = 'pending_payment' AND payment_expires_at <= ${now.toISOString()}::timestamptz
+      ORDER BY payment_expires_at
+      LIMIT ${limit}
+    `;
+    const expired: { orderId: string; effects: SideEffect[] }[] = [];
+    for (const { id } of due) {
+      const result = await applyEvent(id, "payment_expired", "system", { now, reason: "payment window passed" });
+      if (result.ok) expired.push({ orderId: id, effects: result.effects });
+    }
+    return expired;
+  }
+
   /** An order for a guest holding its link; null for a wrong id or token. */
   async function orderForToken(orderId: string, token: string): Promise<OrderView | null> {
     const [row] = await sql<{ access_token_hash: string }[]>`SELECT access_token_hash FROM orders WHERE id = ${orderId}`;
@@ -682,6 +703,7 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
     claimCart,
     placeOrder,
     applyEvent,
+    expireDue,
     expireIfDue,
     orderForToken,
     orderForOwner,

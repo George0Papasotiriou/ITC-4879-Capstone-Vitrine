@@ -53,7 +53,8 @@ export async function fillAndSubmit(page: Page, fields: Record<string, string>, 
 export async function signUpAndConfirm(page: Page, email: string, name = "Eleni Papadopoulou") {
   await page.goto("/en/account/sign-up", { waitUntil: "domcontentloaded" });
   await fillAndSubmit(page, { "auth:name": name, "auth:email": email, "auth:password": PASSWORD }, "action:sign-up");
-  await expect(page.locator('[data-agent-id="auth:check-inbox"]')).toContainText(email);
+  // Hashing the password (scrypt) on a busy laptop has taken over five seconds once in a while.
+  await expect(page.locator('[data-agent-id="auth:check-inbox"]')).toContainText(email, { timeout: 15_000 });
   await page.goto(await linkFromOutbox(page, email, "verify_email"));
   await expect(page).toHaveURL(/\/en\/account\?verified=1$/);
   await expect(page.locator('[data-agent-id="account:email"]')).toHaveText(`Signed in as ${email}`);

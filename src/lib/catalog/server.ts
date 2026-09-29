@@ -12,12 +12,15 @@ import { cache } from "react";
 
 import { listingStateToBase, localizeCard, localizeDetail, localizeListing } from "@/lib/catalog/localize";
 import { createCatalogQueries, type CatalogQueries } from "@/lib/catalog/queries";
+import { createStoredModelCheck } from "@/lib/catalog/stored-model";
 import { currentRegion } from "@/lib/commerce/region";
 import { toBaseBound } from "@/lib/commerce/vat";
 import { sql } from "@/lib/db/client";
+import { cached } from "@/lib/kv/cache";
 import { E1_SYSTEMS, type E1System } from "@/lib/search/evaluation";
 import { searchProducts, type SearchOptions } from "@/lib/search/pipeline";
 import { createRetrievers } from "@/lib/search/retrieve";
+import { storage } from "@/lib/storage";
 
 /**
  * Catalogue access for pages and route handlers.
@@ -38,10 +41,14 @@ let searchRetrievers: ReturnType<typeof createRetrievers> | undefined;
 const queries = () => (catalogQueries ??= createCatalogQueries(sql));
 const retrievers = () => (searchRetrievers ??= createRetrievers(sql));
 
+/** A 3D scan is offered only when its file is in storage (src/lib/catalog/stored-model.ts). */
+const storedModel = createStoredModelCheck(storage);
+
 export const getProduct = cache(async (slug: string, locale: string) => {
   await connection();
   const [product, region] = await Promise.all([queries().productBySlug(slug, locale), currentRegion()]);
-  return product === null ? null : localizeDetail(product, region.country);
+  if (product === null) return null;
+  return localizeDetail({ ...product, model: await storedModel(product.model) }, region.country);
 });
 
 export const getCategories = cache(async (locale: string) => {
@@ -90,8 +97,16 @@ export async function runSearch(query: string, options?: SearchOptions) {
   await connection();
   const { country } = await currentRegion();
   // "Under €200" means €200 in the shopper's prices.
-  return searchProducts(retrievers(), query, { ...options, priceToBase: (cents, bound) => toBaseBound(cents, bound, country) });
+  const run = () => searchProducts(retrievers(), query, { ...options, priceToBase: (cents, bound) => toBaseBound(cents, bound, country) });
+  // A query with its own embedding is personal to that request; everything else is the same for
+  // everyone in a country, so its ranking is kept for two minutes (docs/adr/039). Cards, prices and
+  // stock are read fresh by the caller either way.
+  if (options?.embedding != null) return run();
+  const { filters = null, limit = null, retrievers: stages = null, rerank = null, weights = null } = options ?? {};
+  return cached("search", { query, country, filters, limit, stages, rerank, weights }, SEARCH_CACHE_SECONDS, run);
 }
+
+const SEARCH_CACHE_SECONDS = 120;
 
 /**
  * One E1 system's ranking for a query (docs/adr/036): the shop's search with

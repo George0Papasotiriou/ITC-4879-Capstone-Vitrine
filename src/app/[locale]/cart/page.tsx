@@ -43,9 +43,17 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/cart">):
   return { title: t("title"), robots: { index: false, follow: false } };
 }
 
-export default async function CartPage({ params }: PageProps<"/[locale]/cart">) {
+export default async function CartPage({ params, searchParams }: PageProps<"/[locale]/cart">) {
   const locale = await requireLocale(params);
   const t = await getTranslations("cart");
+  // Arrived from an AI agent's checkout link (docs/adr/043): say so, and say what happens next.
+  const handoff = (await searchParams).handoff;
+  const handoffNote =
+    handoff === "agent" || handoff === "gone" || handoff === "invalid" ? (
+      <p className="bg-plinth/70 rounded-plinth mt-6 max-w-[62ch] px-4 py-3 text-sm" role="status" data-agent-id="cart:handoff">
+        {t(`handoff.${handoff}`)}
+      </p>
+    ) : null;
   const home = await getTranslations("home");
 
   const store = await commerce();
@@ -58,6 +66,7 @@ export default async function CartPage({ params }: PageProps<"/[locale]/cart">) 
     return (
       <main className="mx-auto w-full max-w-[1440px] px-6 py-10 md:px-10 md:py-16">
         <h1 className="font-display text-3xl">{t("title")}</h1>
+        {handoffNote}
         <EmptyState
           title={t("empty")}
           description={t("emptyDescription")}
@@ -93,6 +102,7 @@ export default async function CartPage({ params }: PageProps<"/[locale]/cart">) 
       <p className="text-slate tabular mt-2">
         <Ticker value={totals.itemCount}>{t("items", { count: totals.itemCount })}</Ticker>
       </p>
+      {handoffNote}
 
       <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
         {/* A line removed folds away, and the lines below close the gap (docs/adr/031). */}

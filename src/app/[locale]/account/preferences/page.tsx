@@ -12,7 +12,9 @@ import { getTranslations } from "next-intl/server";
 
 import { ComfortLink } from "@/components/comfort/comfort-button";
 import { PreferencesForm } from "@/components/prefs/preferences-form";
+import { PushPanel } from "@/components/prefs/push-panel";
 import { SmartLink } from "@/components/ui/smart-link";
+import { serverEnv } from "@/env";
 import { requireLocale } from "@/i18n/params";
 import { currentPreferences } from "@/lib/prefs/server";
 import { COLORS, colorLabel, MATERIALS, materialLabel } from "@/lib/search/vocabulary";
@@ -59,6 +61,15 @@ export default async function PreferencesPage({ params }: PageProps<"/[locale]/a
       <div className="mt-12">
         <PreferencesForm initial={preferences} colors={colors} materials={materials} />
       </div>
+
+      {/* Notifications on this device (docs/adr/044): offered only when the shop has its VAPID keys. */}
+      <section aria-labelledby="push-heading" className="border-hairline mt-12 flex flex-col gap-3 border-t pt-8">
+        <h2 id="push-heading" className="font-display text-2xl">
+          {t("push.title")}
+        </h2>
+        <p className="text-slate max-w-[60ch] text-sm">{t("push.lede")}</p>
+        <PushPanel publicKey={serverEnv().vapid?.publicKey ?? null} signedIn={signedIn} />
+      </section>
     </main>
   );
 }

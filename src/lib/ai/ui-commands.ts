@@ -51,6 +51,8 @@ const ROUTE_ALLOWLIST: readonly RegExp[] = [
   /^\/snap$/,
   /^\/stylist$/,
   /^\/taste$/,
+  // Shop windows (docs/adr/040).
+  /^\/showcase$/,
   /^\/(?:shipping|privacy|contact|credits)$/,
 ];
 

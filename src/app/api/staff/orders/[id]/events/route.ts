@@ -12,8 +12,9 @@ import { z } from "zod";
 import { authorize } from "@/lib/auth/session";
 import { needsReason } from "@/lib/commerce/desk";
 import { ORDER_EVENTS } from "@/lib/commerce/order-state";
-import { commerce, notifyOrder } from "@/lib/commerce/server";
+import { commerce } from "@/lib/commerce/server";
 import { logger } from "@/lib/log";
+import { afterOrderEvent } from "@/lib/payments/service";
 
 /**
  * The order desk's one write (docs/adr/016). The server decides everything:
@@ -48,6 +49,6 @@ export async function POST(request: Request, { params }: RouteContext<"/api/staf
   }
   // Who did what is in the order's history; the log only records that staff acted.
   logger.info({ order: id, event, from: result.from, to: result.to, staff: access.user.id }, "Order moved by staff");
-  await notifyOrder(id, result.effects);
+  await afterOrderEvent(id, result.effects, result.to);
   return Response.json({ ok: true, status: result.to });
 }

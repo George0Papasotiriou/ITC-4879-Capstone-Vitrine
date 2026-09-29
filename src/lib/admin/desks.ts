@@ -10,7 +10,7 @@
 import { can, type Permission, type Role } from "@/lib/auth/roles";
 
 export type StaffDesk = {
-  key: "orders" | "support" | "reviews" | "products" | "dashboard" | "concierge" | "recommendations" | "labeling" | "ai" | "audit";
+  key: "orders" | "support" | "reviews" | "products" | "dashboard" | "concierge" | "recommendations" | "labeling" | "ai" | "system" | "audit";
   href: string;
   permission: Permission;
   /** The Concierge's handle on the link (CLAUDE.md conventions). */
@@ -27,6 +27,7 @@ export const STAFF_DESKS: readonly StaffDesk[] = [
   { key: "recommendations", href: "/admin/recommendations", permission: "reports:read", agentId: "action:open-reco-dashboard" },
   { key: "labeling", href: "/admin/labeling", permission: "reports:read", agentId: "action:open-labeling" },
   { key: "ai", href: "/admin/ai", permission: "reports:read", agentId: "action:open-ai" },
+  { key: "system", href: "/admin/system", permission: "reports:read", agentId: "action:open-system" },
   { key: "audit", href: "/admin/audit", permission: "audit:read", agentId: "action:open-audit" },
 ];
 

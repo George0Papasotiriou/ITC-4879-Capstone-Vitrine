@@ -42,6 +42,7 @@ import { sizeChartFor } from "@/lib/catalog/capsule";
 import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
 import { preferredSize, roomFits, sizeGroupOf } from "@/lib/prefs/preferences";
 import { currentPreferences } from "@/lib/prefs/server";
+import { productInsights } from "@/lib/reviews/server";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
@@ -97,6 +98,8 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const relatedTitle = neighbours.source === "behavior" && neighbourCards.length > 0 ? t("pairsWith") : t("moreLikeThis");
 
   const reviews = await (await reviewsStore()).productReviews(product.id, { limit: 10 });
+  // What buyers like and mention against, read from every published review (docs/adr/041).
+  const insights = reviews.summary.count === 0 ? undefined : await productInsights(product.id);
   // A price watch belongs to an account, so the form only has a target to show for someone signed in.
   const user = await currentUser();
   const watch = user === null ? null : await (await priceWatches()).forProduct({ userId: user.id, productId: product.id });
@@ -334,7 +337,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         </div>
       </div>
 
-      <ProductReviews summary={reviews.summary} reviews={reviews.reviews} locale={locale} />
+      <ProductReviews summary={reviews.summary} reviews={reviews.reviews} locale={locale} insights={insights} />
 
       {related.length === 0 ? null : (
         <section className="border-hairline mt-20 border-t pt-10" data-shelf={neighbours.source === "behavior" && neighbourCards.length > 0 ? "pairs-with" : "more-like-this"}>

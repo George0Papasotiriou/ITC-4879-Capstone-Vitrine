@@ -129,6 +129,34 @@ test("the sheet can be marked and the piece moved with the keyboard alone", asyn
   await expect(page.getByText("Turned right by 15°")).toBeAttached();
 });
 
+test("the placed piece takes the room's light, and the shopper can turn that off", async ({ page }) => {
+  await openSample(page);
+  for (const [index, corner] of sampleRoomGeometry().sheetImage.entries()) {
+    const point = await toPage(page, corner);
+    await page.mouse.click(point.x, point.y);
+    await expect(page.getByText(`${index + 1} of 4 corners marked`)).toBeVisible();
+  }
+  await page.getByRole("button", { name: "Place it" }).click();
+
+  // On by default (docs/adr/042): the piece's photograph is multiplied by the room's white.
+  const stage = page.locator('canvas[data-agent-id="room:stage"]');
+  const matchLight = page.locator('[data-agent-id="room:match-light"] input');
+  await expect(matchLight).toBeChecked();
+  await expect(stage).toHaveAttribute("data-light", /^\d(\.\d+)?,\d(\.\d+)?,\d(\.\d+)?$/);
+  const gains = (await stage.getAttribute("data-light"))!.split(",").map(Number);
+  for (const gain of gains) {
+    expect(gain).toBeGreaterThanOrEqual(0.2);
+    expect(gain).toBeLessThanOrEqual(1.25);
+  }
+  const lit = await stage.evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL());
+
+  await matchLight.uncheck();
+  await expect(stage).toHaveAttribute("data-light", "off");
+  await expect.poll(() => stage.evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL())).not.toBe(lit);
+  await matchLight.check();
+  await expect(stage).toHaveAttribute("data-light", gains.join(","));
+});
+
 test("an uploaded photo opens for marking, and a file that is not a photo says what to do", async ({ page }) => {
   await page.goto(`/en/room?product=${SOFA}`, { waitUntil: "domcontentloaded" });
   const input = page.locator('input[type="file"]');

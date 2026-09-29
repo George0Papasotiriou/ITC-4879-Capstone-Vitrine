@@ -25,6 +25,8 @@ export interface StorageDriver {
    * here; they go straight to storage with a presigned URL.
    */
   putObject(params: { key: string; body: Uint8Array; contentType: string }): Promise<void>;
+  /** Whether an object is there, without reading it (a HEAD request, or a stat). */
+  exists(key: string): Promise<boolean>;
   /** Server-side read of one object, or null when it does not exist. */
   getObject(key: string): Promise<{ body: Uint8Array; contentType: string } | null>;
   /**

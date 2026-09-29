@@ -11,6 +11,7 @@ import type { Metadata, Viewport } from "next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Atkinson_Hyperlegible_Next, Commissioner } from "next/font/google";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import "../globals.css";
@@ -20,6 +21,7 @@ import { ShelfTracker } from "@/components/reco/shelf-tracker";
 import { StudyPanel } from "@/components/study/study-panel";
 import { InstantSearchLayer } from "@/components/search/instant-search-layer";
 import { ConciergeShell } from "@/components/concierge/concierge-shell";
+import { WebMcp } from "@/components/concierge/webmcp";
 import { Footer } from "@/components/shell/footer";
 import { Header } from "@/components/shell/header";
 import { MobileBar } from "@/components/shell/mobile-bar";
@@ -58,7 +60,11 @@ const readable = Atkinson_Hyperlegible_Next({
   preload: false,
 });
 
-/** Both locales are prerendered rather than resolved per request. */
+/**
+ * The two locales the shop has. Pages are still rendered per request: the
+ * layout reads the request's nonce for the Content Security Policy
+ * (docs/adr/046), which a page built ahead of time could not carry.
+ */
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
@@ -104,6 +110,8 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "nav" });
+  // This view's nonce (src/proxy.ts): Next.js marks its own scripts with it; the one script written here is marked below.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     // The head script sets the comfort attributes on <html> before React
@@ -111,7 +119,7 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${commissioner.variable} ${readable.variable} h-full`} suppressHydrationWarning>
       <head>
         {/* Comfort settings, applied before the first paint (docs/adr/032). */}
-        <script dangerouslySetInnerHTML={{ __html: prepaintScript() }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: prepaintScript() }} />
       </head>
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>
@@ -140,6 +148,8 @@ export default async function LocaleLayout({
           <ShelfTracker />
           <StudyPanel />
           <ServiceWorker />
+          {/* The shop's tools for an assistant built into the browser, when there is one (docs/adr/043). */}
+          <WebMcp />
           </ConciergeShell>
           </Toaster>
         </NextIntlClientProvider>

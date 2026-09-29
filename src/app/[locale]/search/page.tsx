@@ -8,6 +8,7 @@
  */
 
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 
 import { FilterLink } from "@/components/commerce/filter-link";
@@ -20,6 +21,9 @@ import { logSearch } from "@/lib/admin/server";
 import { getCardsByIds, runSearch } from "@/lib/catalog/server";
 import { CATEGORIES, isCategorySlug } from "@/lib/catalog/taxonomy";
 import { formatMoney, money } from "@/lib/commerce/money";
+import { clientAddress } from "@/lib/geo/ip-country";
+import { anonymous, kv } from "@/lib/kv";
+import { recordTrending } from "@/lib/search/trending";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
@@ -73,6 +77,7 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/[
       tookMs: timed!.tookMs,
       source: "page",
     });
+    void recordTrending(kv(), query, anonymous(clientAddress(await headers()) ?? "unknown"), result.ids.length).catch(() => {});
   }
 
   const euro = (cents: number) => formatMoney(money(cents), locale, { hideDecimalsWhenWhole: true });

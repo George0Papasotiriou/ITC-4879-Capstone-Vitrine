@@ -4,7 +4,7 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * Request proxy: request ids and locale routing.
+ * Request proxy: request ids, security headers and locale routing.
  */
 
 import createMiddleware from "next-intl/middleware";
@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { routing } from "@/i18n/routing";
 import { REQUEST_ID_HEADER, resolveRequestId } from "@/lib/log/request-id";
+import { baseSecurityHeaders, contentSecurityPolicy, cspHeaderName, cspMode, newNonce } from "@/lib/security/headers";
 
 /**
  * Next.js 16 renamed `middleware.ts` to `proxy.ts` (CLAUDE.md, known gotchas).
@@ -21,7 +22,13 @@ import { REQUEST_ID_HEADER, resolveRequestId } from "@/lib/log/request-id";
  * 1. **Request id.** Every request gets an `x-request-id`, forwarded to the app
  *    so logs written while handling it can be correlated, and echoed on the
  *    response so a bug report can quote it.
- * 2. **Locale.** Pages are redirected to a locale prefix. API routes are not
+ * 2. **Security headers** (docs/adr/046). Every response gets the base set;
+ *    every page also gets a Content Security Policy with a nonce made for this
+ *    one view, passed to the render in the request's own CSP header, where
+ *    Next.js reads it and puts it on its scripts (and `x-nonce` for the
+ *    layout's own inline script). CSP_MODE=report switches it to report-only,
+ *    CSP_MODE=off removes it: a way back without a code change.
+ * 3. **Locale.** Pages are redirected to a locale prefix. API routes are not
  *    localised and pass straight through.
  *
  * Any authentication check added here later is optimistic only: every server
@@ -42,14 +49,28 @@ export default function proxy(request: NextRequest) {
 
   const headers = new Headers(request.headers);
   headers.set(REQUEST_ID_HEADER, requestId);
+  const api = request.nextUrl.pathname.startsWith("/api/");
+  const https = (process.env.APP_URL ?? "").startsWith("https://");
 
-  const response = request.nextUrl.pathname.startsWith("/api/")
+  // A page's policy and its nonce, made fresh for this request.
+  const csp = api ? null : cspHeaderName(cspMode(process.env.CSP_MODE));
+  let policy: string | null = null;
+  if (csp !== null) {
+    const nonce = newNonce();
+    policy = contentSecurityPolicy({ nonce, dev: process.env.NODE_ENV === "development", https });
+    headers.set("x-nonce", nonce);
+    headers.set("content-security-policy", policy);
+  }
+
+  const response = api
     ? NextResponse.next({ request: { headers } })
     : // next-intl copies the incoming request's headers into the request it
-      // forwards, so the id set here reaches the page.
+      // forwards, so the id and the nonce set here reach the page.
       handleI18n(new NextRequest(request, { headers }));
 
   response.headers.set(REQUEST_ID_HEADER, requestId);
+  for (const [name, value] of baseSecurityHeaders({ https })) response.headers.set(name, value);
+  if (csp !== null && policy !== null) response.headers.set(csp, policy);
   return response;
 }
 

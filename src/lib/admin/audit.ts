@@ -31,10 +31,12 @@ export const AUDIT_ACTIONS = [
   "macro.update",
   "macro.restore",
   "macro.remove",
+  "agent.create",
+  "agent.revoke",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
-export const AUDIT_ENTITIES = ["product", "variant", "review", "user", "setting", "macro"] as const;
+export const AUDIT_ENTITIES = ["product", "variant", "review", "user", "setting", "macro", "agent"] as const;
 export type AuditEntity = (typeof AUDIT_ENTITIES)[number];
 
 export type AuditChanges = Record<string, { before: unknown; after: unknown }>;

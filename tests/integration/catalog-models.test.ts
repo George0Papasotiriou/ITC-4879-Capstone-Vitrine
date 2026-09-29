@@ -38,6 +38,7 @@ describe.skipIf(url === undefined || url === "")("3D scans job", () => {
     putObject: async ({ key, body }: { key: string; body: Uint8Array }) => {
       stored.set(key, body.byteLength);
     },
+    exists: async (key: string) => stored.has(key),
   };
   const log = { warn: () => {} };
   // A real glTF binary: an 80 × 40 × 75 cm box, the size of a sideboard.
@@ -64,7 +65,6 @@ describe.skipIf(url === undefined || url === "")("3D scans job", () => {
   });
 
   beforeEach(() => {
-    stored.clear();
     requested.length = 0;
     answers.clear();
   });
@@ -95,8 +95,23 @@ describe.skipIf(url === undefined || url === "")("3D scans job", () => {
     expect(await compressPendingModels({ sql: connection, files, download, log }, 8)).toMatchObject({ processed: 0, remaining: 0 });
   });
 
+  it("makes a scan whose file went missing again, bringing its row up to date and deleting nothing", async () => {
+    const key = modelKey(fixture[0]!.sourceId);
+    stored.delete(key);
+    const stats = await compressPendingModels({ sql: connection, files, download, log }, 8);
+    expect(stats).toMatchObject({ repaired: 1, processed: 0, remaining: 0 });
+    expect(requested).toEqual([`${ABO_BUCKET}/3dmodels/original/0/SCAN0.glb`]);
+    expect(stored.has(key)).toBe(true);
+    expect(await models()).toHaveLength(3);
+    // The next run finds every file where its row says it is.
+    requested.length = 0;
+    expect(await compressPendingModels({ sql: connection, files, download, log }, 8)).toMatchObject({ repaired: 0, processed: 0 });
+    expect(requested).toEqual([]);
+  });
+
   it("sets aside a scan that cannot be fetched, is too large or cannot be read, without storing anything", async () => {
     await connection`DELETE FROM product_media WHERE kind = 'model'`;
+    stored.clear();
     answers.set(`${ABO_BUCKET}/3dmodels/original/0/SCAN0.glb`, () => new Response("gone", { status: 404 }));
     answers.set(`${ABO_BUCKET}/3dmodels/original/1/SCAN1.glb`, () => new Response(new Uint8Array(glb), { headers: { "content-length": String(200 * 1024 * 1024) } }));
     answers.set(`${ABO_BUCKET}/3dmodels/original/2/SCAN2.glb`, () => new Response("not a model"));

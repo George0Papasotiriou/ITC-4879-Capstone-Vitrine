@@ -50,6 +50,19 @@ describe("catalogue tools", () => {
     expect(quote!.text.endsWith(FENCE_CLOSE)).toBe(true);
     expect(quote!.text.slice(FENCE_OPEN.length, -FENCE_CLOSE.length)).not.toContain(FENCE_CLOSE);
   });
+
+  it("counts what buyers like and mention against, from the reviews themselves (docs/adr/041)", async () => {
+    const reviews = [
+      { id: "r1", rating: 5, title: null, body: "Very sturdy and well made.", authorName: "Eleni P.", locale: "en", createdAt: new Date(), edited: false },
+      { id: "r2", rating: 2, title: null, body: "Solid, but the delivery was late.", authorName: "Nikos K.", locale: "en", createdAt: new Date(), edited: false },
+    ];
+    const { ctx } = context({ reviews: async () => ({ summary: { count: 2, average: 3.5, distribution: [0, 1, 0, 0, 1] }, reviews }) });
+    const output = await run("summarize_reviews", { productId: LAMP }, ctx);
+    expect(output.points).toEqual([
+      { aspect: "build", polarity: "pro", reviews: 2 },
+      { aspect: "delivery", polarity: "con", reviews: 1 },
+    ]);
+  });
 });
 
 describe("UI tools", () => {
@@ -122,6 +135,25 @@ describe("UI tools", () => {
     await expect(run("place_in_room", { productId: CHAIR, caption: "Placing the chair" }, ctx)).resolves.toMatchObject({ placeable: false, commands: [] });
   });
 
+  it("opens a shop window: a curated theme, or one made from a room, a budget and words (docs/adr/040)", async () => {
+    const asked: unknown[] = [];
+    const bundle = { picks: [{ slotId: "chair", productId: CHAIR, quantity: 1, unitPriceCents: 1, lineTotalCents: 1 }], totalCents: 1, remainingCents: 0, utility: 1, method: "exact" as const, highlight: null };
+    const { ctx } = context({
+      bundles: async (request) => {
+        asked.push(request);
+        return { request, bundles: [bundle], candidateCounts: {}, missingRequired: [], stats: { elapsedMs: 1, exact: true, nodes: 1 } };
+      },
+    });
+    const curated = await run("compose_showcase", { theme: "oak-bedroom", caption: "Setting up the window" }, ctx);
+    expect(curated).toMatchObject({ href: "/showcase?theme=oak-bedroom", productIds: [CHAIR], found: true, commands: [{ type: "navigate", href: "/showcase?theme=oak-bedroom" }] });
+    expect(asked[0]).toMatchObject({ template: "bedroom", budgetCents: 180_000, query: "oak" });
+    const made = await run("compose_showcase", { template: "living-room", budgetEuros: 1200, words: "velvet", caption: "Setting up the window" }, ctx);
+    expect(made.href).toBe("/showcase?template=living-room&budget=1200&words=velvet");
+    // Only ids and the link: the page prices the window from the database.
+    expect(Object.keys(made).sort()).toEqual(["commands", "found", "href", "productIds"]);
+    expect(needsApproval(findTool("compose_showcase", "chat")!)).toBe(false);
+  });
+
   it("opens the room planner for a product", async () => {
     const { ctx } = context();
     const output = await run("open_viewer", { productId: LAMP, viewer: "room", caption: "Placing the lamp" }, ctx);
@@ -150,6 +182,19 @@ describe("cart tools", () => {
   it("passes the shop's refusal on", async () => {
     const { ctx } = context({ cart: { ...context().ctx.services.cart, change: async () => ({ ok: false, reason: "out_of_stock" }) } });
     await expect(run("add_to_cart", { productId: LAMP }, ctx)).resolves.toEqual({ ok: false, reason: "out_of_stock" });
+  });
+
+  it("reads the cart with the shop's prices, and an empty cart as empty", async () => {
+    await expect(run("get_cart", {}, context().ctx)).resolves.toEqual({ lines: [], items: 0, subtotalCents: 0, shippingCents: 0, totalCents: 0, currency: "EUR" });
+    const { ctx } = context({}, [{ variantId: LAMP_VARIANT, productId: LAMP, title: "Faux Wood Table Lamp", quantity: 2, available: true }]);
+    await expect(run("get_cart", {}, ctx)).resolves.toEqual({
+      lines: [{ productId: LAMP, slug: "faux-wood-table-lamp", title: "Faux Wood Table Lamp", quantity: 2, unitPriceCents: 3900, available: true }],
+      items: 2,
+      subtotalCents: 7800,
+      shippingCents: 900,
+      totalCents: 8700,
+      currency: "EUR",
+    });
   });
 });
 

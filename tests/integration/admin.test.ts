@@ -258,6 +258,15 @@ describe.skipIf(url === undefined || url === "")("running the shop", () => {
       });
     });
 
+    it("records that the words came from an AI draft the editor accepted (docs/adr/045)", async () => {
+      const id = await productId(fixture[4]!.sourceId);
+      const before = await detailsOf(id);
+      const reason = "Words drafted by AI (gemini-3.8-flash) and accepted by the editor";
+      expect(await catalog.updateProduct(id, { ...before, titleEl: "Φωτιστικό ανάγνωσης" }, staff, new Date(), reason)).toEqual({ ok: true, changed: ["titleEl", "translation"] });
+      const [entry] = await connection<{ reason: string | null }[]>`SELECT reason FROM audit_log WHERE entity_id = ${id} AND action = 'product.update' ORDER BY created_at DESC LIMIT 1`;
+      expect(entry?.reason).toBe(reason);
+    });
+
     it("writes nothing for an edit that changes nothing", async () => {
       const id = await productId(fixture[1]!.sourceId);
       const count = await auditCount();

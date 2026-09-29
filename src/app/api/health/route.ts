@@ -108,7 +108,13 @@ function checkStorage(): Promise<ComponentResult> {
   return timed(async () => {
     const driver = await storage();
     const { location } = await driver.check();
-    return { driver: driver.kind, location: driver.kind === "local" ? "local folder" : location };
+    // Still healthy enough to serve, so the deploy's health check passes — but said plainly:
+    // a deployment's own disk is emptied by every deploy and is not shared with the worker.
+    const warning =
+      driver.kind === "local" && !serverEnv().localStack
+        ? "Files are on this container's disk: lost on every deploy and not shared with the worker. Set the S3_* variables for a bucket."
+        : undefined;
+    return { driver: driver.kind, location: driver.kind === "local" ? "local folder" : location, ...(warning === undefined ? {} : { warning }) };
   });
 }
 
@@ -123,7 +129,7 @@ export async function GET(request: Request): Promise<Response> {
       status: healthy ? "ok" : "error",
       checkedAt: new Date().toISOString(),
       requestId: request.headers.get("x-request-id"),
-      local: serverEnv().VITRINE_LOCAL,
+      local: serverEnv().localStack,
       components,
     },
     { status: healthy ? 200 : 503, headers: { "cache-control": "no-store" } },

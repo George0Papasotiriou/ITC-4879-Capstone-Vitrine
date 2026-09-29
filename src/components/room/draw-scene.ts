@@ -8,6 +8,7 @@
  */
 
 import { boxCorners, projectPoint, upSign, type Placement, type Point2, type Pose } from "@/lib/vision/camera";
+import { shadowFor, type LightEstimate } from "@/lib/vision/harmonize";
 import type { Mat3, Vec3 } from "@/lib/vision/linalg";
 
 /**
@@ -39,7 +40,12 @@ export type SceneInput = {
   camera: { K: Mat3; pose: Pose; sheet: readonly Point2[] | null; gridCentre: Point2 } | null;
   /** Pixels the paper-free mode found to be floor, drawn as a light wash so the shopper can see what it read. */
   floorPixels: readonly Point2[] | null;
-  product: { placement: Placement; mode: "stand" | "lie"; cutout: Cutout | null; outline: boolean } | null;
+  /**
+   * `light`: the room's light where the piece stands (src/lib/vision/harmonize.ts),
+   * when the shopper keeps "Match the room's light" on; the cut-out passed is
+   * then already tinted, and the shadow falls away from the light.
+   */
+  product: { placement: Placement; mode: "stand" | "lie"; cutout: Cutout | null; outline: boolean; light?: LightEstimate | null } | null;
 };
 
 const INK = "rgba(255, 255, 255, 0.92)";
@@ -228,6 +234,23 @@ function drawProduct(
   ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
   ctx.fill();
   ctx.restore();
+
+  // Cast shadow (docs/adr/042): the footprint again, pushed away from the room's light and softer.
+  if (product.light != null && product.light.towardsLight !== null) {
+    const { x, y, height } = product.placement;
+    const base = projectPoint(K, pose, [x, y, 0]);
+    const top = projectPoint(K, pose, [x, y, upSign(pose) * height]);
+    if (base !== null && top !== null) {
+      const shadow = shadowFor(product.light, Math.hypot(top[0] - base[0], top[1] - base[1]));
+      ctx.save();
+      if ("filter" in ctx) ctx.filter = `blur(${shadow.blur * r}px)`;
+      ctx.translate(shadow.dx, shadow.dy);
+      path(footprint);
+      ctx.fillStyle = `rgba(0, 0, 0, ${shadow.opacity})`;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
 
   if (product.cutout !== null) {
     // A billboard standing at the centre of the footprint: the photograph is

@@ -7,8 +7,9 @@
  * Checkout API: validates the form and places an idempotent guest order.
  */
 
+import { serverEnv } from "@/env";
 import { checkoutSchema, fieldErrors } from "@/lib/commerce/checkout-input";
-import { commerce, currentCart, lastOrder, orderPath, PAYMENT_PROVIDER, rememberOrder } from "@/lib/commerce/server";
+import { commerce, currentCart, lastOrder, orderPath, rememberOrder } from "@/lib/commerce/server";
 
 /**
  * Places an order from the guest's cart (Phase 5 step 3).
@@ -38,7 +39,8 @@ export async function POST(request: Request): Promise<Response> {
     address: { name: input.name, line1: input.line1, line2: input.line2, city: input.city, postcode: input.postcode, country: input.country, region: input.region, phone: input.phone },
     shipping: input.shipping,
     idempotencyKey: input.idempotencyKey,
-    paymentProvider: PAYMENT_PROVIDER,
+    // Stripe (test mode) when its keys are set; the order keeps the provider it was placed with.
+    paymentProvider: serverEnv().paymentProvider,
   });
 
   if (!result.ok) {

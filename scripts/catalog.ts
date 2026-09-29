@@ -225,6 +225,16 @@ async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boole
     );
     return summary.inserted;
   });
+  // The deploy's sync may have changed words and prices: cached search rankings start again (docs/adr/039).
+  if (process.env.REDIS_URL !== undefined && process.env.REDIS_URL !== "") {
+    try {
+      const [{ bumpCatalogVersion }, { redis }] = await Promise.all([import("@/lib/kv/cache"), import("@/lib/jobs/redis")]);
+      await bumpCatalogVersion();
+      await redis().quit();
+    } catch (error) {
+      out(`[catalog] search cache not cleared (${error instanceof Error ? error.message : String(error)}); it expires on its own within minutes`);
+    }
+  }
   // New products need neighbour lists before they can be recommended.
   if (inserted > 0 && options.sync) {
     const connection = postgres(process.env.DATABASE_URL as string, { max: 2, onnotice: () => {} });

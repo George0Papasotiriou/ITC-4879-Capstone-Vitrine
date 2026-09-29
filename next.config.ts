@@ -52,6 +52,8 @@ const nextConfig: NextConfig = {
       { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
     ];
     return [
+      // Every file, including the static ones the proxy does not see (its CSP and the rest: src/lib/security/headers.ts).
+      { source: "/:path*", headers: [{ key: "X-Content-Type-Options", value: "nosniff" }, { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" }] },
       { source: "/:locale(en|el)/room", headers: isolated },
       { source: "/:locale(en|el)/lab/:path*", headers: isolated },
       // The model's runtime starts workers from these files. A worker started by

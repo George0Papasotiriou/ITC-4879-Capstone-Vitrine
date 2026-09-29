@@ -15,6 +15,7 @@ import { currentUser } from "@/lib/auth/session";
 import { COMFORT_COOKIE } from "@/lib/comfort/settings";
 import { myData } from "@/lib/prefs/ledger";
 import { clearPreferences, preferenceStore } from "@/lib/prefs/server";
+import { pushStore } from "@/lib/push/server";
 import { ACTOR_COOKIE, CONSENT_COOKIE, currentActor, tasteGraph } from "@/lib/reco/server";
 
 /**
@@ -40,7 +41,11 @@ export async function GET(request: Request): Promise<Response> {
   });
 }
 
-const actionSchema = z.discriminatedUnion("action", [z.object({ action: z.literal("forget-view"), id: z.uuid() }), z.object({ action: z.literal("forget-everything") })]);
+const actionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("forget-view"), id: z.uuid() }),
+  z.object({ action: z.literal("forget-device"), id: z.uuid() }),
+  z.object({ action: z.literal("forget-everything") }),
+]);
 
 export async function POST(request: Request): Promise<Response> {
   const body = actionSchema.safeParse(await request.json().catch(() => null));
@@ -52,9 +57,17 @@ export async function POST(request: Request): Promise<Response> {
     return forgotten ? Response.json({ ok: true }) : Response.json({ ok: false, reason: "not_found" }, { status: 404 });
   }
 
+  if (body.data.action === "forget-device") {
+    const owner = await currentUser();
+    const removed = owner === null ? false : await (await pushStore()).remove(owner.id, body.data.id);
+    return removed ? Response.json({ ok: true }) : Response.json({ ok: false, reason: "not_found" }, { status: 404 });
+  }
+
   const user = await currentUser();
   await clearPreferences();
   if (user !== null) await preferenceStore().saveComfort(user.id, "");
+  // Every device that could show this account's notifications stops (docs/adr/044).
+  if (user !== null) await (await pushStore()).removeAll(user.id);
   if (actor !== null) await tasteGraph().forget(actor);
   const jar = await cookies();
   for (const name of [COMFORT_COOKIE, ACTOR_COOKIE, CONSENT_COOKIE]) jar.delete(name);

@@ -162,6 +162,27 @@
       "when": 1790553340346,
       "tag": "0022_product_media_remote_originals",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790640919336,
+      "tag": "0023_payment_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790661490302,
+      "tag": "0024_agent_tokens",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790672096632,
+      "tag": "0025_push_subscriptions",
+      "breakpoints": true
     }
   ]
 }

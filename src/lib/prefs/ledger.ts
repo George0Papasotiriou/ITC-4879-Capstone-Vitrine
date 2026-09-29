@@ -13,6 +13,7 @@ import { currentUser } from "@/lib/auth/session";
 import { COMFORT_COOKIE, parseComfort, type Comfort } from "@/lib/comfort/settings";
 import { currentPreferences } from "@/lib/prefs/server";
 import type { Preferences } from "@/lib/prefs/preferences";
+import { pushStore } from "@/lib/push/server";
 import { currentActor, tasteGraph } from "@/lib/reco/server";
 
 /**
@@ -36,11 +37,14 @@ export type Ledger = {
   comfort: Comfort;
   personalization: boolean;
   history: LedgerEntry[];
+  /** Browsers that may show this account's notifications (docs/adr/044). */
+  devices: { id: string; device: string | null; topics: string[]; createdAt: string }[];
 };
 
 export async function myData(locale: "en" | "el"): Promise<Ledger> {
   const [user, prefs, actor, jar] = await Promise.all([currentUser(), currentPreferences(), currentActor(), cookies()]);
   const history = actor === null ? [] : await tasteGraph().history(actor, locale);
+  const devices = user === null ? [] : await (await pushStore()).devices(user.id);
   return {
     exportedAt: new Date().toISOString(),
     account: user === null ? null : { email: user.email },
@@ -49,5 +53,6 @@ export async function myData(locale: "en" | "el"): Promise<Ledger> {
     comfort: parseComfort(jar.get(COMFORT_COOKIE)?.value),
     personalization: actor !== null,
     history: history.map((entry) => ({ ...entry, at: entry.at.toISOString() })),
+    devices: devices.map((device) => ({ id: device.id, device: device.device, topics: device.topics, createdAt: device.createdAt.toISOString() })),
   };
 }

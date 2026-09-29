@@ -23,7 +23,12 @@ import { logger } from "@/lib/log";
 export const runtime = "nodejs";
 
 const bodySchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("details"), details: z.record(z.string(), z.unknown()) }),
+  z.object({
+    kind: z.literal("details"),
+    details: z.record(z.string(), z.unknown()),
+    /** Set when the person accepted an AI copy draft before saving: the model that wrote it (docs/adr/045). */
+    draftedBy: z.string().regex(/^[a-z0-9.-]{1,60}$/).optional(),
+  }),
   z.object({ kind: z.literal("stock"), variantId: z.unknown(), stock: z.unknown(), reason: z.unknown() }),
 ]);
 
@@ -41,7 +46,8 @@ export async function POST(request: Request, { params }: RouteContext<"/api/staf
   if (body.data.kind === "details") {
     const details = productDetailsSchema.safeParse(body.data.details);
     if (!details.success) return Response.json({ ok: false, reason: "invalid_fields", fields: fieldErrors(details.error) }, { status: 422 });
-    const result = await store.updateProduct(id, details.data, actor);
+    const reason = body.data.draftedBy === undefined ? null : `Words drafted by AI (${body.data.draftedBy}) and accepted by the editor`;
+    const result = await store.updateProduct(id, details.data, actor, new Date(), reason);
     // A draft goes on sale only with a photograph (docs/adr/034).
     if (!result.ok) return Response.json({ ok: false, reason: result.reason }, { status: result.reason === "needs_photo" ? 409 : 404 });
     if (result.changed.length > 0) logger.info({ product: id, fields: result.changed, staff: actor.userId }, "Product edited");

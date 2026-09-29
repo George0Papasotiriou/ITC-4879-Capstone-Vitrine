@@ -77,6 +77,40 @@ export const updateCartItem = define({
   run: (ctx, { productId, quantity }) => change(ctx, productId, quantity, "set"),
 });
 
+/**
+ * What is in the cart, as the shop prices it (docs/adr/043). Added for agents
+ * outside the page, which cannot see the cart drawer; the Concierge uses it
+ * too when the shopper asks what they have. The figures are the database's.
+ */
+export const getCart = define({
+  name: "get_cart",
+  description:
+    "What is in the shopper's cart now: each product with its quantity, unit price and whether it can still be bought, the subtotal, delivery and total for the shopper's country. " +
+    "Use it when the shopper asks what they have, or before changing a quantity. Do not use it to find new products (search_products).",
+  scope: "read",
+  input: z.object({}),
+  output: z.object({
+    lines: z.array(z.object({ productId: z.string(), slug: z.string(), title: z.string(), quantity: z.number().int(), unitPriceCents: z.number().int(), available: z.boolean() })),
+    items: z.number().int(),
+    subtotalCents: z.number().int(),
+    /** Standard delivery to the country the cart is priced for; the checkout page may change it with the address. */
+    shippingCents: z.number().int(),
+    totalCents: z.number().int(),
+    currency: z.string(),
+  }),
+  async run(ctx) {
+    const cart = await ctx.services.cart.view();
+    return {
+      lines: cart.lines.map((line) => ({ productId: line.productId, slug: line.slug, title: line.title, quantity: line.quantity, unitPriceCents: line.unitPrice.cents, available: line.available })),
+      items: cart.totals.itemCount,
+      subtotalCents: cart.totals.subtotal.cents,
+      shippingCents: cart.totals.shipping.cents,
+      totalCents: cart.totals.total.cents,
+      currency: cart.totals.subtotal.currency,
+    };
+  },
+});
+
 export const removeFromCart = define({
   name: "remove_from_cart",
   description: "Take a product out of the shopper's cart. Use it only when the shopper asks to remove it.",

@@ -35,6 +35,7 @@ import { hashPassword } from "better-auth/crypto";
 import postgres from "postgres";
 import { uuidv7 } from "uuidv7";
 
+import { isLocalStack } from "@/lib/local-stack";
 import { recordAudit } from "@/lib/admin/audit";
 import { isRole, parseRoles, ROLES, withoutRole, withRole, type Role } from "@/lib/auth/roles";
 
@@ -105,7 +106,7 @@ async function demoPassword(): Promise<string> {
 
 async function demo(sql: postgres.Sql) {
   // Demo accounts with a shared password belong on a laptop, never in production.
-  if (process.env.VITRINE_LOCAL !== "1") throw new Error("Demo accounts are for the local stack only (run through `pnpm accounts`).");
+  if (!isLocalStack(process.env)) throw new Error("Demo accounts are for the local stack only (run through `pnpm accounts`).");
   console.log(`${DEMO_ACCOUNTS.length} confirmed demo accounts, one per role:`);
   for (const account of DEMO_ACCOUNTS) console.log(`  ${account.email.padEnd(28)} ${account.role}`);
   if (dryRun) return console.log("Dry run: nothing written.");

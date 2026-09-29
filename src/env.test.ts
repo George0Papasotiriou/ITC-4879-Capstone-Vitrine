@@ -146,3 +146,51 @@ describe("the production guard", () => {
     expect(parseEnvironment({ ...base, ...localSecret }).data?.AI_DAILY_BUDGET_EUR).toBe(3);
   });
 });
+
+describe("the local stack and the deployment that carries its flag (2026-09-29)", () => {
+  it("is the local stack only on this machine's address, never on a deployment's", () => {
+    expect(parseEnvironment({ ...base, ...localSecret, VITRINE_LOCAL: "1" }).data?.localStack).toBe(true);
+    const deployed = parseEnvironment({ ...base, ...localSecret, ...cookieSecret, NODE_ENV: "production", VITRINE_LOCAL: "1", APP_URL: "https://shop.up.railway.app" });
+    expect(deployed.success).toBe(true);
+    expect(deployed.data?.localStack).toBe(false);
+  });
+
+  it("marks cookies Secure whenever the shop is served over https", () => {
+    expect(parseEnvironment({ ...base, ...localSecret, ...cookieSecret, NODE_ENV: "production", VITRINE_LOCAL: "1", APP_URL: "https://shop.up.railway.app" }).data?.secureCookies).toBe(true);
+    expect(parseEnvironment({ ...base, ...localSecret }).data?.secureCookies).toBe(false);
+  });
+});
+
+describe("Stripe (docs/adr/038)", () => {
+  const stripe = { STRIPE_SECRET_KEY: "sk_test_abc", STRIPE_PUBLISHABLE_KEY: "pk_test_abc", STRIPE_WEBHOOK_SECRET: "whsec_abc" };
+
+  it("pays with Stripe when all three keys are set, and with the local test payment otherwise", () => {
+    expect(parseEnvironment({ ...base, ...localSecret, ...stripe }).data?.paymentProvider).toBe("stripe");
+    expect(parseEnvironment({ ...base, ...localSecret }).data?.paymentProvider).toBe("local_test");
+  });
+
+  it("takes the three keys together or not at all", () => {
+    expect(parseEnvironment({ ...base, ...localSecret, STRIPE_SECRET_KEY: "sk_test_abc" }).success).toBe(false);
+  });
+
+  it("refuses live keys: this shop never takes real money", () => {
+    expect(parseEnvironment({ ...base, ...localSecret, ...stripe, STRIPE_SECRET_KEY: "sk_live_abc" }).success).toBe(false);
+    expect(parseEnvironment({ ...base, ...localSecret, ...stripe, STRIPE_PUBLISHABLE_KEY: "pk_live_abc" }).success).toBe(false);
+  });
+});
+
+describe("Web Push (docs/adr/044)", () => {
+  const vapid = { VAPID_PUBLIC_KEY: `B${"a".repeat(86)}`, VAPID_PRIVATE_KEY: "k".repeat(43), VAPID_SUBJECT: "mailto:shop@example.com" };
+
+  it("offers notifications only when the three VAPID variables are set", () => {
+    expect(parseEnvironment({ ...base, ...localSecret, ...vapid }).data?.vapid).toEqual({ publicKey: vapid.VAPID_PUBLIC_KEY, privateKey: vapid.VAPID_PRIVATE_KEY, subject: "mailto:shop@example.com" });
+    expect(parseEnvironment({ ...base, ...localSecret }).data?.vapid).toBeNull();
+    expect(parseEnvironment({ ...base, ...localSecret, VAPID_PUBLIC_KEY: vapid.VAPID_PUBLIC_KEY }).success).toBe(false);
+  });
+
+  it("refuses keys of the wrong shape and a subject push services cannot use", () => {
+    expect(parseEnvironment({ ...base, ...localSecret, ...vapid, VAPID_PRIVATE_KEY: "short" }).success).toBe(false);
+    expect(parseEnvironment({ ...base, ...localSecret, ...vapid, VAPID_SUBJECT: "shop@example.com" }).success).toBe(false);
+    expect(parseEnvironment({ ...base, ...localSecret, ...vapid, VAPID_SUBJECT: "https://vitrine.example/contact" }).success).toBe(true);
+  });
+});

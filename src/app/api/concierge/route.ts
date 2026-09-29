@@ -13,7 +13,7 @@ import { z } from "zod";
 import { routing } from "@/i18n/routing";
 import { logConciergeEvents } from "@/lib/admin/server";
 import { parsePageMap } from "@/lib/ai/guardrails/page-map";
-import { createRateLimiter } from "@/lib/ai/guardrails/rate-limit";
+import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 import { MODELS } from "@/lib/ai/models";
 import { CONCIERGE_PROMPT_VERSION, conciergeInstructions } from "@/lib/ai/prompts/concierge-v1";
 import { textModel } from "@/lib/ai/providers";
@@ -38,7 +38,7 @@ export const maxDuration = 60;
 
 const MAX_MESSAGES = 16;
 const MAX_TEXT = 2_000;
-const perAddress = createRateLimiter({ limit: 20, windowMs: 60_000 });
+const perAddress = sharedRateLimiter({ name: "concierge", limit: 20, windowMs: 60_000 });
 
 const bodySchema = z.object({
   messages: z.array(z.unknown()).min(1).max(200),
@@ -53,7 +53,7 @@ const refuse = (reason: string, status: number) => Response.json({ ok: false, re
 export async function POST(request: Request): Promise<Response> {
   const body = bodySchema.safeParse(await request.json().catch(() => null));
   if (!body.success) return refuse("invalid_request", 400);
-  if (!perAddress(clientAddress(request.headers) ?? "unknown")) return refuse("slow_down", 429);
+  if (!(await perAddress(clientAddress(request.headers) ?? "unknown"))) return refuse("slow_down", 429);
 
   const validated = await safeValidateUIMessages({ messages: body.data.messages.slice(-MAX_MESSAGES) });
   if (!validated.success) return refuse("invalid_request", 400);

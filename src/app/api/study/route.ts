@@ -10,7 +10,7 @@
 import { uuidv7 } from "uuidv7";
 import { z } from "zod";
 
-import { createRateLimiter } from "@/lib/ai/guardrails/rate-limit";
+import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 import { sql } from "@/lib/db/client";
 import { clientAddress } from "@/lib/geo/ip-country";
 import { PARTICIPANT_CODE, STUDY_EVENTS, STUDY_TASKS } from "@/lib/study/tasks";
@@ -23,7 +23,7 @@ import { PARTICIPANT_CODE, STUDY_EVENTS, STUDY_TASKS } from "@/lib/study/tasks";
 
 export const runtime = "nodejs";
 
-const perAddress = createRateLimiter({ limit: 60, windowMs: 60_000 });
+const perAddress = sharedRateLimiter({ name: "study", limit: 60, windowMs: 60_000 });
 
 const bodySchema = z.object({
   participant: z.string().regex(PARTICIPANT_CODE),
@@ -32,7 +32,7 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request): Promise<Response> {
-  if (!perAddress(clientAddress(request.headers) ?? "unknown")) return Response.json({ ok: false, reason: "slow_down" }, { status: 429 });
+  if (!(await perAddress(clientAddress(request.headers) ?? "unknown"))) return Response.json({ ok: false, reason: "slow_down" }, { status: 429 });
   const body = bodySchema.safeParse(await request.json().catch(() => null));
   if (!body.success) return Response.json({ ok: false, reason: "invalid_request" }, { status: 400 });
   await sql`INSERT INTO study_events (id, participant, task, event, occurred_at) VALUES (${uuidv7()}, ${body.data.participant}, ${body.data.task}, ${body.data.event}, now())`;

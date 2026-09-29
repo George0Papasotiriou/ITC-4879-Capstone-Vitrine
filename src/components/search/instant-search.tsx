@@ -11,7 +11,7 @@
 
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useId, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 
 import { forgetRecent, readRecent, rememberSearch } from "@/components/search/search-events";
 import { DialogContent, DialogRoot } from "@/components/ui/dialog";
@@ -49,6 +49,8 @@ type Status = "idle" | "loading" | "done" | "error";
 const DEBOUNCE_MS = 150;
 /** Shown only for slower answers, so a quick one never flashes a "searching" line. */
 const SLOW_MS = 300;
+/** How many trending terms the empty pop-up offers. */
+const TRENDING_SHOWN = 5;
 const RESULT_LIMIT = 6;
 
 export function InstantSearch({ initialQuery = "", onClose }: { initialQuery?: string; onClose: () => void }) {
@@ -66,7 +68,18 @@ export function InstantSearch({ initialQuery = "", onClose }: { initialQuery?: s
   const [chosen, setChosen] = useState<{ list: string; index: number }>({ list: "", index: -1 });
   // The pop-up only ever renders in the browser (it is loaded on demand), so the device's list is there to read.
   const [recent, setRecent] = useState<string[]>(() => readRecent());
+  // "Trending now" (docs/adr/039): what several people searched for lately, the same list for everyone.
+  const [trending, setTrending] = useState<string[]>([]);
   const input = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/search/trending", { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<{ terms: string[] }>) : { terms: [] }))
+      .then((body) => setTrending(body.terms.slice(0, TRENDING_SHOWN)))
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
 
   const trimmed = query.trim();
   const current = answer !== null && answer.query === trimmed ? answer : null;
@@ -101,15 +114,19 @@ export function InstantSearch({ initialQuery = "", onClose }: { initialQuery?: s
   }, [trimmed, locale]);
 
   // The options, in the order the arrow keys walk them.
-  type Option = { key: string; kind: "recent"; text: string } | { key: string; kind: "result"; result: Result } | { key: string; kind: "all" };
+  type Option = { key: string; kind: "recent"; text: string } | { key: string; kind: "trending"; text: string } | { key: string; kind: "result"; result: Result } | { key: string; kind: "all" };
+  const recentWords = new Set(recent.map((text) => text.toLocaleLowerCase()));
   const options: Option[] =
     trimmed === ""
-      ? recent.map((text, index) => ({ key: `recent-${index}`, kind: "recent" as const, text }))
+      ? [
+          ...recent.map((text, index) => ({ key: `recent-${index}`, kind: "recent" as const, text })),
+          ...trending.filter((text) => !recentWords.has(text)).map((text, index) => ({ key: `trending-${index}`, kind: "trending" as const, text })),
+        ]
       : [
           ...results.map((result) => ({ key: result.id, kind: "result" as const, result })),
           ...(status === "done" ? [{ key: "all", kind: "all" as const }] : []),
         ];
-  const listKey = `${trimmed}|${status}|${recent.length}`;
+  const listKey = `${trimmed}|${status}|${recent.length}|${trending.length}`;
   const active = chosen.list === listKey ? chosen.index : -1;
   const setActive = (index: number) => setChosen({ list: listKey, index });
 
@@ -122,7 +139,7 @@ export function InstantSearch({ initialQuery = "", onClose }: { initialQuery?: s
   };
 
   const choose = (option: Option) => {
-    if (option.kind === "recent") {
+    if (option.kind === "recent" || option.kind === "trending") {
       setQuery(option.text);
       input.current?.focus();
       return;
@@ -224,21 +241,35 @@ export function InstantSearch({ initialQuery = "", onClose }: { initialQuery?: s
             </div>
           ) : null}
 
-          <ul id={listId} role="listbox" aria-label={trimmed === "" ? t("recent") : t("results")} className="flex flex-col">
+          <ul id={listId} role="listbox" aria-label={trimmed === "" ? t("suggestions") : t("results")} className="flex flex-col">
             {options.map((option, index) => (
+              <Fragment key={option.key}>
+              {option.kind === "trending" && options[index - 1]?.kind !== "trending" ? (
+                <li aria-hidden="true" className="text-slate mt-3 mb-1 px-3 text-xs tracking-[0.08em] uppercase">
+                  {t("trending")}
+                </li>
+              ) : null}
               <OptionRow
                 key={option.key}
                 id={`${ids}-${option.key}`}
                 selected={index === active}
                 onChoose={() => choose(option)}
                 onHover={() => setActive(index)}
-                agentId={option.kind === "recent" ? `search:recent-${index}` : option.kind === "all" ? "search:see-all" : `product:${option.result.id}`}
+                agentId={option.kind === "recent" ? `search:recent-${index}` : option.kind === "trending" ? `search:trending-${index}` : option.kind === "all" ? "search:see-all" : `product:${option.result.id}`}
                 className={option.kind === "all" ? "border-hairline mt-1 border-t pt-3" : undefined}
               >
                 {option.kind === "recent" ? (
                   <>
                     <ClockGlyph />
                     <span className="truncate">{option.text}</span>
+                  </>
+                ) : option.kind === "trending" ? (
+                  <>
+                    <TrendGlyph />
+                    <span className="truncate">
+                      <span className="sr-only">{t("trendingPrefix")} </span>
+                      {option.text}
+                    </span>
                   </>
                 ) : option.kind === "all" ? (
                   <>
@@ -259,6 +290,7 @@ export function InstantSearch({ initialQuery = "", onClose }: { initialQuery?: s
                   </>
                 )}
               </OptionRow>
+              </Fragment>
             ))}
           </ul>
 
@@ -306,6 +338,15 @@ function ClockGlyph() {
     <svg viewBox="0 0 24 24" className="text-slate size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
       <circle cx="12" cy="12" r="8" />
       <path d="M12 8v4.5l3 1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TrendGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" className="text-slate size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+      <path d="M4 16l5-5 3.5 3.5L20 7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15 7h5v5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

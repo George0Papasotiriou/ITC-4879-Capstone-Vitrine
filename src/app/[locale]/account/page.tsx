@@ -82,6 +82,15 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
           </SmartLink>
           <p className="text-slate text-sm">{t("dataHint")}</p>
         </li>
+        {/* Keys for the shopper's own AI assistants act for an account, so the link shows only once signed in (docs/adr/043). */}
+        {user !== null ? (
+          <li>
+            <SmartLink href="/account/agents" className="font-medium underline-offset-4 hover:underline" data-agent-id="account:agents-link">
+              {t("agentsLink")}
+            </SmartLink>
+            <p className="text-slate text-sm">{t("agentsHint")}</p>
+          </li>
+        ) : null}
       </ul>
     </section>
   );

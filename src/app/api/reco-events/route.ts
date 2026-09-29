@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import { SHELVES } from "@/lib/admin/events";
 import { logRecoEvents } from "@/lib/admin/server";
-import { createRateLimiter } from "@/lib/ai/guardrails/rate-limit";
+import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 import { clientAddress } from "@/lib/geo/ip-country";
 
 /**
@@ -22,7 +22,7 @@ import { clientAddress } from "@/lib/geo/ip-country";
 
 export const runtime = "nodejs";
 
-const perAddress = createRateLimiter({ limit: 30, windowMs: 60_000 });
+const perAddress = sharedRateLimiter({ name: "reco-events", limit: 30, windowMs: 60_000 });
 
 const bodySchema = z.object({
   events: z
@@ -32,7 +32,7 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request): Promise<Response> {
-  if (!perAddress(clientAddress(request.headers) ?? "unknown")) return new Response(null, { status: 429 });
+  if (!(await perAddress(clientAddress(request.headers) ?? "unknown"))) return new Response(null, { status: 429 });
   // Beacons arrive with whatever content type the browser chose, so the body is read as text.
   const body = bodySchema.safeParse(await request.text().then((text) => JSON.parse(text) as unknown).catch(() => null));
   if (!body.success) return new Response(null, { status: 400 });

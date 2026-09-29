@@ -7,6 +7,8 @@
  * Job names, payload types and queue constants shared by web and worker.
  */
 
+import type { PushNotice } from "@/lib/push/notices";
+
 /**
  * Job contracts shared by `web` (which enqueues) and `worker` (which runs).
  *
@@ -29,7 +31,10 @@ export type JobPayloads = {
   /** Phase 11: build the weekly PDF report and email the admins a link to it. Mondays. */
   "weekly-report": { requestedAt: string; reason: "schedule" | "manual"; /** Last day of the week to report on, YYYY-MM-DD; today when absent. */ endDay?: string };
   /** docs/adr/035: compress the next few ABO 3D scans into storage, until every piece that has one does. */
+  "orders-expire": { requestedAt: string; reason: "schedule" | "manual" };
   "catalog-models": { requestedAt: string; reason: "schedule" | "manual"; /** How many scans this run takes on (default 8). */ limit?: number };
+  /** docs/adr/044: one notification to the devices of the person it concerns (an order moved, a desk reply). */
+  "push-send": { requestedAt: string; notice: PushNotice };
 };
 
 export type JobName = keyof JobPayloads;
@@ -50,6 +55,8 @@ export const JOB_QUEUE: Record<JobName, QueueName> = {
   "try-on": QUEUE_NAMES.default,
   "photo-expiry": QUEUE_NAMES.default,
   "catalog-models": QUEUE_NAMES.default,
+  "orders-expire": QUEUE_NAMES.default,
+  "push-send": QUEUE_NAMES.default,
 };
 
 /**

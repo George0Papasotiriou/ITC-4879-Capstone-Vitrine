@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return Response.json({ error: "invalid_request", message: "Send { action: enable | disable | forget }." }, { status: 400 });
 
   const jar = await cookies();
-  const secure = serverEnv().NODE_ENV === "production" && serverEnv().VITRINE_LOCAL !== true;
+  const secure = serverEnv().secureCookies;
   const actor = await currentActor();
 
   if (parsed.data.action === "enable") {

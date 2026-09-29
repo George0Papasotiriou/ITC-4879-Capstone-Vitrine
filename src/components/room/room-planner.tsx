@@ -26,6 +26,7 @@ import {
   focalFromFov,
   intrinsics,
   projectPoint,
+  upSign,
   solveSheet,
   type Placement,
   type Point2,
@@ -33,6 +34,7 @@ import {
 } from "@/lib/vision/camera";
 import { refineCorners, toGray, type GrayImage } from "@/lib/vision/corners";
 import { cutoutFromWhite } from "@/lib/vision/cutout";
+import { applyMatrix, harmonizeMatrix, roomLight, spotLight, type LightEstimate } from "@/lib/vision/harmonize";
 import { readCameraExif } from "@/lib/vision/exif";
 import { cn } from "@/lib/ui/cn";
 
@@ -126,6 +128,8 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
   const [flipped, setFlipped] = useState(false);
   const [moved, setMoved] = useState<{ x: number; y: number; rotation: number } | null>(null);
   const [outline, setOutline] = useState(false);
+  // Light harmonisation (docs/adr/042): on by default, one switch to see the plain photograph.
+  const [matchLight, setMatchLight] = useState(true);
   const [cutout, setCutout] = useState<Cutout | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [pixelRatio, setPixelRatio] = useState(1);
@@ -222,6 +226,36 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
     };
   }, [camera, moved, product, floor, photo]);
 
+  // The room's light, once per photo; the side it falls from where the piece stands, each time it moves (docs/adr/042).
+  const photoPixels = useMemo(() => (photo === null ? null : photo.canvas.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, photo.width, photo.height).data), [photo]);
+  const room = useMemo(() => (photo === null || photoPixels === null ? null : roomLight(photoPixels, photo.width, photo.height, 4)), [photo, photoPixels]);
+  const light = useMemo((): LightEstimate | null => {
+    if (!matchLight || product.mode !== "stand" || camera === null || placement === null || room === null || photo === null || photoPixels === null) return null;
+    const foot = projectPoint(camera.K, camera.pose, [placement.x, placement.y, 0]);
+    const top = projectPoint(camera.K, camera.pose, [placement.x, placement.y, upSign(camera.pose) * placement.height]);
+    if (foot === null || top === null) return null;
+    const heightPx = Math.hypot(top[0] - foot[0], top[1] - foot[1]);
+    const spot = spotLight(photoPixels, photo.width, photo.height, foot, Math.max(24, heightPx * 0.6));
+    // Rounded, so a small drag does not recolour the photograph on every frame.
+    const round = (value: number) => Math.round(value * 50) / 50;
+    return { tint: room.tint.map(round) as [number, number, number], exposure: round(room.exposure), towardsLight: spot.towardsLight, strength: round(spot.strength) };
+  }, [matchLight, product.mode, camera, placement, room, photo, photoPixels]);
+  const gainsKey = light === null ? "" : harmonizeMatrix(light).join(",");
+  const litCutout = useMemo((): Cutout | null => {
+    if (cutout === null || gainsKey === "") return cutout;
+    const gains = gainsKey.split(",").map(Number) as [number, number, number];
+    const source = cutout.image as HTMLCanvasElement;
+    const canvas = document.createElement("canvas");
+    canvas.width = source.width;
+    canvas.height = source.height;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+    ctx.drawImage(source, 0, 0);
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    applyMatrix(data.data, gains);
+    ctx.putImageData(data, 0, 0);
+    return { image: canvas, box: cutout.box };
+  }, [cutout, gainsKey]);
+
   const distance = camera !== null && placement !== null ? Math.hypot(cameraCentre(camera.pose)[0] - placement.x, cameraCentre(camera.pose)[1] - placement.y) : null;
 
   // Keep strokes and the loupe the same size on screen whatever the photo's resolution.
@@ -291,7 +325,7 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
       marker: stage === "corners" ? marker : null,
       camera: camera === null ? null : { ...camera, gridCentre: placement === null ? [0, 0] : [placement.x, placement.y] },
       floorPixels: stage === "scan" && floor !== null ? floor.floorPixels : null,
-      product: stage === "place" && placement !== null ? { placement, mode: product.mode, cutout, outline } : null,
+      product: stage === "place" && placement !== null ? { placement, mode: product.mode, cutout: litCutout, outline, light } : null,
     });
   });
 
@@ -578,6 +612,8 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
               aria-label={t("stageLabel")}
               aria-describedby={helpId}
               data-agent-id="room:stage"
+              // The gains applied to the piece, or "off": read by tests and by anyone checking what the page did (docs/adr/042).
+              data-light={gainsKey === "" ? "off" : gainsKey}
               className={cn("block h-auto max-h-[75vh] w-auto max-w-full touch-none select-none", stage === "place" ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair")}
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
@@ -843,6 +879,12 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                   <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
                     <input type="checkbox" checked={outline} onChange={(event) => setOutline(event.currentTarget.checked)} className="accent-dusk size-5" />
                     {t("outline")}
+                  </label>
+                ) : null}
+                {product.mode === "stand" && cutout !== null ? (
+                  <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm" data-agent-id="room:match-light">
+                    <input type="checkbox" checked={matchLight} onChange={(event) => setMatchLight(event.currentTarget.checked)} className="accent-dusk size-5" />
+                    {t("matchLight")}
                   </label>
                 ) : null}
                 <div className="flex flex-wrap gap-3">

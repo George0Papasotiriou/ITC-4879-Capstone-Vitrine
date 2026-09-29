@@ -32,7 +32,7 @@ const { positionals, values } = parseArgs({
 });
 const [command, name] = positionals;
 
-const RUNNABLE: readonly JobName[] = ["price-watches", "weekly-report", "photo-expiry", "rebuild-taste-graph", "catalog-models", "ping"];
+const RUNNABLE: readonly JobName[] = ["price-watches", "weekly-report", "photo-expiry", "rebuild-taste-graph", "catalog-models", "orders-expire", "ping"];
 
 function list(): void {
   console.log("Recurring jobs (UTC):");

@@ -16,6 +16,7 @@ import { recordConciergeEvents, recordRecoEvents, type ConciergeEventInput, type
 import { recordSearch, type SearchEventInput } from "@/lib/admin/search-events";
 import { createReportStore, type ReportStore } from "@/lib/report/store";
 import { sql } from "@/lib/db/client";
+import { bumpCatalogVersion } from "@/lib/kv/cache";
 import { logger } from "@/lib/log";
 
 let catalogStore: CatalogAdminStore | undefined;
@@ -23,7 +24,28 @@ let dashboardStore: DashboardStore | undefined;
 
 export async function catalogAdmin(): Promise<CatalogAdminStore> {
   await connection();
-  return (catalogStore ??= createCatalogAdminStore(sql));
+  return (catalogStore ??= withCatalogVersion(createCatalogAdminStore(sql)));
+}
+
+/**
+ * Every staff change to the catalogue moves its version on (docs/adr/039), so
+ * no cached search ranking made before the change is read after it.
+ */
+function withCatalogVersion(store: CatalogAdminStore): CatalogAdminStore {
+  const thenBump =
+    <A extends unknown[], R>(change: (...args: A) => Promise<R>) =>
+    async (...args: A): Promise<R> => {
+      const result = await change(...args);
+      await bumpCatalogVersion();
+      return result;
+    };
+  return {
+    ...store,
+    updateProduct: thenBump(store.updateProduct),
+    setStock: thenBump(store.setStock),
+    createProduct: thenBump(store.createProduct),
+    addPhoto: thenBump(store.addPhoto),
+  };
 }
 
 export async function dashboards(): Promise<DashboardStore> {

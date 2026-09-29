@@ -57,6 +57,11 @@ test("@smoke a delivered order's piece is reviewed, and the review appears on th
   await expect(mine).toContainText("Verified purchase");
   await expect(mine).toContainText("Maria G.");
   await expect(mine.getByRole("img", { name: "5 stars" })).toBeVisible();
+  // What buyers say (docs/adr/041): the shade's praise counts for colour and look, quoted as written.
+  const insights = guest.locator('[data-agent-id="product:insights"]');
+  await expect(insights).toContainText("Buyers like");
+  await insights.locator('[data-agent-id="insight:colour-pro"] summary').click();
+  await expect(insights.locator('[data-agent-id="insight:colour-pro"]')).toContainText("softens the light nicely");
   const jsonLd = JSON.parse((await guest.locator('script[type="application/ld+json"]').first().textContent())!) as { aggregateRating?: { reviewCount: number } }[];
   expect(jsonLd[0]!.aggregateRating!.reviewCount).toBeGreaterThan(0);
   await guest.context().close();

@@ -29,7 +29,7 @@ export const PREFS_COOKIE = "vt_prefs";
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
 /** Secure in production, as the shop's other cookies; the local stack serves plain http. */
-const secureCookies = () => serverEnv().NODE_ENV === "production" && serverEnv().VITRINE_LOCAL !== true;
+const secureCookies = () => serverEnv().secureCookies;
 
 let store: PreferenceStore | undefined;
 export const preferenceStore = () => (store ??= createPreferenceStore(sql));

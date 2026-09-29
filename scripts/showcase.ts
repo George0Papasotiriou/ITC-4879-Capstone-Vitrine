@@ -29,6 +29,7 @@ import { parseArgs } from "node:util";
 
 import postgres from "postgres";
 
+import { isLocalStack } from "@/lib/local-stack";
 import { ORDER_STORIES, SHOWCASE_ACCOUNTS, showcasePassword, TICKET_STORIES, MIN_SHOWCASE_PASSWORD } from "@/lib/showcase/plan";
 import { ensureAccounts, ensureHistory, lockShowcase } from "@/lib/showcase/seed";
 
@@ -41,7 +42,7 @@ async function passwordInForce(): Promise<ReturnType<typeof showcasePassword>> {
   const fromEnvironment = showcasePassword(process.env.SHOWCASE_PASSWORD);
   if (fromEnvironment.ok || fromEnvironment.reason === "too_short") return fromEnvironment;
   const local = path.join(".local", "demo-password");
-  if (process.env.VITRINE_LOCAL === "1" && existsSync(local)) return showcasePassword((await readFile(local, "utf8")).trim());
+  if (isLocalStack(process.env) && existsSync(local)) return showcasePassword((await readFile(local, "utf8")).trim());
   return fromEnvironment;
 }
 

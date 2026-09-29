@@ -10,7 +10,7 @@
 import { z } from "zod";
 
 import { routing } from "@/i18n/routing";
-import { createRateLimiter } from "@/lib/ai/guardrails/rate-limit";
+import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 import { currentUser } from "@/lib/auth/session";
 import { commerce, orderOwner } from "@/lib/commerce/server";
 import { clientAddress } from "@/lib/geo/ip-country";
@@ -31,9 +31,9 @@ import { uuidv7 } from "uuidv7";
 export const runtime = "nodejs";
 
 /** A handful of tickets an hour from one address is plenty for a shop this size. */
-const perAddress = createRateLimiter({ limit: 6, windowMs: 60 * 60 * 1000 });
+const perAddress = sharedRateLimiter({ name: "support-new", limit: 6, windowMs: 60 * 60 * 1000 });
 /** Replies are cheaper, but still not unlimited. */
-const repliesPerAddress = createRateLimiter({ limit: 30, windowMs: 60 * 60 * 1000 });
+const repliesPerAddress = sharedRateLimiter({ name: "support-reply", limit: 30, windowMs: 60 * 60 * 1000 });
 
 const message = z.string().trim().min(2, "too_short").max(MAX_MESSAGE_LENGTH, "too_long");
 
@@ -75,7 +75,7 @@ export async function POST(request: Request): Promise<Response> {
   const desk = await supportStore();
 
   if (body.action === "open") {
-    if (!perAddress(address)) return refuse("slow_down", 429);
+    if (!(await perAddress(address))) return refuse("slow_down", 429);
     // A signed-in customer writes as themselves, whatever the form says.
     const email = user?.email ?? body.email.toLowerCase();
     const name = user?.name ?? body.name;
@@ -118,7 +118,7 @@ export async function POST(request: Request): Promise<Response> {
   if (ticket === null) return refuse("not_found", 404);
 
   if (body.action === "reply") {
-    if (!repliesPerAddress(address)) return refuse("slow_down", 429);
+    if (!(await repliesPerAddress(address))) return refuse("slow_down", 429);
     const result = await desk.addMessage(ticket.id, { author: "customer", authorUserId: user?.id ?? null, body: body.body });
     if (!result.ok) return refuse(result.reason === "closed" ? "closed" : "not_found", result.reason === "closed" ? 409 : 404);
     return Response.json({ ok: true } satisfies SupportResponse);

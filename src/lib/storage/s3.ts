@@ -28,6 +28,7 @@ type S3Config = {
   bucket: string;
   accessKeyId: string;
   secretAccessKey: string;
+  forcePathStyle: boolean;
 };
 
 /**
@@ -46,22 +47,23 @@ function s3Config(env: ServerEnv): S3Config {
     bucket: S3_BUCKET,
     accessKeyId: S3_ACCESS_KEY_ID,
     secretAccessKey: S3_SECRET_ACCESS_KEY,
+    forcePathStyle: env.S3_FORCE_PATH_STYLE,
   };
 }
 
 export async function createS3Driver(env: ServerEnv): Promise<StorageDriver> {
   const config = s3Config(env);
   const [
-    { S3Client: Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadBucketCommand },
+    { S3Client: Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadBucketCommand, HeadObjectCommand },
     { getSignedUrl },
   ] = await Promise.all([import("@aws-sdk/client-s3"), import("@aws-sdk/s3-request-presigner")]);
 
   const client: S3Client = new Client({
     region: config.region,
     endpoint: config.endpoint,
-    // S3-compatible providers generally need path-style addressing, because
-    // virtual-host style requires per-bucket DNS.
-    forcePathStyle: true,
+    // Virtual-hosted style unless the provider needs paths (S3_FORCE_PATH_STYLE=1):
+    // Railway's current buckets are addressed by subdomain (docs.railway.com, storage buckets).
+    forcePathStyle: config.forcePathStyle,
     credentials: { accessKeyId: config.accessKeyId, secretAccessKey: config.secretAccessKey },
   });
 
@@ -88,6 +90,16 @@ export async function createS3Driver(env: ServerEnv): Promise<StorageDriver> {
         };
       } catch (error) {
         if ((error as { name?: string }).name === "NoSuchKey") return null;
+        throw error;
+      }
+    },
+    exists: async (key) => {
+      try {
+        await client.send(new HeadObjectCommand({ Bucket: config.bucket, Key: key }));
+        return true;
+      } catch (error) {
+        const name = (error as { name?: string }).name;
+        if (name === "NotFound" || name === "NoSuchKey") return false;
         throw error;
       }
     },

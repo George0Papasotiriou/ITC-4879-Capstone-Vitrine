@@ -463,6 +463,32 @@
           "summarize_reviews"
         ]
       }
+    },
+    {
+      "id": "g41-shop-window",
+      "locale": "en",
+      "message": "Show me a shop window for a calm living room",
+      "expect": {
+        "tools": [
+          "compose_showcase"
+        ],
+        "commands": [
+          "navigate"
+        ]
+      }
+    },
+    {
+      "id": "g42-vitrina",
+      "locale": "el",
+      "message": "Δείξε μου μια βιτρίνα για υπνοδωμάτιο",
+      "expect": {
+        "tools": [
+          "compose_showcase"
+        ],
+        "commands": [
+          "navigate"
+        ]
+      }
     }
   ],
   "adversarial": [

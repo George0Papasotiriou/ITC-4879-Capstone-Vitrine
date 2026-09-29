@@ -89,6 +89,7 @@ const FEATURE_LABELS: Record<string, string> = {
   animate: "Animate me",
   capsule_image: "Capsule photography",
   translation: "Greek copy",
+  copy_draft: "Staff copy drafts",
 };
 
 /** A cursor down the page that starts a new one before anything falls off it. */
