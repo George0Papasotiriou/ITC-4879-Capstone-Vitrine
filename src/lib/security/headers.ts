@@ -27,22 +27,51 @@
  * - Stripe: its script, frames (card fields, 3-D Secure, Link) and API.
  * - Realtime voice: OpenAI's and Google's sockets, opened by the browser with
  *   a one-minute token (docs/adr/030).
+ * - The shop's bucket, for images only: a shopper's photograph and a try-on
+ *   result are shown through short-lived signed links to it (bucketOrigins).
  * Product photographs come through the shop's own image optimizer, 3D scans
  * from its own storage, the depth model from its own files: nothing else.
  */
 
 export type CspMode = "enforce" | "report" | "off";
 
+/** Bucket names as S3-compatible providers allow them; anything else never reaches the header. */
+const BUCKET_NAME = /^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/;
+
+/**
+ * Where the browser meets the bucket. Photographs and try-on results are shown
+ * with signed links straight to it (src/lib/photos/server.ts), so without this
+ * the policy would block them the moment a bucket replaces the local disk.
+ *
+ * Virtual-hosted addresses put the bucket in the host name
+ * (https://vitrine.<account>.r2.cloudflarestorage.com); path-style ones keep
+ * the endpoint's host. The endpoint's own origin is always listed too, because
+ * the S3 client falls back to path style for a bucket name a host name cannot
+ * carry. Empty when there is no bucket, the endpoint is not a web address, or
+ * the name is not a valid bucket name.
+ */
+export function bucketOrigins({ endpoint, bucket, forcePathStyle }: { endpoint?: string; bucket?: string; forcePathStyle: boolean }): string[] {
+  if (endpoint === undefined || bucket === undefined || !BUCKET_NAME.test(bucket)) return [];
+  let url: URL;
+  try {
+    url = new URL(endpoint);
+  } catch {
+    return [];
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:") return [];
+  return forcePathStyle ? [url.origin] : [url.origin, `${url.protocol}//${bucket}.${url.host}`];
+}
+
 const STRIPE = { script: ["https://js.stripe.com", "https://*.js.stripe.com"], frame: ["https://js.stripe.com", "https://*.js.stripe.com", "https://hooks.stripe.com", "https://link.com", "https://*.link.com"], connect: ["https://api.stripe.com", "https://link.com", "https://*.link.com"], img: ["https://*.stripe.com", "https://*.link.com"] };
 const VOICE = ["wss://api.openai.com", "https://api.openai.com", "wss://generativelanguage.googleapis.com", "https://generativelanguage.googleapis.com"];
 
-export function contentSecurityPolicy({ nonce, dev, https }: { nonce: string; dev: boolean; https: boolean }): string {
+export function contentSecurityPolicy({ nonce, dev, https, bucket = [] }: { nonce: string; dev: boolean; https: boolean; bucket?: string[] }): string {
   const directives: [string, string[]][] = [
     ["default-src", ["'self'"]],
     // In development React evaluates code for its error overlay; never in production.
     ["script-src", ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'", "'wasm-unsafe-eval'", ...STRIPE.script, ...(dev ? ["'unsafe-eval'"] : [])]],
     ["style-src", ["'self'", "'unsafe-inline'"]],
-    ["img-src", ["'self'", "data:", "blob:", ...STRIPE.img]],
+    ["img-src", ["'self'", "data:", "blob:", ...bucket, ...STRIPE.img]],
     ["font-src", ["'self'", "data:"]],
     // blob: and data: because three.js (inside model-viewer) fetches a scan's embedded textures from them.
     ["connect-src", ["'self'", "blob:", "data:", ...STRIPE.connect, ...VOICE, ...(dev ? ["ws:"] : [])]],

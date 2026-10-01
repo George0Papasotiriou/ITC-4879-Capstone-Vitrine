@@ -10,6 +10,7 @@
 import { getCardsByIds, getProduct, runSearch } from "@/lib/catalog/server";
 import { isFlatKind } from "@/lib/display/stage";
 import type { DisplayRequest } from "@/lib/display/themes";
+import type { TemplateId } from "@/lib/optimize/templates";
 import { buildBundles } from "@/lib/stylist/server";
 
 /**
@@ -20,6 +21,13 @@ import { buildBundles } from "@/lib/stylist/server";
  * room) is the hero. When the Stylist finds no set in stock, the display says
  * so and falls back to the pieces a search for the theme's words finds,
  * without a total, so it is never an empty window.
+ *
+ * docs/adr/048. The window is a 3D room, so the Stylist is asked first for a
+ * set it can stand there truthfully — pieces with their own scan, and rugs and
+ * pictures, whose photograph is their face. Only when no such set fits does it
+ * choose from every piece, and those without a scan are shown as cut-outs.
+ * Each piece carries its slot (the part it plays: "chair", "lamp"), which is
+ * how the room is arranged, and its scan when the file is really in storage.
  */
 
 export type DisplayPiece = {
@@ -38,6 +46,11 @@ export type DisplayPiece = {
   hero: boolean;
   materials: string[];
   colorLabel: string | null;
+  /** The Stylist slot it fills; null when the window came from a search. */
+  role: string | null;
+  kind: string;
+  /** Its own 3D scan, only when the file is in storage (src/lib/catalog/stored-model.ts). */
+  model: { src: string; bytes: number | null } | null;
 };
 
 export type ComposedDisplay = {
@@ -45,18 +58,25 @@ export type ComposedDisplay = {
   /** The set's total from the Stylist, in the shopper's prices; null for a search fallback. */
   totalCents: number | null;
   fromStylist: boolean;
+  /** The room the set was built for. */
+  template: TemplateId;
 };
 
 const FALLBACK_PIECES = 5;
 
 export async function composeDisplay(request: DisplayRequest, locale: string): Promise<ComposedDisplay> {
-  const result = await buildBundles({ template: request.template, budgetCents: request.budgetCents, ...(request.query === undefined ? {} : { query: request.query }) });
+  const stylistRequest = { template: request.template, budgetCents: request.budgetCents, ...(request.query === undefined ? {} : { query: request.query }) };
+  const showable = await buildBundles(stylistRequest, { showable: true });
+  const result = showable.bundles.length > 0 ? showable : await buildBundles(stylistRequest);
   const bundle = result.bundles[0];
-  let picks: { productId: string; quantity: number }[] = bundle?.picks.map((pick) => ({ productId: pick.productId, quantity: pick.quantity })) ?? [];
+  let picks: { productId: string; quantity: number; role: string | null }[] =
+    bundle?.picks.map((pick) => ({ productId: pick.productId, quantity: pick.quantity, role: pick.slotId })) ?? [];
   const fromStylist = picks.length > 0;
   if (!fromStylist) {
-    const found = await runSearch(request.query ?? request.template.replace("-", " "), { limit: FALLBACK_PIECES });
-    picks = found.ids.slice(0, FALLBACK_PIECES).map((productId) => ({ productId, quantity: 1 }));
+    // The room's own words and the theme's: "dining black" finds a dining table even where nothing is black.
+    const words = [request.template.replace("-", " "), request.query].filter((word) => word !== undefined && word !== "").join(" ");
+    const found = await runSearch(words, { limit: FALLBACK_PIECES });
+    picks = found.ids.slice(0, FALLBACK_PIECES).map((productId) => ({ productId, quantity: 1, role: null }));
   }
 
   const cards = await getCardsByIds(
@@ -85,7 +105,10 @@ export async function composeDisplay(request: DisplayRequest, locale: string): P
       hero: index === 0,
       materials: detail.materials,
       colorLabel: detail.colorLabel,
+      role: pick.role,
+      kind: detail.kind,
+      model: detail.model,
     });
   });
-  return { pieces, totalCents: fromStylist ? (bundle?.totalCents ?? null) : null, fromStylist };
+  return { pieces, totalCents: fromStylist ? (bundle?.totalCents ?? null) : null, fromStylist, template: request.template };
 }

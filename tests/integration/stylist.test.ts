@@ -12,6 +12,7 @@ import { readFile } from "node:fs/promises";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
+import { uuidv7 } from "uuidv7";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { catalogFixtureSchema, type ProductInput } from "@/lib/catalog/input";
@@ -150,5 +151,47 @@ describe.skipIf(url === undefined || url === "")("budget stylist", () => {
     await expect(stylist.build({ template: "outfit", budgetCents: 10_000 })).rejects.toThrow();
     await expect(stylist.build({ template: "reading-corner", budgetCents: 12.5 })).rejects.toThrow();
     await expect(stylist.build({ template: "reading-corner", budgetCents: 50_000, avoidColors: ["neon"] })).rejects.toThrow();
+  });
+
+  it("for the shop window, chooses only pieces it can stand in 3D: those with their own scan, and rugs (docs/adr/048)", async () => {
+    // The specimen pieces have no scans: no reading corner can be shown in 3D yet, and the shop window falls back.
+    const without = await stylist.build({ template: "reading-corner", budgetCents: 150_000 }, { showable: true });
+    expect(without.bundles).toEqual([]);
+    expect(without.missingRequired.length).toBeGreaterThan(0);
+
+    // Give every chair, lamp and side table a scan; now a set is found, and every standing piece in it has one.
+    const scanned = await connection<{ id: string }[]>`
+      SELECT id FROM products WHERE kind IN ('CHAIR', 'LAMP', 'HOME_LIGHTING_AND_LAMPS', 'TABLE')
+    `;
+    for (const [index, row] of scanned.entries()) {
+      await connection`
+        INSERT INTO product_media (id, product_id, kind, src, alt_en, position)
+        VALUES (${uuidv7()}, ${row.id}, 'model', ${`/media/catalog/abo-3d/test-${index}.glb`}, 'A test scan', 0)
+      `;
+    }
+    try {
+      const withScans = await stylist.build({ template: "reading-corner", budgetCents: 150_000 }, { showable: true });
+      expect(withScans.bundles.length).toBeGreaterThan(0);
+      const ids = new Set(scanned.map((row) => row.id));
+      for (const bundle of withScans.bundles) {
+        for (const pick of bundle.picks) {
+          const product = products.get(pick.productId)!;
+          expect(ids.has(pick.productId) || product.kind === "RUG").toBe(true);
+        }
+      }
+    } finally {
+      await connection`DELETE FROM product_media WHERE kind = 'model' AND src LIKE '/media/catalog/abo-3d/test-%'`;
+    }
+  });
+
+  it("never seats a dining table with office chairs: a dining chair says so in its title", async () => {
+    const result = await stylist.build({ template: "dining", budgetCents: 500_000 });
+    for (const bundle of result.bundles) {
+      for (const pick of bundle.picks.filter((entry) => entry.slotId === "chairs")) {
+        const title = products.get(pick.productId)!.titleEn;
+        expect(title).toMatch(/\b(dining|kitchen)\b/i);
+        expect(title).not.toMatch(/\b(office|swivel|computer|desk)\b/i);
+      }
+    }
   });
 });

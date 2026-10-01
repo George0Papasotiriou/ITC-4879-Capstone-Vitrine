@@ -49,6 +49,7 @@
     "db:setup": "pnpm db:migrate && tsx scripts/catalog.ts seed --collection --capsule --abo --sync && tsx scripts/support.ts macros && tsx scripts/reco.ts simulate --if-empty && tsx scripts/reco.ts rebuild --if-empty && tsx scripts/showcase.ts ensure",
     "db:studio": "drizzle-kit studio",
     "evals:search": "node scripts/local.mjs run scripts/evaluate-search.ts",
+    "evals:e1-pool": "node scripts/local.mjs run scripts/e1-pool.ts",
     "evals:esci": "tsx scripts/evaluate-search-esci.ts",
     "load:search": "node scripts/k6.mjs run tests/load/search.js",
     "snap:wild": "tsx scripts/snap-wild.ts",
@@ -87,6 +88,7 @@
     "react-dom": "19.2.8",
     "stripe": "22.6.2",
     "tailwind-merge": "3.6.0",
+    "three": "0.183.2",
     "uqr": "0.1.3",
     "uuidv7": "1.2.1",
     "zod": "4.6.2"
@@ -101,6 +103,7 @@
     "@types/node": "24.13.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/three": "0.183.1",
     "@vitest/coverage-v8": "5.0.0",
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.5",

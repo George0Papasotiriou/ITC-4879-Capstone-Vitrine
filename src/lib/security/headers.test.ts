@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { baseSecurityHeaders, contentSecurityPolicy, cspHeaderName, cspMode, newNonce } from "@/lib/security/headers";
+import { baseSecurityHeaders, bucketOrigins, contentSecurityPolicy, cspHeaderName, cspMode, newNonce } from "@/lib/security/headers";
 
 const directive = (policy: string, name: string) => policy.split("; ").find((entry) => entry.startsWith(`${name} `))?.split(" ").slice(1) ?? null;
 
@@ -51,6 +51,28 @@ describe("content security policy", () => {
     const nonces = new Set(Array.from({ length: 50 }, newNonce));
     expect(nonces.size).toBe(50);
     for (const nonce of nonces) expect(Buffer.from(nonce, "base64")).toHaveLength(16);
+  });
+});
+
+describe("the bucket in the policy", () => {
+  const r2 = "https://0123abcd.r2.cloudflarestorage.com";
+
+  it("allows images from the bucket's own address, both styles, once a bucket is set", () => {
+    expect(bucketOrigins({ endpoint: r2, bucket: "vitrine", forcePathStyle: false })).toEqual([r2, "https://vitrine.0123abcd.r2.cloudflarestorage.com"]);
+    expect(bucketOrigins({ endpoint: "http://localhost:9000/", bucket: "vitrine", forcePathStyle: true })).toEqual(["http://localhost:9000"]);
+    const policy = contentSecurityPolicy({ nonce: "n", dev: false, https: true, bucket: bucketOrigins({ endpoint: r2, bucket: "vitrine", forcePathStyle: false }) });
+    expect(directive(policy, "img-src")).toEqual(expect.arrayContaining(["'self'", "https://vitrine.0123abcd.r2.cloudflarestorage.com"]));
+    // Images only: the page never fetches, frames or runs anything from the bucket.
+    for (const name of ["connect-src", "script-src", "frame-src", "default-src"]) expect(directive(policy, name)).not.toContain(r2);
+  });
+
+  it("adds nothing without a bucket, or when a setting could break the header", () => {
+    expect(bucketOrigins({ endpoint: undefined, bucket: undefined, forcePathStyle: false })).toEqual([]);
+    expect(bucketOrigins({ endpoint: r2, bucket: undefined, forcePathStyle: false })).toEqual([]);
+    expect(bucketOrigins({ endpoint: "not a url", bucket: "vitrine", forcePathStyle: false })).toEqual([]);
+    expect(bucketOrigins({ endpoint: "ftp://files.example", bucket: "vitrine", forcePathStyle: false })).toEqual([]);
+    expect(bucketOrigins({ endpoint: r2, bucket: "vitrine; script-src *", forcePathStyle: false })).toEqual([]);
+    expect(directive(contentSecurityPolicy({ nonce: "n", dev: false, https: true }), "img-src")).toEqual(["'self'", "data:", "blob:", "https://*.stripe.com", "https://*.link.com"]);
   });
 });
 

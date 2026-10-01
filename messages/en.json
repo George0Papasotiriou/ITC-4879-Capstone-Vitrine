@@ -1883,7 +1883,8 @@
       "viewsLabel": "Evaluation",
       "views": {
         "judge": "Grade results",
-        "results": "Scores"
+        "results": "Scores",
+        "check": "Check the judge"
       },
       "queriesLabel": "Queries",
       "queryOf": "Query {index} of {count} · {kind}",
@@ -1934,6 +1935,12 @@
         "semantic": "Search by meaning joins this table once an embedding model is set up (it needs a key and a paid embedding run).",
         "byKind": "NDCG@10 by kind of query",
         "kind": "Kind of query"
+      },
+      "check": {
+        "title": "Check the AI judge",
+        "lede": "These {total} pairs were drawn from the AI judge's grades, as many of each grade as it gave, so the report can say how far the judge agrees with a person. Its grades are not shown: grade each one as you would any other.",
+        "progress": "{done} of {total} graded",
+        "done": "All {total} graded. Run pnpm evals:search --agreement for the report."
       }
     },
     "system": {
@@ -2405,7 +2412,7 @@
     "themes": "Windows",
     "custom": "Your window",
     "customLine": "A set made for you, under {budget}.",
-    "windowLabel": "Shop window: {title}. Use the arrow keys to move between the pieces.",
+    "windowLabel": "Shop window: {title}. Use the arrow keys to move between the pieces, and Enter to look closer.",
     "pieceLabel": "{title}, {size}",
     "dims": "{w} × {d} × {h} cm",
     "notMeasured": "size not measured",
@@ -2422,7 +2429,36 @@
     "addedSome": "Added, except: {missed}.",
     "toCart": "Go to the cart",
     "share": "Copy the link",
-    "copied": "Link copied."
+    "copied": "Link copied.",
+    "eyebrow": "Shop windows · {mood}",
+    "dressing": "Dressing the window…",
+    "hint": "Drag to look around. Choose a piece to see it up close.",
+    "hintTouch": "Swipe sideways to look around. Tap a piece to see it up close.",
+    "flat": "This device shows the window as a picture.",
+    "moods": {
+      "afternoon": "Afternoon light",
+      "overcast": "A soft grey morning",
+      "dawn": "First light",
+      "dusk": "Evening, lamps lit",
+      "golden-hour": "Golden hour",
+      "noon": "Midday"
+    },
+    "placard": {
+      "close": "Back to the whole window",
+      "details": "All the details",
+      "room": "See it in your room",
+      "scan": "Shown as its own 3D scan",
+      "photo": "Shown from its photograph",
+      "inStock": "In stock",
+      "outOfStock": "Out of stock"
+    },
+    "light": "Light",
+    "lights": {
+      "dawn": "Morning",
+      "afternoon": "Afternoon",
+      "golden-hour": "Golden hour",
+      "dusk": "Evening"
+    }
   },
   "agents": {
     "title": "Your AI assistants",

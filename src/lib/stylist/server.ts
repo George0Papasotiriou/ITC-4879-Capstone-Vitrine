@@ -18,10 +18,10 @@ import { createStylist, type Stylist } from "@/lib/stylist/stylist";
 let stylist: Stylist | undefined;
 const instance = () => (stylist ??= createStylist(sql, createRetrievers(sql)));
 
-export async function buildBundles(request: unknown) {
+export async function buildBundles(request: unknown, options: { showable?: boolean } = {}) {
   await connection();
   const { country } = await currentRegion();
-  return instance().build(request, { country });
+  return instance().build(request, { country, ...options });
 }
 
 export async function bundleSwaps(request: unknown, bundleIndex: number, slotId: string) {

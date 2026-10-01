@@ -50,6 +50,22 @@ export const stylistRequestSchema = z.object({
 
 export type StylistRequest = z.infer<typeof stylistRequestSchema>;
 
+/**
+ * Kinds a window display can show truthfully without a 3D scan: they lie on
+ * the floor or hang on the wall, so their photograph is their face
+ * (docs/adr/048). Everything else needs its own scan to be "showable".
+ */
+export const SHOWABLE_FLAT_KINDS = ["RUG", "WALL_ART", "PICTURE_FRAME", "HOME_MIRROR", "CLOCK"] as const;
+
+/**
+ * A PostgreSQL pattern matching any of the words as a whole word (used with
+ * the case-insensitive ~* and !~*): \m and \M are PostgreSQL's start- and
+ * end-of-word anchors, so "bar" rules out "bar stool" but not "barrel".
+ */
+export function avoidPattern(words: readonly string[]): string {
+  return `\\m(${words.map((word) => word.replace(/[^a-z0-9 -]/gi, "")).join("|")})\\M`;
+}
+
 /** Candidates kept per slot: the plan's K of 15 to 25. */
 export const CANDIDATES_PER_SLOT = 20;
 
@@ -98,7 +114,7 @@ export type StylistResult = {
 type Scored = StylistCandidate & { unitPriceCents: number; quantity: number };
 
 export function createStylist(sql: postgres.Sql, retrievers: Retrievers) {
-  async function candidatesFor(request: StylistRequest, country: string) {
+  async function candidatesFor(request: StylistRequest, country: string, showable = false) {
     const template = TEMPLATES[request.template];
     const rows = await Promise.all(
       template.slots.map(
@@ -113,6 +129,13 @@ export function createStylist(sql: postgres.Sql, retrievers: Retrievers) {
             AND p.kind = ANY(${[...slot.kinds]}::text[])
             AND p.price_cents <= ${toBaseBound(Math.floor(request.budgetCents / slot.quantity), "max", country)}
             AND NOT (p.colors && ${request.avoidColors}::text[])
+            ${slot.avoidWords === undefined ? sql`` : sql`AND p.title_en !~* ${avoidPattern(slot.avoidWords)}`}
+            ${slot.requireWords === undefined ? sql`` : sql`AND p.title_en ~* ${avoidPattern(slot.requireWords)}`}
+            ${
+              showable
+                ? sql`AND (p.kind = ANY(${[...SHOWABLE_FLAT_KINDS]}::text[]) OR EXISTS (SELECT 1 FROM product_media m WHERE m.product_id = p.id AND m.kind = 'model'))`
+                : sql``
+            }
         `,
       ),
     );
@@ -135,8 +158,8 @@ export function createStylist(sql: postgres.Sql, retrievers: Retrievers) {
     return scores;
   }
 
-  async function problemFor(request: StylistRequest, country: string, taste?: ReadonlyMap<string, number>) {
-    const [bySlot, relevance] = await Promise.all([candidatesFor(request, country), relevanceScores(request.query)]);
+  async function problemFor(request: StylistRequest, country: string, taste?: ReadonlyMap<string, number>, showable = false) {
+    const [bySlot, relevance] = await Promise.all([candidatesFor(request, country, showable), relevanceScores(request.query)]);
     const prior = catalogRatingPrior(bySlot.flatMap(({ rows }) => rows.map((row) => ({ ratingSum: row.rating_sum, ratingCount: row.rating_count }))));
 
     const slots = bySlot.map(({ slot, rows }) => {
@@ -197,9 +220,15 @@ export function createStylist(sql: postgres.Sql, retrievers: Retrievers) {
     };
   }
 
-  async function build(input: unknown, options: { taste?: ReadonlyMap<string, number>; country?: string } = {}): Promise<StylistResult> {
+  /**
+   * `showable` is for the shop window only (docs/adr/048): candidates are
+   * limited to pieces it can stand in 3D — those with their own scan, and
+   * flat pieces. It is an option of the call, not of the request, so no tool
+   * or link can ask for it.
+   */
+  async function build(input: unknown, options: { taste?: ReadonlyMap<string, number>; country?: string; showable?: boolean } = {}): Promise<StylistResult> {
     const request = stylistRequestSchema.parse(input);
-    const problem = await problemFor(request, options.country ?? BASE_COUNTRY, options.taste);
+    const problem = await problemFor(request, options.country ?? BASE_COUNTRY, options.taste, options.showable === true);
     const outcome = optimizeBundles(problem);
     return {
       request,

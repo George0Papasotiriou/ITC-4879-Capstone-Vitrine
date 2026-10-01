@@ -17,15 +17,17 @@ import { ViewTransition, type ReactNode } from "react";
  *
  * Two kinds of navigation move differently and are left alone here: opening a
  * product from a tile ("morph", the photograph carries the move) and changing
- * a listing's filters, sort or page ("listing", the grid rearranges itself).
+ * a listing's filters, sort or page ("listing", the grid rearranges itself),
+ * and choosing another shop window ("window", the 3D room re-dresses itself,
+ * docs/adr/048).
  * Everything else — a link, the back button, the Concierge opening a page —
  * is a short step: out in 90ms, in over 280ms after it.
  */
 export default function Template({ children }: { children: ReactNode }) {
   return (
     <ViewTransition
-      enter={{ morph: "none", listing: "none", default: "page-in" }}
-      exit={{ morph: "none", listing: "none", default: "page-out" }}
+      enter={{ morph: "none", listing: "none", window: "none", default: "page-in" }}
+      exit={{ morph: "none", listing: "none", window: "none", default: "page-out" }}
       default="none"
     >
       {children}

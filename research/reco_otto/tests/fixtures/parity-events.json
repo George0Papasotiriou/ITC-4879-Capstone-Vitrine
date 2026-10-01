@@ -1,0 +1,3490 @@
+{
+ "note": "Synthetic sessions in OTTO format (reco_otto/synthetic.py, seed 21), shared by the shop and the Python port for the parity test.",
+ "sessions": [
+  {
+   "session": 0,
+   "events": [
+    {
+     "aid": 6,
+     "ts": 1659550937,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659550943,
+     "type": "carts"
+    },
+    {
+     "aid": 19,
+     "ts": 1659551110,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659551211,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659551216,
+     "type": "carts"
+    },
+    {
+     "aid": 6,
+     "ts": 1659551656,
+     "type": "orders"
+    },
+    {
+     "aid": 3,
+     "ts": 1659551868,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659551952,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 1,
+   "events": [
+    {
+     "aid": 5,
+     "ts": 1659451753,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659451936,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659451987,
+     "type": "carts"
+    },
+    {
+     "aid": 23,
+     "ts": 1659452023,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659452122,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659452133,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659452363,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659452432,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659452439,
+     "type": "carts"
+    },
+    {
+     "aid": 23,
+     "ts": 1659452895,
+     "type": "orders"
+    }
+   ]
+  },
+  {
+   "session": 2,
+   "events": [
+    {
+     "aid": 12,
+     "ts": 1659311423,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659311499,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659311546,
+     "type": "carts"
+    },
+    {
+     "aid": 6,
+     "ts": 1659311730,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659311834,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 3,
+   "events": [
+    {
+     "aid": 26,
+     "ts": 1659558356,
+     "type": "clicks"
+    },
+    {
+     "aid": 29,
+     "ts": 1659558571,
+     "type": "clicks"
+    },
+    {
+     "aid": 14,
+     "ts": 1659558578,
+     "type": "clicks"
+    },
+    {
+     "aid": 29,
+     "ts": 1659558772,
+     "type": "clicks"
+    },
+    {
+     "aid": 1,
+     "ts": 1659558967,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659559016,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659559062,
+     "type": "carts"
+    },
+    {
+     "aid": 14,
+     "ts": 1659559235,
+     "type": "clicks"
+    },
+    {
+     "aid": 14,
+     "ts": 1659559381,
+     "type": "clicks"
+    },
+    {
+     "aid": 14,
+     "ts": 1659559413,
+     "type": "clicks"
+    },
+    {
+     "aid": 14,
+     "ts": 1659559434,
+     "type": "carts"
+    },
+    {
+     "aid": 14,
+     "ts": 1659559820,
+     "type": "orders"
+    },
+    {
+     "aid": 29,
+     "ts": 1659559895,
+     "type": "clicks"
+    },
+    {
+     "aid": 29,
+     "ts": 1659559900,
+     "type": "carts"
+    },
+    {
+     "aid": 20,
+     "ts": 1659560089,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 4,
+   "events": [
+    {
+     "aid": 28,
+     "ts": 1659447728,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659447813,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659447908,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659448040,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659448264,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659448497,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659448538,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659448624,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659448777,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659449014,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659449137,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659449192,
+     "type": "carts"
+    },
+    {
+     "aid": 13,
+     "ts": 1659449296,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659449344,
+     "type": "carts"
+    },
+    {
+     "aid": 13,
+     "ts": 1659449731,
+     "type": "orders"
+    },
+    {
+     "aid": 0,
+     "ts": 1659449758,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659449786,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659449791,
+     "type": "carts"
+    },
+    {
+     "aid": 13,
+     "ts": 1659450233,
+     "type": "orders"
+    },
+    {
+     "aid": 4,
+     "ts": 1659450461,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659450596,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659450644,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659450874,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659450972,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659451038,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659451137,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659451361,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659451586,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 5,
+   "events": [
+    {
+     "aid": 11,
+     "ts": 1659330568,
+     "type": "clicks"
+    },
+    {
+     "aid": 28,
+     "ts": 1659330582,
+     "type": "clicks"
+    },
+    {
+     "aid": 20,
+     "ts": 1659330780,
+     "type": "clicks"
+    },
+    {
+     "aid": 26,
+     "ts": 1659330932,
+     "type": "clicks"
+    },
+    {
+     "aid": 11,
+     "ts": 1659330939,
+     "type": "clicks"
+    },
+    {
+     "aid": 26,
+     "ts": 1659331075,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659331261,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659331472,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659331642,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659331690,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 6,
+   "events": [
+    {
+     "aid": 0,
+     "ts": 1659484276,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659484463,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659484518,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659484558,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659484790,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659484888,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659484994,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659485192,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659485242,
+     "type": "carts"
+    },
+    {
+     "aid": 0,
+     "ts": 1659485309,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659485498,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659485509,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659485558,
+     "type": "carts"
+    },
+    {
+     "aid": 16,
+     "ts": 1659486062,
+     "type": "orders"
+    },
+    {
+     "aid": 23,
+     "ts": 1659486279,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659486382,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659486402,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659486617,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659486657,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 7,
+   "events": [
+    {
+     "aid": 16,
+     "ts": 1659406499,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659406709,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659406737,
+     "type": "carts"
+    },
+    {
+     "aid": 15,
+     "ts": 1659406835,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659407046,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659407164,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659407256,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659407390,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659407624,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659407846,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659407879,
+     "type": "carts"
+    },
+    {
+     "aid": 12,
+     "ts": 1659408360,
+     "type": "orders"
+    },
+    {
+     "aid": 7,
+     "ts": 1659408519,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659408712,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659408846,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659408918,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659408936,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659408990,
+     "type": "carts"
+    },
+    {
+     "aid": 7,
+     "ts": 1659409193,
+     "type": "orders"
+    },
+    {
+     "aid": 10,
+     "ts": 1659409198,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 8,
+   "events": [
+    {
+     "aid": 15,
+     "ts": 1659552153,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659552353,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659552473,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659552613,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659552791,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659553030,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659553120,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659553186,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659553419,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659553555,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659553624,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659553665,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659553746,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659553798,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659554025,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659554182,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659554393,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659554398,
+     "type": "carts"
+    },
+    {
+     "aid": 10,
+     "ts": 1659554571,
+     "type": "orders"
+    },
+    {
+     "aid": 9,
+     "ts": 1659554695,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659554875,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659554938,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659555001,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659555239,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659555411,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659555417,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659555459,
+     "type": "carts"
+    },
+    {
+     "aid": 16,
+     "ts": 1659556008,
+     "type": "orders"
+    },
+    {
+     "aid": 10,
+     "ts": 1659556227,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659556264,
+     "type": "carts"
+    },
+    {
+     "aid": 3,
+     "ts": 1659556318,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659556525,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 9,
+   "events": [
+    {
+     "aid": 19,
+     "ts": 1659541073,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659541152,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659541370,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659541504,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 10,
+   "events": [
+    {
+     "aid": 7,
+     "ts": 1659464179,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659464247,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659464340,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659464523,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659464546,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659464730,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659464777,
+     "type": "carts"
+    },
+    {
+     "aid": 15,
+     "ts": 1659465286,
+     "type": "orders"
+    },
+    {
+     "aid": 15,
+     "ts": 1659465408,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659465634,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 11,
+   "events": [
+    {
+     "aid": 19,
+     "ts": 1659359941,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659360009,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659360246,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659360444,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659360561,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659360751,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659360974,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659361103,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659361209,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659361427,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659361453,
+     "type": "carts"
+    },
+    {
+     "aid": 3,
+     "ts": 1659361646,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659361774,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659361999,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659362024,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659362055,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659362229,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659362310,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659362377,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659362434,
+     "type": "clicks"
+    },
+    {
+     "aid": 29,
+     "ts": 1659362452,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659362538,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659362562,
+     "type": "carts"
+    },
+    {
+     "aid": 29,
+     "ts": 1659362698,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 12,
+   "events": [
+    {
+     "aid": 26,
+     "ts": 1659530074,
+     "type": "clicks"
+    },
+    {
+     "aid": 26,
+     "ts": 1659530299,
+     "type": "clicks"
+    },
+    {
+     "aid": 26,
+     "ts": 1659530333,
+     "type": "carts"
+    },
+    {
+     "aid": 26,
+     "ts": 1659530394,
+     "type": "orders"
+    },
+    {
+     "aid": 28,
+     "ts": 1659530561,
+     "type": "clicks"
+    },
+    {
+     "aid": 28,
+     "ts": 1659530588,
+     "type": "carts"
+    },
+    {
+     "aid": 28,
+     "ts": 1659530646,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659530677,
+     "type": "clicks"
+    },
+    {
+     "aid": 26,
+     "ts": 1659530761,
+     "type": "clicks"
+    },
+    {
+     "aid": 26,
+     "ts": 1659530785,
+     "type": "carts"
+    },
+    {
+     "aid": 26,
+     "ts": 1659530922,
+     "type": "orders"
+    },
+    {
+     "aid": 17,
+     "ts": 1659531106,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659531301,
+     "type": "clicks"
+    },
+    {
+     "aid": 14,
+     "ts": 1659531516,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659531602,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659531661,
+     "type": "clicks"
+    },
+    {
+     "aid": 22,
+     "ts": 1659531710,
+     "type": "clicks"
+    },
+    {
+     "aid": 22,
+     "ts": 1659531796,
+     "type": "clicks"
+    },
+    {
+     "aid": 22,
+     "ts": 1659531803,
+     "type": "carts"
+    },
+    {
+     "aid": 29,
+     "ts": 1659531818,
+     "type": "clicks"
+    },
+    {
+     "aid": 28,
+     "ts": 1659531992,
+     "type": "clicks"
+    },
+    {
+     "aid": 29,
+     "ts": 1659532021,
+     "type": "clicks"
+    },
+    {
+     "aid": 28,
+     "ts": 1659532047,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 13,
+   "events": [
+    {
+     "aid": 3,
+     "ts": 1659436923,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659437031,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659437209,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659437296,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659437382,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659437584,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659437712,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659437892,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659438028,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659438234,
+     "type": "clicks"
+    },
+    {
+     "aid": 28,
+     "ts": 1659438451,
+     "type": "clicks"
+    },
+    {
+     "aid": 11,
+     "ts": 1659438479,
+     "type": "clicks"
+    },
+    {
+     "aid": 11,
+     "ts": 1659438521,
+     "type": "carts"
+    },
+    {
+     "aid": 11,
+     "ts": 1659438882,
+     "type": "orders"
+    },
+    {
+     "aid": 26,
+     "ts": 1659439026,
+     "type": "clicks"
+    },
+    {
+     "aid": 22,
+     "ts": 1659439091,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659439203,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659439234,
+     "type": "carts"
+    },
+    {
+     "aid": 22,
+     "ts": 1659439362,
+     "type": "clicks"
+    },
+    {
+     "aid": 11,
+     "ts": 1659439590,
+     "type": "clicks"
+    },
+    {
+     "aid": 11,
+     "ts": 1659439629,
+     "type": "clicks"
+    },
+    {
+     "aid": 20,
+     "ts": 1659439720,
+     "type": "clicks"
+    },
+    {
+     "aid": 20,
+     "ts": 1659439770,
+     "type": "carts"
+    },
+    {
+     "aid": 22,
+     "ts": 1659439922,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659440030,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659440234,
+     "type": "clicks"
+    },
+    {
+     "aid": 29,
+     "ts": 1659440411,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659440477,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 14,
+   "events": [
+    {
+     "aid": 18,
+     "ts": 1659440522,
+     "type": "clicks"
+    },
+    {
+     "aid": 26,
+     "ts": 1659440753,
+     "type": "clicks"
+    },
+    {
+     "aid": 29,
+     "ts": 1659440821,
+     "type": "clicks"
+    },
+    {
+     "aid": 29,
+     "ts": 1659440829,
+     "type": "carts"
+    },
+    {
+     "aid": 7,
+     "ts": 1659440898,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659441075,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659441080,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659441308,
+     "type": "clicks"
+    },
+    {
+     "aid": 26,
+     "ts": 1659441463,
+     "type": "clicks"
+    },
+    {
+     "aid": 26,
+     "ts": 1659441517,
+     "type": "carts"
+    },
+    {
+     "aid": 21,
+     "ts": 1659441716,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659441735,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659441772,
+     "type": "carts"
+    },
+    {
+     "aid": 15,
+     "ts": 1659441887,
+     "type": "orders"
+    }
+   ]
+  },
+  {
+   "session": 15,
+   "events": [
+    {
+     "aid": 5,
+     "ts": 1659390059,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659390075,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659390104,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659390121,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659390263,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659390362,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659390485,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659390621,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659390835,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659391010,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659391017,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659391188,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659391205,
+     "type": "carts"
+    },
+    {
+     "aid": 0,
+     "ts": 1659391702,
+     "type": "orders"
+    },
+    {
+     "aid": 5,
+     "ts": 1659391925,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659392041,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659392265,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659392313,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659392391,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659392402,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659392502,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659392511,
+     "type": "carts"
+    },
+    {
+     "aid": 6,
+     "ts": 1659392725,
+     "type": "orders"
+    },
+    {
+     "aid": 13,
+     "ts": 1659392853,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659392949,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659392974,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659393178,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 16,
+   "events": [
+    {
+     "aid": 6,
+     "ts": 1659514978,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659515127,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659515175,
+     "type": "carts"
+    },
+    {
+     "aid": 2,
+     "ts": 1659515756,
+     "type": "orders"
+    },
+    {
+     "aid": 8,
+     "ts": 1659515782,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659515919,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659516129,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659516159,
+     "type": "carts"
+    },
+    {
+     "aid": 2,
+     "ts": 1659516242,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659516344,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659516522,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659516614,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 17,
+   "events": [
+    {
+     "aid": 15,
+     "ts": 1659334014,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659334113,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659334134,
+     "type": "carts"
+    },
+    {
+     "aid": 15,
+     "ts": 1659334308,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659334470,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659334479,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659334576,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659334634,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659334683,
+     "type": "carts"
+    },
+    {
+     "aid": 12,
+     "ts": 1659334783,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659334906,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659334948,
+     "type": "carts"
+    },
+    {
+     "aid": 12,
+     "ts": 1659335520,
+     "type": "orders"
+    },
+    {
+     "aid": 12,
+     "ts": 1659335662,
+     "type": "clicks"
+    },
+    {
+     "aid": 18,
+     "ts": 1659335718,
+     "type": "clicks"
+    },
+    {
+     "aid": 11,
+     "ts": 1659335863,
+     "type": "clicks"
+    },
+    {
+     "aid": 28,
+     "ts": 1659335937,
+     "type": "clicks"
+    },
+    {
+     "aid": 11,
+     "ts": 1659336160,
+     "type": "clicks"
+    },
+    {
+     "aid": 29,
+     "ts": 1659336364,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 18,
+   "events": [
+    {
+     "aid": 7,
+     "ts": 1659504807,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659505003,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659505195,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659505339,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659505565,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659505686,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659505812,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659506041,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659506184,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659506358,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659506441,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 19,
+   "events": [
+    {
+     "aid": 17,
+     "ts": 1659351424,
+     "type": "clicks"
+    },
+    {
+     "aid": 18,
+     "ts": 1659351611,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 20,
+   "events": [
+    {
+     "aid": 4,
+     "ts": 1659473489,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659473537,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659473580,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659473645,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659473734,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659473819,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659473887,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659473899,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659473972,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659473993,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659474210,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659474369,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659474419,
+     "type": "carts"
+    },
+    {
+     "aid": 2,
+     "ts": 1659474697,
+     "type": "orders"
+    },
+    {
+     "aid": 6,
+     "ts": 1659474908,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659474950,
+     "type": "carts"
+    },
+    {
+     "aid": 2,
+     "ts": 1659474961,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659475024,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659475226,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659475369,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659475418,
+     "type": "carts"
+    },
+    {
+     "aid": 6,
+     "ts": 1659475465,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659475557,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659475563,
+     "type": "carts"
+    },
+    {
+     "aid": 2,
+     "ts": 1659475842,
+     "type": "orders"
+    }
+   ]
+  },
+  {
+   "session": 21,
+   "events": [
+    {
+     "aid": 24,
+     "ts": 1659311115,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659311132,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659311294,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659311490,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659311716,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659311954,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659312028,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659312098,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659312191,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659312342,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659312512,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659312531,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659312623,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659312639,
+     "type": "carts"
+    },
+    {
+     "aid": 23,
+     "ts": 1659312759,
+     "type": "orders"
+    },
+    {
+     "aid": 10,
+     "ts": 1659312771,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 22,
+   "events": [
+    {
+     "aid": 28,
+     "ts": 1659431804,
+     "type": "clicks"
+    },
+    {
+     "aid": 28,
+     "ts": 1659431940,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659432002,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659432143,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659432314,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 23,
+   "events": [
+    {
+     "aid": 15,
+     "ts": 1659455467,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659455555,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659455571,
+     "type": "carts"
+    },
+    {
+     "aid": 12,
+     "ts": 1659455903,
+     "type": "orders"
+    },
+    {
+     "aid": 21,
+     "ts": 1659456054,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659456150,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659456338,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659456349,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659456403,
+     "type": "carts"
+    },
+    {
+     "aid": 12,
+     "ts": 1659456595,
+     "type": "orders"
+    },
+    {
+     "aid": 15,
+     "ts": 1659456728,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 24,
+   "events": [
+    {
+     "aid": 0,
+     "ts": 1659360980,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659361014,
+     "type": "carts"
+    },
+    {
+     "aid": 6,
+     "ts": 1659361203,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659361364,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659361494,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659361607,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659361724,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659361802,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659361953,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659362097,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659362102,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659362287,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659362497,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659362598,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659362767,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659362978,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659363086,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659363118,
+     "type": "carts"
+    },
+    {
+     "aid": 16,
+     "ts": 1659363195,
+     "type": "orders"
+    },
+    {
+     "aid": 6,
+     "ts": 1659363417,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659363576,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659363643,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659363872,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659363918,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659363924,
+     "type": "carts"
+    },
+    {
+     "aid": 3,
+     "ts": 1659364205,
+     "type": "orders"
+    },
+    {
+     "aid": 3,
+     "ts": 1659364352,
+     "type": "clicks"
+    },
+    {
+     "aid": 29,
+     "ts": 1659364393,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659364583,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659364665,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659364724,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659364934,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659365035,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659365041,
+     "type": "carts"
+    }
+   ]
+  },
+  {
+   "session": 25,
+   "events": [
+    {
+     "aid": 19,
+     "ts": 1659439035,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659439248,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659439288,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659439294,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659439301,
+     "type": "carts"
+    },
+    {
+     "aid": 24,
+     "ts": 1659439494,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659439732,
+     "type": "clicks"
+    },
+    {
+     "aid": 11,
+     "ts": 1659439817,
+     "type": "clicks"
+    },
+    {
+     "aid": 11,
+     "ts": 1659439826,
+     "type": "carts"
+    }
+   ]
+  },
+  {
+   "session": 26,
+   "events": [
+    {
+     "aid": 23,
+     "ts": 1659547971,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659547987,
+     "type": "carts"
+    },
+    {
+     "aid": 23,
+     "ts": 1659548042,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659548080,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659548111,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659548162,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659548288,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659548522,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 27,
+   "events": [
+    {
+     "aid": 3,
+     "ts": 1659494722,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659494727,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 28,
+   "events": [
+    {
+     "aid": 9,
+     "ts": 1659338269,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659338325,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659338559,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659338776,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659338843,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659338914,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659338939,
+     "type": "carts"
+    },
+    {
+     "aid": 23,
+     "ts": 1659338976,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659339166,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659339319,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659339351,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659339556,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659339659,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659339730,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659339922,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659340039,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659340205,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659340263,
+     "type": "carts"
+    }
+   ]
+  },
+  {
+   "session": 29,
+   "events": [
+    {
+     "aid": 0,
+     "ts": 1659375905,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659376044,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659376129,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659376217,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659376425,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 30,
+   "events": [
+    {
+     "aid": 5,
+     "ts": 1659486107,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659486232,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659486252,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659486352,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659486430,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659486455,
+     "type": "carts"
+    },
+    {
+     "aid": 16,
+     "ts": 1659486822,
+     "type": "orders"
+    },
+    {
+     "aid": 23,
+     "ts": 1659486867,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659487094,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659487198,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659487426,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659487483,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659487627,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659487710,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 31,
+   "events": [
+    {
+     "aid": 0,
+     "ts": 1659383416,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659383487,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659383599,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659383693,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659383915,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659384143,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659384354,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659384471,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659384510,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659384529,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659384647,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659384861,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659384866,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659384914,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 32,
+   "events": [
+    {
+     "aid": 23,
+     "ts": 1659475578,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659475618,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659475677,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659475730,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659475966,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659476173,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659476292,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659476522,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659476654,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659476747,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659476790,
+     "type": "carts"
+    },
+    {
+     "aid": 15,
+     "ts": 1659476869,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659476998,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659477016,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659477048,
+     "type": "carts"
+    },
+    {
+     "aid": 6,
+     "ts": 1659477282,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659477290,
+     "type": "carts"
+    },
+    {
+     "aid": 6,
+     "ts": 1659477661,
+     "type": "orders"
+    },
+    {
+     "aid": 6,
+     "ts": 1659477709,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659477762,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659477844,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659477900,
+     "type": "carts"
+    },
+    {
+     "aid": 2,
+     "ts": 1659477922,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659478136,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 33,
+   "events": [
+    {
+     "aid": 8,
+     "ts": 1659440975,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659441036,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659441182,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659441251,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659441479,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659441681,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659441910,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659442061,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659442118,
+     "type": "carts"
+    },
+    {
+     "aid": 6,
+     "ts": 1659442601,
+     "type": "orders"
+    },
+    {
+     "aid": 0,
+     "ts": 1659442608,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659442632,
+     "type": "carts"
+    },
+    {
+     "aid": 0,
+     "ts": 1659442883,
+     "type": "orders"
+    },
+    {
+     "aid": 0,
+     "ts": 1659443021,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659443197,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659443205,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659443253,
+     "type": "carts"
+    },
+    {
+     "aid": 8,
+     "ts": 1659443308,
+     "type": "orders"
+    },
+    {
+     "aid": 0,
+     "ts": 1659443328,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659443380,
+     "type": "carts"
+    },
+    {
+     "aid": 0,
+     "ts": 1659443863,
+     "type": "orders"
+    },
+    {
+     "aid": 6,
+     "ts": 1659444091,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659444160,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659444319,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659444383,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659444445,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659444565,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659444652,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659444811,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659444962,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659445079,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659445153,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659445189,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659445256,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659445316,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 34,
+   "events": [
+    {
+     "aid": 5,
+     "ts": 1659347566,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659347624,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659347699,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659347722,
+     "type": "carts"
+    },
+    {
+     "aid": 24,
+     "ts": 1659347964,
+     "type": "orders"
+    },
+    {
+     "aid": 23,
+     "ts": 1659348053,
+     "type": "clicks"
+    },
+    {
+     "aid": 10,
+     "ts": 1659348248,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659348403,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659348629,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659348830,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659348909,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659348940,
+     "type": "carts"
+    },
+    {
+     "aid": 16,
+     "ts": 1659349081,
+     "type": "orders"
+    },
+    {
+     "aid": 16,
+     "ts": 1659349305,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659349408,
+     "type": "clicks"
+    },
+    {
+     "aid": 28,
+     "ts": 1659349577,
+     "type": "clicks"
+    },
+    {
+     "aid": 26,
+     "ts": 1659349725,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659349755,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659349976,
+     "type": "clicks"
+    },
+    {
+     "aid": 25,
+     "ts": 1659350182,
+     "type": "clicks"
+    },
+    {
+     "aid": 25,
+     "ts": 1659350217,
+     "type": "carts"
+    },
+    {
+     "aid": 28,
+     "ts": 1659350267,
+     "type": "clicks"
+    },
+    {
+     "aid": 22,
+     "ts": 1659350361,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659350436,
+     "type": "clicks"
+    },
+    {
+     "aid": 17,
+     "ts": 1659350511,
+     "type": "clicks"
+    },
+    {
+     "aid": 24,
+     "ts": 1659350689,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 35,
+   "events": [
+    {
+     "aid": 12,
+     "ts": 1659381440,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659381468,
+     "type": "carts"
+    },
+    {
+     "aid": 12,
+     "ts": 1659381772,
+     "type": "orders"
+    },
+    {
+     "aid": 1,
+     "ts": 1659381864,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659381927,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659382093,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659382220,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659382277,
+     "type": "carts"
+    },
+    {
+     "aid": 15,
+     "ts": 1659382714,
+     "type": "orders"
+    },
+    {
+     "aid": 2,
+     "ts": 1659382779,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659382945,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659382989,
+     "type": "carts"
+    },
+    {
+     "aid": 15,
+     "ts": 1659383051,
+     "type": "orders"
+    },
+    {
+     "aid": 6,
+     "ts": 1659383261,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659383315,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659383464,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659383469,
+     "type": "carts"
+    },
+    {
+     "aid": 0,
+     "ts": 1659383609,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659383693,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659383818,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659383831,
+     "type": "clicks"
+    },
+    {
+     "aid": 4,
+     "ts": 1659383953,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659384152,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659384364,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659384572,
+     "type": "clicks"
+    },
+    {
+     "aid": 0,
+     "ts": 1659384617,
+     "type": "clicks"
+    },
+    {
+     "aid": 8,
+     "ts": 1659384700,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659384789,
+     "type": "clicks"
+    },
+    {
+     "aid": 2,
+     "ts": 1659384884,
+     "type": "clicks"
+    },
+    {
+     "aid": 6,
+     "ts": 1659384902,
+     "type": "clicks"
+    },
+    {
+     "aid": 13,
+     "ts": 1659384973,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 36,
+   "events": [
+    {
+     "aid": 5,
+     "ts": 1659464729,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659464968,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659465080,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659465118,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659465160,
+     "type": "carts"
+    },
+    {
+     "aid": 24,
+     "ts": 1659465178,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659465280,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659465413,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659465618,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659465814,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 37,
+   "events": [
+    {
+     "aid": 12,
+     "ts": 1659507874,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659507994,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659508003,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659508077,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659508233,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659508367,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659508576,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659508772,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659508968,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659508983,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659509018,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659509208,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 38,
+   "events": [
+    {
+     "aid": 12,
+     "ts": 1659496980,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659497095,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659497176,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659497413,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659497445,
+     "type": "carts"
+    },
+    {
+     "aid": 15,
+     "ts": 1659497489,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659497497,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659497555,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659497748,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659497970,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659498009,
+     "type": "carts"
+    },
+    {
+     "aid": 27,
+     "ts": 1659498017,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659498102,
+     "type": "clicks"
+    },
+    {
+     "aid": 27,
+     "ts": 1659498140,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659498220,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659498414,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659498564,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659498592,
+     "type": "clicks"
+    },
+    {
+     "aid": 7,
+     "ts": 1659498711,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659498885,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659498908,
+     "type": "clicks"
+    },
+    {
+     "aid": 5,
+     "ts": 1659498944,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659499161,
+     "type": "clicks"
+    },
+    {
+     "aid": 19,
+     "ts": 1659499308,
+     "type": "clicks"
+    },
+    {
+     "aid": 9,
+     "ts": 1659499535,
+     "type": "clicks"
+    },
+    {
+     "aid": 16,
+     "ts": 1659499722,
+     "type": "clicks"
+    }
+   ]
+  },
+  {
+   "session": 39,
+   "events": [
+    {
+     "aid": 16,
+     "ts": 1659305985,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659306161,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659306192,
+     "type": "carts"
+    },
+    {
+     "aid": 3,
+     "ts": 1659306743,
+     "type": "orders"
+    },
+    {
+     "aid": 3,
+     "ts": 1659306938,
+     "type": "clicks"
+    },
+    {
+     "aid": 23,
+     "ts": 1659307007,
+     "type": "clicks"
+    },
+    {
+     "aid": 21,
+     "ts": 1659307118,
+     "type": "clicks"
+    },
+    {
+     "aid": 3,
+     "ts": 1659307301,
+     "type": "clicks"
+    },
+    {
+     "aid": 15,
+     "ts": 1659307500,
+     "type": "clicks"
+    },
+    {
+     "aid": 12,
+     "ts": 1659307661,
+     "type": "clicks"
+    }
+   ]
+  }
+ ],
+ "walks": [
+  0,
+  1,
+  2
+ ]
+}

@@ -1,0 +1,20 @@
+# Vitrine — AI-native e-shop (ITC 4949 Capstone)
+# Copyright (c) 2026 George Papasotiriou. All rights reserved.
+# Author: George Papasotiriou <g.papasotiriou@acg.edu>
+# Project started: 2026-09-12
+#
+# The research project: offline evaluations run outside the shop (E2 recommendations on OTTO).
+
+[project]
+name = "vitrine-research"
+version = "0.1.0"
+description = "Offline evaluations for Vitrine: E2, the Taste Graph against co-visitation on the OTTO sessions."
+requires-python = ">=3.13"
+# Exact versions, as the shop pins its own (polars for the session tables, matplotlib for the charts).
+dependencies = ["polars==1.42.1", "numpy==2.5.3", "matplotlib==3.10.9"]
+
+[dependency-groups]
+dev = ["pytest==9.0.3"]
+
+[tool.pytest.ini_options]
+testpaths = ["reco_otto/tests"]

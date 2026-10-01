@@ -16,6 +16,12 @@
  * wider than 75 cm is not a side table. Shoppers can tighten the limits with
  * measurements of their room; they cannot loosen a template's own.
  *
+ * Kinds are broad (ABO files an office swivel chair as CHAIR, like a dining
+ * chair), so a slot may also name words that, in a title, say a piece is made
+ * for another room: a dining set never gets office chairs, a living room never
+ * gets a drafting stool (found when the shop window showed both, docs/adr/048).
+ * A slot may instead require a word: a dining chair says "dining" or "kitchen".
+ *
  * The plan's outfit template needs the fashion capsule (Phase 3, step 4), which
  * waits for George's approval, so only home templates exist for now.
  */
@@ -28,7 +34,14 @@ export type TemplateSlot = {
   quantity: number;
   required: boolean;
   size?: SizeLimit;
+  /** Whole words that, in a product's English title, rule it out of this slot. */
+  avoidWords?: readonly string[];
+  /** Whole words of which a product's English title must have at least one ("dining" for dining chairs). */
+  requireWords?: readonly string[];
 };
+
+/** Chairs made for desks and counters, not for sitting at a table or reading. */
+const WORK_SEATS = ["office", "swivel", "computer", "gaming", "desk", "task", "drafting", "executive", "ergonomic", "bar", "counter"] as const;
 
 export type TemplateId = "reading-corner" | "living-room" | "dining" | "bedroom" | "gift-set";
 
@@ -38,7 +51,7 @@ export const TEMPLATES: Readonly<Record<TemplateId, Template>> = {
   "reading-corner": {
     id: "reading-corner",
     slots: [
-      { id: "chair", kinds: ["CHAIR"], quantity: 1, required: true },
+      { id: "chair", kinds: ["CHAIR"], quantity: 1, required: true, avoidWords: WORK_SEATS },
       { id: "lamp", kinds: ["LAMP", "HOME_LIGHTING_AND_LAMPS"], quantity: 1, required: true },
       { id: "side-table", kinds: ["TABLE"], quantity: 1, required: true, size: { maxWidthCm: 75 } },
       { id: "rug", kinds: ["RUG"], quantity: 1, required: false, size: { maxWidthCm: 200 } },
@@ -48,17 +61,17 @@ export const TEMPLATES: Readonly<Record<TemplateId, Template>> = {
     id: "living-room",
     slots: [
       { id: "sofa", kinds: ["SOFA"], quantity: 1, required: true },
-      { id: "coffee-table", kinds: ["TABLE"], quantity: 1, required: true, size: { maxHeightCm: 60 } },
+      { id: "coffee-table", kinds: ["TABLE"], quantity: 1, required: true, size: { maxHeightCm: 60, minWidthCm: 70 } },
       { id: "lighting", kinds: ["LAMP", "LIGHT_FIXTURE", "HOME_LIGHTING_AND_LAMPS"], quantity: 1, required: false },
       { id: "rug", kinds: ["RUG"], quantity: 1, required: false },
-      { id: "accent-seat", kinds: ["OTTOMAN", "STOOL_SEATING", "BEAN_BAG_CHAIR"], quantity: 1, required: false },
+      { id: "accent-seat", kinds: ["OTTOMAN", "STOOL_SEATING", "BEAN_BAG_CHAIR"], quantity: 1, required: false, avoidWords: [...WORK_SEATS, "spa", "salon", "kitchen", "lab"] },
     ],
   },
   dining: {
     id: "dining",
     slots: [
       { id: "table", kinds: ["TABLE"], quantity: 1, required: true, size: { minWidthCm: 90 } },
-      { id: "chairs", kinds: ["CHAIR"], quantity: 4, required: true },
+      { id: "chairs", kinds: ["CHAIR"], quantity: 4, required: true, avoidWords: WORK_SEATS, requireWords: ["dining", "kitchen"] },
       { id: "pendant", kinds: ["LIGHT_FIXTURE"], quantity: 1, required: false },
     ],
   },

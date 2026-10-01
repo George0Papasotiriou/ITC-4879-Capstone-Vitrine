@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 
+import type { MoodId } from "@/lib/display/moods";
 import { TEMPLATE_IDS, type TemplateId } from "@/lib/optimize/templates";
 
 /**
@@ -28,11 +29,13 @@ export type DisplayRequest = {
   query?: string;
 };
 
-export type Theme = DisplayRequest & { id: string; title: { en: string; el: string }; line: { en: string; el: string } };
+/** `mood`: the time of day the window is lit for (src/lib/display/moods.ts, docs/adr/048). */
+export type Theme = DisplayRequest & { id: string; mood: MoodId; title: { en: string; el: string }; line: { en: string; el: string } };
 
 export const THEMES: readonly Theme[] = [
   {
     id: "reading-corner",
+    mood: "afternoon",
     template: "reading-corner",
     budgetCents: 60_000,
     query: "wood",
@@ -41,6 +44,7 @@ export const THEMES: readonly Theme[] = [
   },
   {
     id: "calm-living",
+    mood: "overcast",
     template: "living-room",
     budgetCents: 250_000,
     query: "grey",
@@ -49,6 +53,7 @@ export const THEMES: readonly Theme[] = [
   },
   {
     id: "oak-bedroom",
+    mood: "dawn",
     template: "bedroom",
     budgetCents: 180_000,
     query: "oak",
@@ -57,6 +62,7 @@ export const THEMES: readonly Theme[] = [
   },
   {
     id: "black-dining",
+    mood: "dusk",
     template: "dining",
     budgetCents: 200_000,
     query: "black",
@@ -65,6 +71,7 @@ export const THEMES: readonly Theme[] = [
   },
   {
     id: "leather-living",
+    mood: "golden-hour",
     template: "living-room",
     budgetCents: 350_000,
     query: "leather",
@@ -73,6 +80,7 @@ export const THEMES: readonly Theme[] = [
   },
   {
     id: "small-gifts",
+    mood: "noon",
     template: "gift-set",
     budgetCents: 15_000,
     title: { en: "Small gifts for a home", el: "Μικρά δώρα για ένα σπίτι" },

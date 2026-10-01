@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { routing } from "@/i18n/routing";
 import { REQUEST_ID_HEADER, resolveRequestId } from "@/lib/log/request-id";
-import { baseSecurityHeaders, contentSecurityPolicy, cspHeaderName, cspMode, newNonce } from "@/lib/security/headers";
+import { baseSecurityHeaders, bucketOrigins, contentSecurityPolicy, cspHeaderName, cspMode, newNonce } from "@/lib/security/headers";
 
 /**
  * Next.js 16 renamed `middleware.ts` to `proxy.ts` (CLAUDE.md, known gotchas).
@@ -57,7 +57,11 @@ export default function proxy(request: NextRequest) {
   let policy: string | null = null;
   if (csp !== null) {
     const nonce = newNonce();
-    policy = contentSecurityPolicy({ nonce, dev: process.env.NODE_ENV === "development", https });
+    const bucket =
+      process.env.STORAGE_DRIVER === "local"
+        ? []
+        : bucketOrigins({ endpoint: process.env.S3_ENDPOINT, bucket: process.env.S3_BUCKET, forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "1" });
+    policy = contentSecurityPolicy({ nonce, dev: process.env.NODE_ENV === "development", https, bucket });
     headers.set("x-nonce", nonce);
     headers.set("content-security-policy", policy);
   }
