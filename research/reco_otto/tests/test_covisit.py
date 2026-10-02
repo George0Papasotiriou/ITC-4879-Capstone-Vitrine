@@ -43,3 +43,15 @@ def test_popularity_gives_everyone_the_same_list():
     model = Popularity(data.from_records(records()))
     assert model.clicks_for([1], [0]) == model.clicks_for([4], [2])
     assert model.top_clicks[0] in (1, 2)
+
+
+def test_pairing_the_sessions_a_group_at_a_time_gives_the_same_matrices(monkeypatch):
+    from reco_otto import synthetic, taste_graph
+
+    events = data.from_records(synthetic.sessions(count=300, items=80, aisles=8, days=6, seed=3))
+    whole = CoVisitation(events)
+    monkeypatch.setattr(taste_graph, "CHUNK_EVENTS", 500)
+    grouped = CoVisitation(events)
+    assert grouped.clicks == whole.clicks
+    assert grouped.carts_orders == whole.carts_orders
+    assert grouped.buy2buy == whole.buy2buy

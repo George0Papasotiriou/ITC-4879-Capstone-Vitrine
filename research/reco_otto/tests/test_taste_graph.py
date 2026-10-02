@@ -95,3 +95,29 @@ def test_the_shop_way_never_recommends_what_the_session_has_seen(small: pl.DataF
     assert len(shelf) == 20 and not set(shelf) & set(aids)
     with_history = TasteGraph(small).clicks_for(aids, types, tss)
     assert with_history[0] in aids
+
+
+@pytest.mark.parametrize("options", [Options(), Options(normalise=False)])
+def test_pairing_the_sessions_a_group_at_a_time_gives_the_same_edges(small: pl.DataFrame, options: Options, monkeypatch: pytest.MonkeyPatch):
+    from reco_otto import taste_graph
+
+    now = int(small["ts"].max())
+    whole = {(x, y): w for x, y, w in behaviour_edges(small, now, options).iter_rows()}
+    monkeypatch.setattr(taste_graph, "CHUNK_EVENTS", 500)
+    assert len(taste_graph.chunks_of(small)) > 1
+    grouped = {(x, y): w for x, y, w in behaviour_edges(small, now, options).iter_rows()}
+    assert grouped.keys() == whole.keys()
+    for pair, weight in whole.items():
+        assert grouped[pair] == pytest.approx(weight, rel=1e-12)
+
+
+def test_the_pruned_walk_only_lowers_scores_and_zero_is_the_exact_walk(small: pl.DataFrame):
+    graph = transitions(behaviour_edges(small, int(small["ts"].max())))
+    seeds = {aid: 1 / 3 for aid in list(graph)[:3]}
+    exact = random_walk_with_restart(graph, seeds)
+    assert random_walk_with_restart(graph, seeds, prune=0.0) == exact
+    pruned = random_walk_with_restart(graph, seeds, prune=1e-3)
+    for aid, score in pruned.items():
+        assert score <= exact[aid] + 1e-15
+    # The mass that left the walk is what the pruned items held: the rest is still there.
+    assert 0 < sum(exact.values()) - sum(pruned.values()) < 0.5

@@ -9,6 +9,7 @@
 
 import {
   Color,
+  Group,
   Mesh,
   MeshBasicMaterial,
   MeshDepthMaterial,
@@ -45,6 +46,11 @@ export type ContactShadows = {
   plane: Mesh;
   /** Draws the shadows for what is on the piece layer now. */
   update: (renderer: WebGLRenderer, scene: Scene) => void;
+  /**
+   * Compiles the shaders it draws off-screen with (the depth and the two blurs) without holding up the page,
+   * so the first update does not compile them on the spot. The plane itself is compiled with the set.
+   */
+  warm: (renderer: WebGLRenderer, scene: Scene) => Promise<void>;
   dispose: () => void;
 };
 
@@ -129,6 +135,17 @@ export function buildContactShadows(area: { centreX: number; centreZ: number; wi
       renderer.setClearColor(clearColour, clearAlpha);
       scene.background = background;
       plane.visible = true;
+    },
+    warm(renderer, scene) {
+      // Compiled with the off-screen target current, as update() draws them: three.js builds a different
+      // shader for a render target (no tone mapping, linear colour) than for the canvas.
+      const offscreen = new Group();
+      for (const material of [depthMaterial, horizontal, vertical]) offscreen.add(new Mesh(quad.geometry, material));
+      const previousTarget = renderer.getRenderTarget();
+      renderer.setRenderTarget(target);
+      const compiled = renderer.compileAsync(offscreen, camera, scene);
+      renderer.setRenderTarget(previousTarget);
+      return compiled.then(() => undefined);
     },
     dispose() {
       target.dispose();

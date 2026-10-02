@@ -25,8 +25,18 @@ const resultCount = (page: import("@playwright/test").Page) => page.getByText(/^
 test("@smoke a category lists its products with a count", async ({ page }) => {
   await page.goto("/en/c/lighting", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { level: 1, name: "Lighting" })).toBeVisible();
-  await expect(resultCount(page)).toHaveText("12 products");
-  await expect(page.locator('article[data-agent-id^="product:"]')).toHaveCount(12);
+  const cards = page.locator('article[data-agent-id^="product:"]');
+  if (process.env.BASE_URL === undefined) {
+    // The test catalogue: exactly twelve lamps.
+    await expect(resultCount(page)).toHaveText("12 products");
+    await expect(cards).toHaveCount(12);
+  } else {
+    // A deployment carries the whole catalogue: the count is whatever it holds, and the first page shows some of them.
+    const count = Number((await resultCount(page).innerText()).split(" ")[0]);
+    expect(count).toBeGreaterThan(0);
+    await expect(cards.first()).toBeVisible();
+    expect(await cards.count()).toBeLessThanOrEqual(count);
+  }
 });
 
 test("a facet link filters the listing, keeps the state in the URL, and can be removed", async ({ page, isMobile }) => {

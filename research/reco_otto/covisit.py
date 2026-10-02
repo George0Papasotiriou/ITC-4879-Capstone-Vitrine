@@ -35,6 +35,8 @@ from collections import Counter
 import numpy as np
 import polars as pl
 
+from reco_otto.taste_graph import chunks_of
+
 TYPE_WEIGHT = {0: 1, 1: 6, 2: 3}
 DAY_S = 24 * 3600
 
@@ -48,23 +50,37 @@ def _pairs(events: pl.DataFrame, window_s: int) -> pl.DataFrame:
     return pairs.filter((pl.col("aid_x") != pl.col("aid_y")) & ((pl.col("ts_x") - pl.col("ts_y")).abs() < window_s))
 
 
-def _top(pairs: pl.DataFrame, weight: pl.Expr, top_k: int) -> dict[int, list[int]]:
-    """Each pair counted once per session, weights summed over sessions, top K neighbours per item."""
-    scored = (
+def _top(events: pl.DataFrame, window_s: int, matrices: dict[str, tuple[pl.Expr, int]]) -> dict[str, dict[int, list[int]]]:
+    """For each named weight: each pair counted once per session, weights summed over sessions, top K neighbours per item.
+
+    Pairs never cross sessions, so sessions are paired a group at a time
+    (chunks_of) and the groups' sums added: the same matrices in less memory.
+    """
+    partial: dict[str, list[pl.DataFrame]] = {name: [] for name in matrices}
+    for chunk in chunks_of(events):
         # Sorted first, so the pair kept for a session (and its time and type) is the same on every run.
-        pairs.sort(["session", "aid_x", "aid_y", "ts_x", "ts_y"], descending=[False, False, False, True, True])
-        .unique(subset=["session", "aid_x", "aid_y"], keep="first", maintain_order=True)
-        .with_columns(weight.alias("w"))
-        .group_by(["aid_x", "aid_y"])
-        .agg(pl.col("w").sum())
-        .sort(["aid_x", "w", "aid_y"], descending=[False, True, False])
-        .group_by("aid_x", maintain_order=True)
-        .head(top_k)
-    )
-    neighbours: dict[int, list[int]] = {}
-    for aid_x, aid_y in zip(scored["aid_x"].to_list(), scored["aid_y"].to_list(), strict=True):
-        neighbours.setdefault(aid_x, []).append(aid_y)
-    return neighbours
+        once = (
+            _pairs(chunk, window_s)
+            .sort(["session", "aid_x", "aid_y", "ts_x", "ts_y"], descending=[False, False, False, True, True])
+            .unique(subset=["session", "aid_x", "aid_y"], keep="first", maintain_order=True)
+        )
+        for name, (weight, _) in matrices.items():
+            partial[name].append(once.with_columns(weight.alias("w")).group_by(["aid_x", "aid_y"]).agg(pl.col("w").sum()))
+    result: dict[str, dict[int, list[int]]] = {}
+    for name, (_, top_k) in matrices.items():
+        scored = (
+            pl.concat(partial[name])
+            .group_by(["aid_x", "aid_y"])
+            .agg(pl.col("w").sum())
+            .sort(["aid_x", "w", "aid_y"], descending=[False, True, False])
+            .group_by("aid_x", maintain_order=True)
+            .head(top_k)
+        )
+        neighbours: dict[int, list[int]] = {}
+        for aid_x, aid_y in zip(scored["aid_x"].to_list(), scored["aid_y"].to_list(), strict=True):
+            neighbours.setdefault(aid_x, []).append(aid_y)
+        result[name] = neighbours
+    return result
 
 
 class CoVisitation:
@@ -73,11 +89,17 @@ class CoVisitation:
     def __init__(self, train: pl.DataFrame) -> None:
         ts_min, ts_max = int(train["ts"].min()), int(train["ts"].max())
         span = max(1, ts_max - ts_min)
-        day_pairs = _pairs(train, DAY_S)
-        self.clicks = _top(day_pairs, 1 + 3 * (pl.col("ts_x") - ts_min) / span, 20)
-        self.carts_orders = _top(day_pairs, pl.col("type_y").replace_strict(TYPE_WEIGHT, return_dtype=pl.Float64), 15)
-        buys = train.filter(pl.col("type") > 0)
-        self.buy2buy = _top(_pairs(buys, 14 * DAY_S), pl.lit(1.0), 15)
+        day = _top(
+            train,
+            DAY_S,
+            {
+                "clicks": (1 + 3 * (pl.col("ts_x") - ts_min) / span, 20),
+                "carts_orders": (pl.col("type_y").replace_strict(TYPE_WEIGHT, return_dtype=pl.Float64), 15),
+            },
+        )
+        self.clicks = day["clicks"]
+        self.carts_orders = day["carts_orders"]
+        self.buy2buy = _top(train.filter(pl.col("type") > 0), 14 * DAY_S, {"buy2buy": (pl.lit(1.0), 15)})["buy2buy"]
         self.top_clicks = train.filter(pl.col("type") == 0)["aid"].value_counts(sort=True).head(20)["aid"].to_list()
         self.top_orders = train.filter(pl.col("type") == 2)["aid"].value_counts(sort=True).head(20)["aid"].to_list()
 

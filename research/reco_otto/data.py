@@ -34,6 +34,9 @@ import numpy as np
 import polars as pl
 
 TYPES = {"clicks": 0, "carts": 1, "orders": 2}
+# Session and item ids as 32-bit integers: OTTO has 14.6 million sessions and 1.86 million items, and the
+# pair tables of a 1-in-20 sample are a third smaller than with 64-bit ids.
+ID = pl.Int32
 WEEK_S = 7 * 24 * 3600
 
 
@@ -46,8 +49,8 @@ def _events_frame(sessions: pl.DataFrame) -> pl.DataFrame:
     if events.height > 0 and events["ts"].max() > 10**11:
         events = events.with_columns((pl.col("ts") // 1000).alias("ts"))
     return events.select(
-        pl.col("session").cast(pl.Int64),
-        pl.col("aid").cast(pl.Int64),
+        pl.col("session").cast(ID),
+        pl.col("aid").cast(ID),
         pl.col("ts").cast(pl.Int64),
         pl.col("type").cast(pl.Int8),
     ).sort(["session", "ts"])
@@ -61,26 +64,28 @@ def load(path: str | Path, *, sample_every: int = 1) -> pl.DataFrame:
     always keeps the same sessions.
     """
     file = Path(path)
+    # The streaming engine reads the 11 GB release in batches and keeps only the
+    # sampled sessions, so memory holds the sample, never the whole file.
     if file.suffix == ".parquet":
         events = pl.scan_parquet(file)
         if sample_every > 1:
             events = events.filter(pl.col("session") % sample_every == 0)
-        frame = events.collect()
+        frame = events.collect(engine="streaming")
         if frame["type"].dtype == pl.String:
             frame = frame.with_columns(pl.col("type").replace_strict(TYPES, return_dtype=pl.Int8))
         if frame.height > 0 and frame["ts"].max() > 10**11:
             frame = frame.with_columns((pl.col("ts") // 1000).alias("ts"))
-        return frame.select(pl.col("session").cast(pl.Int64), pl.col("aid").cast(pl.Int64), pl.col("ts").cast(pl.Int64), pl.col("type").cast(pl.Int8)).sort(["session", "ts"])
+        return frame.select(pl.col("session").cast(ID), pl.col("aid").cast(ID), pl.col("ts").cast(pl.Int64), pl.col("type").cast(pl.Int8)).sort(["session", "ts"])
     sessions = pl.scan_ndjson(file)
     if sample_every > 1:
         sessions = sessions.filter(pl.col("session") % sample_every == 0)
-    return _events_frame(sessions.collect())
+    return _events_frame(sessions.collect(engine="streaming"))
 
 
 def from_records(records: list[dict]) -> pl.DataFrame:
     """The same table from sessions already in memory (tests, synthetic data)."""
     if not records:
-        return pl.DataFrame(schema={"session": pl.Int64, "aid": pl.Int64, "ts": pl.Int64, "type": pl.Int8})
+        return pl.DataFrame(schema={"session": ID, "aid": ID, "ts": pl.Int64, "type": pl.Int8})
     return _events_frame(pl.DataFrame(records))
 
 
@@ -128,3 +133,17 @@ def truncate(test: pl.DataFrame, *, seed: int = 4949) -> Truncated:
             orders[int(session)] = future_orders
     history = pl.concat(histories) if histories else test.head(0)
     return Truncated(history=history, clicks=clicks, carts=carts, orders=orders)
+
+
+def sample_sessions(truncated: Truncated, count: int, *, seed: int = 4949) -> Truncated:
+    """A seeded random `count` of the test sessions, with their labels: every method is scored on the same ones."""
+    sessions = truncated.history["session"].unique().sort()
+    if count >= sessions.len():
+        return truncated
+    kept = set(int(session) for session in sessions.sample(count, seed=seed))
+    return Truncated(
+        history=truncated.history.filter(pl.col("session").is_in(list(kept))),
+        clicks={session: aid for session, aid in truncated.clicks.items() if session in kept},
+        carts={session: aids for session, aids in truncated.carts.items() if session in kept},
+        orders={session: aids for session, aids in truncated.orders.items() if session in kept},
+    )

@@ -122,7 +122,7 @@ function tierFor(renderer: WebGLRenderer): Tier {
 }
 
 /** The shop's design tokens, read from the page, so the room is painted in the shop's own colours. */
-function palette(): Palette {
+function palette(): Palette & { dusk: Color } {
   const styles = getComputedStyle(document.documentElement);
   const token = (name: string, fallback: string) => new Color((styles.getPropertyValue(name).trim() || fallback) as string);
   // Fallbacks only matter if the stylesheet has not loaded; they repeat the tokens' values.
@@ -132,7 +132,7 @@ function palette(): Palette {
   const floor = plinth.clone().lerp(dusk, 0.16).lerp(new Color(0.78, 0.74, 0.68), 0.25);
   const trim = plinth.clone().multiplyScalar(0.93);
   const display = plinth.clone().lerp(new Color(1, 1, 1), 0.55);
-  return { wall, floor, trim, plinth: display, sky: new Color(1, 1, 1) };
+  return { wall, floor, trim, plinth: display, sky: new Color(1, 1, 1), dusk };
 }
 
 const easeOut = (t: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
@@ -204,6 +204,19 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
   const moteTexture = mote();
   const light: BuiltLight = buildLight(room.window, { shadowSize: tier.shadowSize, dust: options.reducedMotion ? 0 : tier.dust, moteTexture });
   scene.add(light.group);
+
+  // Shaders are compiled in parallel, off the page's thread (KHR_parallel_shader_compile), before anything is
+  // drawn with them. Compiled on first draw instead, they held the page up for seconds on a phone (Lighthouse
+  // on the live Showcase, 2026-10-02: 3.2 s of 4.7 s blocked waiting for shader links). One empty draw comes
+  // first, because three.js counts the floor and ceiling clipping planes only when it draws; it clears to the
+  // shopfront's dusk, which the canvas shows until the room is ready.
+  renderer.setClearColor(colours.dusk);
+  renderer.render(new Scene(), camera);
+  let roomReady = false;
+  const roomCompiled = renderer.compileAsync(scene, camera).then(() => {
+    roomReady = true;
+    invalidate();
+  });
 
   let reduced = options.reducedMotion;
   const rig: CameraRig = createCameraRig(camera, frameShot({ min: { x: -1, y: 0, z: 0 }, max: { x: 1.6, y: 1.2, z: 1.2 } }, 16 / 9));
@@ -316,7 +329,8 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
   }
 
   function render() {
-    renderer.render(scene, camera);
+    // Until the room's shaders are ready the canvas keeps its dusk colour; a frame drawn now would compile them on the spot.
+    if (roomReady) renderer.render(scene, camera);
   }
 
   function frame(now: number) {
@@ -468,7 +482,6 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
       group.add(holder);
       holders.set(placement.key, { holder, placement, loaded: entry });
     }
-    scene.add(group);
     group.updateMatrixWorld(true);
 
     // Pieces on pieces are set down on the support's real surface: a ray straight down at their spot.
@@ -495,7 +508,6 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
       const bulb = bulbOf(entry, holder.position);
       if (bulb !== null) bulbs.push(bulb);
     }
-    light.setLamps(bulbs);
 
     // The contact shadows, drawn once, with everything in its final place.
     const margin = 0.9;
@@ -509,6 +521,18 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
       { resolution: tier.contactResolution, opacity: 0.72, blur: 2.6, reach: 1.2 },
     );
     group.add(shadows.plane);
+
+    // The set's shaders are compiled before it is drawn, as the room's are (above); the room, and the set
+    // before this one, go on drawing meanwhile. Nothing is awaited after the set joins the scene, so no frame
+    // can show it before show() has set its first positions.
+    await Promise.all([roomCompiled, renderer.compileAsync(group, camera, scene), shadows.warm(renderer, scene)]);
+    if (token !== showToken) {
+      plinths.dispose();
+      shadows.dispose();
+      return null;
+    }
+    light.setLamps(bulbs);
+    scene.add(group);
     const hiddenSets = leaving.map((set) => set.group).concat(dressed === null ? [] : [dressed.group]);
     for (const other of hiddenSets) other.visible = false;
     shadows.update(renderer, scene);

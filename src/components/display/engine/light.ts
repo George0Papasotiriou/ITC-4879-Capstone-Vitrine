@@ -67,6 +67,9 @@ const colourOf = (kelvin: number) => {
   return new Color().setRGB(r, g, b);
 };
 
+/** The most lamps a set holds: a pair of bedside lamps (src/lib/optimize/templates.ts). */
+const MAX_LAMPS = 2;
+
 export function buildLight(windowAt: { x: number; z: number; outline: { z: number; y: number }[] }, options: { shadowSize: number; dust: number; moteTexture: Texture }): BuiltLight {
   const group = new Group();
   group.name = "light";
@@ -165,11 +168,17 @@ export function buildLight(windowAt: { x: number; z: number; outline: { z: numbe
   dust.frustumCulled = false;
   if (dustCount > 0) group.add(dust);
 
-  let lamps: PointLight[] = [];
+  // A fixed number of lamp lights, always in the scene and never hidden. three.js builds each material's shader
+  // for the number of lights it is lit by, so adding a light for one set and removing it for the next (or
+  // hiding it at noon) would rebuild every material in the room, holding up the page mid-animation. A set
+  // has at most two lamps (a pair of bedside lamps); lamps a set does not use are simply dark.
+  const lamps: PointLight[] = Array.from({ length: MAX_LAMPS }, () => new PointLight(0xffffff, 0, 4.5, 2));
+  let lit = 0;
   // A lit lamp's glow: a soft warm halo at the bulb, seen through the shade as light through fabric.
   let glows: Sprite[] = [];
   const glowMaterial = new SpriteMaterial({ map: options.moteTexture, blending: AdditiveBlending, depthWrite: false, depthTest: false, transparent: true, opacity: 0 });
   const lampGroup = new Group();
+  lampGroup.add(...lamps);
   group.add(lampGroup);
   let mood: Mood | null = null;
 
@@ -266,11 +275,10 @@ export function buildLight(windowAt: { x: number; z: number; outline: { z: numbe
       sweep(direction);
       swept = key;
     }
-    for (const lamp of lamps) {
+    lamps.forEach((lamp, index) => {
       lamp.color.copy(colourOf(next.lamps?.kelvin ?? 2700));
-      lamp.intensity = (next.lamps?.intensity ?? 0) * 2.4;
-      lamp.visible = lamp.intensity > 0.01;
-    }
+      lamp.intensity = index < lit ? (next.lamps?.intensity ?? 0) * 2.4 : 0;
+    });
     glowMaterial.color.copy(colourOf(next.lamps?.kelvin ?? 2700));
     glowMaterial.opacity = Math.min(0.85, (next.lamps?.intensity ?? 0) * 0.6);
     for (const glow of glows) glow.visible = glowMaterial.opacity > 0.02;
@@ -281,18 +289,11 @@ export function buildLight(windowAt: { x: number; z: number; outline: { z: numbe
     sun,
     apply,
     setLamps(positions) {
-      for (const lamp of lamps) {
-        lampGroup.remove(lamp);
-        lamp.dispose();
-      }
+      const used = positions.slice(0, MAX_LAMPS);
+      lit = used.length;
+      used.forEach((position, index) => lamps[index]!.position.copy(position));
       for (const glow of glows) lampGroup.remove(glow);
-      lamps = positions.map((position) => {
-        const lamp = new PointLight(0xffffff, 0, 4.5, 2);
-        lamp.position.copy(position);
-        lampGroup.add(lamp);
-        return lamp;
-      });
-      glows = positions.map((position) => {
+      glows = used.map((position) => {
         const glow = new Sprite(glowMaterial);
         glow.position.copy(position);
         glow.scale.setScalar(0.42);

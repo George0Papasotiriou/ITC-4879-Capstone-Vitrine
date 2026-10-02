@@ -46,6 +46,7 @@ degree normalisation (raw w_ij): what each of the two ideas adds.
 
 from __future__ import annotations
 
+import heapq
 import math
 from dataclasses import dataclass
 
@@ -57,6 +58,11 @@ DAY_S = 24 * 3600
 RESTART = 0.3
 ITERATIONS = 4
 TOP_K = 50
+# Events paired with each other at once. A long session pairs hundreds of events with each other, so a
+# group of a million events made pair tables of several GB on OTTO; a quarter of that stays near one GB.
+CHUNK_EVENTS = 250_000
+# Two item ids packed into one 64-bit key (smaller · 2³² + larger): one column to group by, not two.
+PAIR_BASE = 2**32
 
 Neighbours = dict[int, dict[int, float]]
 
@@ -108,33 +114,61 @@ def behaviour_edges_pure(events: list[tuple[int, int, int, int]], now_s: int, op
     return raw, normalised, counts
 
 
+def chunks_of(events: pl.DataFrame) -> list[pl.DataFrame]:
+    """The events in groups of whole sessions (by session id), each small enough to pair with itself in memory."""
+    count = max(1, math.ceil(events.height / CHUNK_EVENTS))
+    if count == 1:
+        return [events]
+    return [events.filter(pl.col("session") % count == index) for index in range(count)]
+
+
 def behaviour_edges(events: pl.DataFrame, now_s: int, options: Options = Options()) -> pl.DataFrame:
-    """The same edges for millions of events, with polars: columns aid_x, aid_y, w (normalised unless switched off)."""
-    weighted = events.select(
-        "session",
-        "aid",
-        "ts",
-        pl.col("type").replace_strict(EVENT_WEIGHT, return_dtype=pl.Float64).alias("ew"),
-    ).with_columns(pl.int_range(pl.len()).over("session", order_by="ts").alias("order"))
-    left = weighted.rename({"aid": "aid_x", "ts": "ts_x", "ew": "ew_x", "order": "o_x"})
-    right = weighted.rename({"aid": "aid_y", "ts": "ts_y", "ew": "ew_y", "order": "o_y"})
-    # Each ordered pair (an event and a later one in the same session, within the window), as the shop's two loops.
-    pairs = left.join(right, on="session").filter((pl.col("o_y") > pl.col("o_x")) & (pl.col("ts_y") - pl.col("ts_x") <= options.window_s) & (pl.col("aid_x") != pl.col("aid_y")))
-    weight = (pl.col("ew_x") * pl.col("ew_y")).sqrt()
-    if options.decay:
-        gap = (pl.col("ts_y") - pl.col("ts_x")).cast(pl.Float64)
-        age = (pl.lit(now_s) - pl.col("ts_y")).clip(lower_bound=0).cast(pl.Float64)
-        weight = weight * (-gap / options.tau_s).exp() * pl.lit(0.5).pow(age / options.half_life_s)
-    one_way = pairs.select("aid_x", "aid_y", weight.alias("w"))
-    both = pl.concat([one_way, one_way.select(pl.col("aid_y").alias("aid_x"), pl.col("aid_x").alias("aid_y"), "w")])
-    raw = both.group_by(["aid_x", "aid_y"]).agg(pl.col("w").sum())
-    if not options.normalise:
-        return raw
-    degree = raw.group_by("aid_x").agg(pl.col("w").sum().alias("deg"))
-    return (
-        raw.join(degree, on="aid_x")
-        .join(degree.rename({"aid_x": "aid_y", "deg": "deg_y"}), on="aid_y")
-        .select("aid_x", "aid_y", (pl.col("w") / (pl.col("deg") * pl.col("deg_y")).sqrt()).alias("w"))
+    """The same edges for millions of events, with polars: columns aid_x, aid_y, w (normalised unless switched off).
+
+    Pairs never cross sessions, so the sessions are paired a group at a time
+    (chunks_of) and the groups' sums added. The shop adds every pair's weight
+    in both directions (a→b and b→a), so an edge weighs the same both ways:
+    each is summed once, under its pair of ids (smaller, larger) packed into
+    one 64-bit key, and turned both ways only at the end. The same edges as the
+    shop's, in a fraction of the memory OTTO would otherwise need.
+    """
+    partial = []
+    for chunk in chunks_of(events):
+        weighted = chunk.select(
+            "session",
+            "aid",
+            "ts",
+            pl.col("type").replace_strict(EVENT_WEIGHT, return_dtype=pl.Float64).alias("ew"),
+        ).with_columns(pl.int_range(pl.len()).over("session", order_by="ts").alias("order"))
+        left = weighted.rename({"aid": "aid_x", "ts": "ts_x", "ew": "ew_x", "order": "o_x"})
+        right = weighted.rename({"aid": "aid_y", "ts": "ts_y", "ew": "ew_y", "order": "o_y"})
+        # Each ordered pair (an event and a later one in the same session, within the window), as the shop's two loops.
+        pairs = left.join(right, on="session").filter((pl.col("o_y") > pl.col("o_x")) & (pl.col("ts_y") - pl.col("ts_x") <= options.window_s) & (pl.col("aid_x") != pl.col("aid_y")))
+        weight = (pl.col("ew_x") * pl.col("ew_y")).sqrt()
+        if options.decay:
+            gap = (pl.col("ts_y") - pl.col("ts_x")).cast(pl.Float64)
+            age = (pl.lit(now_s) - pl.col("ts_y")).clip(lower_bound=0).cast(pl.Float64)
+            weight = weight * (-gap / options.tau_s).exp() * pl.lit(0.5).pow(age / options.half_life_s)
+        key = pl.min_horizontal("aid_x", "aid_y").cast(pl.Int64) * PAIR_BASE + pl.max_horizontal("aid_x", "aid_y").cast(pl.Int64)
+        partial.append(pairs.select(key.alias("key"), weight.alias("w")).group_by("key").agg(pl.col("w").sum()))
+    summed = pl.concat(partial).group_by("key").agg(pl.col("w").sum())
+    del partial
+    pairs = summed.select((pl.col("key") // PAIR_BASE).alias("low"), (pl.col("key") % PAIR_BASE).alias("high"), "w")
+    del summed
+    if options.normalise:
+        ends = pl.concat([pairs.select(pl.col("low").alias("aid"), "w"), pairs.select(pl.col("high").alias("aid"), "w")])
+        degree = ends.group_by("aid").agg(pl.col("w").sum().alias("deg"))
+        del ends
+        pairs = (
+            pairs.join(degree.rename({"aid": "low", "deg": "deg_low"}), on="low")
+            .join(degree.rename({"aid": "high", "deg": "deg_high"}), on="high")
+            .select("low", "high", (pl.col("w") / (pl.col("deg_low") * pl.col("deg_high")).sqrt()).alias("w"))
+        )
+    return pl.concat(
+        [
+            pairs.select(pl.col("low").alias("aid_x"), pl.col("high").alias("aid_y"), "w"),
+            pairs.select(pl.col("high").alias("aid_x"), pl.col("low").alias("aid_y"), "w"),
+        ]
     )
 
 
@@ -150,9 +184,14 @@ def transitions_pure(normalised: Neighbours, top_k: int = TOP_K) -> Neighbours:
 
 
 def transitions(edges: pl.DataFrame, top_k: int = TOP_K) -> Neighbours:
-    """The same from the polars edges. Ties are broken by the neighbour's id written as text, as the shop's localeCompare on ids."""
+    """The same from the polars edges. Ties are broken by the neighbour's id written as text, as the shop's localeCompare on ids.
+
+    Only an item's strongest `top_k` (and any tied with the last of them) can
+    be kept, so the others are dropped before the ids are written as text for
+    the tie-break: on OTTO, most of the tens of millions of edges.
+    """
     top = (
-        edges.filter(pl.col("w") > 0)
+        edges.filter((pl.col("w") > 0) & (pl.col("w").rank("min", descending=True).over("aid_x") <= top_k))
         .with_columns(pl.col("aid_y").cast(pl.String).alias("key"))
         .sort(["aid_x", "w", "key"], descending=[False, True, False])
         .group_by("aid_x", maintain_order=True)
@@ -160,8 +199,11 @@ def transitions(edges: pl.DataFrame, top_k: int = TOP_K) -> Neighbours:
         .with_columns((pl.col("w") / pl.col("w").sum().over("aid_x")).alias("p"))
     )
     result: Neighbours = {}
-    for aid_x, aid_y, probability in zip(top["aid_x"].to_list(), top["aid_y"].to_list(), top["p"].to_list(), strict=True):
-        result.setdefault(aid_x, {})[aid_y] = probability
+    # A slice at a time: three Python lists of the whole table at once would hold tens of millions of objects.
+    for start in range(0, top.height, 1_000_000):
+        part = top.slice(start, 1_000_000)
+        for aid_x, aid_y, probability in zip(part["aid_x"].to_list(), part["aid_y"].to_list(), part["p"].to_list(), strict=True):
+            result.setdefault(aid_x, {})[aid_y] = probability
     return result
 
 
@@ -177,8 +219,16 @@ def seed_vector(history: list[tuple[int, int, int]], *, half_life_s: float = 3 *
     return {aid: weight / total for aid, weight in seeds.items()} if total > 0 else seeds
 
 
-def random_walk_with_restart(graph: Neighbours, seeds: dict[int, float], *, restart: float = RESTART, iterations: int = ITERATIONS) -> dict[int, float]:
-    """The shop's randomWalkWithRestart: four steps of r ← (1 − c)·Pᵀr + c·s, dangling mass back to the seeds."""
+def random_walk_with_restart(graph: Neighbours, seeds: dict[int, float], *, restart: float = RESTART, iterations: int = ITERATIONS, prune: float = 0.0) -> dict[int, float]:
+    """The shop's randomWalkWithRestart: four steps of r ← (1 − c)·Pᵀr + c·s, dangling mass back to the seeds.
+
+    `prune` is for OTTO's scale only (0, the shop's exact walk, by default). On
+    OTTO's graph four steps reach some 47,000 items from one session, almost
+    all with a vanishing share of the mass. With prune = ε, an item holding
+    less than ε does not pass its mass on, so that mass leaves the walk: every
+    score can only fall, and by at most the mass dropped, which the
+    evaluation measures against the exact walk (evaluate.py, prune_check).
+    """
     if not 0 < restart <= 1:
         raise ValueError("restart must be in (0, 1]")
     scores = dict(seeds)
@@ -190,7 +240,7 @@ def random_walk_with_restart(graph: Neighbours, seeds: dict[int, float], *, rest
             if not row:
                 dangling += mass
                 continue
-            if restart == 1:
+            if restart == 1 or mass < prune:
                 continue
             for neighbour, probability in row.items():
                 following[neighbour] = following.get(neighbour, 0.0) + (1 - restart) * mass * probability
@@ -204,28 +254,38 @@ def random_walk_with_restart(graph: Neighbours, seeds: dict[int, float], *, rest
 class TasteGraph:
     """The recommender for the evaluation: fitted on training events, asked one session's history at a time."""
 
-    def __init__(self, train: pl.DataFrame, options: Options = Options(), *, with_history: bool = True) -> None:
+    def __init__(self, train: pl.DataFrame, options: Options = Options(), *, with_history: bool = True, prune: float = 0.0) -> None:
         now = int(train["ts"].max())
         self.graph = transitions(behaviour_edges(train, now, options), options.top_k)
         self.with_history = with_history
+        self.prune = prune
         self.top_clicks = train.filter(pl.col("type") == 0)["aid"].value_counts(sort=True).head(20)["aid"].to_list()
         self.top_orders = train.filter(pl.col("type") == 2)["aid"].value_counts(sort=True).head(20)["aid"].to_list()
 
-    def _ranked(self, aids: list[int], tss: list[int], types: list[int]) -> tuple[list[int], list[int]]:
+    def ranked(self, aids: list[int], tss: list[int], types: list[int]) -> tuple[list[int], list[int]]:
+        """The session's history (strongest seed first) and what the walk reaches beyond it (strongest first)."""
         seeds = seed_vector(list(zip(aids, tss, types, strict=True)))
-        walked = random_walk_with_restart(self.graph, seeds)
+        walked = random_walk_with_restart(self.graph, seeds, prune=self.prune)
         # The history, strongest seed first (the same weights the walk starts from); then what the walk reaches.
         history = sorted(seeds, key=lambda aid: (-seeds[aid], aid))
-        found = [aid for aid, _ in sorted(walked.items(), key=lambda pair: (-pair[1], pair[0])) if aid not in seeds]
+        # Only the first 20 found can be recommended; the seeds are among the strongest, so 20 + their number is enough.
+        strongest = heapq.nsmallest(20 + len(seeds), walked.items(), key=lambda pair: (-pair[1], pair[0]))
+        found = [aid for aid, _ in strongest if aid not in seeds]
         return history, found
 
-    def _list(self, aids: list[int], tss: list[int], types: list[int], fill: list[int]) -> list[int]:
-        history, found = self._ranked(aids, tss, types)
-        result = (history + found)[:20] if self.with_history else found[:20]
-        return result + [aid for aid in fill if aid not in result and (self.with_history or aid not in history)][: 20 - len(result)]
+    @staticmethod
+    def shelf(history: list[int], found: list[int], fill: list[int], with_history: bool) -> list[int]:
+        """Twenty items: the history then the walk's (OTTO's way), or the walk's alone (the shop's), topped up from `fill`."""
+        result = (history + found)[:20] if with_history else found[:20]
+        return result + [aid for aid in fill if aid not in result and (with_history or aid not in history)][: 20 - len(result)]
+
+    def lists_for(self, aids: list[int], types: list[int], tss: list[int]) -> tuple[list[int], list[int]]:
+        """The 20 for clicks and the 20 for carts and orders, from one walk: they differ only in what fills a short list."""
+        history, found = self.ranked(aids, tss, types)
+        return self.shelf(history, found, self.top_clicks, self.with_history), self.shelf(history, found, self.top_orders, self.with_history)
 
     def clicks_for(self, aids: list[int], types: list[int], tss: list[int]) -> list[int]:
-        return self._list(aids, tss, types, self.top_clicks)
+        return self.lists_for(aids, types, tss)[0]
 
     def buys_for(self, aids: list[int], types: list[int], tss: list[int]) -> list[int]:
-        return self._list(aids, tss, types, self.top_orders)
+        return self.lists_for(aids, types, tss)[1]

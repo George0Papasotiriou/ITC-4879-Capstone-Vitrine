@@ -8,6 +8,7 @@
  */
 
 import { expect, test, type Browser, type Page } from "@playwright/test";
+import { validateBytes } from "gltf-validator";
 
 import { E2E_COUNTRY_HEADER } from "../../playwright.config";
 import { clientAddress, LAMP } from "./support/accounts";
@@ -20,11 +21,14 @@ import { clientAddress, LAMP } from "./support/accounts";
  *
  *   Android: an intent for Scene Viewer carrying the model's absolute https
  *   address, AR first, and `resizable=false` — the piece appears at its true
- *   size and cannot be pinched bigger or smaller.
+ *   size and cannot be pinched bigger or smaller. The file at that address
+ *   passes Khronos's glTF-Validator with no errors.
  *
  *   iPhone: a USDZ file that model-viewer writes from the same model in the
  *   browser, opened with `allowsContentScaling=0` (true size again). The test
- *   checks it is a real USDZ: a zip archive whose first entry is a .usda scene.
+ *   reads the whole archive and holds it to the USDZ rules Quick Look enforces:
+ *   entries stored uncompressed and 64-byte aligned, the USD scene first, only
+ *   allowed file types, and the scene in metres.
  *
  * The phone in the hand is the last step, and George's: docs/report/ar-check.md.
  */
@@ -37,7 +41,7 @@ async function phone(browser: Browser, userAgent: string): Promise<Page> {
   const page = await context.newPage();
   // Record what the viewer's AR link points at instead of leaving the page for the phone's AR app.
   await page.addInitScript(() => {
-    const seen: { href: string; rel: string; bytes?: number[] }[] = [];
+    const seen: { href: string; rel: string; file?: string }[] = [];
     (globalThis as { arHandoffs?: typeof seen }).arHandoffs = seen;
     // Quick Look is offered only where an <a> supports rel="ar", as Safari on an iPhone does.
     const supports = DOMTokenList.prototype.supports;
@@ -47,18 +51,41 @@ async function phone(browser: Browser, userAgent: string): Promise<Page> {
     // The USDZ is a blob the viewer revokes right after the tap; keep it readable for the test.
     URL.revokeObjectURL = () => {};
     HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
-      const entry: { href: string; rel: string; bytes?: number[] } = { href: this.href, rel: this.rel };
+      const entry: { href: string; rel: string; file?: string } = { href: this.href, rel: this.rel };
       seen.push(entry);
       if (this.href.startsWith("blob:")) {
+        // The whole file, as base64, so the test can read every entry of the archive.
         void fetch(this.href)
           .then((response) => response.arrayBuffer())
           .then((buffer) => {
-            entry.bytes = Array.from(new Uint8Array(buffer).slice(0, 120));
+            const bytes = new Uint8Array(buffer);
+            let text = "";
+            for (let start = 0; start < bytes.length; start += 0x8000) text += String.fromCharCode(...bytes.subarray(start, start + 0x8000));
+            entry.file = btoa(text);
           });
       }
     };
   });
   return page;
+}
+
+type ZipEntry = { name: string; method: number; dataOffset: number; size: number };
+
+/** The entries of a zip archive, read from its local file headers (PKWARE APPNOTE 4.3.7). */
+function zipEntries(archive: Buffer): ZipEntry[] {
+  const entries: ZipEntry[] = [];
+  let offset = 0;
+  while (offset + 30 <= archive.length && archive.readUInt32LE(offset) === 0x04034b50) {
+    const method = archive.readUInt16LE(offset + 8);
+    const size = archive.readUInt32LE(offset + 18);
+    const nameLength = archive.readUInt16LE(offset + 26);
+    const extraLength = archive.readUInt16LE(offset + 28);
+    const name = archive.toString("utf8", offset + 30, offset + 30 + nameLength);
+    const dataOffset = offset + 30 + nameLength + extraLength;
+    entries.push({ name, method, dataOffset, size });
+    offset = dataOffset + size;
+  }
+  return entries;
 }
 
 async function tapViewInSpace(page: Page) {
@@ -91,10 +118,13 @@ test.describe("AR hand-off", () => {
     expect(file.pathname).toBe("/api/models/faux-wood-table-lamp-b07mbfd87n");
     expect(handoff).toContain("package=com.google.android.googlequicksearchbox");
 
-    // The address Scene Viewer is given really is a binary glTF.
+    // The address Scene Viewer is given really is a binary glTF, valid by Khronos's own validator.
     const model = await page.request.get(file.pathname);
     expect(model.headers()["content-type"]).toContain("model/gltf-binary");
-    expect(Buffer.from(await model.body()).subarray(0, 4).toString("latin1")).toBe("glTF");
+    const body = new Uint8Array(await model.body());
+    expect(Buffer.from(body.subarray(0, 4)).toString("latin1")).toBe("glTF");
+    const report = await validateBytes(body, { maxIssues: 20 });
+    expect(report.issues.numErrors, JSON.stringify(report.issues.messages)).toBe(0);
     await page.context().close();
   });
 
@@ -102,17 +132,34 @@ test.describe("AR hand-off", () => {
     const page = await phone(browser, IPHONE);
     await tapViewInSpace(page);
     await expect
-      .poll(async () => page.evaluate(() => (globalThis as { arHandoffs?: { rel: string; bytes?: number[] }[] }).arHandoffs?.find((entry) => entry.rel === "ar" && entry.bytes !== undefined)?.bytes?.length ?? 0), { timeout: 30_000 })
+      .poll(async () => page.evaluate(() => (globalThis as { arHandoffs?: { rel: string; file?: string }[] }).arHandoffs?.find((entry) => entry.rel === "ar" && entry.file !== undefined)?.file?.length ?? 0), { timeout: 30_000 })
       .toBeGreaterThan(0);
-    const handoff = await page.evaluate(() => (globalThis as { arHandoffs?: { href: string; rel: string; bytes?: number[] }[] }).arHandoffs!.find((entry) => entry.rel === "ar" && entry.bytes !== undefined)!);
+    const handoff = await page.evaluate(() => (globalThis as { arHandoffs?: { href: string; rel: string; file?: string }[] }).arHandoffs!.find((entry) => entry.rel === "ar" && entry.file !== undefined)!);
 
     expect(handoff.href).toMatch(/^blob:/);
     // True size: Quick Look is told not to let the shopper scale the piece.
     expect(handoff.href).toContain("allowsContentScaling=0");
-    const head = Buffer.from(handoff.bytes!);
-    // A zip archive (PK\x03\x04) whose first file is the USD scene, as USDZ requires.
-    expect(head.subarray(0, 4).toString("latin1")).toBe("PK\u0003\u0004");
-    expect(head.toString("latin1")).toMatch(/\.usda/);
+
+    // A real USDZ, by the rules Pixar's USDZ specification sets and Quick Look enforces:
+    // a zip archive whose entries are stored uncompressed, each one's data starting on a
+    // 64-byte boundary (so it can be read in place), the first entry the USD scene, and
+    // only file types the format allows.
+    const archive = Buffer.from(handoff.file!, "base64");
+    const entries = zipEntries(archive);
+    expect(entries.length).toBeGreaterThan(0);
+    expect(entries[0]!.name).toMatch(/\.usd[ac]?$/);
+    for (const entry of entries) {
+      expect(entry.method, `${entry.name} stored, not compressed`).toBe(0);
+      expect(entry.dataOffset % 64, `${entry.name} aligned to 64 bytes`).toBe(0);
+      expect(entry.name).toMatch(/\.(usda|usdc|usd|png|jpe?g|m4a|mp3|wav)$/i);
+    }
+    // Every byte of the archive is accounted for by the entries and the central directory after them.
+    const last = entries[entries.length - 1]!;
+    expect(archive.readUInt32LE(last.dataOffset + last.size)).toBe(0x02014b50);
+    // The scene is real USD text, and it says the units are metres, so the piece is drawn at its true size.
+    const scene = archive.toString("utf8", entries[0]!.dataOffset, entries[0]!.dataOffset + entries[0]!.size);
+    expect(scene.startsWith("#usda")).toBe(true);
+    expect(scene).toMatch(/metersPerUnit\s*=\s*1\b/);
     await page.context().close();
   });
 });

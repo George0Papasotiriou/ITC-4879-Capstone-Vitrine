@@ -41,3 +41,20 @@ def test_every_method_scores_and_learning_co_occurrence_beats_popularity(events:
         assert 0 <= value <= 1
     assert scores["co-visitation"] > scores["popularity"]
     assert scores["taste graph + history"] > scores["popularity"]
+
+
+def test_a_sample_of_test_sessions_keeps_their_labels_and_is_repeatable(events: pl.DataFrame):
+    _, test = data.split_last_week(events)
+    full = data.truncate(test, seed=5)
+    sample = data.sample_sessions(full, 40, seed=7)
+    kept = set(sample.history["session"])
+    assert len(kept) == 40
+    assert set(sample.clicks) <= kept and set(sample.orders) <= kept
+    assert all(sample.clicks[session] == full.clicks[session] for session in sample.clicks)
+    assert set(data.sample_sessions(full, 40, seed=7).history["session"]) == kept
+
+
+def test_the_report_says_how_many_sessions_it_scored_and_checks_the_pruning(events: pl.DataFrame):
+    report = run(events, seed=4949, label="synthetic (test)", test_sessions=50)
+    assert report["test_sessions"] == 50 and report["test_sessions_all"] > 50
+    assert report["prune"]["sessions"] > 0 and 0 <= report["prune"]["same_items"] <= 1
