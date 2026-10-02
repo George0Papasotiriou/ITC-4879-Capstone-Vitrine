@@ -51,6 +51,8 @@ export type DisplayPiece = {
   kind: string;
   /** Its own 3D scan, only when the file is in storage (src/lib/catalog/stored-model.ts). */
   model: { src: string; bytes: number | null } | null;
+  /** Its first photograph on a white studio ground, if any: what the 3D room draws a rug or a picture from. */
+  studioImage: { src: string; alt: string } | null;
 };
 
 export type ComposedDisplay = {
@@ -63,6 +65,12 @@ export type ComposedDisplay = {
 };
 
 const FALLBACK_PIECES = 5;
+
+/** The first photograph shot on a white studio ground; a rug's first photograph is often the rug in a furnished room. */
+function studioOf(media: readonly { src: string; alt: string; studio?: boolean }[]): { src: string; alt: string } | null {
+  const studio = media.find((entry) => entry.studio === true);
+  return studio === undefined ? null : { src: studio.src, alt: studio.alt };
+}
 
 export async function composeDisplay(request: DisplayRequest, locale: string): Promise<ComposedDisplay> {
   const stylistRequest = { template: request.template, budgetCents: request.budgetCents, ...(request.query === undefined ? {} : { query: request.query }) };
@@ -108,6 +116,7 @@ export async function composeDisplay(request: DisplayRequest, locale: string): P
       role: pick.role,
       kind: detail.kind,
       model: detail.model,
+      studioImage: studioOf(detail.media),
     });
   });
   return { pieces, totalCents: fromStylist ? (bundle?.totalCents ?? null) : null, fromStylist, template: request.template };

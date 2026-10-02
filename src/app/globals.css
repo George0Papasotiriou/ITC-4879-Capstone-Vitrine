@@ -42,7 +42,7 @@
   --color-mist: #a7aebb; /* secondary text on Dusk (7:1)                     */
   --color-danger: #b3261e; /* 5.9:1 on Glass                                 */
   --color-success: #1e7b4f; /* 4.7:1 on Glass                                */
-  /* Gilt: the shop window's sign-writing only (docs/adr/048), always on Dusk. */
+  /* Gilt: the shop window's small accents only — the chosen window and hour (docs/adr/048), on Dusk. */
   --color-gilt: #d3ae67; /* gold leaf on Dusk (7.5:1)                        */
   --color-gilt-light: #f2deaa; /* the leaf's highlight                        */
   --color-gilt-deep: #8f6c32; /* the leaf's shade, inside letters only         */
@@ -250,61 +250,8 @@
   display: none;
 }
 
-/* The shop window (docs/adr/048): gilded sign-writing on the fascia, a sheen
-   on the glass that moves with the camera, and the room's resting light while
-   the scene loads. Gold leaf is drawn as a vertical gradient clipped to the
-   letters — light, then a darker band where the leaf turns, then light again —
-   with a thin dark keyline under it, as a sign-writer outlines leaf. */
-.sign-writing {
-  font-family: var(--font-commissioner), ui-sans-serif, system-ui, sans-serif;
-  font-variation-settings: "FLAR" 100;
-  font-weight: 620;
-  letter-spacing: 0.005em;
-  color: var(--color-gilt);
-  background-image: linear-gradient(
-    176deg,
-    var(--color-gilt-light) 0%,
-    var(--color-gilt) 38%,
-    var(--color-gilt-deep) 52%,
-    var(--color-gilt) 64%,
-    var(--color-gilt-light) 100%
-  );
-  background-size: 100% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 1px 0 color-mix(in oklab, var(--color-black) 60%, transparent));
-}
-
-/* A slow glint across the leaf, once, as the window is lit. */
-@keyframes vitrine-gilt-glint {
-  from { background-position: 0 0, -140% 0 }
-  to { background-position: 0 0, 240% 0 }
-}
-.sign-writing[data-glint] {
-  background-image:
-    linear-gradient(176deg, var(--color-gilt-light) 0%, var(--color-gilt) 38%, var(--color-gilt-deep) 52%, var(--color-gilt) 64%, var(--color-gilt-light) 100%),
-    linear-gradient(105deg, transparent 40%, color-mix(in oklab, var(--color-white) 70%, transparent) 50%, transparent 60%);
-  background-size: 100% 100%, 60% 100%;
-  background-repeat: no-repeat;
-  background-blend-mode: screen;
-  animation: vitrine-gilt-glint 2.6s var(--ease-standard) 0.6s 1 both;
-}
-
-/* Where colours are forced, or more contrast is asked for, the leaf becomes a plain light colour. */
-@media (forced-colors: active) {
-  .sign-writing {
-    background: none;
-    -webkit-text-fill-color: currentColor;
-    color: CanvasText;
-    filter: none;
-  }
-}
-:root[data-contrast="more"] .sign-writing {
-  background: none;
-  -webkit-text-fill-color: var(--color-gilt-light);
-}
-
+/* The shop window (docs/adr/048): a sheen on the glass that moves with the
+   camera, and the room's resting light while the scene loads. */
 /* The glass: a faint diagonal sheen that slides as the camera looks around,
    over a soft vignette, as a lens darkens a photograph's corners. */
 .window-glass {
@@ -326,15 +273,6 @@
   background:
     radial-gradient(70% 90% at 18% 42%, color-mix(in oklab, var(--color-gilt-light) 38%, transparent), transparent 70%),
     linear-gradient(180deg, var(--color-plinth) 0 74%, color-mix(in oklab, var(--color-plinth) 82%, var(--color-dusk)) 74% 100%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root:not([data-motion="full"]) .sign-writing[data-glint] {
-    animation: none;
-  }
-}
-:root[data-motion="reduce"] .sign-writing[data-glint] {
-  animation: none;
 }
 
 /* The one soft shadow sheets and dialogs are allowed (4.2). Tiles get none. */

@@ -28,7 +28,7 @@ import { cn } from "@/lib/ui/cn";
  * docs/adr/040, docs/adr/048. The display is the Budget Stylist's best set for
  * the theme (src/lib/display/server.ts): every price and the total come from
  * the database in the shopper's prices. It is shown as a shopfront — a fascia
- * with the theme sign-written in gilt, the window itself (a lit 3D room,
+ * with the theme's name in the shop's own heading type, the window itself (a lit 3D room,
  * src/components/display/window-scene.tsx), and a riser below it holding the
  * other windows and the total. Below the shopfront, the list says everything
  * the window shows, in words, with a way to buy each piece — so the page works
@@ -66,7 +66,8 @@ export default async function ShowcasePage({ params, searchParams }: PageProps<"
     kind: piece.kind,
     quantity: piece.quantity,
     model: piece.model?.src ?? null,
-    photo: piece.image === null ? null : optimised(piece.image.src),
+    // Only a studio photograph (on white): a room scene would put a whole room on the floor of this one.
+    photo: piece.studioImage === null ? null : optimised(piece.studioImage.src),
     dims: piece.dimsCm === null ? null : { x: piece.dimsCm.w / 100, y: piece.dimsCm.h / 100, z: piece.dimsCm.d / 100 },
     placard: {
       id: piece.id,
@@ -98,7 +99,7 @@ export default async function ShowcasePage({ params, searchParams }: PageProps<"
       <section aria-labelledby="display-title" className="bg-dusk text-white">
         <div className="mx-auto w-full max-w-[1440px] px-4 pt-8 pb-5 md:px-10 md:pt-11 md:pb-7">
           <p className="text-mist text-xs tracking-[0.14em] uppercase">{t("eyebrow", { mood: t(`moods.${mood}`) })}</p>
-          <h1 id="display-title" className="sign-writing mt-2 text-[clamp(1.85rem,4.2vw,3.4rem)] leading-[1.08]" data-glint>
+          <h1 id="display-title" className="font-display mt-2 text-3xl text-white md:text-4xl">
             {title}
           </h1>
           <p id="display-line" className="text-mist mt-3 max-w-[60ch] text-sm md:text-base">
@@ -140,7 +141,7 @@ export default async function ShowcasePage({ params, searchParams }: PageProps<"
               <p className="text-mist max-w-[60ch] text-sm">{t("fallback")}</p>
             ) : (
               <>
-                <p className="font-display text-gilt text-2xl tabular-nums" data-agent-id="showcase:total">
+                <p className="font-display text-2xl text-white tabular-nums" data-agent-id="showcase:total">
                   {t("total", { total: euro(display.totalCents, display.pieces[0]?.currency ?? "EUR") })}
                 </p>
                 <p className="text-mist text-xs">{t("totalNote")}</p>

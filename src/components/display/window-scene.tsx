@@ -286,7 +286,9 @@ export function WindowScene({
             if (engine.current?.dragged() === true) return;
             choose(chosen === piece.id ? null : piece.id);
           }}
-          className="group absolute top-0 left-0 z-20 cursor-pointer rounded-lg outline-offset-2 data-[placed=false]:pointer-events-none"
+          // Hidden (and out of the tab order) until the room has placed it; a piece left out of the room stays hidden.
+          className="group absolute top-0 left-0 z-20 cursor-pointer rounded-lg outline-offset-2 data-[placed=false]:invisible"
+          data-placed="false"
           style={{ transform: "translate3d(-9999px, 0, 0)", width: 24, height: 24 }}
           data-agent-id={`showcase:piece:${piece.id}`}
         >

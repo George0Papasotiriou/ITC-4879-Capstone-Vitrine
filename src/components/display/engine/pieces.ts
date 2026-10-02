@@ -24,6 +24,9 @@ import {
 } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
+import { cutoutFromWhite } from "@/lib/vision/cutout";
+import { quadFromMask, targetRectangle, warp } from "@/lib/vision/rectify";
+
 import type { PieceForm, Vec3 } from "@/lib/display/scene";
 
 import { PIECE_LAYER } from "./contact-shadows";
@@ -39,13 +42,15 @@ import { PIECE_LAYER } from "./contact-shadows";
  * hangs below its origin, is hung by its top. Copies (four dining chairs)
  * share the loaded geometry and materials.
  *
- * A PHOTOGRAPH stands for a piece without a scan. Studio photographs are shot
- * on white, so the white is removed — but only the white connected to the
- * photograph's edges (a flood fill from the border), so a white vase keeps its
- * white body. The result is trimmed to what is left. A rug is laid flat at its
- * true width and depth, a picture or a clock hung on the wall at its true size,
- * anything else stood up as a cut-out (the camera is kept from seeing it
- * edge-on).
+ * A PHOTOGRAPH stands for a piece without a scan — always its studio
+ * photograph (on white), never a room scene. The white is removed by the
+ * shop's edge flood fill (cutout.ts), so a white vase keeps its white body. A
+ * picture or a clock is hung on the wall at its true size, anything else
+ * stood up as a cut-out. A rug's studio photograph shows it lying at an angle,
+ * so it is rectified back to the flat rug seen from above (rectify.ts) and
+ * laid on the floor at its true width and depth. A piece with no studio
+ * photograph, or a rug whose outline cannot be found, is left out of the room
+ * (it stays in the list below the window) rather than drawn wrong.
  */
 
 export type EnginePiece = {
@@ -113,99 +118,76 @@ function loadScan(src: string, kind: string, onBytes: (loaded: number, total: nu
   return pending;
 }
 
-/**
- * The photograph with its studio white removed: a flood fill from every edge
- * pixel through pixels that are near white (bright and nearly grey), made
- * transparent with a one-pixel soft edge, then trimmed to what remains.
- */
-async function cutOut(src: string, keepRectangle: boolean): Promise<{ texture: CanvasTexture; aspect: number }> {
+/** The photograph's pixels, read from the shop's image optimizer (same origin, so the canvas is not tainted). */
+async function pixels(src: string): Promise<{ data: Uint8ClampedArray<ArrayBuffer>; width: number; height: number }> {
   const response = await fetch(src);
   if (!response.ok) throw new Error(`photograph ${response.status}`);
   const bitmap = await createImageBitmap(await response.blob());
-  const width = bitmap.width;
-  const height = bitmap.height;
   const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
   const context = canvas.getContext("2d", { willReadFrequently: true })!;
   context.drawImage(bitmap, 0, 0);
   bitmap.close();
-  const image = context.getImageData(0, 0, width, height);
-  const data = image.data;
-  const white = (index: number) => {
-    const r = data[index]!;
-    const g = data[index + 1]!;
-    const b = data[index + 2]!;
-    return Math.min(r, g, b) > 236 && Math.max(r, g, b) - Math.min(r, g, b) < 14;
-  };
+  const image = context.getImageData(0, 0, canvas.width, canvas.height);
+  return { data: image.data, width: canvas.width, height: canvas.height };
+}
 
-  const background = new Uint8Array(width * height);
-  const queue = new Int32Array(width * height);
-  let head = 0;
-  let tail = 0;
-  const seed = (x: number, y: number) => {
-    const at = y * width + x;
-    if (background[at] === 0 && white(at * 4)) {
-      background[at] = 1;
-      queue[tail++] = at;
-    }
-  };
-  for (let x = 0; x < width; x += 1) {
-    seed(x, 0);
-    seed(x, height - 1);
+function textureOf(rgba: Uint8ClampedArray<ArrayBuffer>, width: number, height: number, crop?: { x: number; y: number; width: number; height: number }): CanvasTexture {
+  const full = document.createElement("canvas");
+  full.width = width;
+  full.height = height;
+  full.getContext("2d")!.putImageData(new ImageData(rgba, width, height), 0, 0);
+  let canvas = full;
+  if (crop !== undefined) {
+    canvas = document.createElement("canvas");
+    canvas.width = crop.width;
+    canvas.height = crop.height;
+    canvas.getContext("2d")!.drawImage(full, crop.x, crop.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
   }
-  for (let y = 0; y < height; y += 1) {
-    seed(0, y);
-    seed(width - 1, y);
-  }
-  while (head < tail) {
-    const at = queue[head++]!;
-    const x = at % width;
-    const y = (at - x) / width;
-    if (x > 0) seed(x - 1, y);
-    if (x < width - 1) seed(x + 1, y);
-    if (y > 0) seed(x, y - 1);
-    if (y < height - 1) seed(x, y + 1);
-  }
-
-  let minX = width;
-  let minY = height;
-  let maxX = -1;
-  let maxY = -1;
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      const at = y * width + x;
-      if (background[at] === 1) {
-        if (!keepRectangle) {
-          // A soft edge: background next to the piece is half transparent rather than gone.
-          const nearPiece = (x > 0 && background[at - 1] === 0) || (x < width - 1 && background[at + 1] === 0) || (y > 0 && background[at - width] === 0) || (y < height - 1 && background[at + width] === 0);
-          data[at * 4 + 3] = nearPiece ? 96 : 0;
-        }
-      } else {
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
-        minY = Math.min(minY, y);
-        maxY = Math.max(maxY, y);
-      }
-    }
-  }
-  if (maxX < minX) {
-    minX = 0;
-    minY = 0;
-    maxX = width - 1;
-    maxY = height - 1;
-  }
-  context.putImageData(image, 0, 0);
-  const trimmedWidth = maxX - minX + 1;
-  const trimmedHeight = maxY - minY + 1;
-  const trimmed = document.createElement("canvas");
-  trimmed.width = trimmedWidth;
-  trimmed.height = trimmedHeight;
-  trimmed.getContext("2d")!.drawImage(canvas, minX, minY, trimmedWidth, trimmedHeight, 0, 0, trimmedWidth, trimmedHeight);
-  const texture = new CanvasTexture(trimmed);
+  const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = 8;
-  return { texture, aspect: trimmedWidth / trimmedHeight };
+  return texture;
+}
+
+/**
+ * A picture, a clock or a stand-in piece: its studio photograph cut out of the
+ * white by the shop's own edge flood fill (src/lib/vision/cutout.ts), trimmed
+ * to the piece.
+ */
+async function cutOut(src: string): Promise<{ texture: CanvasTexture; aspect: number } | null> {
+  const photo = await pixels(src);
+  const cut = cutoutFromWhite(photo.data, photo.width, photo.height);
+  if (!cut.removed || cut.box.width < 8 || cut.box.height < 8) return null;
+  return { texture: textureOf(cut.rgba, cut.width, cut.height, cut.box), aspect: cut.box.width / cut.box.height };
+}
+
+/**
+ * A rug seen from straight above, from its studio photograph taken at an
+ * angle: cut out, its four corners found, warped flat at its true proportions
+ * (src/lib/vision/rectify.ts). Null when the photograph does not show a whole
+ * rug on white — the rug is then left out of the room rather than drawn wrong.
+ */
+async function flatRug(src: string, size: { x: number; z: number }): Promise<CanvasTexture | null> {
+  const photo = await pixels(src);
+  const cut = cutoutFromWhite(photo.data, photo.width, photo.height);
+  if (!cut.removed) return null;
+  const mask = new Uint8Array(cut.width * cut.height);
+  for (let index = 0; index < mask.length; index += 1) mask[index] = cut.rgba[index * 4 + 3]! > 200 ? 1 : 0;
+  const quad = quadFromMask({ data: mask, width: cut.width, height: cut.height });
+  if (quad === null) return null;
+  const long = Math.max(size.x, size.z);
+  const short = Math.min(size.x, size.z);
+  const target = targetRectangle(quad, { long, short }, 1024);
+  const flat = warp({ data: photo.data, width: photo.width, height: photo.height }, quad, target);
+  const texture = textureOf(flat, target.width, target.height);
+  // The texture's width runs along the rug's x; turn it if the photograph's long side came out the other way.
+  if (target.width >= target.height !== size.x >= size.z) {
+    texture.center.set(0.5, 0.5);
+    texture.rotation = Math.PI / 2;
+  }
+  return texture;
 }
 
 function formOf(piece: EnginePiece): PieceForm {
@@ -214,26 +196,17 @@ function formOf(piece: EnginePiece): PieceForm {
   return "photo";
 }
 
-async function photoPiece(piece: EnginePiece, form: PieceForm): Promise<LoadedPiece> {
+/** A piece drawn from its studio photograph, or null when there is none fit to draw it from. */
+async function photoPiece(piece: EnginePiece, form: PieceForm): Promise<LoadedPiece | null> {
+  if (piece.image === null) return null;
   const dims = piece.dims ?? STAND_IN;
-  const cut = piece.image === null ? null : await cutOut(piece.image, form === "rug").catch(() => null);
-  const face = new MeshStandardMaterial({
-    color: new Color(1, 1, 1),
-    map: cut?.texture ?? null,
-    roughness: form === "rug" ? 0.96 : 0.7,
-    transparent: form !== "rug",
-    alphaTest: form === "rug" ? 0 : 0.4,
-    ...(form === "photo" ? { side: DoubleSide } : {}),
-  });
 
   if (form === "rug") {
-    // Laid flat; the photograph turned if its long side runs the other way to the rug's.
     // A rug listed without a sensible size is drawn at a common 160 × 230 cm.
     const size = { x: dims.x >= 0.2 ? dims.x : 1.6, y: 0.012, z: dims.z >= 0.2 ? dims.z : 2.3 };
-    if (cut !== null && cut.aspect > 1 !== size.x > size.z) {
-      cut.texture.center.set(0.5, 0.5);
-      cut.texture.rotation = Math.PI / 2;
-    }
+    const texture = await flatRug(piece.image, size).catch(() => null);
+    if (texture === null) return null;
+    const face = new MeshStandardMaterial({ color: new Color(1, 1, 1), map: texture, roughness: 0.96 });
     const edge = new MeshStandardMaterial({ color: new Color(0.42, 0.4, 0.38), roughness: 1 });
     const geometry = new BoxGeometry(size.x, size.y, size.z);
     return {
@@ -254,6 +227,17 @@ async function photoPiece(piece: EnginePiece, form: PieceForm): Promise<LoadedPi
     };
   }
 
+  const cut = await cutOut(piece.image).catch(() => null);
+  if (cut === null) return null;
+  const face = new MeshStandardMaterial({
+    color: new Color(1, 1, 1),
+    map: cut.texture,
+    roughness: 0.7,
+    transparent: true,
+    alphaTest: 0.4,
+    ...(form === "photo" ? { side: DoubleSide } : {}),
+  });
+
   // Stood: true height from the listing, width from the photograph's own proportions so nothing is stretched.
   // Hung: listings give a picture's or a clock's measurements in any order, so its face is its two largest
   // measurements and its thickness the smallest; the photograph's proportions say which way up the face is.
@@ -262,12 +246,11 @@ async function photoPiece(piece: EnginePiece, form: PieceForm): Promise<LoadedPi
   let width: number;
   let height: number;
   if (form === "wall") {
-    const aspect = cut?.aspect ?? faceSize.long / Math.max(0.01, faceSize.short);
-    width = aspect >= 1 ? faceSize.long : faceSize.long * aspect;
-    height = aspect >= 1 ? faceSize.long / aspect : faceSize.long;
+    width = cut.aspect >= 1 ? faceSize.long : faceSize.long * cut.aspect;
+    height = cut.aspect >= 1 ? faceSize.long / cut.aspect : faceSize.long;
   } else {
     height = dims.y;
-    width = cut === null ? dims.x : height * cut.aspect;
+    width = height * cut.aspect;
   }
   const depth = form === "wall" ? Math.min(0.05, Math.max(0.015, sorted[2]!)) : 0.001;
   const geometry = new PlaneGeometry(width, height);
@@ -291,7 +274,7 @@ async function photoPiece(piece: EnginePiece, form: PieceForm): Promise<LoadedPi
 }
 
 /** Loads one piece; a scan that fails falls back to its photograph, and the window still opens. */
-export async function loadPiece(piece: EnginePiece, onBytes: (loaded: number, total: number) => void): Promise<LoadedPiece> {
+export async function loadPiece(piece: EnginePiece, onBytes: (loaded: number, total: number) => void): Promise<LoadedPiece | null> {
   if (piece.model !== null) {
     try {
       const scan = await loadScan(piece.model, piece.kind, onBytes);

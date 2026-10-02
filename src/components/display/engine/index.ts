@@ -93,7 +93,7 @@ export type WindowEngine = {
 };
 
 /** `ambient`: the slow breath of the camera and the dust in the beam, which keep drawing frames while nothing else moves. */
-type Tier = { pixelRatio: number; shadowSize: number; contactResolution: number; dust: number; ambient: boolean };
+type Tier = { pixelRatio: number; shadowSize: number; contactResolution: number; dust: number; ambient: boolean; textureSize: number };
 
 /** Ambient motion rests after this long without the shopper touching the window, so an open tab does not keep the GPU busy. */
 const AMBIENT_FOR_S = 45;
@@ -112,13 +112,13 @@ function tierFor(renderer: WebGLRenderer): Tier {
   } catch {
     // Unknown renderer: judged by the device alone.
   }
-  if (/swiftshader|llvmpipe|software|microsoft basic/i.test(rendererName)) return { pixelRatio: 1, shadowSize: 1024, contactResolution: 256, dust: 0, ambient: false };
+  if (/swiftshader|llvmpipe|software|microsoft basic/i.test(rendererName)) return { pixelRatio: 1, shadowSize: 1024, contactResolution: 256, dust: 0, ambient: false, textureSize: 256 };
   const phone = window.matchMedia("(pointer: coarse)").matches;
   const cores = navigator.hardwareConcurrency ?? 4;
   const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8;
   // Phones keep the still room and save their battery; desktops with a real GPU get the drifting dust and the breath.
-  if (phone || cores <= 4 || memory <= 4) return { pixelRatio: Math.min(ratio, 1.5), shadowSize: 1024, contactResolution: 256, dust: 0, ambient: false };
-  return { pixelRatio: Math.min(ratio, 2), shadowSize: 2048, contactResolution: 512, dust: 420, ambient: true };
+  if (phone || cores <= 4 || memory <= 4) return { pixelRatio: Math.min(ratio, 1.5), shadowSize: 1024, contactResolution: 256, dust: 0, ambient: false, textureSize: 256 };
+  return { pixelRatio: Math.min(ratio, 2), shadowSize: 2048, contactResolution: 512, dust: 420, ambient: true, textureSize: 512 };
 }
 
 /** The shop's design tokens, read from the page, so the room is painted in the shop's own colours. */
@@ -197,7 +197,8 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
 
   const camera = new PerspectiveCamera(35, 16 / 9, 0.1, 60);
   const colours = palette();
-  const surfaces = { plaster: plaster(), cement: cement() };
+  // Drawn on the main thread at load: smaller on phones and software renderers, where it would hold up the page.
+  const surfaces = { plaster: plaster(tier.textureSize), cement: cement(tier.textureSize) };
   const room: BuiltRoom = buildRoom(STAGE, colours, surfaces, REACH_Z);
   scene.add(room.group);
   const moteTexture = mote();
@@ -279,7 +280,7 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
     const up = right.clone().cross(forward).normalize();
     const distance = eye.distanceTo(target);
     const halfHeight = distance * Math.tan((shot.fovDeg * Math.PI) / 360);
-    const shift = wide ? right.multiplyScalar(halfHeight * ratio * 0.3) : up.multiplyScalar(-halfHeight * 0.42);
+    const shift = wide ? right.multiplyScalar(halfHeight * ratio * 0.3) : up.multiplyScalar(-halfHeight * 0.55);
     eye.add(shift);
     target.add(shift);
     return { position: { x: eye.x, y: eye.y, z: eye.z }, target: { x: target.x, y: target.y, z: target.z }, fovDeg: shot.fovDeg };
@@ -397,7 +398,7 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
 
   function stepDown() {
     steppedDown = true;
-    tier = { pixelRatio: Math.max(1, tier.pixelRatio - 0.5), shadowSize: 1024, contactResolution: tier.contactResolution, dust: 0, ambient: false };
+    tier = { ...tier, pixelRatio: Math.max(1, tier.pixelRatio - 0.5), shadowSize: 1024, dust: 0, ambient: false };
     renderer.setPixelRatio(tier.pixelRatio);
     resize();
   }
@@ -418,7 +419,7 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
   async function dress(display: EngineDisplay, token: number): Promise<Dressed | null> {
     const shares = display.pieces.map(() => 0);
     const report = () => events.progress?.(shares.reduce((sum, share) => sum + share, 0) / Math.max(1, shares.length));
-    const loaded = await Promise.all(
+    const results = await Promise.all(
       display.pieces.map((piece, index) =>
         loadPiece(piece, (got, total) => {
           shares[index] = total > 0 ? Math.min(0.98, got / total) : 0.5;
@@ -431,6 +432,8 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
       ),
     );
     if (token !== showToken) return null;
+    // A piece with nothing fit to draw it from (no scan, no studio photograph) stays out of the room; the list below names it.
+    const loaded = results.filter((entry): entry is LoadedPiece => entry !== null);
 
     const byId = new Map<string, LoadedPiece>(loaded.map((entry) => [entry.piece.id, entry]));
     const arranged = arrangeScene(

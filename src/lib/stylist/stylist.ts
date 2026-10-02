@@ -53,7 +53,9 @@ export type StylistRequest = z.infer<typeof stylistRequestSchema>;
 /**
  * Kinds a window display can show truthfully without a 3D scan: they lie on
  * the floor or hang on the wall, so their photograph is their face
- * (docs/adr/048). Everything else needs its own scan to be "showable".
+ * (docs/adr/048) — provided it is a studio photograph on white, not the piece
+ * in a furnished room (a rug's is rectified flat, src/lib/vision/rectify.ts).
+ * Everything else needs its own scan to be "showable".
  */
 export const SHOWABLE_FLAT_KINDS = ["RUG", "WALL_ART", "PICTURE_FRAME", "HOME_MIRROR", "CLOCK"] as const;
 
@@ -133,7 +135,11 @@ export function createStylist(sql: postgres.Sql, retrievers: Retrievers) {
             ${slot.requireWords === undefined ? sql`` : sql`AND p.title_en ~* ${avoidPattern(slot.requireWords)}`}
             ${
               showable
-                ? sql`AND (p.kind = ANY(${[...SHOWABLE_FLAT_KINDS]}::text[]) OR EXISTS (SELECT 1 FROM product_media m WHERE m.product_id = p.id AND m.kind = 'model'))`
+                ? sql`AND (
+                    EXISTS (SELECT 1 FROM product_media m WHERE m.product_id = p.id AND m.kind = 'model')
+                    OR (p.kind = ANY(${[...SHOWABLE_FLAT_KINDS]}::text[])
+                        AND EXISTS (SELECT 1 FROM product_media m WHERE m.product_id = p.id AND m.kind = 'image' AND m.white_ground))
+                  )`
                 : sql``
             }
         `,

@@ -119,8 +119,10 @@ test("with reduced motion the room still opens, every piece in place at once", a
 
 test("choosing another window changes the display, and the link opens the same window", async ({ page }) => {
   await page.goto("/en/showcase", { waitUntil: "domcontentloaded" });
+  await page.locator("html[data-concierge-ready]").waitFor({ timeout: 30_000 });
   await page.locator('[data-agent-id="showcase:theme:oak-bedroom"]').click();
-  await expect(page).toHaveURL(/theme=oak-bedroom/);
+  // The address changes when the next window's page arrives: the Stylist runs on the server first.
+  await expect(page).toHaveURL(/theme=oak-bedroom/, { timeout: 20_000 });
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("A bedroom in oak");
   await expect(page.locator('[data-agent-id="showcase:theme:oak-bedroom"]')).toHaveAttribute("aria-current", "page");
   // A window made from a room, a budget and words reads back from its own link.

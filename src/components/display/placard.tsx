@@ -62,7 +62,7 @@ export function Placard({ piece, onClose }: { piece: PlacardPiece; onClose: () =
       aria-modal="false"
       aria-labelledby={`placard-title-${piece.id}`}
       onKeyDown={onKeyDown}
-      className="rounded-sheet shadow-sheet animate-pop text-dusk absolute inset-x-3 bottom-3 z-30 max-h-[62%] overflow-y-auto bg-white/95 p-5 backdrop-blur-md sm:inset-x-auto sm:top-1/2 sm:right-6 sm:bottom-auto sm:w-[22rem] sm:max-h-[86%] sm:-translate-y-1/2 sm:p-6"
+      className="rounded-sheet shadow-sheet animate-pop text-dusk absolute inset-x-3 bottom-3 z-30 max-h-[56%] overflow-y-auto bg-white/95 p-4 backdrop-blur-md sm:inset-x-auto sm:top-1/2 sm:right-6 sm:bottom-auto sm:w-[22rem] sm:max-h-[86%] sm:-translate-y-1/2 sm:p-6"
       data-agent-id={`showcase:placard:${piece.id}`}
     >
       <button
@@ -79,26 +79,27 @@ export function Placard({ piece, onClose }: { piece: PlacardPiece; onClose: () =
 
       <div className="flex items-center gap-3 pr-10">
         {piece.image === null ? null : (
-          <span id={`placard-photo-${piece.id}`} className="bg-plinth relative size-14 shrink-0 overflow-hidden rounded-md">
-            <Image src={piece.image.src} alt={piece.image.alt} fill sizes="56px" className="object-contain mix-blend-multiply" />
+          <span id={`placard-photo-${piece.id}`} className="bg-plinth relative size-11 shrink-0 overflow-hidden rounded-md sm:size-14">
+            {/* Decorative: the piece's name is the heading right beside it. */}
+            <Image src={piece.image.src} alt="" fill sizes="56px" className="object-contain mix-blend-multiply" />
           </span>
         )}
         <p className="text-slate text-xs tracking-[0.08em] uppercase">{piece.eyebrow}</p>
       </div>
 
-      <h2 id={`placard-title-${piece.id}`} ref={heading} tabIndex={-1} className="font-display mt-3 text-xl leading-snug outline-offset-4">
+      <h2 id={`placard-title-${piece.id}`} ref={heading} tabIndex={-1} className="font-display mt-2 text-lg leading-snug outline-offset-4 sm:mt-3 sm:text-xl">
         {piece.title}
       </h2>
       <p className="text-slate mt-2 text-sm">{[piece.size, piece.materials].filter((part) => part !== null && part !== "").join(" · ")}</p>
       <p className="text-slate mt-1 text-xs">{piece.shownAs === "scan" ? t("scan") : t("photo")}</p>
 
-      <p className="font-display mt-5 text-2xl tabular-nums">
+      <p className="font-display mt-3 text-xl tabular-nums sm:mt-5 sm:text-2xl">
         {piece.price}
         {piece.quantityNote === null ? null : <span className="text-slate ml-1 text-sm">{piece.quantityNote}</span>}
       </p>
       <p className="text-slate text-xs">{piece.inStock ? t("inStock") : t("outOfStock")}</p>
 
-      <div className="mt-5 flex flex-col gap-3">
+      <div className="mt-3 flex flex-col gap-3 sm:mt-5">
         <AddToCart productId={piece.id} inStock={piece.inStock} agentId={`placard:add-to-cart:${piece.id}`} flightSource={`#placard-photo-${piece.id}`} />
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
           <SmartLink href={`/p/${piece.slug}`} className="underline-offset-4 hover:underline" data-agent-id={`placard:details:${piece.id}`}>
