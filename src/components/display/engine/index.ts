@@ -9,8 +9,10 @@
 
 import {
   Box3,
+  BufferGeometry,
   Color,
   Group,
+  Mesh,
   MeshBasicMaterial,
   NeutralToneMapping,
   PCFShadowMap,
@@ -23,6 +25,8 @@ import {
   Vector3,
   WebGLRenderer,
   type Material,
+  type Texture,
+  type WebGLRenderTarget,
   type Object3D,
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
@@ -187,13 +191,9 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
   renderer.setPixelRatio(tier.pixelRatio);
 
   const scene = new Scene();
-  const pmrem = new PMREMGenerator(renderer);
-  const studio = new RoomEnvironment();
-  const environment = pmrem.fromScene(studio, 0.04).texture;
-  studio.dispose();
-  scene.environment = environment;
   scene.environmentIntensity = 0.32;
-  pmrem.dispose();
+  let environment: Texture | null = null;
+  let disposed = false;
 
   const camera = new PerspectiveCamera(35, 16 / 9, 0.1, 60);
   const colours = palette();
@@ -213,10 +213,51 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
   renderer.setClearColor(colours.dusk);
   renderer.render(new Scene(), camera);
   let roomReady = false;
-  const roomCompiled = renderer.compileAsync(scene, camera).then(() => {
-    roomReady = true;
-    invalidate();
-  });
+  // The room's materials are compiled for the light they will have, reflections included, so the environment comes first.
+  const roomCompiled = captureEnvironment()
+    .then(() => renderer.compileAsync(scene, camera))
+    .then(() => {
+      roomReady = true;
+      invalidate();
+    });
+
+  /**
+   * The room's reflected light: three's RoomEnvironment, captured by its PMREM generator. three.js offers no
+   * asynchronous capture, and its shaders are the heaviest the window has (the GGX convolution alone held the
+   * page for 1.2 s on Windows' Direct3D at phone speed, 2026-10-02). They exist as soon as the generator has
+   * sized its targets, so they are compiled in parallel first, with the RoomEnvironment's own materials and
+   * with a render target current, as the capture draws them; the capture then only draws. This reaches into
+   * the generator's internals (three 0.183.2, pinned), so if they ever change it captures as before.
+   */
+  async function captureEnvironment(): Promise<void> {
+    const pmrem = new PMREMGenerator(renderer);
+    const studio = new RoomEnvironment();
+    const internals = pmrem as unknown as {
+      _setSize?: (size: number) => void;
+      _allocateTargets?: () => WebGLRenderTarget;
+      _blurMaterial?: Material | null;
+      _ggxMaterial?: Material | null;
+    };
+    if (typeof internals._setSize === "function" && typeof internals._allocateTargets === "function") {
+      internals._setSize(256);
+      const probe = internals._allocateTargets.call(pmrem);
+      const shaders = new Group();
+      for (const material of [internals._blurMaterial, internals._ggxMaterial]) if (material != null) shaders.add(new Mesh(new BufferGeometry(), material));
+      const previous = renderer.getRenderTarget();
+      renderer.setRenderTarget(probe);
+      const compiled = Promise.all([renderer.compileAsync(shaders, camera), renderer.compileAsync(studio, camera)]);
+      renderer.setRenderTarget(previous);
+      await compiled;
+      probe.dispose();
+      for (const mesh of shaders.children) (mesh as Mesh).geometry.dispose();
+    }
+    if (!disposed) {
+      environment = pmrem.fromScene(studio, 0.04).texture;
+      scene.environment = environment;
+    }
+    studio.dispose();
+    pmrem.dispose();
+  }
 
   let reduced = options.reducedMotion;
   const rig: CameraRig = createCameraRig(camera, frameShot({ min: { x: -1, y: 0, z: 0 }, max: { x: 1.6, y: 1.2, z: 1.2 } }, 16 / 9));
@@ -522,10 +563,24 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
     );
     group.add(shadows.plane);
 
+    // Rugs and pictures fade in (motions, below), which makes their materials transparent. That is set now,
+    // before the compile: three.js builds a different shader for a transparent material, and setting it at
+    // the first frame compiled the rug's two on the spot (0.56 s at phone speed, 2026-10-02).
+    for (const entry of loaded) {
+      if (entry.form !== "rug" && entry.form !== "wall") continue;
+      for (const material of entry.fadeable) {
+        material.transparent = true;
+        material.userData.opacity ??= 1;
+      }
+    }
+
     // The set's shaders are compiled before it is drawn, as the room's are (above); the room, and the set
     // before this one, go on drawing meanwhile. Nothing is awaited after the set joins the scene, so no frame
     // can show it before show() has set its first positions.
-    await Promise.all([roomCompiled, renderer.compileAsync(group, camera, scene), shadows.warm(renderer, scene)]);
+    // The room's environment first: a material compiled before the reflections exist is compiled again, on the spot,
+    // once they do (2026-10-02: two scans' materials, 0.67 s at phone speed).
+    await roomCompiled;
+    await Promise.all([renderer.compileAsync(group, camera, scene), shadows.warm(renderer, scene)]);
     if (token !== showToken) {
       plinths.dispose();
       shadows.dispose();
@@ -857,7 +912,8 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
       for (const set of leaving) set.dispose();
       room.dispose();
       light.dispose();
-      environment.dispose();
+      disposed = true;
+      environment?.dispose();
       moteTexture.dispose();
       for (const texture of [surfaces.plaster.map, surfaces.plaster.roughness, surfaces.cement.map, surfaces.cement.roughness]) texture.dispose();
       renderer.dispose();
