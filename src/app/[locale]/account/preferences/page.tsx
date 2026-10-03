@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 import { ComfortLink } from "@/components/comfort/comfort-button";
+import { WayIn } from "@/components/fit/way-in";
 import { PreferencesForm } from "@/components/prefs/preferences-form";
 import { PushPanel } from "@/components/prefs/push-panel";
 import { SmartLink } from "@/components/ui/smart-link";
@@ -34,6 +35,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/account/
 export default async function PreferencesPage({ params }: PageProps<"/[locale]/account/preferences">) {
   const locale = await requireLocale(params);
   const t = await getTranslations("prefs");
+  const tf = await getTranslations("fit");
   const { preferences, signedIn } = await currentPreferences();
   // The same words the shop's filters use, in the page's language.
   const colors = Object.keys(COLORS).map((id) => ({ id, label: colorLabel(id, locale) }));
@@ -61,6 +63,15 @@ export default async function PreferencesPage({ params }: PageProps<"/[locale]/a
       <div className="mt-12">
         <PreferencesForm initial={preferences} colors={colors} materials={materials} />
       </div>
+
+      {/* The way into their home, for "will it get in?" on every piece (docs/adr/055). */}
+      <section id="way-in" aria-labelledby="way-in-heading" className="border-hairline mt-12 flex scroll-mt-24 flex-col gap-3 border-t pt-8" data-agent-id="prefs:way-in">
+        <h2 id="way-in-heading" className="font-display text-2xl">
+          {tf("preferencesTitle")}
+        </h2>
+        <p className="text-slate max-w-[60ch] text-sm">{tf("preferencesLede")}</p>
+        <WayIn box={null} saved={preferences.wayIn} agentScope="prefs-fit" />
+      </section>
 
       {/* Notifications on this device (docs/adr/044): offered only when the shop has its VAPID keys. */}
       <section aria-labelledby="push-heading" className="border-hairline mt-12 flex flex-col gap-3 border-t pt-8">

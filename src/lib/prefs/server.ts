@@ -11,7 +11,9 @@ import { cookies } from "next/headers";
 
 import { serverEnv } from "@/env";
 import { COMFORT_COOKIE, parseComfort, serializeComfort } from "@/lib/comfort/settings";
+import { knownActor } from "@/lib/ai/server";
 import { currentUser } from "@/lib/auth/session";
+import { boardStore } from "@/lib/boards/server";
 import { sql } from "@/lib/db/client";
 import { applyPatch, EMPTY_PREFERENCES, isEmpty, mergePreferences, preferencesSchema, type Preferences, type PreferencesPatch } from "@/lib/prefs/preferences";
 import { createPreferenceStore, type PreferenceStore } from "@/lib/prefs/store";
@@ -104,6 +106,9 @@ export async function syncDevice(deviceComfort: string, { changed = false }: { c
     await preferenceStore().save(user.id, mergePreferences(device, saved.preferences));
     jar.delete(PREFS_COOKIE);
   }
+  // The room boards this browser made as a guest become the account's (docs/adr/056), as its cart does.
+  const guest = await knownActor(null);
+  if (guest !== null) await (await boardStore()).adopt(guest.key, `user:${user.id}`);
   const local = serializeComfort(parseComfort(deviceComfort));
   if (local !== "" || changed) {
     if (local !== saved.comfort) await preferenceStore().saveComfort(user.id, local);

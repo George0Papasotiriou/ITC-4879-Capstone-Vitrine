@@ -33,15 +33,60 @@ describe("cutout from a photo on white", () => {
     expect(cutout.box).toEqual({ x: 30, y: 10, width: 40, height: 60 });
   });
 
-  it("keeps white parts enclosed by the product", () => {
-    // A dark frame around a white lamp shade.
-    const rgba = image(100, 100, [255, 255, 255], [
-      { x: 20, y: 20, w: 60, h: 60, rgb: [40, 40, 40] },
-      { x: 25, y: 25, w: 50, h: 50, rgb: [255, 255, 255] },
-    ]);
-    const cutout = cutoutFromWhite(rgba, 100, 100);
+  it("keeps white parts enclosed by the product, which are lit and so never flat", () => {
+    // A dark frame around a white lamp shade, shaded from 252 at its top to 238 at its foot.
+    const rgba = image(100, 100, [255, 255, 255], [{ x: 20, y: 20, w: 60, h: 60, rgb: [40, 40, 40] }]);
+    for (let y = 25; y < 75; y += 1) {
+      const shade = Math.round(252 - ((y - 25) * 14) / 50);
+      for (let x = 25; x < 75; x += 1) rgba.set([shade, shade, shade, 255], (y * 100 + x) * 4);
+    }
+    const cutout = cutoutFromWhite(rgba, 100, 100, { standing: true });
     expect(alphaAt(cutout.rgba, 100, 50, 50)).toBe(255);
     expect(alphaAt(cutout.rgba, 100, 5, 5)).toBe(0);
+  });
+
+  it("takes the studio's white seen between a piece's legs for background", () => {
+    // A side table: a top, two legs and a foot rail enclosing the studio's own white.
+    const rgba = image(100, 100, [254, 254, 254], [
+      { x: 20, y: 20, w: 60, h: 6, rgb: [90, 60, 40] },
+      { x: 22, y: 26, w: 5, h: 60, rgb: [30, 30, 30] },
+      { x: 73, y: 26, w: 5, h: 60, rgb: [30, 30, 30] },
+      { x: 22, y: 80, w: 56, h: 4, rgb: [30, 30, 30] },
+    ]);
+    const cutout = cutoutFromWhite(rgba, 100, 100, { standing: true });
+    expect(alphaAt(cutout.rgba, 100, 50, 50)).toBe(0);
+    // A rug or a framed print keeps its enclosed white: only a standing piece is seen through.
+    expect(alphaAt(cutoutFromWhite(rgba, 100, 100).rgba, 100, 50, 50)).toBe(255);
+    expect(alphaAt(cutout.rgba, 100, 24, 50)).toBe(255);
+    expect(alphaAt(cutout.rgba, 100, 50, 22)).toBe(255);
+  });
+
+  it("turns a studio's deep, soft shadow into a shadow, and stops at a grey product's sharp edge", () => {
+    // In the proportions of the Canova sofa's photograph: a grey sofa (rows 10–78, the same grey as the
+    // shadow's core) with a dark seam along its foot (row 79), on a shadow whose core (rows 80–87) is
+    // mid-grey and fades to white over 10 rows, as an out-of-focus studio shadow does.
+    const rgba = image(100, 110, [252, 252, 252], [{ x: 20, y: 10, w: 60, h: 69, rgb: [123, 123, 123] }]);
+    for (let x = 10; x < 90; x += 1) rgba.set([60, 60, 60, 255], (79 * 100 + x) * 4);
+    for (let y = 80; y < 98; y += 1) {
+      const depth = y < 88 ? 1 : Math.max(0, 1 - (y - 87) / 10);
+      // Soft at its ends too, fading over 10 columns on each side.
+      for (let x = 0; x < 100; x += 1) {
+        const across = Math.max(0, Math.min(1, (x - 4) / 10, (95 - x) / 10));
+        const grey = Math.round(252 - (252 - 123) * depth * across);
+        rgba.set([grey, grey, grey, 255], (y * 100 + x) * 4);
+      }
+    }
+    const cutout = cutoutFromWhite(rgba, 100, 110, { standing: true });
+    const core = (84 * 100 + 50) * 4;
+    expect([cutout.rgba[core], cutout.rgba[core + 1], cutout.rgba[core + 2]]).toEqual([0, 0, 0]);
+    expect(cutout.rgba[core + 3]).toBeGreaterThan(80);
+    // The sofa above its seam is untouched — grey and opaque, even its lowest row in the shadow's band.
+    for (const row of [40, 78]) {
+      expect(alphaAt(cutout.rgba, 100, 50, row)).toBe(255);
+      expect(cutout.rgba[(row * 100 + 50) * 4]).toBe(123);
+    }
+    // The piece ends at its seam; only the one row of shadow touching that sharp edge stays with it.
+    expect(cutout.box.y + cutout.box.height).toBeLessThanOrEqual(81);
   });
 
   it("keeps pale coloured wood that is bright but not grey", () => {

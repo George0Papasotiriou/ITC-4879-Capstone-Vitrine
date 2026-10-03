@@ -53,6 +53,9 @@ const ROUTE_ALLOWLIST: readonly RegExp[] = [
   /^\/taste$/,
   // Shop windows (docs/adr/040).
   /^\/showcase$/,
+  // Room boards (docs/adr/056): the shopper's list, and a board of theirs (its owner needs no link).
+  /^\/boards$/,
+  /^\/b\/[0-9a-f-]{36}$/,
   /^\/(?:shipping|privacy|contact|credits)$/,
 ];
 
@@ -60,7 +63,10 @@ export function isAllowedRoute(href: string): boolean {
   // Reject anything that could leave the origin before pattern matching, so a
   // clever pattern can never be the only line of defence.
   if (href.includes("//") || href.includes(":") || href.includes("\\")) return false;
-  const path = href.split("?")[0] ?? "";
+  // One plain anchor may follow, to land on a section of an allowed page ("/account/preferences#way-in").
+  const [target, anchor, ...rest] = href.split("#");
+  if (rest.length > 0 || (anchor !== undefined && !/^[a-z0-9-]{1,32}$/.test(anchor))) return false;
+  const path = (target ?? "").split("?")[0] ?? "";
   return ROUTE_ALLOWLIST.some((pattern) => pattern.test(path));
 }
 

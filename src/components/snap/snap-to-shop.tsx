@@ -15,6 +15,7 @@ import { useState } from "react";
 import type { PhotoResponse, PhotoView } from "@/app/api/photos/route";
 import type { SnapResponse } from "@/app/api/snap/route";
 import { ProductCards } from "@/components/concierge/concierge-parts";
+import { ShopTheLook } from "@/components/look/shop-the-look";
 import { Button } from "@/components/ui/button";
 import { SmartLink } from "@/components/ui/smart-link";
 import { useHydrated } from "@/components/ui/use-hydrated";
@@ -171,6 +172,9 @@ export function SnapToShop({ colourLabels }: { colourLabels: Record<string, stri
           )}
         </section>
       )}
+
+      {/* Each piece in the photograph, found and searched for one by one (docs/adr/054). */}
+      {photo === null ? null : <ShopTheLook photoId={photo.id} photoUrl={photo.url} colourLabels={colourLabels} />}
 
       {photo === null ? null : (
         <div>

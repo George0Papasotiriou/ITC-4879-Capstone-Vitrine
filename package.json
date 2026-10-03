@@ -58,7 +58,8 @@
     "e4:render": "tsx scripts/render-room-scenes.ts",
     "evals:room-rendered": "tsx scripts/evaluate-room-rendered.ts",
     "evals:room-harmonize": "tsx scripts/evaluate-room-harmonize.ts",
-    "study": "node scripts/local.mjs run scripts/study.ts"
+    "study": "node scripts/local.mjs run scripts/study.ts",
+    "ranker:data": "tsx scripts/esci-ranker-data.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "4.0.75",

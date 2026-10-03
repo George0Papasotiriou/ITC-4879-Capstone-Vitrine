@@ -10,6 +10,7 @@
 import { z } from "zod";
 
 import { CAPSULE_SIZES, type CapsuleSize } from "@/lib/catalog/taxonomy";
+import { MAX_STEPS, stepSchema } from "@/lib/fit/path";
 import { MAX_ROOMS } from "@/lib/prefs/rooms";
 
 /**
@@ -69,6 +70,8 @@ export const preferencesSchema = z.object({
   avoid: z.object({ colors: words.default([]), materials: words.default([]) }).default({ colors: [], materials: [] }),
   /** What they are comfortable spending on one piece, in whole euros. */
   budgetEuros: z.number().int().min(10).max(50_000).nullable().default(null),
+  /** The way into their home, step by step, for "will it fit through my door" (docs/adr/055). */
+  wayIn: z.array(stepSchema).max(MAX_STEPS).default([]),
 });
 export type Preferences = z.infer<typeof preferencesSchema>;
 
@@ -82,6 +85,7 @@ export const preferencesPatchSchema = z
     like: z.object({ colors: words.optional(), materials: words.optional() }).optional(),
     avoid: z.object({ colors: words.optional(), materials: words.optional() }).optional(),
     budgetEuros: z.number().int().min(10).max(50_000).nullable().optional(),
+    wayIn: z.array(stepSchema).max(MAX_STEPS).optional(),
   })
   .strict();
 export type PreferencesPatch = z.infer<typeof preferencesPatchSchema>;
@@ -110,6 +114,7 @@ export function applyPatch(current: Preferences, patch: PreferencesPatch): Prefe
     like: { colors: patch.like?.colors ?? current.like.colors, materials: patch.like?.materials ?? current.like.materials },
     avoid: { colors: patch.avoid?.colors ?? current.avoid.colors, materials: patch.avoid?.materials ?? current.avoid.materials },
     budgetEuros: patch.budgetEuros === undefined ? current.budgetEuros : patch.budgetEuros,
+    wayIn: patch.wayIn ?? current.wayIn,
   };
   return reconcile(next, patch.avoid !== undefined && patch.like === undefined);
 }
@@ -128,6 +133,8 @@ export function mergePreferences(device: Preferences, account: Preferences): Pre
       like: { colors: unique([...account.like.colors, ...device.like.colors]).slice(0, 12), materials: unique([...account.like.materials, ...device.like.materials]).slice(0, 12) },
       avoid: { colors: unique([...account.avoid.colors, ...device.avoid.colors]).slice(0, 12), materials: unique([...account.avoid.materials, ...device.avoid.materials]).slice(0, 12) },
       budgetEuros: account.budgetEuros ?? device.budgetEuros,
+      // One home's way in: the account's, unless it has none yet.
+      wayIn: account.wayIn.length > 0 ? account.wayIn : device.wayIn,
     },
     false,
   );
@@ -143,6 +150,7 @@ export function undoPatch(before: Preferences, patch: PreferencesPatch): Prefere
   if (patch.like !== undefined) undo.like = { ...(patch.like.colors === undefined ? {} : { colors: before.like.colors }), ...(patch.like.materials === undefined ? {} : { materials: before.like.materials }) };
   if (patch.avoid !== undefined) undo.avoid = { ...(patch.avoid.colors === undefined ? {} : { colors: before.avoid.colors }), ...(patch.avoid.materials === undefined ? {} : { materials: before.avoid.materials }) };
   if (patch.budgetEuros !== undefined) undo.budgetEuros = before.budgetEuros;
+  if (patch.wayIn !== undefined) undo.wayIn = before.wayIn;
   return undo;
 }
 
@@ -151,7 +159,8 @@ export function isEmpty(prefs: Preferences): boolean {
     Object.keys(prefs.sizes).length === 0 &&
     prefs.rooms.length === 0 &&
     prefs.like.colors.length + prefs.like.materials.length + prefs.avoid.colors.length + prefs.avoid.materials.length === 0 &&
-    prefs.budgetEuros === null
+    prefs.budgetEuros === null &&
+    prefs.wayIn.length === 0
   );
 }
 

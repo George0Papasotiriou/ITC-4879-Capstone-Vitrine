@@ -46,7 +46,11 @@ export function PictureStudio({ piece, scenes, left, signedIn }: { piece: Studio
   const [chosen, setChosen] = useState<SceneStyle | "own" | null>(null);
   const { state, scene, own, show } = usePicture(left);
   const photo = usePhotoAttachment();
-  const ready = useMemo(() => new Map(scenes.filter((entry) => entry.style !== null).map((entry) => [entry.style!, entry])), [scenes]);
+  // The scenes ready to see: those the page came with, and any made while the shopper is here.
+  const [made, setMade] = useState<PictureView[]>(scenes);
+  const latest = state.phase === "done" && state.picture?.kind === "scene" && state.picture.style !== null ? state.picture : null;
+  if (latest !== null && !made.some((entry) => entry.id === latest.id)) setMade([...made, latest]);
+  const ready = useMemo(() => new Map(made.filter((entry) => entry.style !== null).map((entry) => [entry.style!, entry])), [made]);
   const making = state.phase === "asking" || state.phase === "making";
 
   const pick = (style: SceneStyle) => {

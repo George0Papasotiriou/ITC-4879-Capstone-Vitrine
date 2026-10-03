@@ -37,7 +37,7 @@ export type DemoPrompt = {
 export type DemoCall = { toolName: string; input: Record<string, unknown> };
 export type DemoStep = { kind: "tools"; calls: DemoCall[] } | { kind: "text"; text: string };
 
-type Intent = "greet" | "comfort" | "size_advice" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "showcase" | "picture" | "room" | "browse";
+type Intent = "greet" | "comfort" | "size_advice" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "showcase" | "look" | "picture" | "way_in" | "board" | "room" | "browse";
 
 const ORDER_NUMBER = /\bvt-[0-9a-z]{4}-[0-9a-z]{4}\b/i;
 
@@ -75,9 +75,16 @@ export function intentOf(text: string): Intent {
   if (/\b(window display|shop window|showcase|inspire me)\b|βιτριν|εμπνευσ/.test(t)) return "showcase";
   // A budget with a room or a set is a bundle, even when it says "put together".
   if (/\b(set|bundle|corner|budget)\b|σετ|γωνια/.test(t) && /\d/.test(t)) return "bundle";
+  // Everything in a photograph (docs/adr/054): "shop this look", "find everything in this photo".
+  if (/\bshop (the|this) look\b|\b(everything|every piece|all the pieces) in (this|the|my) (photo|picture|room)\b|\bget (me )?this (look|room)\b|αγορασε (το|αυτο το) στιλ|ολα (τα κομματια )?στη φωτογραφια/.test(t)) return "look";
+  // Getting a piece into the home (docs/adr/055): through a door, up the stairs, round the hall. Before a picture
+  // and a room: "fit through my door" is about the way in, not a wall.
+  if (/\bthrough (the |my |our )?(front )?(door|doorway|hall|hallway|corridor)|\b(up|down) (the |my |our )?(stairs|staircase)|\bget (it |this |that |them )?(in|into|inside|up|through)\b|\bcarry (it |this )?in\b|απο (την |τη )?(εξω)?πορτα|απο τις σκαλες|να μπει|θα περασει/.test(t)) return "way_in";
   // An AI picture of a piece in a room (docs/adr/053): "picture it", "what would it look like", «φαντάσου το».
   // "…like this picture" is a photograph, not a request for one.
   if (/\b(picture|render|visuali[sz]e|imagine)\b|\bwhat (would|will|does) [^?.!]{0,48}?\blooks? like\b|φαντασου|φτιαξε (μια )?εικονα/.test(t) && !/\b(this|my|the|that) (picture|photo)\b/.test(t)) return "picture";
+  // A room board (docs/adr/056) before the cart: "add it to my board" keeps it, it does not buy it.
+  if (/\b(board|moodboard)\b|πινακα/.test(t)) return "board";
   if (/\b(add|put|buy)\b|προσθεσ|βαλε/.test(t)) return "add";
   if (/\bmy room\b|\bfits? (in|into|against)?\s*(my|the)\b|δωματιο μου|χωρα(ει|νε)/.test(t)) return "room";
   if (/\b(cart|basket)\b|καλαθι/.test(t)) return "cart";
@@ -179,6 +186,42 @@ export function pictureQueryOf(text: string): string {
     .trim();
 }
 
+/** Words a question about the way in uses that name no piece: the door, the stairs, the getting in. */
+const WAY_WORDS = new Set(
+  [
+    "will", "would", "does", "it", "this", "that", "fit", "fits", "get", "through", "front", "door", "doors", "doorway", "hall", "hallway", "corridor",
+    "up", "down", "stairs", "staircase", "into", "inside", "carry", "our", "home", "house", "flat", "apartment",
+    "θα", "περασει", "περναει", "απο", "πορτα", "εξωπορτα", "σκαλες", "να", "μπει", "χωρεσει", "χωραει", "σπιτι", "διαμερισμα",
+  ].map((word) => word.normalize("NFD").replace(/\p{M}/gu, "")),
+);
+
+/** The piece a question about the way in names ("will the Radford chair get through my door" → "Radford chair"). */
+export function wayQueryOf(text: string): string {
+  return searchQueryOf(text)
+    .split(/[^\p{L}\p{N}-]+/u)
+    .filter((word) => word.length > 1 && !WAY_WORDS.has(fold(word)))
+    .join(" ")
+    .trim();
+}
+
+/** Words a request about a board uses that name no piece. */
+const BOARD_WORDS = new Set(
+  ["board", "moodboard", "save", "keep", "on", "our", "πινακα", "πινακας", "κρατα", "αποθηκευσε", "στον", "στη"].map((word) => word.normalize("NFD").replace(/\p{M}/gu, "")),
+);
+
+/** "Add the Radford chair to my living room board" → the piece ("Radford chair") and the board ("living room"). */
+export function boardRequestOf(text: string): { piece: string; board: string | undefined } {
+  const named = /\b(?:to|on|onto) (?:my |the |our )?([\p{L}\d][\p{L}\d ]{1,38}?) board\b/iu.exec(text);
+  const board = named?.[1]?.trim();
+  const rest = board === undefined ? text : text.replace(named![0], " ");
+  const piece = searchQueryOf(rest)
+    .split(/[^\p{L}\p{N}-]+/u)
+    .filter((word) => word.length > 1 && !BOARD_WORDS.has(fold(word)))
+    .join(" ")
+    .trim();
+  return { piece, board: board === undefined || board.toLowerCase() === "my" ? undefined : board };
+}
+
 /** The showroom a picture is asked in; warm minimal when none is named. */
 export function sceneStyleOf(text: string): "warm-minimal" | "scandinavian" | "dark-moody" | "mediterranean" {
   const t = fold(text);
@@ -267,6 +310,18 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
         return call("build_bundle", bundleInput(text));
       case "showcase":
         return call("compose_showcase", showcaseInput(text, locale));
+      case "look":
+        return call("shop_the_look", {});
+      case "board": {
+        const { piece } = boardRequestOf(text);
+        if (piece === "") return say(locale, "Which piece shall I put on a board? Name it, for example \"add the Radford chair to my living room board\".", "Ποιο κομμάτι να βάλω σε πίνακα; Πες μου το, για παράδειγμα «βάλε την καρέκλα Radford στον πίνακα του σαλονιού».");
+        return call("search_products", { query: piece, limit: 3 });
+      }
+      case "way_in": {
+        const piece = wayQueryOf(text);
+        if (piece === "") return say(locale, "Which piece shall I check? Name it, for example \"will the Radford chair get through my door?\"", "Ποιο κομμάτι να ελέγξω; Πες μου το, για παράδειγμα «θα περάσει η καρέκλα Radford από την πόρτα μου;»");
+        return call("search_products", { query: piece, limit: 3 });
+      }
       case "picture": {
         const piece = pictureQueryOf(text);
         if (piece === "") return say(locale, "Which piece shall I picture? Name it, for example \"picture a walnut sideboard in a Scandinavian room\".", "Ποιο κομμάτι να φανταστώ; Πες μου το, για παράδειγμα «φαντάσου μια καρυδένια μπουφέ σε σκανδιναβικό δωμάτιο».");
@@ -284,6 +339,13 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
       if (products.length === 0) return say(locale, "I couldn't find anything for that. Try other words, or a category.", "Δεν βρήκα κάτι γι' αυτό. Δοκίμασε άλλες λέξεις ή μια κατηγορία.");
       if (intent === "add") return call("add_to_cart", { productId: (products.find((product) => product.inStock !== false) ?? products[0])!.id, quantity: 1 });
       if (intent === "compare" && products.length >= 2) return call("compare_products", { ids: products.slice(0, Math.min(3, products.length)).map((product) => product.id) });
+      // On a board: the one named, else the latest, else a new one.
+      if (intent === "board") {
+        const { board } = boardRequestOf(text);
+        return call("add_to_board", { productId: products[0]!.id, ...(board === undefined ? {} : { board }) });
+      }
+      // The way in for the first piece found.
+      if (intent === "way_in") return call("check_way_in", { productId: products[0]!.id });
       // A picture of the first piece found: in the photograph attached, or in the showroom named.
       if (intent === "picture") return call("picture_in_room", { productId: products[0]!.id, room: prompt.photo === true ? "photo" : sceneStyleOf(text) });
       // "…that matches my room" with a photograph of the room is a search, not a request to place a piece.
@@ -380,6 +442,37 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
         `I'd take ${output.size}.${why}${apart} Shall I remember ${output.size} as your size?`,
         `Θα έπαιρνα ${output.size}.${why}${apart} Να θυμάμαι το ${output.size} ως νούμερό σου;`,
       );
+    }
+    case "shop_the_look": {
+      const output = last.output as { ok?: boolean; reason?: string; drawn?: boolean; pieces?: { kind: string | null }[] } | null;
+      if (output?.ok !== true) {
+        if (output?.reason === "no_photo") return say(locale, "Attach a photo of the room first, then ask me to shop the look.", "Επισύναψε πρώτα μια φωτογραφία του δωματίου και ζήτα μου να βρω το στιλ.");
+        return say(locale, "I couldn't find pieces the shop sells in that photo.", "Δεν βρήκα σε αυτή τη φωτογραφία κομμάτια που πουλάει το κατάστημα.");
+      }
+      if (output.drawn === true) return say(locale, "Without the shop's AI I can't tell the pieces apart, so these match the whole photo's colours.", "Χωρίς την AI του καταστήματος δεν ξεχωρίζω τα κομμάτια, οπότε αυτά ταιριάζουν στα χρώματα όλης της φωτογραφίας.");
+      const kinds = (output.pieces ?? []).map((piece) => piece.kind).filter((kind) => kind !== null);
+      return say(locale, `I found ${kinds.length}: ${kinds.join(", ")}. Each has the shop's closest pieces below.`, `Βρήκα ${kinds.length}: ${kinds.join(", ")}. Για το καθένα, τα πιο κοντινά κομμάτια του καταστήματος είναι από κάτω.`);
+    }
+    case "add_to_board": {
+      const output = last.output as { ok?: boolean; reason?: string; title?: string; board?: string } | null;
+      if (output?.ok === true) return say(locale, `Done: ${output.title} is on "${output.board}". Open the board to share it, or to see what it all comes to.`, `Έγινε: το ${output.title} μπήκε στον πίνακα «${output.board}». Άνοιξε τον πίνακα για να τον μοιραστείς ή να δεις πόσο κάνουν όλα μαζί.`);
+      if (output?.reason === "full") return say(locale, "That board is full: forty pieces. Start another one.", "Αυτός ο πίνακας είναι γεμάτος: σαράντα κομμάτια. Ξεκίνα έναν άλλο.");
+      if (output?.reason === "too_many") return say(locale, "You have twelve boards already. Delete one, then ask me again.", "Έχεις ήδη δώδεκα πίνακες. Σβήσε έναν και ρώτα με ξανά.");
+      return say(locale, "That piece couldn't go on a board.", "Αυτό το κομμάτι δεν μπόρεσε να μπει σε πίνακα.");
+    }
+    case "check_way_in": {
+      const output = last.output as { ok?: boolean; reason?: string; title?: string; fits?: boolean; firstFailure?: number | null; steps?: { kind: string; marginCm: number }[] } | null;
+      if (output?.ok === true) {
+        if (output.fits === true) {
+          const tightest = Math.min(...(output.steps ?? []).map((step) => step.marginCm));
+          return say(locale, `Yes: ${output.title} gets in, with ${tightest} cm to spare at the tightest step.`, `Ναι: το ${output.title} μπαίνει, με ${tightest} εκ. περιθώριο στο πιο στενό βήμα.`);
+        }
+        const failing = output.firstFailure ?? 0;
+        const short = -(output.steps?.[failing]?.marginCm ?? 0);
+        return say(locale, `No: ${output.title} won't get past step ${failing + 1}, it is ${short} cm too big there.`, `Όχι: το ${output.title} δεν περνάει από το βήμα ${failing + 1}, του λείπουν ${short} εκ. εκεί.`);
+      }
+      if (output?.reason === "no_way_in") return say(locale, "Measure your way in first: I've opened the page for it, under your preferences.", "Μέτρησε πρώτα τη διαδρομή σου: σου άνοιξα τη σελίδα, στις προτιμήσεις σου.");
+      return say(locale, "That piece isn't one that has to be carried in.", "Αυτό το κομμάτι δεν χρειάζεται να περάσει από πόρτες.");
     }
     case "picture_in_room": {
       const output = last.output as { ok?: boolean; reason?: string; title?: string; ready?: boolean } | null;

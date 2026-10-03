@@ -107,6 +107,7 @@ export function DataLedger({ ledger, labels }: { ledger: Ledger; labels: { color
       ),
     ),
     ...(prefs.budgetEuros === null ? [] : [row("budget", t("budget", { amount: prefs.budgetEuros }), () => void change({ budgetEuros: null }))]),
+    ...prefs.wayIn.map((step, index) => row(`way-${index}`, t(`wayIn.${step.kind}`, { ...step, number: index + 1 }), () => void change({ wayIn: prefs.wayIn.filter((_, position) => position !== index) }))),
   ];
 
   const comfortRows = COMFORT_KEYS.filter((key) => ledger.comfort[key] !== DEFAULT_COMFORT[key]).map((key) => (

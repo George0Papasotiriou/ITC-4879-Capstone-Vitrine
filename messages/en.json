@@ -458,6 +458,24 @@
       "no_photo": "Attach a photo of your room first, then ask again.",
       "allowance": "That's today's pictures. The ready showroom ones are still free to see on the piece's page.",
       "unavailable": "The picture couldn't be started right now. Try again in a moment."
+    },
+    "wayIn": {
+      "fits": "{title} gets in.",
+      "fails": "{title} won't get past step {number}."
+    },
+    "board": {
+      "added": "Put {title} on “{board}”.",
+      "open": "Open the board",
+      "full": "That board is full (40 pieces).",
+      "tooMany": "You have twelve boards already; delete one first.",
+      "failed": "That couldn't go on a board."
+    },
+    "look": {
+      "noPhoto": "Attach a photo first, then ask me again.",
+      "nothing": "I found no pieces the shop sells in that photo.",
+      "unavailable": "Finding pieces isn't available right now.",
+      "drawn": "Without the shop's AI it can't tell the pieces apart: these match the whole photo's colours.",
+      "whole": "The whole photo"
     }
   },
   "footer": {
@@ -1758,7 +1776,8 @@
         "capsule_image": "Capsule photography",
         "translation": "Greek copy",
         "copy_draft": "Staff copy drafts",
-        "room_picture": "AI room pictures"
+        "room_picture": "AI room pictures",
+        "shop_the_look": "Shop the look"
       },
       "settings": "Switches",
       "settingsLede": "Both changes take effect at once, for everyone, and are recorded in the audit log.",
@@ -2024,7 +2043,9 @@
         "support-reply": "Support replies",
         "hand-over": "Hand-overs to a person",
         "mcp": "Agent requests (MCP)",
-        "pictures": "AI pictures"
+        "pictures": "AI pictures",
+        "boards": "Room boards",
+        "look": "Shop the look"
       },
       "trendingTitle": "Trending now",
       "trendingLede": "What several people searched for in the last day; each person counts once per term and hour. Shown in the search pop-up.",
@@ -2399,6 +2420,11 @@
       "orders": "orders",
       "prices": "prices",
       "desk": "desk replies"
+    },
+    "wayIn": {
+      "door": "Way in, step {number}: a door {width} × {height} cm",
+      "turn": "Way in, step {number}: a corner from {from} cm to {to} cm, ceiling {ceiling} cm",
+      "stairs": "Way in, step {number}: stairs {width} cm wide, {headroom} cm headroom"
     }
   },
   "instantSearch": {
@@ -2641,5 +2667,152 @@
       "generic": "The picture couldn't be made. Try again."
     },
     "plannerAlt": "Your room with the piece, an AI picture"
+  },
+  "fit": {
+    "title": "Will it get in?",
+    "lede": "Doors, corners and stairs on the way to the room. The shop carries this piece's box through each one, every way up, the way movers do.",
+    "preferencesTitle": "Your way in",
+    "preferencesLede": "Measure the way into your home once: the front door, the hall's corner, the stairs, the room's door. Every piece then says whether it gets through.",
+    "empty": "Add the doors, corners and stairs between the street and the room, in order.",
+    "kind": {
+      "door": "Door",
+      "turn": "Corner",
+      "stairs": "Stairs"
+    },
+    "add": {
+      "door": "Add a door",
+      "turn": "Add a corner",
+      "stairs": "Add stairs"
+    },
+    "addLabel": "Add a step",
+    "field": {
+      "door": {
+        "width": "Width",
+        "height": "Height"
+      },
+      "turn": {
+        "from": "Corridor width",
+        "to": "Width after the corner",
+        "ceiling": "Ceiling"
+      },
+      "stairs": {
+        "width": "Width",
+        "headroom": "Headroom"
+      }
+    },
+    "remove": "Remove",
+    "stepLabel": "step {number}",
+    "check": "Check this measure: it is outside what homes have.",
+    "verdict": {
+      "fits": "It gets in",
+      "fails": "It won't get past step {number}"
+    },
+    "fits": "Fits, {margin} cm to spare",
+    "tight": "{margin} cm too tight",
+    "up": {
+      "h": "upright",
+      "d": "on its back",
+      "w": "on its end"
+    },
+    "tilted": "tilted {degrees}°",
+    "diagonal": "turned diagonally in the doorway",
+    "planLabel": "Step {number} from above, at its tightest moment",
+    "save": "Save as my way in",
+    "saved": "Saved. Every piece now checks it.",
+    "failed": "That couldn't be saved. Try again.",
+    "unsaved": "Not saved yet.",
+    "note": "From the catalogue's measurements of the piece's box. Legs that come off, or a sofa that comes apart, can go through where the box can't."
+  },
+  "boards": {
+    "title": "Your boards",
+    "lede": "Collect pieces for one room, see what they come to together, and share the board: someone can look, or change it with you, and you both see it change.",
+    "empty": "No boards yet. Start one here, or with “Add to a board” on any piece.",
+    "newTitle": "New board",
+    "newPlaceholder": "Living room",
+    "create": "Start the board",
+    "tooMany": "You have twelve boards already. Delete one first.",
+    "pieces": "{count, plural, =0 {No pieces yet} one {# piece} other {# pieces}}",
+    "updated": "Changed {when}",
+    "open": "Open {title}",
+    "board": {
+      "kicker": "Room board",
+      "rename": "Rename",
+      "renameLabel": "The board's name",
+      "save": "Save",
+      "cancel": "Cancel",
+      "here": "{count, plural, one {Only you here} other {# people here}}",
+      "live": "Live",
+      "viewer": "You can look at this board. Ask its owner for the link that changes it.",
+      "editor": "You can change this board with its owner.",
+      "share": "Share",
+      "shareView": "Can look",
+      "shareEdit": "Can change it with you",
+      "copy": "Copy",
+      "copied": "Copied",
+      "newLinks": "Make new links",
+      "newLinksNote": "New links stop the old ones working.",
+      "room": "Check against a room",
+      "noRoom": "No room",
+      "roomHint": "Rooms you saved in Your shop.",
+      "fits": "{fits} of {all} fit the {room} wall ({wall} cm)",
+      "fitsOne": "Fits the {room} wall",
+      "fitsNot": "Too wide for the {room} wall",
+      "emptyBoard": "Nothing on this board yet. Add pieces with “Add to a board” on any piece.",
+      "quantity": "Quantity",
+      "less": "One less",
+      "more": "One more",
+      "note": "Note",
+      "notePlaceholder": "Why it's here",
+      "moveEarlier": "Move earlier",
+      "moveLater": "Move later",
+      "remove": "Remove",
+      "removed": "Removed {title}.",
+      "undo": "Undo",
+      "total": "Together",
+      "totalNote": "Prices for {country}, from the shop's catalogue now.",
+      "addAll": "Add all to cart",
+      "addedAll": "{added, plural, one {# piece added to your cart} other {# pieces added to your cart}}.",
+      "someRefused": "{refused, plural, one {# piece could not be added} other {# pieces could not be added}}: out of stock.",
+      "delete": "Delete board",
+      "deleteConfirm": "Delete this board? Everyone's links stop working.",
+      "gone": "This board isn't here any more, or the link has changed.",
+      "failed": "That didn't save. Try again."
+    },
+    "add": {
+      "button": "Add to a board",
+      "label": "Add {title} to a board",
+      "newBoard": "New board…",
+      "added": "Added to {title}",
+      "openBoard": "Open the board",
+      "full": "That board is full (40 pieces).",
+      "failed": "That didn't work. Try again."
+    }
+  },
+  "look": {
+    "title": "Shop the look",
+    "lede": "Find each piece in your photo — the sofa, the lamp, the rug — and the shop's closest pieces for every one, in the colours it measures there.",
+    "go": "Find each piece",
+    "again": "Look again",
+    "looking": "Looking at your photo…",
+    "photoAlt": "Your photo, with a numbered pin on each piece found",
+    "pinLabel": "Piece {number}: {kind}",
+    "piecesLabel": "Pieces found",
+    "measured": "Measured here: {colours}",
+    "noMatch": "Nothing close in the shop for this one.",
+    "addLook": "Add the look to the cart",
+    "added": "{count, plural, =0 {Nothing could be added} one {# piece added to your cart} other {# pieces added to your cart}}.",
+    "drawn": "Without the shop's AI, it can't tell the pieces apart: these match the whole photo's colours.",
+    "errors": {
+      "failed": "That didn't work. Try again.",
+      "nothing": "No pieces the shop sells were found in this photo.",
+      "unreadable": "The shop couldn't read that photo.",
+      "off": "Finding pieces needs the shop's AI, which is off right now.",
+      "kill_switch": "Finding pieces is paused right now.",
+      "budget": "The shop's AI has done enough for today. Try again tomorrow.",
+      "turns": "That's enough for today. Try again tomorrow.",
+      "credits": "That's enough for today. Try again tomorrow.",
+      "slow_down": "One moment: too many at once.",
+      "not_found": "Your photo has gone (it lasts a day). Add it again."
+    }
   }
 }

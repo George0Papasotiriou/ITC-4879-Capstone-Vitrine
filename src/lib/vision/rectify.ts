@@ -135,6 +135,53 @@ export function targetRectangle(quad: Quad, rug: { long: number; short: number }
   };
 }
 
+/**
+ * The reverse of `warp`: a flat picture (a rectified rug) laid onto a
+ * quadrilateral of a larger picture (the floor of a room, in perspective).
+ * `quad` holds where the picture's corners land, in the same order as
+ * `targetRectangle`'s: bottom-left, bottom-right, top-right, top-left. The
+ * homography from the quad to the flat picture sends every output pixel to the
+ * point of the picture it shows; pixels it sends outside the picture are left
+ * transparent, so only the quad is painted.
+ */
+export function warpOnto(source: { data: ArrayLike<number>; width: number; height: number }, quad: Quad, size: { width: number; height: number }): Uint8ClampedArray<ArrayBuffer> {
+  const { data, width, height } = source;
+  const corners: Quad = [
+    [0, height],
+    [width, height],
+    [width, 0],
+    [0, 0],
+  ];
+  const H = homographyDLT(quad, corners);
+  const out = new Uint8ClampedArray(size.width * size.height * 4);
+  // Only the quad's bounding box can be painted.
+  const xs = quad.map((corner) => corner[0]);
+  const ys = quad.map((corner) => corner[1]);
+  const x0 = Math.max(0, Math.floor(Math.min(...xs)));
+  const x1 = Math.min(size.width, Math.ceil(Math.max(...xs)));
+  const y0 = Math.max(0, Math.floor(Math.min(...ys)));
+  const y1 = Math.min(size.height, Math.ceil(Math.max(...ys)));
+  for (let y = y0; y < y1; y += 1) {
+    for (let x = x0; x < x1; x += 1) {
+      const [u, v] = applyHomography(H, [x + 0.5, y + 0.5]);
+      if (!(u >= 0 && u < width && v >= 0 && v < height)) continue;
+      const sx = Math.min(width - 1.001, Math.max(0, u - 0.5));
+      const sy = Math.min(height - 1.001, Math.max(0, v - 0.5));
+      const ix = Math.floor(sx);
+      const iy = Math.floor(sy);
+      const fx = sx - ix;
+      const fy = sy - iy;
+      const index = (y * size.width + x) * 4;
+      for (let channel = 0; channel < 4; channel += 1) {
+        const top = data[(iy * width + ix) * 4 + channel]! * (1 - fx) + data[(iy * width + ix + 1) * 4 + channel]! * fx;
+        const bottom = data[((iy + 1) * width + ix) * 4 + channel]! * (1 - fx) + data[((iy + 1) * width + ix + 1) * 4 + channel]! * fx;
+        out[index + channel] = top * (1 - fy) + bottom * fy;
+      }
+    }
+  }
+  return out;
+}
+
 /** The photograph warped onto the output rectangle: each output pixel sampled bilinearly from where H sends it. */
 export function warp(source: { data: ArrayLike<number>; width: number; height: number }, quad: Quad, target: { corners: Quad; width: number; height: number }): Uint8ClampedArray<ArrayBuffer> {
   const H = homographyDLT(target.corners, quad);

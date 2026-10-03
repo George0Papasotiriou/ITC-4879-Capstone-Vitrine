@@ -64,6 +64,15 @@ describe.skipIf(url === undefined || url === "")("hybrid search", () => {
     expect(result.retrieversUsed).toEqual(["fuzzy", "lexical"]);
   });
 
+  it("puts the piece a rare name picks out above every piece that only shares the common word", async () => {
+    // "Sofa" is in the Westview's and the Emerly's titles; "Canova" is in one product's only. Without each
+    // word weighted by its rarity, the two plain sofas outranked the one the shopper named.
+    const { cards } = await search("Canova sofa");
+    expect(cards[0]?.slug).toBe("canova-3-seater-maxi-b07g2h3l4l");
+    const lexicalOnly = await search("Canova sofa", { retrievers: { fuzzy: false } });
+    expect(lexicalOnly.cards[0]?.slug).toBe("canova-3-seater-maxi-b07g2h3l4l");
+  });
+
   it("finds the same products for the Greek word, through the indexed kind names", async () => {
     const { cards } = await search("φωτιστικό");
     expect(cards.length).toBeGreaterThanOrEqual(7);

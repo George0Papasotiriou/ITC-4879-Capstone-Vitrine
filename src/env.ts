@@ -173,6 +173,12 @@ const rawSchema = z.object({
    * shopper's allowance — turned on by George once he has seen the price.
    */
   PICTURES_PROVIDER: z.enum(["drawn", "google"]).default("drawn"),
+  /**
+   * The learned ranking stage of search (docs/adr/057): LambdaMART trees the
+   * project trained on ESCI, run in the shop after fusion. "off" goes back to
+   * fusion and business re-ranking alone, without a deploy of code.
+   */
+  SEARCH_RANKER: z.enum(["on", "off"]).default("on"),
   /** Virtual try-on (Phase 9). Without it try-on runs in demo mode or not at all. */
   FASHN_API_KEY: optionalString,
   /** The whole shop's AI spend per day, in euros; past it, AI features pause until midnight UTC. */

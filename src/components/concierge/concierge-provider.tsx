@@ -143,6 +143,25 @@ function ConciergeState({ children, open, setOpen, attach }: { children: ReactNo
           const acting = commands.filter((command) => command.type !== "show_products");
           if (acting.length > 0) void spotlight.run(acting);
         }
+        // A piece put on a board (docs/adr/056): undone through the board's own API, which knows its owner.
+        if (name === "add_to_board" && output?.ok === true) {
+          const board = output as unknown as { boardId: string; itemId: string; created: boolean; quantity: number; board: string; title: string };
+          const caption = t("board.added", { title: board.title, board: board.board });
+          spotlight.record({
+            caption,
+            type: "cart",
+            undo: {
+              label: caption,
+              run: async () => {
+                const base = `/api/boards/${board.boardId}/items`;
+                const response = board.created
+                  ? await fetch(`${base}?item=${board.itemId}`, { method: "DELETE" })
+                  : await fetch(base, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: board.itemId, quantity: Math.max(1, board.quantity - 1) }) });
+                if (!response.ok) throw new Error(t("undoFailed"));
+              },
+            },
+          });
+        }
         if (["add_to_cart", "update_cart_item", "remove_from_cart"].includes(name) && output?.ok === true && typeof output.undo === "string") {
           const token = output.undo;
           const caption = name === "add_to_cart" ? t("added", { title: output.title ?? "" }) : name === "remove_from_cart" ? t("removed", { title: output.title ?? "" }) : t("updated", { title: output.title ?? "", quantity: output.quantity ?? 0 });

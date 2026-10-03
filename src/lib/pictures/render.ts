@@ -11,7 +11,9 @@ import { generateImage, type ImageModel } from "ai";
 
 import { picturePrompt, type PicturePiece } from "@/lib/ai/prompts/picture-v1";
 import { aspectFor, SCENE_ASPECT, type PictureKind, type SceneStyle } from "@/lib/pictures/pictures";
+import type { Point2 } from "@/lib/vision/camera";
 import { cutoutFromWhite } from "@/lib/vision/cutout";
+import { quadFromMask, targetRectangle, warp, warpOnto, type Quad } from "@/lib/vision/rectify";
 
 /**
  * docs/adr/053.
@@ -30,7 +32,12 @@ import { cutoutFromWhite } from "@/lib/vision/cutout";
  * - quick: the piece's studio photograph, cut out of its white
  *   (src/lib/vision/cutout.ts), stood on the floor of the room with a soft
  *   shadow — its size a guess, as the quick picture's always is;
- * - scene: a quiet room in the style's colours and light, the piece in it.
+ * - scene: a room in the style's colours and light — a wall, a skirting
+ *   board, a floor of planks or tiles drawn in one-point perspective
+ *   (`showroomSvg`) — with the piece standing in it at its catalogue size for
+ *   that camera (`showroomGeometry`), lit like the room, on two shadows.
+ * The grade warms each colour channel; sharp's tint() was not used, since it
+ * keeps only brightness and turned every room grey.
  *
  * Every picture is stored as WebP, at most 1600 px on its long side.
  */
@@ -84,11 +91,43 @@ export async function renderWithModel(model: ImageModel, input: RenderInput): Pr
   }
 }
 
+/** The studio photograph as RGBA pixels, at most 900 px on its long side. */
+async function studioPixels(studio: PictureImage) {
+  const { default: sharp } = await import("sharp");
+  const { data, info } = await sharp(Buffer.from(studio.bytes)).resize(900, 900, { fit: "inside", withoutEnlargement: true }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  return { data: new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength), width: info.width, height: info.height };
+}
+
+/**
+ * A rug's studio photograph made flat, the Showcase's own way (docs/adr/048):
+ * cut out, its four corners found, warped to a rectangle of its true
+ * proportions — turned, if need be, so its long side runs across the picture.
+ */
+async function flatRug(studio: PictureImage, dims: { w: number; d: number }) {
+  const photo = await studioPixels(studio);
+  const cut = cutoutFromWhite(photo.data, photo.width, photo.height);
+  if (!cut.removed) return null;
+  const mask = new Uint8Array(cut.width * cut.height);
+  for (let index = 0; index < mask.length; index += 1) mask[index] = cut.rgba[index * 4 + 3]! > 200 ? 1 : 0;
+  const quad = quadFromMask({ data: mask, width: cut.width, height: cut.height });
+  if (quad === null) return null;
+  const target = targetRectangle(quad, { long: Math.max(dims.w, dims.d), short: Math.min(dims.w, dims.d) }, 1024);
+  const flat = warp(photo, quad, target);
+  if (target.width >= target.height) return { data: flat, width: target.width, height: target.height };
+  // A quarter turn, so the picture's width is the rug's length.
+  const turned = new Uint8ClampedArray(flat.length);
+  for (let y = 0; y < target.height; y += 1) {
+    for (let x = 0; x < target.width; x += 1) turned.set(flat.subarray((y * target.width + x) * 4, (y * target.width + x) * 4 + 4), (x * target.height + (target.height - 1 - y)) * 4);
+  }
+  return { data: turned, width: target.height, height: target.width };
+}
+
 /** The piece's studio photograph cut out of its white, as a PNG with alpha, and its size. */
 async function cutPiece(studio: PictureImage): Promise<{ png: Buffer; width: number; height: number } | null> {
   const { default: sharp } = await import("sharp");
-  const { data, info } = await sharp(Buffer.from(studio.bytes)).resize(900, 900, { fit: "inside", withoutEnlargement: true }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  const cut = cutoutFromWhite(new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength), info.width, info.height);
+  const photo = await studioPixels(studio);
+  // A standing piece: the white seen between its legs is the studio's, and its studio shadow may be deep.
+  const cut = cutoutFromWhite(photo.data, photo.width, photo.height, { standing: true });
   if (!cut.removed || cut.box.width < 8 || cut.box.height < 8) return null;
   const png = await sharp(Buffer.from(cut.rgba.buffer, cut.rgba.byteOffset, cut.rgba.byteLength), { raw: { width: cut.width, height: cut.height, channels: 4 } })
     .extract({ left: cut.box.x, top: cut.box.y, width: cut.box.width, height: cut.box.height })
@@ -125,6 +164,7 @@ export async function renderDrawn(input: RenderInput): Promise<Rendered> {
     return { ok: true, image: await grade(Buffer.from(input.room.bytes), meta.width, meta.height), drawn: true };
   }
 
+  if (input.piece.lies === true) return renderRug(input);
   const piece = await cutPiece(input.studio);
   if (piece === null) return { ok: false, reason: "unreadable" };
 
@@ -180,6 +220,78 @@ export async function renderDrawn(input: RenderInput): Promise<Rendered> {
     .png()
     .toBuffer();
   return { ok: true, image: await grade(composed, width, height), drawn: true };
+}
+
+/** A rug lies on the floor: its flat picture laid onto the floor in the room's perspective, no shadow of its own. */
+async function renderRug(input: RenderInput): Promise<Rendered> {
+  const { default: sharp } = await import("sharp");
+  const dims = input.piece.dimsCm ?? { w: 200, d: 140, h: 1 };
+  const flat = await flatRug(input.studio, dims);
+  if (flat === null) return { ok: false, reason: "unreadable" };
+  const long = Math.max(dims.w, dims.d);
+  const short = Math.min(dims.w, dims.d);
+
+  let base: Buffer;
+  let width: number;
+  let height: number;
+  let quad: Quad;
+  let light: [number, number, number] = [1, 1, 1];
+  if (input.kind === "quick") {
+    if (input.room === null) return { ok: false, reason: "no_room" };
+    base = await sharp(Buffer.from(input.room.bytes)).rotate().resize(LONG_SIDE, LONG_SIDE, { fit: "inside", withoutEnlargement: true }).png().toBuffer();
+    const meta = await sharp(base).metadata();
+    width = meta.width!;
+    height = meta.height!;
+    // Where the floor probably is in someone's photograph: a guess, as the quick picture's label says.
+    const near = Math.min(0.32, (0.32 * long) / 240) * width;
+    const far = near * 0.7;
+    const depth = Math.min(0.2, (0.2 * short) / 170) * height;
+    quad = [
+      [width / 2 - near, height * 0.95],
+      [width / 2 + near, height * 0.95],
+      [width / 2 + far, height * 0.95 - depth],
+      [width / 2 - far, height * 0.95 - depth],
+    ];
+  } else {
+    const style = input.style ?? "warm-minimal";
+    width = SHOWROOM.width;
+    height = SHOWROOM.height;
+    base = await sharp(Buffer.from(showroomSvg(style, width, height))).png().toBuffer();
+    quad = rugOnShowroomFloor(width, height, long, short);
+    light = SHOWROOM_STYLES[style].light;
+  }
+  const layer = warpOnto(flat, quad, { width, height });
+  const lit = await sharp(Buffer.from(layer.buffer, layer.byteOffset, layer.byteLength), { raw: { width, height, channels: 4 } })
+    .linear([...light, 1], [0, 0, 0, 0])
+    .png()
+    .toBuffer();
+  const composed = await sharp(base).composite([{ input: lit }]).png().toBuffer();
+  return { ok: true, image: await grade(composed, width, height), drawn: true };
+}
+
+/** The showroom camera's focal length in pixels: a 60° field of view across the picture's width. */
+const showroomFocal = (width: number) => width / 2 / Math.tan(Math.PI / 6);
+
+/**
+ * Where a rug of `long` × `short` cm lies on the drawn showroom's floor: its
+ * long side across the room, centred at the depth where a standing piece
+ * stands, moved forward if it would pass under the wall. A floor point X cm to
+ * the side at depth Z is drawn at (cx + f·X/Z, horizon + f·E/Z); the depth of
+ * the standing spot follows from `showroomGeometry`'s scale, pxPerCm = f/Z.
+ * Corners in `warpOnto`'s order: near left, near right, far right, far left.
+ */
+export function rugOnShowroomFloor(width: number, height: number, long: number, short: number): Quad {
+  const { floorY, horizon, pxPerCm } = showroomGeometry(height);
+  const focal = showroomFocal(width);
+  const eye = SHOWROOM.eyeCm;
+  const centre = focal / pxPerCm;
+  const wall = (focal * eye) / (floorY - horizon);
+  // Keep the far edge a hand's breadth in front of the wall.
+  const shift = Math.max(0, centre + short / 2 - (wall - 15));
+  const near = centre - short / 2 - shift;
+  const far = centre + short / 2 - shift;
+  const at = (x: number, z: number): Point2 => [width / 2 + (focal * x) / z, horizon + (focal * eye) / z];
+  return [at(-long / 2, near), at(long / 2, near), at(long / 2, far), at(-long / 2, far)];
 }
 
 /** The drawn showroom's frame: 4:3, the wall meeting the floor two thirds down, the eye 1.4 m up. */

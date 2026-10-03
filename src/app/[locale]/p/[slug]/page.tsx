@@ -19,6 +19,8 @@ import { PriceWatch } from "@/components/commerce/price-watch";
 import { SizePicker, type SizeOption } from "@/components/commerce/size-picker";
 import { ModelView } from "@/components/commerce/model-view";
 import { PictureStudio } from "@/components/pictures/picture-studio";
+import { WayIn } from "@/components/fit/way-in";
+import { AddToBoard } from "@/components/boards/add-to-board";
 import { SpinView } from "@/components/commerce/spin-view";
 import { ProductGallery } from "@/components/commerce/product-gallery";
 import { ProductGrid } from "@/components/commerce/product-grid";
@@ -94,6 +96,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   if (product === null) notFound();
 
   const t = await getTranslations("product");
+  const tf = await getTranslations("fit");
   const nav = await getTranslations("nav");
   // "Pairs well with": products browsed and bought together with this one
   // (Taste Graph behaviour); before there is behaviour, the most similar ones.
@@ -156,6 +159,8 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const sizeGroup = sizeGroupOf(product.kind);
   const finder = sizeChart === null || sizeGroup === null ? undefined : { chart: sizeChart, group: sizeGroup };
   const fits = roomFits(product.dimsCm, preferences.rooms);
+  // "Will it get in?" (docs/adr/055): for pieces that go in a room, carried as their catalogue box.
+  const wayInBox = product.dimsCm !== null && roomPlacement(product.kind, product.dimsCm) !== null ? product.dimsCm : null;
 
   // "See it in a room" (docs/adr/053), for pieces that belong in a room: the showroom scenes already made,
   // and how many pictures this shopper may still make today (a read: no guest id is minted for it).
@@ -247,6 +252,8 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                 {t("seeInYourRoom")}
               </ButtonLink>
             )}
+            {/* Room boards (docs/adr/056): pieces for a room, collected and shared. */}
+            {sizes.length > 0 ? null : <AddToBoard productId={product.id} title={product.title} />}
             {sizes.length === 0 ? null : (
               <ButtonLink href="/fitting-room" variant="secondary" data-agent-id={`action:try-it-on:${product.id}`}>
                 {t("tryItOn")}
@@ -342,6 +349,22 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
               )}
             </section>
           ) : null}
+
+          {wayInBox === null ? null : (
+            <details className="border-hairline group mt-6 border-t pt-4" open={preferences.wayIn.length > 0} data-agent-id="product:way-in">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium [&::-webkit-details-marker]:hidden">
+                {tf("title")}
+                <span aria-hidden="true" className="text-slate text-lg leading-none transition-transform duration-quick group-open:rotate-45">
+                  +
+                </span>
+              </summary>
+              <p className="text-slate mt-1 max-w-[60ch] text-sm">{tf("lede")}</p>
+              <div className="mt-4">
+                <WayIn box={wayInBox} saved={preferences.wayIn} />
+              </div>
+              <p className="text-slate mt-4 max-w-[60ch] text-xs">{tf("note")}</p>
+            </details>
+          )}
 
           {product.description === null ? null : (
             <p id="product-description" className="text-slate mt-8 max-w-[60ch] text-sm leading-relaxed whitespace-pre-line" lang={copyLang}>

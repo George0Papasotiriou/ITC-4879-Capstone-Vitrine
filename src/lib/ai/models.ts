@@ -41,7 +41,7 @@ export type ModelEntry = {
 };
 
 /** What the shop uses AI for; every recorded cost names one. */
-export const AI_FEATURES = ["concierge", "support_chat", "support_draft", "voice", "embedding", "snap", "try_on", "animate", "capsule_image", "translation", "copy_draft", "room_picture"] as const;
+export const AI_FEATURES = ["concierge", "support_chat", "support_draft", "voice", "embedding", "snap", "try_on", "animate", "capsule_image", "translation", "copy_draft", "room_picture", "shop_the_look"] as const;
 export type AiFeature = (typeof AI_FEATURES)[number];
 
 /**

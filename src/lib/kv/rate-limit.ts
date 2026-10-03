@@ -24,7 +24,7 @@ import { logger } from "@/lib/log";
  * Every refusal is counted per limit and day, for /admin/system.
  */
 
-export type LimitName = "concierge" | "concierge-tools" | "reco-events" | "study" | "support-new" | "support-reply" | "hand-over" | "mcp" | "csp-report" | "pictures";
+export type LimitName = "concierge" | "concierge-tools" | "reco-events" | "study" | "support-new" | "support-reply" | "hand-over" | "mcp" | "csp-report" | "pictures" | "boards" | "look";
 
 const DAY_SECONDS = 60 * 60 * 24;
 
@@ -49,7 +49,7 @@ export function sharedRateLimiter({ name, limit, windowMs }: { name: LimitName; 
 
 /** Refusals per limit for one day (UTC), for the admin page. */
 export async function refusalsOn(day: string, store: KeyValue = kv()): Promise<Record<LimitName, number>> {
-  const names: LimitName[] = ["concierge", "concierge-tools", "reco-events", "study", "support-new", "support-reply", "hand-over", "mcp", "pictures"];
+  const names: LimitName[] = ["concierge", "concierge-tools", "reco-events", "study", "support-new", "support-reply", "hand-over", "mcp", "pictures", "boards", "look"];
   const counts = await Promise.all(names.map(async (name) => Number((await store.get(`vt:stats:refused:${name}:${day}`)) ?? "0")));
   return Object.fromEntries(names.map((name, index) => [name, counts[index]!])) as Record<LimitName, number>;
 }

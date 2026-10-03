@@ -10,7 +10,7 @@
 import { describe, expect, it } from "vitest";
 
 import { applyHomography, homographyDLT, type Point2 } from "@/lib/vision/camera";
-import { quadFromMask, targetRectangle, warp, type Quad } from "@/lib/vision/rectify";
+import { quadFromMask, targetRectangle, warp, warpOnto, type Quad } from "@/lib/vision/rectify";
 
 /**
  * A synthetic studio photograph: a 2 : 1 rug lying in perspective on white.
@@ -95,5 +95,35 @@ describe("rectifying a rug", () => {
     const speck = new Uint8Array(W * H);
     speck[H / 2 * W + W / 2] = 1;
     expect(quadFromMask({ data: speck, width: W, height: H })).toBeNull();
+  });
+});
+
+describe("laying a flat picture onto a floor (docs/adr/053)", () => {
+  // A 40 × 20 flat rug: its left half red, its right half blue, fully opaque.
+  const flat = { data: new Uint8ClampedArray(40 * 20 * 4), width: 40, height: 20 };
+  for (let y = 0; y < 20; y += 1) for (let x = 0; x < 40; x += 1) flat.data.set(x < 20 ? [200, 30, 30, 255] : [30, 30, 200, 255], (y * 40 + x) * 4);
+  // A trapezoid as a floor in perspective shows it: the near edge wide and low, the far edge narrower and higher.
+  const quad: Quad = [
+    [10, 90],
+    [110, 90],
+    [90, 60],
+    [30, 60],
+  ];
+  const out = warpOnto(flat, quad, { width: 120, height: 100 });
+  const at = (x: number, y: number) => Array.from(out.slice((y * 120 + x) * 4, (y * 120 + x) * 4 + 4));
+
+  it("paints only inside the quadrilateral and leaves the rest transparent", () => {
+    expect(at(5, 5)[3]).toBe(0);
+    expect(at(60, 95)[3]).toBe(0);
+    expect(at(15, 62)[3]).toBe(0);
+    expect(at(60, 75)[3]).toBe(255);
+  });
+
+  it("keeps each half on its own side, with the seam on the projected midline", () => {
+    expect(at(40, 80).slice(0, 3)).toEqual([200, 30, 30]);
+    expect(at(85, 80).slice(0, 3)).toEqual([30, 30, 200]);
+    // The rug's midline runs from (60, 90) to (60, 60): symmetric trapezoid, so it stays at x = 60.
+    expect(at(57, 70)[0]).toBeGreaterThan(at(57, 70)[2]!);
+    expect(at(63, 70)[2]).toBeGreaterThan(at(63, 70)[0]!);
   });
 });

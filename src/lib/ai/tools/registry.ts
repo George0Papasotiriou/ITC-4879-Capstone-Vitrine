@@ -8,13 +8,15 @@
  */
 
 import { getOrders, getOrderStatus, setPriceWatch, startCheckout, startReturn, tryOnPiece } from "@/lib/ai/tools/account";
+import { addToBoard } from "@/lib/ai/tools/boards";
+import { shopTheLookTool } from "@/lib/ai/tools/look";
 import { addToCart, getCart, removeFromCart, updateCartItem } from "@/lib/ai/tools/cart";
 import { buildBundle, compareProducts, findByPhoto, getProducts, recommend, searchProducts, summarizeReviews } from "@/lib/ai/tools/catalog";
 import { composeShowcase } from "@/lib/ai/tools/display";
 import { pictureInRoom } from "@/lib/ai/tools/pictures";
 import { handToPerson } from "@/lib/ai/tools/support";
 import { APPROVAL_SCOPES, type Surface, type ToolContext, type VitrineTool } from "@/lib/ai/tools/types";
-import { getPreferences, placeInRoom, rememberPreference, suggestSize } from "@/lib/ai/tools/preferences";
+import { checkWayIn, getPreferences, placeInRoom, rememberPreference, suggestSize } from "@/lib/ai/tools/preferences";
 import { highlight, navigate, adjustComfort, openViewer, setFilters, showProducts } from "@/lib/ai/tools/ui";
 
 /**
@@ -34,6 +36,7 @@ export const TOOLS: readonly VitrineTool<unknown, unknown>[] = [
   buildBundle,
   summarizeReviews,
   findByPhoto,
+  shopTheLookTool,
   navigate,
   setFilters,
   highlight,
@@ -44,12 +47,14 @@ export const TOOLS: readonly VitrineTool<unknown, unknown>[] = [
   rememberPreference,
   suggestSize,
   placeInRoom,
+  checkWayIn,
   pictureInRoom,
   composeShowcase,
   getCart,
   addToCart,
   updateCartItem,
   removeFromCart,
+  addToBoard,
   getOrders,
   getOrderStatus,
   setPriceWatch,

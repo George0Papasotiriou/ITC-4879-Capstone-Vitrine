@@ -1264,9 +1264,62 @@ export const pictures = pgTable(
   ],
 );
 
+/**
+ * Room boards (docs/adr/056): a shopper's collection of pieces for one room,
+ * shared by link — one link to look, one to change it with them — and kept in
+ * step live for everyone who has it open. The links are not stored: each is an
+ * HMAC of the board's id, the link's role and `link_version`, so the owner can
+ * always see them again and "new links" retires the old ones by moving the
+ * version on.
+ */
+export const boards = pgTable(
+  "boards",
+  {
+    id: id(),
+    /** Who made it, as the AI layer counts a shopper ("user:…" or "guest:…"): theirs to rename, share and delete. */
+    ownerKey: text("owner_key").notNull(),
+    title: text("title").notNull(),
+    /**
+     * A room the owner saved in their preferences, and its wall, copied here when chosen: everyone with the
+     * link sees whether the pieces fit it, without the owner's preferences being shared.
+     */
+    roomName: text("room_name"),
+    roomWallCm: integer("room_wall_cm"),
+    linkVersion: integer("link_version").notNull().default(1),
+    ...timestamps,
+  },
+  (t) => [index("boards_owner_idx").on(t.ownerKey, t.updatedAt), check("boards_title_length", sql`char_length(${t.title}) BETWEEN 1 AND 80`)],
+);
+
+export const boardItems = pgTable(
+  "board_items",
+  {
+    id: id(),
+    boardId: uuid("board_id")
+      .notNull()
+      .references(() => boards.id, { onDelete: "cascade" }),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    quantity: integer("quantity").notNull().default(1),
+    /** A line of the shopper's own ("for the reading corner"), shown to everyone with the link: their words, never markup. */
+    note: text("note"),
+    position: integer("position").notNull(),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("board_items_piece").on(t.boardId, t.productId),
+    index("board_items_board_idx").on(t.boardId, t.position),
+    check("board_items_quantity", sql`${t.quantity} BETWEEN 1 AND 20`),
+    check("board_items_note_length", sql`${t.note} IS NULL OR char_length(${t.note}) <= 200`),
+  ],
+);
+
 export type UploadRow = typeof uploads.$inferSelect;
 export type TryOnRow = typeof tryOns.$inferSelect;
 export type PictureRow = typeof pictures.$inferSelect;
+export type BoardRow = typeof boards.$inferSelect;
+export type BoardItemRow = typeof boardItems.$inferSelect;
 
 /**
  * The support desk (docs/adr/021). One ticket is one conversation with one

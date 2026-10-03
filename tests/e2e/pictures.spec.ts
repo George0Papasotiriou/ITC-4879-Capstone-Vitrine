@@ -88,6 +88,12 @@ test("a photo of the shopper's own room is sent only after consent, and the pict
   await expect(section.locator('[data-agent-id="picture:label"]')).toHaveText("Preview without AI · Approximate size");
   expect(asks.count).toBe(1);
 
+  // The picture shows from the left, so its label is on the left and the room as it was on the right.
+  const after = (await section.locator('[data-agent-id="picture:label-after"]').boundingBox())!;
+  const before = (await section.locator('[data-agent-id="picture:label-before"]').boundingBox())!;
+  expect(after.x).toBeLessThan(before.x);
+  await expect(section.locator('[data-agent-id="picture:label-after"]')).toHaveText("With the piece");
+
   // Before and after: the slider is a range input, so the keyboard moves it too.
   const compare = section.locator('[data-agent-id="picture:compare"]');
   await compare.focus();

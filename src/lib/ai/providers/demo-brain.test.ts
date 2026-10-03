@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { demoStep, intentOf, kindQueryOf, measurementsOf, pictureQueryOf, sceneStyleOf, searchQueryOf, sizeOf, type DemoPrompt } from "@/lib/ai/providers/demo-brain";
+import { boardRequestOf, demoStep, intentOf, kindQueryOf, measurementsOf, pictureQueryOf, sceneStyleOf, searchQueryOf, sizeOf, wayQueryOf, type DemoPrompt } from "@/lib/ai/providers/demo-brain";
 import { TOOLS } from "@/lib/ai/tools/registry";
 
 const ALL = TOOLS.map((tool) => tool.name);
@@ -237,6 +237,60 @@ describe("an AI picture of a piece in a room (docs/adr/053)", () => {
     expect((spent as { text: string }).text).toContain("today's pictures");
     const declined = demoStep(prompt("Picture the Radford chair", [{ toolName: "picture_in_room", output: null, denied: true }]));
     expect((declined as { text: string }).text).toContain("haven't done that");
+  });
+});
+
+describe("shop the look (docs/adr/054)", () => {
+  it("knows a request for every piece in a photo, and answers from what was found", () => {
+    expect(intentOf("Shop the look")).toBe("look");
+    expect(intentOf("find everything in this photo")).toBe("look");
+    expect(demoStep({ ...prompt("Shop this look"), photo: true })).toEqual({ kind: "tools", calls: [{ toolName: "shop_the_look", input: {} }] });
+    const found = demoStep(prompt("Shop this look", [{ toolName: "shop_the_look", output: { ok: true, drawn: false, pieces: [{ kind: "sofa" }, { kind: "floor lamp" }] }, denied: false }]));
+    expect((found as { text: string }).text).toBe("I found 2: sofa, floor lamp. Each has the shop's closest pieces below.");
+    const drawn = demoStep(prompt("Shop this look", [{ toolName: "shop_the_look", output: { ok: true, drawn: true, pieces: [{ kind: null }] }, denied: false }]));
+    expect((drawn as { text: string }).text).toContain("whole photo's colours");
+  });
+});
+
+describe("room boards (docs/adr/056)", () => {
+  it("keeps a piece on a board rather than buying it, and reads the board's name", () => {
+    expect(intentOf("Add the Radford chair to my living room board")).toBe("board");
+    expect(intentOf("Βάλε την καρέκλα στον πίνακα")).toBe("board");
+    expect(intentOf("Add the Radford chair to my cart")).toBe("add");
+    expect(boardRequestOf("Add the Radford chair to my living room board")).toEqual({ piece: "Radford chair", board: "living room" });
+    expect(boardRequestOf("Save the faux wood lamp on my board")).toEqual({ piece: "faux wood lamp", board: undefined });
+  });
+
+  it("finds the piece, puts it on the board, and says where", () => {
+    const text = "Add the Radford chair to my living room board";
+    expect(demoStep(prompt(text))).toEqual({ kind: "tools", calls: [{ toolName: "search_products", input: { query: "Radford chair", limit: 3 } }] });
+    const found = { toolName: "search_products", output: { products: [CHAIR, LAMP] }, denied: false };
+    expect(demoStep(prompt(text, [found]))).toEqual({ kind: "tools", calls: [{ toolName: "add_to_board", input: { productId: CHAIR.id, board: "living room" } }] });
+    const done = demoStep(prompt(text, [{ toolName: "add_to_board", output: { ok: true, title: "Radford Chair", board: "Living room" }, denied: false }]));
+    expect((done as { text: string }).text).toContain('Radford Chair is on "Living room"');
+  });
+});
+
+describe("will it get in (docs/adr/055)", () => {
+  it("tells the way in from a wall, and keeps the piece's name", () => {
+    expect(intentOf("Will the Radford chair get through my front door?")).toBe("way_in");
+    expect(intentOf("Can I get this sofa up the stairs?")).toBe("way_in");
+    expect(intentOf("Θα περάσει ο καναπές από την πόρτα;")).toBe("way_in");
+    expect(intentOf("Will the Radford chair fit my living room?")).toBe("room");
+    expect(wayQueryOf("Will the Radford chair get through my front door?")).toBe("Radford chair");
+  });
+
+  it("finds the piece, checks it, and says the step that stops it", () => {
+    const text = "Will the Radford chair get through my front door?";
+    expect(demoStep(prompt(text))).toEqual({ kind: "tools", calls: [{ toolName: "search_products", input: { query: "Radford chair", limit: 3 } }] });
+    const found = { toolName: "search_products", output: { products: [CHAIR, LAMP] }, denied: false };
+    expect(demoStep(prompt(text, [found]))).toEqual({ kind: "tools", calls: [{ toolName: "check_way_in", input: { productId: CHAIR.id } }] });
+    const no = demoStep(prompt(text, [{ toolName: "check_way_in", output: { ok: true, title: "Radford Chair", fits: false, firstFailure: 1, steps: [{ kind: "door", marginCm: 12 }, { kind: "turn", marginCm: -8 }] }, denied: false }]));
+    expect((no as { text: string }).text).toBe("No: Radford Chair won't get past step 2, it is 8 cm too big there.");
+    const yes = demoStep(prompt(text, [{ toolName: "check_way_in", output: { ok: true, title: "Radford Chair", fits: true, firstFailure: null, steps: [{ kind: "door", marginCm: 12 }, { kind: "turn", marginCm: 4 }] }, denied: false }]));
+    expect((yes as { text: string }).text).toContain("4 cm to spare");
+    const unmeasured = demoStep(prompt(text, [{ toolName: "check_way_in", output: { ok: false, reason: "no_way_in" }, denied: false }]));
+    expect((unmeasured as { text: string }).text).toContain("Measure your way in first");
   });
 });
 

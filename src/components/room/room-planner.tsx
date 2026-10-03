@@ -168,7 +168,8 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
       canvas.height = height;
       const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
       ctx.drawImage(image, 0, 0, width, height);
-      const result = cutoutFromWhite(ctx.getImageData(0, 0, width, height).data, width, height);
+      // A standing piece (rugs lie and are drawn as their footprint): white seen through it is the studio's.
+      const result = cutoutFromWhite(ctx.getImageData(0, 0, width, height).data, width, height, { standing: true });
       if (!result.removed) return;
       ctx.putImageData(new ImageData(result.rgba, width, height), 0, 0);
       setCutout({ image: canvas, box: result.box });

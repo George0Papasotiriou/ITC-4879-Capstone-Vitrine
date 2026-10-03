@@ -97,6 +97,47 @@ export function scoreSystem(system: string, runs: readonly { ranking: readonly s
 }
 
 /**
+ * Each query's NDCG@k and reciprocal rank under one system, in query order,
+ * with null where the query's ideal is 0 (left out of means, as above): the
+ * paired comparison needs the same queries on both sides.
+ */
+export function perQuery(runs: readonly { ranking: readonly string[]; judgements: Judgements }[], k = 10): { ndcg: (number | null)[]; rr: (number | null)[] } {
+  const ndcgs = runs.map((run) => ndcg(run.ranking, run.judgements, k));
+  return { ndcg: ndcgs, rr: runs.map((run, index) => (ndcgs[index] === null ? null : reciprocalRank(run.ranking, run.judgements))) };
+}
+
+/**
+ * The difference between two systems on the same queries, a − b, with a 95%
+ * interval from the paired bootstrap: the queries are resampled with
+ * replacement 1,000 times (a seeded generator, so a rerun gives the same
+ * interval) and both systems are scored on each resample together, so what
+ * varies between queries — some are simply harder — cancels out. Queries
+ * either system leaves undefined are left out of both.
+ */
+export function pairedBootstrap(a: readonly (number | null)[], b: readonly (number | null)[], repeats = 1000, seed = 57): { mean: number; low: number; high: number; queries: number } {
+  const differences: number[] = [];
+  for (let index = 0; index < Math.min(a.length, b.length); index += 1) {
+    if (a[index] != null && b[index] != null) differences.push(a[index]! - b[index]!);
+  }
+  const n = differences.length;
+  if (n === 0) return { mean: 0, low: 0, high: 0, queries: 0 };
+  let state = seed >>> 0;
+  const next = () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 2 ** 32;
+  };
+  const means: number[] = [];
+  for (let repeat = 0; repeat < repeats; repeat += 1) {
+    let sum = 0;
+    for (let draw = 0; draw < n; draw += 1) sum += differences[Math.floor(next() * n)]!;
+    means.push(sum / n);
+  }
+  means.sort((x, y) => x - y);
+  const at = (share: number) => means[Math.min(repeats - 1, Math.max(0, Math.round(share * (repeats - 1))))]!;
+  return { mean: differences.reduce((sum, value) => sum + value, 0) / n, low: at(0.025), high: at(0.975), queries: n };
+}
+
+/**
  * The products a person is asked to judge for a query: every system's top k,
  * merged in turns so the first few are the ones any system would show first
  * (pooling, as TREC does), without repeats, leaving out what is judged.

@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { dcg, judgingPool, ndcg, recallAt, reciprocalRank, scoreSystem, type Grade } from "@/lib/search/metrics";
+import { dcg, judgingPool, ndcg, pairedBootstrap, perQuery, recallAt, reciprocalRank, scoreSystem, type Grade } from "@/lib/search/metrics";
 
 const judged = (entries: [string, Grade][]) => new Map<string, Grade>(entries);
 
@@ -73,5 +73,30 @@ describe("scoreSystem", () => {
 describe("judgingPool", () => {
   it("merges every system's top results in turns, without repeats or what is judged", () => {
     expect(judgingPool([["a", "b", "c"], ["b", "d", "a"]], new Set(["c"]), 3)).toEqual(["a", "b", "d"]);
+  });
+});
+
+describe("paired comparisons", () => {
+  it("scores each query, leaving out those with nothing relevant judged", () => {
+    const runs = [
+      { ranking: ["a", "b"], judgements: judged([["a", 3]]) },
+      { ranking: ["c"], judgements: judged([["c", 0]]) },
+    ];
+    expect(perQuery(runs)).toEqual({ ndcg: [1, null], rr: [1, null] });
+  });
+
+  it("gives a constant difference back exactly, and an interval that holds the mean", () => {
+    expect(pairedBootstrap([0.6, 0.7, 0.8], [0.5, 0.6, 0.7])).toMatchObject({ queries: 3 });
+    const constant = pairedBootstrap([0.6, 0.7, 0.8], [0.5, 0.6, 0.7]);
+    expect(constant.mean).toBeCloseTo(0.1, 12);
+    expect(constant.low).toBeCloseTo(0.1, 12);
+    expect(constant.high).toBeCloseTo(0.1, 12);
+    const varied = pairedBootstrap([0.9, 0.2, 0.8, 0.4, 0.7, 0.6], [0.5, 0.3, 0.6, 0.5, 0.4, 0.6]);
+    expect(varied.low).toBeLessThanOrEqual(varied.mean);
+    expect(varied.high).toBeGreaterThanOrEqual(varied.mean);
+    // Seeded: the same interval every time.
+    expect(pairedBootstrap([0.9, 0.2, 0.8, 0.4, 0.7, 0.6], [0.5, 0.3, 0.6, 0.5, 0.4, 0.6])).toEqual(varied);
+    // Queries either side leaves undefined count on neither.
+    expect(pairedBootstrap([1, null, 0.5], [0.5, 0.2, null]).queries).toBe(1);
   });
 });

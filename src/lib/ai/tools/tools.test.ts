@@ -271,6 +271,70 @@ describe("the Fitting Room tool", () => {
   });
 });
 
+describe("shop the look in the Concierge (docs/adr/054)", () => {
+  it("finds the pieces in the photo the shopper attached, and says so when there is none", async () => {
+    const asked: string[] = [];
+    const { ctx } = context({ look: { find: async (photoId) => (asked.push(photoId), { ok: true, drawn: false, pieces: [{ kind: "sofa", colours: ["grey"], products: [] }] }) } });
+    await expect(run("shop_the_look", {}, ctx)).resolves.toMatchObject({ ok: true, drawn: false, pieces: [{ kind: "sofa", colours: ["grey"] }] });
+    expect(asked).toEqual(["01890000-0000-7000-8000-0000000000f3"]);
+    const none = context({ snap: { photo: async () => null, search: async () => ({ ids: [], colours: [] }) } });
+    await expect(run("shop_the_look", {}, none.ctx)).resolves.toMatchObject({ ok: false, reason: "no_photo" });
+    const off = context({ look: { find: async () => ({ ok: false, reason: "kill_switch" }) } });
+    await expect(run("shop_the_look", {}, off.ctx)).resolves.toMatchObject({ ok: false, reason: "unavailable" });
+  });
+});
+
+describe("room boards in the Concierge (docs/adr/056)", () => {
+  it("puts a piece on the board named, in the shopper's language for a new one", async () => {
+    const asked: unknown[] = [];
+    const { ctx } = context({ boards: { add: async (input) => (asked.push(input), { ok: true, boardId: "b1", title: "Living room", itemId: "i1", created: true, createdBoard: false, quantity: 1 }) } });
+    await expect(run("add_to_board", { productId: LAMP, board: "living room" }, ctx)).resolves.toMatchObject({ ok: true, board: "Living room", title: "Faux Wood Table Lamp", created: true });
+    expect(asked).toEqual([{ productId: LAMP, board: "living room", defaultTitle: "My board" }]);
+    const greek = context({ boards: { add: async (input) => (asked.push(input), { ok: true, boardId: "b1", title: "x", itemId: "i1", created: true, createdBoard: true, quantity: 1 }) } });
+    await run("add_to_board", { productId: LAMP }, { ...greek.ctx, locale: "el" });
+    expect(asked[1]).toEqual({ productId: LAMP, board: undefined, defaultTitle: "Ο πίνακάς μου" });
+  });
+
+  it("says why a piece could not go on a board, and refuses a piece that does not exist", async () => {
+    const full = context({ boards: { add: async () => ({ ok: false, reason: "full" }) } });
+    await expect(run("add_to_board", { productId: LAMP }, full.ctx)).resolves.toMatchObject({ ok: false, reason: "full" });
+    const none = context({ cards: async () => [] });
+    await expect(run("add_to_board", { productId: LAMP }, none.ctx)).resolves.toMatchObject({ ok: false, reason: "not_found" });
+  });
+
+  it("runs at once, like a cart change, and only where the shopper can undo it", () => {
+    expect(needsApproval(findTool("add_to_board", "chat")!)).toBe(false);
+    expect(findTool("add_to_board", "mcp")).toBeNull();
+  });
+});
+
+describe("will it get in (docs/adr/055)", () => {
+  it("opens the page to measure the way in when none is saved", async () => {
+    const { ctx } = context();
+    const result = (await run("check_way_in", { productId: LAMP }, ctx)) as { ok: boolean; reason: string; commands: { href: string }[] };
+    expect(result).toMatchObject({ ok: false, reason: "no_way_in" });
+    expect(result.commands[0]!.href).toBe("/account/preferences#way-in");
+  });
+
+  it("carries the piece's catalogue box along the saved way in, step by step", async () => {
+    const wayIn = [
+      { kind: "door" as const, width: 80, height: 200 },
+      { kind: "door" as const, width: 25, height: 200 },
+    ];
+    const { ctx } = context({ preferences: { read: async () => ({ ...EMPTY_PREFERENCES, wayIn }) } });
+    // The lamp is 30 × 30 × 50: through 80 cm, not through 25.
+    const result = await run("check_way_in", { productId: LAMP }, ctx);
+    expect(result).toMatchObject({ ok: true, fits: false, firstFailure: 1, steps: [{ kind: "door", fits: true }, { kind: "door", fits: false, marginCm: -5 }] });
+  });
+
+  it("says a piece with no measurements, or not for a room, is not one to check", async () => {
+    const base = context();
+    const [lamp] = await base.ctx.services.details([LAMP]);
+    const { ctx } = context({ details: async () => [{ ...lamp!, dimsCm: null }] });
+    await expect(run("check_way_in", { productId: LAMP }, ctx)).resolves.toMatchObject({ ok: false, reason: "not_for_rooms" });
+  });
+});
+
 describe("AI pictures in a room", () => {
   it("makes a showroom picture of a piece for a room, through the shop's own start", async () => {
     const asked: unknown[] = [];

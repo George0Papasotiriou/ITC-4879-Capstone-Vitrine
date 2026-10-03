@@ -49,6 +49,14 @@ describe("route allowlist", () => {
     expect(isAllowedRoute("/\\evil.example")).toBe(false);
   });
 
+  it("allows one plain anchor on an allowed page, and nothing smuggled after a hash", () => {
+    expect(isAllowedRoute("/account/preferences#way-in")).toBe(true);
+    expect(isAllowedRoute("/account/preferences#Way In")).toBe(false);
+    expect(isAllowedRoute("/account/preferences#a#b")).toBe(false);
+    expect(isAllowedRoute("/admin#way-in")).toBe(false);
+    expect(isAllowedRoute("/p/x#<script>")).toBe(false);
+  });
+
   it("rejects routes that merely start with an allowed prefix", () => {
     expect(isAllowedRoute("/cart/../admin")).toBe(false);
     expect(isAllowedRoute("/admin")).toBe(false);

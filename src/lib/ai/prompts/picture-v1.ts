@@ -27,12 +27,18 @@ export type PicturePiece = {
   title: string;
   /** Centimetres, from the catalogue; null when the listing has none. */
   dimsCm: { w: number; d: number; h: number } | null;
+  /** A rug: it lies flat on the floor (src/lib/catalog/taxonomy.ts roomPlacement). */
+  lies?: boolean;
 };
 
 const TRUE_PIECE = (piece: PicturePiece) =>
   [
     `The product is "${piece.title.replace(/["\n\r]/g, " ").slice(0, 120)}". It must appear exactly as in its studio photograph: the same shape, proportions, materials, colours, number of legs and details. Do not redesign, restyle, recolour or simplify it.`,
-    piece.dimsCm === null ? "" : `It is ${piece.dimsCm.w} cm wide, ${piece.dimsCm.d} cm deep and ${piece.dimsCm.h} cm high: show it at that true size against the room.`,
+    piece.lies === true
+      ? `It is a rug${piece.dimsCm === null ? "" : ` of ${piece.dimsCm.w} by ${piece.dimsCm.d} cm`}: it lies flat on the floor, in the room's perspective, at that true size.`
+      : piece.dimsCm === null
+        ? ""
+        : `It is ${piece.dimsCm.w} cm wide, ${piece.dimsCm.d} cm deep and ${piece.dimsCm.h} cm high: show it at that true size against the room.`,
   ]
     .filter(Boolean)
     .join(" ");

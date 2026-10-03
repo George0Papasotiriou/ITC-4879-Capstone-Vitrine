@@ -14,6 +14,7 @@ import { uiCommandSchema } from "@/lib/ai/ui-commands";
 import { sizeChartFor } from "@/lib/catalog/capsule";
 import { adviseSize, ASKED_MEASURES, isAdvice, MEASURE_MAX_CM, MEASURE_MIN_CM } from "@/lib/catalog/size-advice";
 import { CAPSULE_SIZES, roomPlacement } from "@/lib/catalog/taxonomy";
+import { wayIn } from "@/lib/fit/path";
 import { preferencesPatchSchema, roomFits, roomSchema, sizeGroupOf } from "@/lib/prefs/preferences";
 
 /**
@@ -119,6 +120,55 @@ export const suggestSize = define({
       apart: result.apart,
       sizeGroup: sizeGroupOf(kind)!,
       verdicts: result.verdicts.map((verdict) => ({ measure: named[verdict.index]!, cm: verdict.cm, size: verdict.size, upToCm: verdict.upToCm })),
+    };
+  },
+});
+
+/**
+ * "Will it get in?" (docs/adr/055): the piece's catalogue box carried along
+ * the way into the shopper's home that they saved — doors, corners, stairs —
+ * by the shop's own geometry (src/lib/fit/path.ts), never the model's guess.
+ */
+export const checkWayIn = define({
+  name: "check_way_in",
+  description:
+    "Say whether a piece of furniture gets into the shopper's home along the way in they saved (doors, corridor corners, stairs): step by step, how it is carried, and by how many centimetres it fits or misses. " +
+    "Use it for \"will it get through my door\", \"will it go up my stairs\", \"can I get it in\". Do not use it for whether it fits a wall of a room (that is place_in_room), and never work out a fit yourself. With no way in saved it opens the page where the shopper measures it.",
+  scope: "read",
+  // The shop's own surfaces: outside agents get the tools ADR-043 opened, not every new one.
+  surfaces: ["chat", "voice", "eval"],
+  input: z.object({ productId: z.uuid() }),
+  output: z.discriminatedUnion("ok", [
+    z.object({
+      ok: z.literal(true),
+      title: z.string(),
+      fits: z.boolean(),
+      firstFailure: z.number().int().nullable(),
+      steps: z.array(z.object({ kind: z.enum(["door", "turn", "stairs"]), fits: z.boolean(), marginCm: z.number().int(), up: z.enum(["w", "d", "h"]).nullable(), tiltDegrees: z.number().int() })),
+      commands: z.array(uiCommandSchema),
+    }),
+    z.object({ ok: z.literal(false), reason: z.enum(["not_found", "not_for_rooms", "no_way_in"]), commands: z.array(uiCommandSchema) }),
+  ]),
+  async run(ctx, { productId }) {
+    const [[detail], prefs] = await Promise.all([ctx.services.details([productId]), ctx.services.preferences.read()]);
+    if (detail === undefined) return { ok: false as const, reason: "not_found" as const, commands: [] };
+    if (detail.dimsCm === null || roomPlacement(detail.kind, detail.dimsCm) === null) return { ok: false as const, reason: "not_for_rooms" as const, commands: [] };
+    if (prefs.wayIn.length === 0) {
+      const measure = uiCommandSchema.parse({
+        type: "navigate",
+        href: "/account/preferences#way-in",
+        caption: ctx.locale === "el" ? "Άνοιγμα της διαδρομής σου" : "Opening your way in",
+      });
+      return { ok: false as const, reason: "no_way_in" as const, commands: [measure] };
+    }
+    const result = wayIn(detail.dimsCm, prefs.wayIn);
+    return {
+      ok: true as const,
+      title: detail.title,
+      fits: result.fits,
+      firstFailure: result.firstFailure,
+      steps: result.steps.map((step) => ({ kind: step.step.kind, fits: step.fits, marginCm: step.marginCm, up: step.carry?.up ?? null, tiltDegrees: step.carry?.tiltDegrees ?? 0 })),
+      commands: [],
     };
   },
 });

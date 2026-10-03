@@ -15,11 +15,14 @@ import { createCatalogQueries, type CatalogQueries } from "@/lib/catalog/queries
 import { createStoredModelCheck } from "@/lib/catalog/stored-model";
 import { currentRegion } from "@/lib/commerce/region";
 import { toBaseBound } from "@/lib/commerce/vat";
+import { serverEnv } from "@/env";
 import { sql } from "@/lib/db/client";
 import { cached } from "@/lib/kv/cache";
 import { E1_SYSTEMS, type E1System } from "@/lib/search/evaluation";
 import { searchProducts, type SearchOptions } from "@/lib/search/pipeline";
 import { createRetrievers } from "@/lib/search/retrieve";
+import { checkModel, type RankerModel } from "@/lib/search/ranker";
+import rankerV1 from "@/lib/search/models/ranker-v1.json";
 import { storage } from "@/lib/storage";
 
 /**
@@ -93,17 +96,30 @@ export async function getProductSlugs() {
   return queries().allProductSlugs();
 }
 
+/**
+ * The learned ranking stage the shop runs (docs/adr/057), unless SEARCH_RANKER
+ * is "off" or the model was trained on other features than the code computes
+ * (then search simply runs without it).
+ */
+function shopRanker(): RankerModel | null {
+  if (serverEnv().SEARCH_RANKER === "off") return null;
+  const model = rankerV1 as RankerModel;
+  return checkModel(model) ? model : null;
+}
+
 export async function runSearch(query: string, options?: SearchOptions) {
   await connection();
   const { country } = await currentRegion();
+  const ranker = options?.ranker === undefined ? shopRanker() : options.ranker;
   // "Under €200" means €200 in the shopper's prices.
-  const run = () => searchProducts(retrievers(), query, { ...options, priceToBase: (cents, bound) => toBaseBound(cents, bound, country) });
+  const run = () => searchProducts(retrievers(), query, { ...options, ranker, priceToBase: (cents, bound) => toBaseBound(cents, bound, country) });
   // A query with its own embedding is personal to that request; everything else is the same for
   // everyone in a country, so its ranking is kept for two minutes (docs/adr/039). Cards, prices and
-  // stock are read fresh by the caller either way.
+  // stock are read fresh by the caller either way. The ranker's version is part of the key, so a
+  // new model is never served an old model's order.
   if (options?.embedding != null) return run();
   const { filters = null, limit = null, retrievers: stages = null, rerank = null, weights = null } = options ?? {};
-  return cached("search", { query, country, filters, limit, stages, rerank, weights }, SEARCH_CACHE_SECONDS, run);
+  return cached("search", { query, country, filters, limit, stages, rerank, weights, learned: ranker?.version ?? null }, SEARCH_CACHE_SECONDS, run);
 }
 
 const SEARCH_CACHE_SECONDS = 120;

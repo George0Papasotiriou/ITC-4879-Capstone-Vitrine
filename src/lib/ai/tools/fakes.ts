@@ -94,6 +94,12 @@ export function context(overrides: Partial<ToolServices> = {}, cartLines: Partia
       photo: async () => ({ id: "01890000-0000-7000-8000-0000000000f1", minutesLeft: 1400 }),
       start: async () => ({ ok: true, id: "01890000-0000-7000-8000-0000000000f2" }),
     },
+    look: {
+      find: async () => ({ ok: true, drawn: false, pieces: [{ kind: "lamp", colours: ["beige"], products: [] }] }),
+    },
+    boards: {
+      add: async () => ({ ok: true, boardId: "01890000-0000-7000-8000-0000000000b1", title: "My board", itemId: "01890000-0000-7000-8000-0000000000b2", created: true, createdBoard: true, quantity: 1 }),
+    },
     pictures: {
       start: async () => ({ ok: true, id: "01890000-0000-7000-8000-0000000000f4", ready: false, left: 2 }),
     },

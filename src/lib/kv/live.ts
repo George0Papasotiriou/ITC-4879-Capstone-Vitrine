@@ -39,3 +39,32 @@ export function subscribeOrder(orderId: string, listener: (change: { status: str
     }
   });
 }
+
+/**
+ * Room boards (docs/adr/056): every change to a board, and who has it open.
+ * A change carries nothing of the board: each page reads the board again with
+ * its own link's rights. Presence is said on the same channel — "here" every
+ * twenty seconds while a page is open, "left" when it closes — so every
+ * process serving the board can count the people looking at it.
+ */
+export type BoardMessage = { type: "changed" } | { type: "here"; viewer: string } | { type: "left"; viewer: string };
+
+const boardChannel = (boardId: string) => `vt:board:${boardId}`;
+
+export async function publishBoard(boardId: string, message: BoardMessage, store: KeyValue = kv()): Promise<void> {
+  try {
+    await store.publish(boardChannel(boardId), JSON.stringify(message));
+  } catch {
+    // A missed change shows on the page's next read; a missed "here" on the next beat.
+  }
+}
+
+export function subscribeBoard(boardId: string, listener: (message: BoardMessage) => void, store: KeyValue = kv()): Promise<() => void> {
+  return store.subscribe(boardChannel(boardId), (message) => {
+    try {
+      listener(JSON.parse(message) as BoardMessage);
+    } catch {
+      // Not a message of ours.
+    }
+  });
+}

@@ -111,6 +111,29 @@ function Bundles({ bundles }: { bundles: { totalCents: number; remainingCents: n
   );
 }
 
+/** "Will it get in?" from check_way_in: the verdict, then each step as the shop worked it out (docs/adr/055). */
+function WayInCard({ output }: { output: { title: string; fits: boolean; firstFailure: number | null; steps: { kind: "door" | "turn" | "stairs"; fits: boolean; marginCm: number; up: "w" | "d" | "h" | null; tiltDegrees: number }[] } }) {
+  const t = useTranslations("concierge.wayIn");
+  const f = useTranslations("fit");
+  return (
+    <div className="border-hairline rounded-plinth flex flex-col gap-2 border p-3 text-sm" data-agent-id="concierge:way-in" data-fits={output.fits}>
+      <p className={output.fits ? "text-success font-medium" : "text-danger font-medium"}>
+        {output.fits ? t("fits", { title: output.title }) : t("fails", { title: output.title, number: (output.firstFailure ?? 0) + 1 })}
+      </p>
+      <ol className="flex flex-col gap-1">
+        {output.steps.map((step, index) => (
+          <li key={index} className="flex flex-wrap items-baseline gap-x-2">
+            <span className="tabular-nums">{index + 1}.</span>
+            <span>{f(`kind.${step.kind}`)}</span>
+            <span className={step.fits ? "text-success" : "text-danger"}>{step.fits ? f("fits", { margin: Math.max(0, step.marginCm) }) : f("tight", { margin: -step.marginCm })}</span>
+            {step.up === null ? null : <span className="text-slate">{[f(`up.${step.up}`), step.tiltDegrees > 0 ? f("tilted", { degrees: step.tiltDegrees }) : null].filter(Boolean).join(", ")}</span>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function Status({ children }: { children: React.ReactNode }) {
   return <p className="text-slate text-xs italic">{children}</p>;
 }
@@ -251,6 +274,35 @@ export function AssistantPart({ part, onApprove }: { part: Part; onApprove: (id:
         );
       }
       return <Status>{output.reason === "needs_contact" ? t("handOver.contactForm") : t("handOver.failed")}</Status>;
+    case "shop_the_look": {
+      if (output.ok !== true) return <Status>{output.reason === "no_photo" ? t("look.noPhoto") : output.reason === "nothing" ? t("look.nothing") : t("look.unavailable")}</Status>;
+      const pieces = (output.pieces as { kind: string | null; colours: string[]; products: Brief[] }[]) ?? [];
+      return (
+        <div className="flex flex-col gap-4" data-agent-id="concierge:look">
+          {output.drawn === true ? <p className="text-slate text-xs">{t("look.drawn")}</p> : null}
+          {pieces.map((piece, index) => (
+            <section key={index} className="flex flex-col gap-2" aria-label={piece.kind ?? t("look.whole")}>
+              <p className="text-sm font-medium">{piece.kind === null ? t("look.whole") : `${index + 1}. ${piece.kind}`}</p>
+              <ProductCards products={piece.products.slice(0, 2)} />
+            </section>
+          ))}
+        </div>
+      );
+    }
+    case "add_to_board":
+      return output.ok === true ? (
+        <p className="text-sm" data-agent-id="concierge:board">
+          {t("board.added", { title: String(output.title), board: String(output.board) })}{" "}
+          <SmartLink href={`/b/${String(output.boardId)}`} className="underline underline-offset-4" data-agent-id="concierge:board-link">
+            {t("board.open")}
+          </SmartLink>
+        </p>
+      ) : (
+        <Status>{output.reason === "full" ? t("board.full") : output.reason === "too_many" ? t("board.tooMany") : t("board.failed")}</Status>
+      );
+    case "check_way_in":
+      // A refusal is the answer's to explain; the page it opened is in the list of actions.
+      return output.ok === true ? <WayInCard output={output as unknown as Parameters<typeof WayInCard>[0]["output"]} /> : null;
     case "picture_in_room":
       return output.ok === true ? (
         <ConciergePicture pictureId={String(output.pictureId)} slug={String(output.slug)} title={String(output.title)} room={String(output.room)} />

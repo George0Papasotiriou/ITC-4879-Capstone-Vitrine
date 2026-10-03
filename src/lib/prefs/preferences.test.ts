@@ -106,6 +106,33 @@ describe("personal preferences", () => {
   });
 });
 
+describe("the way in (docs/adr/055)", () => {
+  const door = { kind: "door" as const, width: 82, height: 205 };
+  const corner = { kind: "turn" as const, from: 100, to: 95, ceiling: 250 };
+
+  it("is kept, replaced as a whole, undone and counted like everything else", () => {
+    const kept = applyPatch(EMPTY_PREFERENCES, { wayIn: [door, corner] });
+    expect(kept.wayIn).toEqual([door, corner]);
+    expect(isEmpty(kept)).toBe(false);
+    // A change to something else leaves it alone.
+    expect(applyPatch(kept, { budgetEuros: 400 }).wayIn).toEqual([door, corner]);
+    expect(applyPatch(kept, undoPatch(EMPTY_PREFERENCES, { wayIn: [door, corner] }))).toEqual(EMPTY_PREFERENCES);
+  });
+
+  it("refuses measures no home has, and more than eight steps", () => {
+    expect(preferencesPatchSchema.safeParse({ wayIn: [{ kind: "door", width: 5, height: 200 }] }).success).toBe(false);
+    expect(preferencesPatchSchema.safeParse({ wayIn: Array.from({ length: 9 }, () => door) }).success).toBe(false);
+    expect(preferencesSchema.parse({}).wayIn).toEqual([]);
+  });
+
+  it("keeps the account's way in on sign-in, and takes the device's when the account has none", () => {
+    const device = applyPatch(EMPTY_PREFERENCES, { wayIn: [door] });
+    const account = applyPatch(EMPTY_PREFERENCES, { wayIn: [corner] });
+    expect(mergePreferences(device, account).wayIn).toEqual([corner]);
+    expect(mergePreferences(device, EMPTY_PREFERENCES).wayIn).toEqual([door]);
+  });
+});
+
 describe("fitsYourSpace", () => {
   const living = { name: "Living room", wallCm: 240 };
   const study = { name: "Study", wallCm: 120, depthCm: 50 };

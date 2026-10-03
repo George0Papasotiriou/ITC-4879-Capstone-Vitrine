@@ -92,7 +92,7 @@ export function PictureStage({
 
         {compare && result !== null ? (
           <>
-            <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 w-px bg-white/85 shadow-[0_0_12px_rgba(0,0,0,0.45)]" style={{ left: `${split}%` }} />
+            <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 w-px bg-white/85 shadow-[0_0_12px_color-mix(in_oklab,var(--color-black)_45%,transparent)]" style={{ left: `${split}%` }} />
             <label htmlFor={id} className="sr-only">
               {t("compare")}
             </label>
@@ -106,8 +106,13 @@ export function PictureStage({
               className="absolute inset-0 size-full cursor-ew-resize opacity-0"
               data-agent-id="picture:compare"
             />
-            <span className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/45 px-2.5 py-1 text-xs text-white backdrop-blur-sm">{t("before")}</span>
-            <span className="pointer-events-none absolute right-3 bottom-3 rounded-full bg-black/45 px-2.5 py-1 text-xs text-white backdrop-blur-sm">{t("after")}</span>
+            {/* The picture is shown from the left up to the slider; the room as it was shows to its right. */}
+            <span className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/45 px-2.5 py-1 text-xs text-white backdrop-blur-sm" data-agent-id="picture:label-after">
+              {t("after")}
+            </span>
+            <span className="pointer-events-none absolute right-3 bottom-3 rounded-full bg-black/45 px-2.5 py-1 text-xs text-white backdrop-blur-sm" data-agent-id="picture:label-before">
+              {t("before")}
+            </span>
           </>
         ) : null}
 

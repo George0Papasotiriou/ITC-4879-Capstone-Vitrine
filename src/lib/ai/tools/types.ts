@@ -17,6 +17,7 @@ import type { RatingSummary } from "@/lib/commerce/reviews";
 import type { SetWatchResult } from "@/lib/commerce/price-watch-store";
 import type { PublicReview } from "@/lib/commerce/review-store";
 import type { StylistRequest, StylistResult } from "@/lib/stylist/stylist";
+import type { ProductBrief } from "@/lib/ai/tools/briefs";
 import type { SceneStyle } from "@/lib/pictures/pictures";
 import type { Preferences } from "@/lib/prefs/preferences";
 import type { TicketTopic } from "@/lib/support/tickets";
@@ -80,6 +81,16 @@ export type ToolServices = {
   pictures: {
     /** A showroom scene (`style`), or the room in a photograph the shopper gave (`photoId`). */
     start(input: { productId: string; style: SceneStyle | null; photoId: string | null }): Promise<{ ok: true; id: string; ready: boolean; left: number } | { ok: false; reason: string }>;
+  };
+  /** Shop the look (docs/adr/054): each piece in a photograph the shopper gave, with the shop's closest pieces. */
+  look: {
+    find(photoId: string): Promise<{ ok: true; drawn: boolean; pieces: { kind: string | null; colours: string[]; products: ProductBrief[] }[] } | { ok: false; reason: string }>;
+  };
+  /** Room boards (docs/adr/056): a piece put on the board named, else the latest, else a new one called `defaultTitle`. */
+  boards: {
+    add(input: { productId: string; board?: string; defaultTitle: string }): Promise<
+      { ok: true; boardId: string; title: string; itemId: string; created: boolean; createdBoard: boolean; quantity: number } | { ok: false; reason: "not_found" | "too_many" | "full" }
+    >;
   };
   /** Price watches on one product, for the signed-in shopper (docs/adr/020). */
   watch: {

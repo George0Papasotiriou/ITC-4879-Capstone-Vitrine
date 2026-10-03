@@ -211,6 +211,46 @@ export async function toolServices({
         return { ids: await snapSearch(seen, { category, locale }), colours: searchableColours(seen) };
       },
     },
+    look: {
+      find: async (photoId) => {
+        const actor = await knownActor(user);
+        if (actor === null) return { ok: false, reason: "no_photo" };
+        const photo = await (await photoStore()).byId(photoId, actor.key);
+        if (photo === null || photo.expiresAt.getTime() <= Date.now()) return { ok: false, reason: "no_photo" };
+        const { storage } = await import("@/lib/storage");
+        const file = await (await storage()).getObject(photo.storageKey);
+        if (file === null) return { ok: false, reason: "no_photo" };
+        const { shopTheLook } = await import("@/lib/look/server");
+        const result = await shopTheLook({ bytes: Buffer.from(file.body), mediaType: file.contentType }, { actorKey: actor.key, locale });
+        if (!result.ok) return { ok: false, reason: result.reason };
+        const { brief, inOrder } = await import("@/lib/ai/tools/briefs");
+        const cards = await getCardsByIds([...new Set(result.pins.flatMap((pin) => pin.productIds))], locale);
+        return { ok: true, drawn: result.drawn, pieces: result.pins.map((pin) => ({ kind: pin.kind, colours: pin.colours, products: inOrder(pin.productIds, cards).map(brief) })) };
+      },
+    },
+    boards: {
+      add: async ({ productId, board, defaultTitle }) => {
+        // A board is kept for this shopper, so they are given a guest id if they have none yet.
+        const actor = await aiActor(user);
+        const { boardStore, boardChanged } = await import("@/lib/boards/server");
+        const store = await boardStore();
+        const mine = await store.mine(actor.key);
+        const named = board === undefined ? undefined : mine.find((entry) => entry.title.toLocaleLowerCase() === board.toLocaleLowerCase());
+        let target = named ?? (board === undefined ? mine[0] : undefined);
+        let createdBoard = false;
+        if (target === undefined) {
+          const created = await store.create(actor.key, (board ?? defaultTitle).slice(0, 80));
+          if (!created.ok) return { ok: false, reason: "too_many" };
+          target = { ...created.board, items: 0, productIds: [] };
+          createdBoard = true;
+        }
+        const added = await store.add(target.id, productId).catch(() => null);
+        if (added === null) return { ok: false, reason: "not_found" };
+        if (!added.ok) return { ok: false, reason: "full" };
+        await boardChanged(target.id);
+        return { ok: true, boardId: target.id, title: target.title, itemId: added.item.id, created: added.created, createdBoard, quantity: added.item.quantity };
+      },
+    },
     pictures: {
       start: async ({ productId, style, photoId }) => {
         // A picture means the browser is known: the same actor the page would use.

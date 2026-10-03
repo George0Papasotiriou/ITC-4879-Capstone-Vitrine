@@ -7,13 +7,14 @@
  * End-to-end hybrid search pipeline: parse, retrieve, fuse, rerank and diversify.
  */
 
-import { reciprocalRankFusion, type RankedList } from "@/lib/search/fusion";
+import { reciprocalRankFusion, RRF_K, type FusedResult, type RankedList } from "@/lib/search/fusion";
 import { resolveGreeklish, type GreeklishReading } from "@/lib/search/greeklish";
 import { scriptOf, tokenize } from "@/lib/search/normalize";
 import { parseQuery, type ParsedQuery } from "@/lib/search/parse";
 import { catalogRatingPrior, diversify, rerank, type RerankSignals } from "@/lib/search/rerank";
 import { corrections as spellingCorrections } from "@/lib/search/spelling";
-import { NO_FILTERS, type RetrievalFilters, type Retrievers } from "@/lib/search/retrieve";
+import { predict, rankingFeatures, type RankerModel, type RankingProduct, type RankingQuery } from "@/lib/search/ranker";
+import { NO_FILTERS, type Retrieved, type RetrievalFilters, type Retrievers } from "@/lib/search/retrieve";
 import { TrigramIndex, trigramSimilarity } from "@/lib/search/trigram";
 import { englishPieceNames } from "@/lib/search/vocabulary";
 
@@ -21,7 +22,7 @@ import { englishPieceNames } from "@/lib/search/vocabulary";
  * The A1 search pipeline, end to end (docs/PLAN.md 2.6):
  *
  *   parse → expand (Greeklish, spelling) → retrieve (lexical, fuzzy, semantic) → fuse (RRF)
- *         → re-rank (stock, rating, popularity) → diversify (MMR)
+ *         → learned order (LambdaMART, when given) → re-rank (stock, rating, popularity) → diversify (MMR)
  *
  * Every stage is a separately tested module; this file only wires them
  * together and records what each stage did, so a result page can say why a
@@ -45,7 +46,18 @@ export type SearchOptions = {
   /** A query embedding, when an embedding model is available. */
   embedding?: readonly number[] | null;
   limit?: number;
+  /** How the lexical retriever weighs words: by rarity (the shop) or not at all (E1's ablation). */
+  lexicalWeighting?: "idf" | "plain";
+  /** The learned ranking stage (docs/adr/057): orders the fused candidates before business re-ranking. */
+  ranker?: RankerModel | null;
+  /** Return each retriever's scored list and the fused list, for training and evaluating the ranker. */
+  evidence?: boolean;
 };
+
+/** How many fused candidates the learned stage orders; the rest keep their fused order below them. */
+export const RANKER_DEPTH = 50;
+
+export type SearchEvidence = { lexical: Retrieved[]; fuzzy: Retrieved[]; fused: FusedResult[] };
 
 export type SearchResult = {
   query: ParsedQuery;
@@ -65,6 +77,8 @@ export type SearchResult = {
   /** Vocabulary words close to the query, offered when results are few. */
   suggestions: string[];
   timings: Record<string, number>;
+  /** With `evidence`: what each retriever returned, with scores, and their fusion (before any re-ranking). */
+  evidence?: SearchEvidence;
 };
 
 export type Relaxation = "categories" | "colors" | "materials";
@@ -199,16 +213,19 @@ export async function searchProducts(retrievers: Retrievers, raw: string, option
   async function retrieve(active: RetrievalFilters) {
     const lists: RankedList[] = [];
     const used: string[] = [];
+    const scored: Record<string, Retrieved[]> = {};
     const embedding = options.embedding ?? null;
     const jobs: Promise<void>[] = [];
     if (use.lexical && terms.length > 0) {
-      jobs.push(time("lexical", () => retrievers.lexical(terms, active)).then((rows) => {
+      jobs.push(time("lexical", () => retrievers.lexical(terms, active, undefined, options.lexicalWeighting ?? "idf")).then((rows) => {
+        scored.lexical = rows;
         lists.push({ name: "lexical", ids: rows.map((row) => row.id), weight: weights.lexical });
         used.push("lexical");
       }));
     }
     if (use.fuzzy && fuzzyText.length >= 3) {
       jobs.push(time("fuzzy", () => retrievers.fuzzy(fuzzyText, active)).then((rows) => {
+        scored.fuzzy = rows;
         lists.push({ name: "fuzzy", ids: rows.map((row) => row.id), weight: weights.fuzzy });
         used.push("fuzzy");
       }));
@@ -228,10 +245,10 @@ export async function searchProducts(retrievers: Retrievers, raw: string, option
     await Promise.all(jobs);
     // Stable list order, so fusion ties never depend on which query finished first.
     lists.sort((a, b) => a.name.localeCompare(b.name));
-    return { lists, used: used.sort() };
+    return { lists, used: used.sort(), scored };
   }
 
-  let { lists, used } = await retrieve(filters);
+  let { lists, used, scored } = await retrieve(filters);
   let fused = reciprocalRankFusion(lists);
 
   /*
@@ -259,13 +276,20 @@ export async function searchProducts(retrievers: Retrievers, raw: string, option
       const attempt = await retrieve(candidate);
       const attemptFused = reciprocalRankFusion(attempt.lists);
       if (attemptFused.length > 0) {
-        ({ lists, used } = attempt);
+        ({ lists, used, scored } = attempt);
         fused = attemptFused;
         filters = candidate;
         relaxed.push(...tried);
         break;
       }
     }
+  }
+
+  const evidence: SearchEvidence | undefined = options.evidence === true ? { lexical: scored.lexical ?? [], fuzzy: scored.fuzzy ?? [], fused } : undefined;
+
+  if (options.ranker != null && fused.length > 1) {
+    const model = options.ranker;
+    fused = await time("ranker", () => learnedOrder(model, retrievers, query, scored, fused));
   }
 
   let ids = fused.map((result) => result.id);
@@ -318,6 +342,57 @@ export async function searchProducts(retrievers: Retrievers, raw: string, option
     retrieversUsed: used,
     suggestions,
     timings,
+    ...(evidence === undefined ? {} : { evidence }),
+  };
+}
+
+/**
+ * The learned ranking stage (docs/adr/057). The first RANKER_DEPTH fused
+ * candidates are ordered by the model's score for their features
+ * (src/lib/search/ranker.ts); the rest keep their fused order below them. The
+ * new order is given back on the fused scale — 1 / (k + rank), as reciprocal
+ * rank fusion would give a single list — so business re-ranking, which
+ * multiplies relevance by stock, rating and popularity, still multiplies a
+ * positive relevance in the same range it was tuned on.
+ */
+async function learnedOrder(model: RankerModel, retrievers: Retrievers, query: ParsedQuery, scored: Record<string, Retrieved[]>, fused: FusedResult[]): Promise<FusedResult[]> {
+  const top = fused.slice(0, RANKER_DEPTH);
+  const inputs = await rankingInputs(retrievers, query, { lexical: scored.lexical ?? [], fuzzy: scored.fuzzy ?? [], fused }, top.map((result) => result.id));
+  // Ties (trees give one score to products they cannot tell apart) keep the retrievers' order.
+  const ordered = top
+    .map((result, position) => {
+      const product = inputs.products.get(result.id);
+      return { result, position, score: product === undefined ? -Infinity : predict(model, rankingFeatures(inputs.query, product)) };
+    })
+    .sort((a, b) => b.score - a.score || a.position - b.position);
+  return [...ordered.map(({ result }) => result), ...fused.slice(RANKER_DEPTH)].map((result, rank) => ({ ...result, score: 1 / (RRF_K + rank + 1) }));
+}
+
+/**
+ * What the learned stage reads, built in one place for the shop and for the
+ * training data (scripts/esci-ranker-data.ts), so the model is always given
+ * what it was trained on: the query's raw words with their rarity weights and
+ * colours, each retriever's ranks and scores, and each candidate's title,
+ * brand and colours.
+ */
+export async function rankingInputs(
+  retrievers: Retrievers,
+  query: ParsedQuery,
+  evidence: SearchEvidence,
+  ids: readonly string[],
+): Promise<{ query: RankingQuery; products: Map<string, RankingProduct> }> {
+  const [facts, idf] = await Promise.all([retrievers.rankingFacts(ids), retrievers.wordWeights(tokenize(query.raw))]);
+  const evidenceOf = (rows: readonly { id: string; score: number }[]) => new Map(rows.map((row, rank) => [row.id, { rank, score: row.score }]));
+  return {
+    query: {
+      text: query.raw,
+      colors: query.colors,
+      idf: (word) => idf.get(word) ?? 0,
+      lexical: evidenceOf(evidence.lexical),
+      fuzzy: evidenceOf(evidence.fuzzy),
+      fused: evidenceOf(evidence.fused),
+    },
+    products: new Map(facts.map((fact) => [fact.id, fact])),
   };
 }
 
