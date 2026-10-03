@@ -17,6 +17,7 @@ import type { RatingSummary } from "@/lib/commerce/reviews";
 import type { SetWatchResult } from "@/lib/commerce/price-watch-store";
 import type { PublicReview } from "@/lib/commerce/review-store";
 import type { StylistRequest, StylistResult } from "@/lib/stylist/stylist";
+import type { SceneStyle } from "@/lib/pictures/pictures";
 import type { Preferences } from "@/lib/prefs/preferences";
 import type { TicketTopic } from "@/lib/support/tickets";
 
@@ -74,6 +75,11 @@ export type ToolServices = {
   snap: {
     photo(): Promise<{ id: string } | null>;
     search(input: { photoId: string; category?: string }): Promise<{ ids: string[]; colours: string[] }>;
+  };
+  /** AI pictures of a piece in a room (docs/adr/053), through the same start as the page: guard, allowance, job. */
+  pictures: {
+    /** A showroom scene (`style`), or the room in a photograph the shopper gave (`photoId`). */
+    start(input: { productId: string; style: SceneStyle | null; photoId: string | null }): Promise<{ ok: true; id: string; ready: boolean; left: number } | { ok: false; reason: string }>;
   };
   /** Price watches on one product, for the signed-in shopper (docs/adr/020). */
   watch: {

@@ -166,6 +166,13 @@ const rawSchema = z.object({
    */
   OPENAI_API_KEY: optionalString,
   VOICE_PROVIDER: z.enum(["browser", "google", "openai"]).default("google"),
+  /**
+   * AI pictures of a piece in a room (docs/adr/053). "drawn" (the default): the
+   * shop composes each picture itself, labelled "Preview without AI", at no cost.
+   * "google": the image model makes them, through the cost guard and the
+   * shopper's allowance — turned on by George once he has seen the price.
+   */
+  PICTURES_PROVIDER: z.enum(["drawn", "google"]).default("drawn"),
   /** Virtual try-on (Phase 9). Without it try-on runs in demo mode or not at all. */
   FASHN_API_KEY: optionalString,
   /** The whole shop's AI spend per day, in euros; past it, AI features pause until midnight UTC. */

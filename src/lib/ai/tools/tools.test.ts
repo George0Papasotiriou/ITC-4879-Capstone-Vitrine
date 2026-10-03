@@ -271,6 +271,44 @@ describe("the Fitting Room tool", () => {
   });
 });
 
+describe("AI pictures in a room", () => {
+  it("makes a showroom picture of a piece for a room, through the shop's own start", async () => {
+    const asked: unknown[] = [];
+    const { ctx } = context({ pictures: { start: async (input) => (asked.push(input), { ok: true, id: "pic-1", ready: false, left: 2 }) } });
+    await expect(run("picture_in_room", { productId: LAMP, room: "scandinavian" }, ctx)).resolves.toMatchObject({ ok: true, pictureId: "pic-1", ready: false, title: "Faux Wood Table Lamp", room: "scandinavian", left: 2 });
+    expect(asked).toEqual([{ productId: LAMP, style: "scandinavian", photoId: null }]);
+  });
+
+  it("uses the photograph the shopper attached for their own room, and says so when there is none", async () => {
+    const asked: unknown[] = [];
+    const { ctx } = context({ pictures: { start: async (input) => (asked.push(input), { ok: true, id: "pic-2", ready: false, left: 0 }) } });
+    await expect(run("picture_in_room", { productId: LAMP, room: "photo" }, ctx)).resolves.toMatchObject({ ok: true, pictureId: "pic-2" });
+    expect(asked).toEqual([{ productId: LAMP, style: null, photoId: "01890000-0000-7000-8000-0000000000f3" }]);
+
+    const none = context({ snap: { photo: async () => null, search: async () => ({ ids: [], colours: [] }) } });
+    await expect(run("picture_in_room", { productId: LAMP, room: "photo" }, none.ctx)).resolves.toMatchObject({ ok: false, reason: "no_photo" });
+  });
+
+  it("refuses pieces that do not belong in a room, and passes on a spent allowance", async () => {
+    const dress = context({ details: async () => [] });
+    await expect(run("picture_in_room", { productId: LAMP, room: "dark-moody" }, dress.ctx)).resolves.toMatchObject({ ok: false, reason: "not_found" });
+    const base = context();
+    const [lamp] = await base.ctx.services.details([LAMP]);
+    const unmeasured = context({ details: async () => [{ ...lamp!, dimsCm: null }] });
+    await expect(run("picture_in_room", { productId: LAMP, room: "dark-moody" }, unmeasured.ctx)).resolves.toMatchObject({ ok: false, reason: "not_for_rooms" });
+    const spent = context({ pictures: { start: async () => ({ ok: false, reason: "allowance" }) } });
+    await expect(run("picture_in_room", { productId: LAMP, room: "dark-moody" }, spent.ctx)).resolves.toMatchObject({ ok: false, reason: "allowance" });
+    const off = context({ pictures: { start: async () => ({ ok: false, reason: "kill_switch" }) } });
+    await expect(run("picture_in_room", { productId: LAMP, room: "dark-moody" }, off.ctx)).resolves.toMatchObject({ ok: false, reason: "unavailable" });
+  });
+
+  it("is offered to the Concierge, not to the support assistant or outside agents", () => {
+    expect(findTool("picture_in_room", "chat")).not.toBeNull();
+    expect(findTool("picture_in_room", "support")).toBeNull();
+    expect(findTool("picture_in_room", "mcp")).toBeNull();
+  });
+});
+
 describe("handing over to a person", () => {
   const summary = "The lamp from VT-4JJZ-MPF9 arrived with a cracked base and they would like a replacement.";
 
@@ -334,7 +372,7 @@ describe("registry", () => {
   });
 
   it("asks before sensitive and costly tools only", () => {
-    expect(TOOLS.filter(needsApproval).map((tool) => tool.name).sort()).toEqual(["hand_to_person", "remember_preference", "start_checkout", "start_return", "try_on"]);
+    expect(TOOLS.filter(needsApproval).map((tool) => tool.name).sort()).toEqual(["hand_to_person", "picture_in_room", "remember_preference", "start_checkout", "start_return", "try_on"]);
   });
 
   it("gives the support assistant order and policy tools, not the cart or the page", () => {

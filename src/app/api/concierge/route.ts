@@ -19,9 +19,12 @@ import { CONCIERGE_PROMPT_VERSION, conciergeInstructions } from "@/lib/ai/prompt
 import { textModel } from "@/lib/ai/providers";
 import { aiActor, aiMode, approvalSecret, conciergeCart, toolServices, toolUser, usageStore } from "@/lib/ai/server";
 import { approvalAnswers, runTurn } from "@/lib/ai/surfaces/chat";
+import { attachPhotos } from "@/lib/ai/surfaces/photos";
 import { currentUser } from "@/lib/auth/session";
 import { clientAddress } from "@/lib/geo/ip-country";
 import { loggerForRequest } from "@/lib/log";
+import { photoStore } from "@/lib/photos/server";
+import { storage } from "@/lib/storage";
 import { serverEnv } from "@/env";
 
 /**
@@ -98,7 +101,14 @@ export async function POST(request: Request): Promise<Response> {
   const result = runTurn({
     model: chosen.model,
     instructions: conciergeInstructions({ locale, pageMap: parsePageMap(body.data.pageMap), signedIn: user !== null, spoken }),
-    messages: await convertToModelMessages(messages),
+    // A photograph attached to a question reaches the model only if it is this shopper's and still kept (docs/adr/051).
+    messages: await attachPhotos(await convertToModelMessages(messages), messages, async (photoId) => {
+      const photo = await (await photoStore()).byId(photoId, actor.key);
+      // Past its day it is gone, even before the expiry job has swept it.
+      if (photo === null || photo.expiresAt.getTime() <= Date.now()) return null;
+      const file = await (await storage()).getObject(photo.storageKey);
+      return file === null ? null : { bytes: file.body, mediaType: file.contentType };
+    }),
     ctx,
     approvalSecret: approvalSecret(),
     abortSignal: request.signal,

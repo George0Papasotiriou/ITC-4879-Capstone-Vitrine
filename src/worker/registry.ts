@@ -15,6 +15,7 @@ import { processPing } from "@/worker/processors/ping";
 import { processPriceWatches } from "@/worker/processors/price-watches";
 import { processPushSend } from "@/worker/processors/push-send";
 import { processRebuildTasteGraph } from "@/worker/processors/rebuild-taste-graph";
+import { processPictureRender } from "@/worker/processors/picture-render";
 import { processTryOn } from "@/worker/processors/try-on";
 import { processWeeklyReport } from "@/worker/processors/weekly-report";
 
@@ -38,6 +39,7 @@ export const processors: { [N in JobName]: Processor<N> } = {
   "price-watches": processPriceWatches,
   "weekly-report": processWeeklyReport,
   "try-on": processTryOn,
+  "picture-render": processPictureRender,
   "photo-expiry": processPhotoExpiry,
   "catalog-models": processCatalogModels,
   "orders-expire": processOrdersExpire,

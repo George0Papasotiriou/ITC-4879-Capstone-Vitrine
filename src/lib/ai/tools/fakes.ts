@@ -94,6 +94,9 @@ export function context(overrides: Partial<ToolServices> = {}, cartLines: Partia
       photo: async () => ({ id: "01890000-0000-7000-8000-0000000000f1", minutesLeft: 1400 }),
       start: async () => ({ ok: true, id: "01890000-0000-7000-8000-0000000000f2" }),
     },
+    pictures: {
+      start: async () => ({ ok: true, id: "01890000-0000-7000-8000-0000000000f4", ready: false, left: 2 }),
+    },
     watch: {
       get: async () => null,
       set: async () => ({ ok: true, watchId: "w1", created: true }),

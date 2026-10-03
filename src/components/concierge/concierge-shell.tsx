@@ -23,12 +23,18 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
  * conversation survives navigation as before.
  */
 
-type Ask = (text: string, options?: { spoken?: boolean }) => void;
+/** `photoId`: a photograph the shopper attached, already through the photo route (docs/adr/051). */
+export type AskOptions = { spoken?: boolean; photoId?: string };
+type Ask = (text: string, options?: AskOptions) => void;
+/** What a loaded engine hands the shell: its ask, and a way to start listening. */
+export type EngineHandle = { ask: Ask; listen: () => void };
 
 type ShellValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
   ask: Ask;
+  /** Opens the dock and starts listening, as the dock's own Speak button does (docs/adr/026). */
+  listen: () => void;
   /** Starts fetching the engine without opening anything: for hover and focus on what opens it. */
   warm: () => void;
 };
@@ -47,8 +53,9 @@ const ConciergeEngine = dynamic(() => loadEngine().then((module) => module.Conci
 export function ConciergeShell({ children }: { children: ReactNode }) {
   const [open, setOpenState] = useState(false);
   const [wanted, setWanted] = useState(false);
-  const engineAsk = useRef<Ask | null>(null);
+  const engine = useRef<EngineHandle | null>(null);
   const queued = useRef<Parameters<Ask>[]>([]);
+  const listenQueued = useRef(false);
 
   const setOpen = useCallback((next: boolean) => {
     if (next) setWanted(true);
@@ -56,8 +63,8 @@ export function ConciergeShell({ children }: { children: ReactNode }) {
   }, []);
 
   const ask = useCallback<Ask>((text, options) => {
-    if (engineAsk.current !== null) {
-      engineAsk.current(text, options);
+    if (engine.current !== null) {
+      engine.current.ask(text, options);
       return;
     }
     // Sent by the engine as soon as it has loaded.
@@ -66,11 +73,25 @@ export function ConciergeShell({ children }: { children: ReactNode }) {
     setOpenState(true);
   }, []);
 
-  const attach = useCallback((engine: Ask) => {
-    engineAsk.current = engine;
-    for (const [text, options] of queued.current.splice(0)) engine(text, options);
+  const listen = useCallback(() => {
+    if (engine.current !== null) {
+      engine.current.listen();
+      return;
+    }
+    listenQueued.current = true;
+    setWanted(true);
+    setOpenState(true);
+  }, []);
+
+  const attach = useCallback((handle: EngineHandle) => {
+    engine.current = handle;
+    for (const [text, options] of queued.current.splice(0)) handle.ask(text, options);
+    if (listenQueued.current) {
+      listenQueued.current = false;
+      handle.listen();
+    }
     return () => {
-      if (engineAsk.current === engine) engineAsk.current = null;
+      if (engine.current === handle) engine.current = null;
     };
   }, []);
 
@@ -90,7 +111,7 @@ export function ConciergeShell({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const value = useMemo<ShellValue>(() => ({ open, setOpen, ask, warm }), [open, setOpen, ask, warm]);
+  const value = useMemo<ShellValue>(() => ({ open, setOpen, ask, listen, warm }), [open, setOpen, ask, listen, warm]);
   return (
     <ShellContext.Provider value={value}>
       {children}

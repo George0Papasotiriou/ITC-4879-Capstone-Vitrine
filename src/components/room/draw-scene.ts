@@ -45,7 +45,22 @@ export type SceneInput = {
    * when the shopper keeps "Match the room's light" on; the cut-out passed is
    * then already tinted, and the shadow falls away from the light.
    */
-  product: { placement: Placement; mode: "stand" | "lie"; cutout: Cutout | null; outline: boolean; light?: LightEstimate | null } | null;
+  product: {
+    placement: Placement;
+    mode: "stand" | "lie";
+    cutout: Cutout | null;
+    outline: boolean;
+    light?: LightEstimate | null;
+    /** The piece's own 3D scan, already drawn with this camera over a transparent canvas the photograph's size (docs/adr/052). */
+    scan?: CanvasImageSource | null;
+    /** The cut-out flipped left to right: a photograph cannot turn, but it can be seen the other way round. */
+    mirror?: boolean;
+  } | null;
+  /**
+   * The photograph and the piece only, without the guides — the floor grid and the outline: the picture the
+   * AI makes a photograph of (docs/adr/053), which must not take the grid for part of the room.
+   */
+  clean?: boolean;
 };
 
 const INK = "rgba(255, 255, 255, 0.92)";
@@ -58,7 +73,7 @@ export function drawScene(ctx: CanvasRenderingContext2D, scene: SceneInput) {
   ctx.drawImage(scene.photo, 0, 0, width, height);
 
   if (scene.floorPixels !== null && scene.product === null) drawFloorWash(ctx, scene.floorPixels, scene.width, scene.height);
-  if (scene.camera !== null) {
+  if (scene.camera !== null && scene.clean !== true) {
     drawFloorGrid(ctx, scene.camera.K, scene.camera.pose, scene.camera.gridCentre, r);
     if (scene.product === null && scene.camera.sheet !== null) drawSheet(ctx, scene.camera.K, scene.camera.pose, scene.camera.sheet, r);
   }
@@ -252,7 +267,10 @@ function drawProduct(
     }
   }
 
-  if (product.cutout !== null) {
+  if (product.scan != null) {
+    // The scan was drawn with the same camera, pixel for pixel: it lies over the photograph and its shadows.
+    ctx.drawImage(product.scan, 0, 0, ctx.canvas.width, ctx.canvas.height);
+  } else if (product.cutout !== null) {
     // A billboard standing at the centre of the footprint: the photograph is
     // scaled so the product's real height, at that distance, is its height on
     // screen, and keeps its own proportions. (Filling the whole projected box
@@ -270,12 +288,13 @@ function drawProduct(
       ctx.save();
       ctx.translate(base[0], base[1]);
       ctx.rotate(angle);
+      if (product.mirror === true) ctx.scale(-1, 1);
       ctx.drawImage(product.cutout.image, box.x, box.y, box.width, box.height, -widthPx / 2, -heightPx, widthPx, heightPx);
       ctx.restore();
     }
   }
 
-  if (product.outline || product.cutout === null) {
+  if (product.outline || (product.cutout === null && product.scan == null)) {
     const edges: [number, number][] = [
       [0, 1], [1, 2], [2, 3], [3, 0],
       [4, 5], [5, 6], [6, 7], [7, 4],

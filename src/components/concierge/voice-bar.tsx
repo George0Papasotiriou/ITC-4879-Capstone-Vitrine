@@ -12,6 +12,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, type RefObject } from "react";
 
+import { useConcierge } from "@/components/concierge/concierge-provider";
 import { useVoice } from "@/components/concierge/use-voice";
 import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/components/ui/use-hydrated";
@@ -81,6 +82,16 @@ export function VoiceBar() {
   const on = voice.state !== "idle";
   const ring = useRef<HTMLSpanElement>(null);
   useVoiceLevel(voice.stream, ring);
+
+  // The home page's microphone (docs/adr/051): a request from outside the dock starts listening once,
+  // as this bar's own Speak button would, as soon as the bar is on screen.
+  const { listenPending, takeListen } = useConcierge();
+  const { start } = voice;
+  useEffect(() => {
+    if (!hydrated || !listenPending) return;
+    takeListen();
+    if (voice.state === "idle") start();
+  }, [hydrated, listenPending, takeListen, start, voice.state]);
 
   return (
     <div className="border-hairline flex flex-col gap-2 border-b px-5 py-3" data-agent-id="voice:bar">

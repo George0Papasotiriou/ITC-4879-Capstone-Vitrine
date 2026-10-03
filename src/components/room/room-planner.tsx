@@ -15,6 +15,8 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type Keyboard
 import { loadDepthModel, sampleDepthSource, type DepthSource } from "@/components/room/depth-estimator";
 import { drawScene, type Cutout } from "@/components/room/draw-scene";
 import { drawSampleRoom, SAMPLE_HEIGHT, SAMPLE_WIDTH, sampleRoomGeometry } from "@/components/room/sample-room";
+import { loadScanLayer, type ScanLayer } from "@/components/room/scan-layer";
+import { PlannerPicture } from "@/components/pictures/planner-picture";
 import { Button } from "@/components/ui/button";
 import { seededRandom } from "@/lib/reco/simulate";
 import { defaultSpot, floorFromDepth, judgeFloor, type DepthMap, type FloorFromDepth } from "@/lib/vision/depth";
@@ -49,10 +51,15 @@ import { cn } from "@/lib/ui/cn";
  */
 
 export type PlaceableProduct = {
+  /** For "Picture it with AI" (docs/adr/053); without it the planner offers no picture. */
+  slug?: string;
   title: string;
   dims: { w: number; d: number; h: number };
   mode: "stand" | "lie";
   imageSrc: string | null;
+  /** Its own 3D scan, when the shop has the file (docs/adr/052): drawn in 3D, so it turns. */
+  model?: string | null;
+  kind?: string;
 };
 
 type Photo = { canvas: HTMLCanvasElement; width: number; height: number; gray: GrayImage; focal35: number | null; sample: boolean };
@@ -131,6 +138,13 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
   // Light harmonisation (docs/adr/042): on by default, one switch to see the plain photograph.
   const [matchLight, setMatchLight] = useState(true);
   const [cutout, setCutout] = useState<Cutout | null>(null);
+  // The piece's own scan, drawn in 3D with the photograph's camera (docs/adr/052); null until loaded, or without one.
+  const [scan, setScan] = useState<ScanLayer | null>(null);
+  const [scanFailed, setScanFailed] = useState(false);
+  // A photograph cannot turn, but it can be seen the other way round.
+  const [mirrored, setMirrored] = useState(false);
+  // Two fingers on a phone turn the piece: where they started, and the rotation then.
+  const twist = useRef<{ pointers: Map<number, Point2>; startAngle: number | null; startRotation: number }>({ pointers: new Map(), startAngle: null, startRotation: 0 });
   const [announcement, setAnnouncement] = useState("");
   const [pixelRatio, setPixelRatio] = useState(1);
   const dragging = useRef<{ kind: "new" } | { kind: "tap"; index: number } | { kind: "product" } | null>(null);
@@ -164,6 +178,28 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
       cancelled = true;
     };
   }, [product.imageSrc, product.mode]);
+
+  // The scan, once per piece. A failure is no error for the shopper: the photograph stands in, as before.
+  useEffect(() => {
+    if (product.model == null || product.mode !== "stand") return;
+    let current: ScanLayer | null = null;
+    let cancelled = false;
+    void loadScanLayer(product.model, product.kind ?? "").then((layer) => {
+      if (cancelled) {
+        layer?.dispose();
+        return;
+      }
+      current = layer;
+      if (layer === null) setScanFailed(true);
+      else setScan(layer);
+    });
+    return () => {
+      cancelled = true;
+      current?.dispose();
+    };
+  }, [product.model, product.kind, product.mode]);
+  const hasScan = scan !== null;
+  const scanLoading = product.model != null && product.mode === "stand" && scan === null && !scanFailed;
 
   const K = useMemo(() => (photo === null ? null : intrinsics(focalFromFov(fov, Math.max(photo.width, photo.height)), photo.width, photo.height)), [photo, fov]);
 
@@ -218,13 +254,14 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
     // direction from the piece to the camera, as a product photo is taken.
     const centre = cameraCentre(camera.pose);
     const start = { x, y, rotation: Math.atan2(centre[0] - x, -(centre[1] - y)) };
+    // A scan's own measured extent is its true size (listings often swap width and depth), as in the shop window.
     return {
       ...(moved ?? start),
-      width: product.dims.w / 100,
-      depth: product.dims.d / 100,
-      height: product.mode === "lie" ? 0.005 : product.dims.h / 100,
+      width: scan?.size.width ?? product.dims.w / 100,
+      depth: scan?.size.depth ?? product.dims.d / 100,
+      height: product.mode === "lie" ? 0.005 : (scan?.size.height ?? product.dims.h / 100),
     };
-  }, [camera, moved, product, floor, photo]);
+  }, [camera, moved, product, floor, photo, scan]);
 
   // The room's light, once per photo; the side it falls from where the piece stands, each time it moves (docs/adr/042).
   const photoPixels = useMemo(() => (photo === null ? null : photo.canvas.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, photo.width, photo.height).data), [photo]);
@@ -325,7 +362,18 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
       marker: stage === "corners" ? marker : null,
       camera: camera === null ? null : { ...camera, gridCentre: placement === null ? [0, 0] : [placement.x, placement.y] },
       floorPixels: stage === "scan" && floor !== null ? floor.floorPixels : null,
-      product: stage === "place" && placement !== null ? { placement, mode: product.mode, cutout: litCutout, outline, light } : null,
+      product:
+        stage === "place" && placement !== null
+          ? {
+              placement,
+              mode: product.mode,
+              cutout: litCutout,
+              outline,
+              light,
+              mirror: mirrored,
+              scan: scan !== null && camera !== null ? scan.draw({ K: camera.K, pose: camera.pose, placement, width: photo.width, height: photo.height, light: matchLight ? (light ?? null) : null }) : null,
+            }
+          : null,
     });
   });
 
@@ -383,10 +431,24 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
     setMoved({ x: point[0], y: point[1], rotation: placement?.rotation ?? 0 });
   };
 
+  /** The angle between the two fingers on the canvas, or null with fewer. */
+  const twistAngle = () => {
+    const [a, b] = [...twist.current.pointers.values()];
+    return a === undefined || b === undefined ? null : Math.atan2(b[1] - a[1], b[0] - a[0]);
+  };
+
   const onPointerDown = (event: PointerEvent<HTMLCanvasElement>) => {
     if (photo === null) return;
     const point = toPhoto(event);
     event.currentTarget.setPointerCapture(event.pointerId);
+    // A second finger while placing a piece with a scan: the two turn it, as on a map.
+    twist.current.pointers.set(event.pointerId, point);
+    if (stage === "place" && hasScan && twist.current.pointers.size === 2 && placement !== null) {
+      dragging.current = null;
+      twist.current.startAngle = twistAngle();
+      twist.current.startRotation = placement.rotation;
+      return;
+    }
     if (stage === "corners") {
       // While corners are missing, a press is a new corner unless it lands right on
       // an existing one: a sheet across a phone screen can have corners 25 px apart.
@@ -407,6 +469,13 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
   };
 
   const onPointerMove = (event: PointerEvent<HTMLCanvasElement>) => {
+    if (photo !== null && twist.current.pointers.has(event.pointerId)) twist.current.pointers.set(event.pointerId, toPhoto(event));
+    if (twist.current.startAngle !== null && placement !== null) {
+      const angle = twistAngle();
+      // Screen angles grow clockwise; the floor's grow the other way seen from above, so the turn follows the fingers.
+      if (angle !== null) setMoved({ x: placement.x, y: placement.y, rotation: twist.current.startRotation - (angle - twist.current.startAngle) });
+      return;
+    }
     const drag = dragging.current;
     if (drag === null || photo === null) return;
     const point = toPhoto(event);
@@ -420,6 +489,14 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
   };
 
   const onPointerUp = (event: PointerEvent<HTMLCanvasElement>) => {
+    twist.current.pointers.delete(event.pointerId);
+    if (twist.current.startAngle !== null) {
+      // The turn ends with the first finger lifted, and the other does not then drag the piece away.
+      if (twist.current.pointers.size < 2) twist.current.startAngle = null;
+      dragging.current = null;
+      setAnnouncement(t("announceTurned"));
+      return;
+    }
     const drag = dragging.current;
     dragging.current = null;
     if (drag === null || photo === null) return;
@@ -491,6 +568,46 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
     setTaps((current) => current.slice(0, -1));
     setMoved(null);
     setFlipped(false);
+  };
+
+  // What the AI is given (docs/adr/053): the photograph and the piece where the shopper put it, without the
+  // grid or the outline, which it would otherwise paint into the room. At most 1600 px on the long side, as JPEG:
+  // the size the image model reads, and well inside the shop's 12 MB photo limit.
+  const cleanPicture = async (): Promise<{ blob: Blob; width: number; height: number } | null> => {
+    if (photo === null || camera === null || placement === null) return null;
+    const full = document.createElement("canvas");
+    full.width = photo.width;
+    full.height = photo.height;
+    drawScene(full.getContext("2d")!, {
+      photo: photo.canvas,
+      width: photo.width,
+      height: photo.height,
+      pixelRatio: 1,
+      taps: [],
+      loupe: null,
+      marker: null,
+      camera: { ...camera, gridCentre: [placement.x, placement.y] },
+      floorPixels: null,
+      clean: true,
+      product: {
+        placement,
+        mode: product.mode,
+        cutout: litCutout,
+        outline: false,
+        light,
+        mirror: mirrored,
+        scan: scan !== null ? scan.draw({ K: camera.K, pose: camera.pose, placement, width: photo.width, height: photo.height, light: matchLight ? (light ?? null) : null }) : null,
+      },
+    });
+    const scale = Math.min(1, 1600 / Math.max(photo.width, photo.height));
+    const width = Math.round(photo.width * scale);
+    const height = Math.round(photo.height * scale);
+    const sized = document.createElement("canvas");
+    sized.width = width;
+    sized.height = height;
+    sized.getContext("2d")!.drawImage(full, 0, 0, width, height);
+    const blob = await new Promise<Blob | null>((resolve) => sized.toBlob(resolve, "image/jpeg", 0.92));
+    return blob === null ? null : { blob, width, height };
   };
 
   const save = () => {
@@ -853,7 +970,10 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                   <p>{t("placeHelp")}</p>
                   <p>{t("keyboardPlace")}</p>
                   {product.mode === "lie" ? <p>{t("footprintNote")}</p> : null}
-                  {product.mode === "stand" && product.imageSrc !== null && cutout === null ? <p>{t("noCutout")}</p> : null}
+                  {product.mode === "stand" && product.imageSrc !== null && cutout === null && !hasScan && !scanLoading ? <p>{t("noCutout")}</p> : null}
+                  {hasScan ? <p data-agent-id="room:scan-note">{t("scanNote")}</p> : null}
+                  {scanLoading ? <p>{t("scanLoading")}</p> : null}
+                  {product.mode === "stand" && !hasScan && !scanLoading && cutout !== null ? <p data-agent-id="room:photo-note">{t("photoOnly")}</p> : null}
                 </div>
                 <dl className="border-hairline divide-hairline divide-y border-y text-sm" data-agent-id="room:readout">
                   <div className="flex justify-between gap-4 py-3">
@@ -868,12 +988,21 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                   ) : null}
                 </dl>
                 <div className="flex flex-wrap gap-3">
-                  <Button variant="secondary" onClick={() => rotate(-1)}>
-                    {t("rotateLeft")}
-                  </Button>
-                  <Button variant="secondary" onClick={() => rotate(1)}>
-                    {t("rotateRight")}
-                  </Button>
+                  {product.mode === "stand" && !hasScan && cutout !== null ? (
+                    // A photograph cannot turn (docs/adr/052), but it can be seen the other way round.
+                    <Button variant="secondary" aria-pressed={mirrored} onClick={() => setMirrored((value) => !value)} data-agent-id="room:mirror">
+                      {t("mirror")}
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="secondary" onClick={() => rotate(-1)} data-agent-id="room:rotate-left">
+                        {t("rotateLeft")}
+                      </Button>
+                      <Button variant="secondary" onClick={() => rotate(1)} data-agent-id="room:rotate-right">
+                        {t("rotateRight")}
+                      </Button>
+                    </>
+                  )}
                 </div>
                 {product.mode === "stand" ? (
                   <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
@@ -881,7 +1010,7 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                     {t("outline")}
                   </label>
                 ) : null}
-                {product.mode === "stand" && cutout !== null ? (
+                {product.mode === "stand" && (cutout !== null || hasScan) ? (
                   <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm" data-agent-id="room:match-light">
                     <input type="checkbox" checked={matchLight} onChange={(event) => setMatchLight(event.currentTarget.checked)} className="accent-dusk size-5" />
                     {t("matchLight")}
@@ -896,6 +1025,7 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                     {t("newPhoto")}
                   </Button>
                 </div>
+                {product.slug === undefined || placement === null ? null : <PlannerPicture slug={product.slug} picture={cleanPicture} />}
               </>
             )}
             <p className="text-slate text-xs">{t("privacy")}</p>

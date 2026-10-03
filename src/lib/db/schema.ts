@@ -1219,8 +1219,54 @@ export const tryOns = pgTable(
   (t) => [index("try_ons_actor_idx").on(t.actorKey, t.createdAt), index("try_ons_upload_idx").on(t.uploadId)],
 );
 
+/**
+ * An AI picture of a piece in a room (docs/adr/053). Three kinds:
+ * - room: the room planner's own picture (the piece placed at true size by the sheet of paper), made photoreal;
+ * - quick: the shopper's room photograph and the piece, placed by the model, its size approximate;
+ * - scene: no photograph at all — the piece in a showroom of one style, made once and then shown to everyone.
+ * A shopper's picture is made from their photograph and goes when it goes; a scene has nothing personal in it and is kept.
+ */
+export const pictures = pgTable(
+  "pictures",
+  {
+    id: id(),
+    /** room | quick | scene. */
+    kind: text("kind").notNull(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    /** The showroom style of a scene (src/lib/pictures/pictures.ts); null for a shopper's room. */
+    style: text("style"),
+    /** The shopper's photograph (room, quick); null for a scene. */
+    uploadId: uuid("upload_id").references(() => uploads.id, { onDelete: "cascade" }),
+    /** Who asked, as the AI layer counts a shopper: their pictures are theirs, and their daily allowance counts these. */
+    actorKey: text("actor_key").notNull(),
+    /** queued | running | done | failed. */
+    status: text("status").notNull().default("queued"),
+    provider: text("provider").notNull(),
+    model: text("model").notNull(),
+    resultKey: text("result_key"),
+    failureReason: text("failure_reason"),
+    costMicros: integer("cost_micros"),
+    /** With the photograph, for the shopper's own; null for a scene, which is kept. */
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    index("pictures_actor_idx").on(t.actorKey, t.createdAt),
+    index("pictures_upload_idx").on(t.uploadId),
+    // One showroom scene per piece and style, unless the last one failed: the second shopper gets the first one's.
+    uniqueIndex("pictures_scene_key").on(t.productId, t.style).where(sql`${t.kind} = 'scene' AND ${t.status} <> 'failed'`),
+    check("pictures_kind", sql`${t.kind} IN ('room', 'quick', 'scene')`),
+    check("pictures_status", sql`${t.status} IN ('queued', 'running', 'done', 'failed')`),
+    check("pictures_scene_has_style", sql`(${t.kind} = 'scene') = (${t.style} IS NOT NULL)`),
+    check("pictures_own_room_has_photo", sql`(${t.kind} = 'scene') = (${t.uploadId} IS NULL)`),
+  ],
+);
+
 export type UploadRow = typeof uploads.$inferSelect;
 export type TryOnRow = typeof tryOns.$inferSelect;
+export type PictureRow = typeof pictures.$inferSelect;
 
 /**
  * The support desk (docs/adr/021). One ticket is one conversation with one

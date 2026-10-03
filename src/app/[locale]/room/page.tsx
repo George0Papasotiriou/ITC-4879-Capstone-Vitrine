@@ -129,7 +129,16 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/[lo
       <div className="mt-10">
         <RoomPlanner
           locale={locale}
-          product={{ title: product.title, dims: product.dimsCm, mode, imageSrc: product.image === null ? null : sameOriginImage(product.image.src, 1080) }}
+          product={{
+            slug: product.slug,
+            title: product.title,
+            dims: product.dimsCm,
+            mode,
+            imageSrc: product.image === null ? null : sameOriginImage(product.image.src, 1080),
+            // Its own 3D scan, only when the file is really in storage: then the piece is drawn in 3D and turns (docs/adr/052).
+            model: product.model?.src ?? null,
+            kind: product.kind,
+          }}
         />
       </div>
 

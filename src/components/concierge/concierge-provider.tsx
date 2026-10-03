@@ -15,6 +15,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { CART_EVENT, type CartSummary } from "@/components/commerce/cart-client";
+import type { AskOptions, EngineHandle } from "@/components/concierge/concierge-shell";
 import { collectPageMap } from "@/components/concierge/page-map";
 import { currentComfort, setComfort } from "@/components/comfort/comfort-store";
 import { SpotlightProvider, useSpotlight, type Executors } from "@/components/concierge/spotlight";
@@ -39,8 +40,17 @@ type ConciergeValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
   chat: UseChatHelpers<UIMessage>;
-  /** `spoken` tells the server the answer will be read aloud, so it keeps it short (docs/adr/026). */
-  ask: (text: string, options?: { spoken?: boolean }) => void;
+  /**
+   * `spoken` tells the server the answer will be read aloud, so it keeps it short (docs/adr/026);
+   * `photoId` attaches a photograph already through the photo route (docs/adr/051).
+   */
+  ask: (text: string, options?: AskOptions) => void;
+  /** Opens the dock and asks the voice bar to start listening. */
+  listen: () => void;
+  /** True while a request to listen, made from outside the dock (the home page's microphone), waits for the voice bar. */
+  listenPending: boolean;
+  /** The voice bar takes the request, once, when it starts listening for it. */
+  takeListen: () => void;
   /** The reason the last request was refused (turns, budget…), if it was. */
   refusal: string | null;
   reset: () => void;
@@ -78,8 +88,8 @@ async function announceCart(locale: string) {
 type EngineProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
-  /** Hands the shell this engine's `ask`, which also sends what was asked before the engine had loaded. */
-  attach: (ask: (text: string, options?: { spoken?: boolean }) => void) => () => void;
+  /** Hands the shell this engine's `ask` and `listen`, which also run what was asked for before the engine had loaded. */
+  attach: (handle: EngineHandle) => () => void;
 };
 
 function ConciergeState({ children, open, setOpen, attach }: { children: ReactNode } & EngineProps) {
@@ -164,19 +174,30 @@ function ConciergeState({ children, open, setOpen, attach }: { children: ReactNo
   }, [chat.messages, spotlight, t, locale]);
 
   const ask = useCallback(
-    (text: string, options?: { spoken?: boolean }) => {
-      const trimmed = text.trim();
+    (text: string, options?: AskOptions) => {
+      const photoId = options?.photoId;
+      // A photograph alone is a question too: "what would suit this?".
+      const trimmed = text.trim() === "" && photoId !== undefined ? t("photo.question") : text.trim();
       if (trimmed === "") return;
       setRefusal(null);
       setOpen(true);
       // Carried on this message rather than on the transport: one spoken turn
-      // does not make the next typed one spoken too.
-      void chat.sendMessage({ text: trimmed }, { body: { spoken: options?.spoken === true } });
+      // does not make the next typed one spoken too. A photograph travels as its
+      // id in the message's metadata; the server reads it (docs/adr/051).
+      void chat.sendMessage({ text: trimmed, ...(photoId === undefined ? {} : { metadata: { photo: { id: photoId } } }) }, { body: { spoken: options?.spoken === true } });
     },
-    [chat, setOpen],
+    [chat, setOpen, t],
   );
 
-  useEffect(() => attach(ask), [attach, ask]);
+  // A flag, not a count: the voice bar mounts only when the dock opens, so it must find the request waiting.
+  const [listenPending, setListenPending] = useState(false);
+  const listen = useCallback(() => {
+    setOpen(true);
+    setListenPending(true);
+  }, [setOpen]);
+  const takeListen = useCallback(() => setListenPending(false), []);
+
+  useEffect(() => attach({ ask, listen }), [attach, ask, listen]);
 
   const reset = useCallback(() => {
     chat.stop();
@@ -249,8 +270,8 @@ function ConciergeState({ children, open, setOpen, attach }: { children: ReactNo
   );
 
   const value = useMemo<ConciergeValue>(
-    () => ({ open, setOpen, chat, ask, refusal, reset, approve, runSpokenTool, writeSpoken, cancelSpokenApprovals }),
-    [open, setOpen, chat, ask, refusal, reset, approve, runSpokenTool, writeSpoken, cancelSpokenApprovals],
+    () => ({ open, setOpen, chat, ask, listen, listenPending, takeListen, refusal, reset, approve, runSpokenTool, writeSpoken, cancelSpokenApprovals }),
+    [open, setOpen, chat, ask, listen, listenPending, takeListen, refusal, reset, approve, runSpokenTool, writeSpoken, cancelSpokenApprovals],
   );
   return <ConciergeContext.Provider value={value}>{children}</ConciergeContext.Provider>;
 }

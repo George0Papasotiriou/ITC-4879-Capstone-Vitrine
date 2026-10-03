@@ -30,12 +30,14 @@ export type DemoPrompt = {
   /** Tools this surface offers. */
   tools: readonly string[];
   locale: "en" | "el";
+  /** The shopper attached a photograph to this message (docs/adr/051). */
+  photo?: boolean;
 };
 
 export type DemoCall = { toolName: string; input: Record<string, unknown> };
 export type DemoStep = { kind: "tools"; calls: DemoCall[] } | { kind: "text"; text: string };
 
-type Intent = "greet" | "comfort" | "size_advice" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "showcase" | "room" | "browse";
+type Intent = "greet" | "comfort" | "size_advice" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "showcase" | "picture" | "room" | "browse";
 
 const ORDER_NUMBER = /\bvt-[0-9a-z]{4}-[0-9a-z]{4}\b/i;
 
@@ -73,6 +75,9 @@ export function intentOf(text: string): Intent {
   if (/\b(window display|shop window|showcase|inspire me)\b|βιτριν|εμπνευσ/.test(t)) return "showcase";
   // A budget with a room or a set is a bundle, even when it says "put together".
   if (/\b(set|bundle|corner|budget)\b|σετ|γωνια/.test(t) && /\d/.test(t)) return "bundle";
+  // An AI picture of a piece in a room (docs/adr/053): "picture it", "what would it look like", «φαντάσου το».
+  // "…like this picture" is a photograph, not a request for one.
+  if (/\b(picture|render|visuali[sz]e|imagine)\b|\bwhat (would|will|does) [^?.!]{0,48}?\blooks? like\b|φαντασου|φτιαξε (μια )?εικονα/.test(t) && !/\b(this|my|the|that) (picture|photo)\b/.test(t)) return "picture";
   if (/\b(add|put|buy)\b|προσθεσ|βαλε/.test(t)) return "add";
   if (/\bmy room\b|\bfits? (in|into|against)?\s*(my|the)\b|δωματιο μου|χωρα(ει|νε)/.test(t)) return "room";
   if (/\b(cart|basket)\b|καλαθι/.test(t)) return "cart";
@@ -125,6 +130,22 @@ export function searchQueryOf(text: string): string {
   return words.join(" ").trim() || text.trim();
 }
 
+/** Words a question about a photograph uses that name no kind of piece: "that suits this room", «που ταιριάζει». */
+const PHOTO_WORDS = new Set(
+  [
+    "that", "this", "these", "those", "it", "match", "matches", "matching", "suit", "suits", "suiting", "go", "goes", "style", "piece", "pieces",
+    "what", "would", "could", "colour", "colours", "color", "colors", "missing", "from", "something", "anything", "here", "photo", "picture",
+    "που", "ταιριαζει", "ταιριαζουν", "δωματιο", "αυτο", "αυτη", "αυτα", "στιλ", "κομματι", "κομματια", "τι", "θα", "λειπει", "χρωματα", "ποια", "φωτογραφια",
+  ].map((word) => word.normalize("NFD").replace(/\p{M}/gu, "")),
+);
+
+/** The kind of piece a question about a photograph names, or "" when it names none ("what would suit this room?"). */
+export function kindQueryOf(text: string): string {
+  // One letter names no piece: the "s" of "what's".
+  const words = text.split(/[^\p{L}\p{N}-]+/u).filter((word) => word.length > 1 && !COMMAND_WORDS.has(fold(word)) && !PHOTO_WORDS.has(fold(word)));
+  return words.join(" ").trim();
+}
+
 const TEMPLATES: [RegExp, string][] = [
   [/reading|αναγνωσ|διαβασ/, "reading-corner"],
   [/living|σαλονι/, "living-room"],
@@ -138,6 +159,33 @@ function bundleInput(text: string): Record<string, unknown> {
   const template = TEMPLATES.find(([pattern]) => pattern.test(t))?.[1] ?? "reading-corner";
   const budget = Number(/(\d[\d.,]*)/.exec(t)?.[1]?.replace(/[.,](?=\d{3}\b)/g, "").replace(",", ".") ?? "600");
   return { template, budgetEuros: Math.max(10, Math.min(50_000, Math.round(budget))) };
+}
+
+/** Words a request for a picture uses that name no piece: the verb, the room and its style. */
+const PICTURE_WORDS = new Set(
+  [
+    "picture", "render", "visualise", "visualize", "imagine", "what", "would", "will", "does", "it", "this", "that", "look", "looks", "like", "how", "of", "make", "photo", "real",
+    "style", "styled", "warm", "minimal", "scandinavian", "nordic", "dark", "moody", "mediterranean", "living", "space", "here", "one",
+    "φαντασου", "φτιαξε", "εικονα", "πως", "θα", "φαινεται", "ενα", "δωματιο", "στιλ", "ζεστο", "μινιμαλ", "σκανδιναβικο", "σκοτεινο", "μεσογειακο", "εδω",
+  ].map((word) => word.normalize("NFD").replace(/\p{M}/gu, "")),
+);
+
+/** The piece a picture is asked of ("picture a green sofa in a nordic room" → "green sofa"), or "" when none is named. */
+export function pictureQueryOf(text: string): string {
+  return searchQueryOf(text)
+    .split(/[^\p{L}\p{N}-]+/u)
+    .filter((word) => word.length > 1 && !PICTURE_WORDS.has(fold(word)))
+    .join(" ")
+    .trim();
+}
+
+/** The showroom a picture is asked in; warm minimal when none is named. */
+export function sceneStyleOf(text: string): "warm-minimal" | "scandinavian" | "dark-moody" | "mediterranean" {
+  const t = fold(text);
+  if (/scandinav|nordic|σκανδιναβ/.test(t)) return "scandinavian";
+  if (/\b(dark|moody)\b|σκοτειν/.test(t)) return "dark-moody";
+  if (/mediterran|μεσογει/.test(t)) return "mediterranean";
+  return "warm-minimal";
 }
 
 /** Which window the words ask for: a curated theme, or a room and a budget of their own. */
@@ -172,6 +220,8 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
 
   // Nothing has run yet for this message: choose the first tool.
   if (last === undefined) {
+    // A photograph with a question about pieces: the rules cannot see it, but the shop can read its colours.
+    if (prompt.photo === true && ["browse", "room", "greet"].includes(intent)) return call("find_by_photo", {});
     const query = searchQueryOf(text);
     switch (intent) {
       case "greet":
@@ -217,6 +267,11 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
         return call("build_bundle", bundleInput(text));
       case "showcase":
         return call("compose_showcase", showcaseInput(text, locale));
+      case "picture": {
+        const piece = pictureQueryOf(text);
+        if (piece === "") return say(locale, "Which piece shall I picture? Name it, for example \"picture a walnut sideboard in a Scandinavian room\".", "Ποιο κομμάτι να φανταστώ; Πες μου το, για παράδειγμα «φαντάσου μια καρυδένια μπουφέ σε σκανδιναβικό δωμάτιο».");
+        return call("search_products", { query: piece, limit: 3 });
+      }
       default:
         return call("search_products", { query, limit: intent === "compare" ? 4 : 6 });
     }
@@ -229,11 +284,33 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
       if (products.length === 0) return say(locale, "I couldn't find anything for that. Try other words, or a category.", "Δεν βρήκα κάτι γι' αυτό. Δοκίμασε άλλες λέξεις ή μια κατηγορία.");
       if (intent === "add") return call("add_to_cart", { productId: (products.find((product) => product.inStock !== false) ?? products[0])!.id, quantity: 1 });
       if (intent === "compare" && products.length >= 2) return call("compare_products", { ids: products.slice(0, Math.min(3, products.length)).map((product) => product.id) });
-      if (intent === "room") return call("place_in_room", { productId: products[0]!.id, caption: locale === "el" ? "Άνοιγμα στο δωμάτιό σου" : "Opening it in your room" });
+      // A picture of the first piece found: in the photograph attached, or in the showroom named.
+      if (intent === "picture") return call("picture_in_room", { productId: products[0]!.id, room: prompt.photo === true ? "photo" : sceneStyleOf(text) });
+      // "…that matches my room" with a photograph of the room is a search, not a request to place a piece.
+      if (intent === "room" && prompt.photo !== true) return call("place_in_room", { productId: products[0]!.id, caption: locale === "el" ? "Άνοιγμα στο δωμάτιό σου" : "Opening it in your room" });
       return call("show_products", { productIds: products.map((product) => product.id), caption: locale === "el" ? "Εμφάνιση προτάσεων" : "Showing what I found" });
     }
-    case "show_products":
+    case "find_by_photo": {
+      const output = last.output as { ok?: boolean; colours?: string[] };
+      if (output.ok !== true) return say(locale, "I couldn't read that photograph. Try attaching it again.", "Δεν μπόρεσα να διαβάσω τη φωτογραφία. Δοκίμασε να την επισυνάψεις ξανά.");
+      // The question named a kind of piece ("a coffee table that suits this room"): that kind, in the photograph's main colour.
+      const kind = kindQueryOf(text);
+      if (kind !== "" && offers("search_products")) return call("search_products", { query: [kind, output.colours?.[0]].filter(Boolean).join(" "), limit: 6 });
+      if (products.length === 0) return say(locale, "I read the colours of your photograph, but nothing in the shop matches them closely.", "Διάβασα τα χρώματα της φωτογραφίας σου, αλλά τίποτα στο κατάστημα δεν τους μοιάζει αρκετά.");
+      return call("show_products", { productIds: products.map((product) => product.id), caption: locale === "el" ? "Κομμάτια στα χρώματα της φωτογραφίας σου" : "Pieces in your photograph's colours" });
+    }
+    case "show_products": {
+      // After a photograph, say which colours were read: the rules read colour, not objects.
+      const fromPhoto = results.find((result) => result.toolName === "find_by_photo")?.output as { colours?: string[] } | undefined;
+      const colours = (fromPhoto?.colours ?? []).slice(0, 3);
+      if (colours.length > 0)
+        return say(
+          locale,
+          `I read ${colours.join(", ")} in your photograph and found ${products.length === 1 ? "one piece" : `${products.length} pieces`} in those colours. Want me to narrow it to one kind of piece?`,
+          `Διάβασα ${colours.join(", ")} στη φωτογραφία σου και βρήκα ${products.length === 1 ? "ένα κομμάτι" : `${products.length} κομμάτια`} σε αυτά τα χρώματα. Να περιορίσω σε ένα είδος;`,
+        );
       return say(locale, `Here ${products.length === 1 ? "is one piece that matches" : `are ${products.length} pieces that match`}. Want me to compare two of them or add one to your cart?`, `Να ${products.length === 1 ? "ένα κομμάτι που ταιριάζει" : `${products.length} κομμάτια που ταιριάζουν`}. Να συγκρίνω δύο ή να προσθέσω κάποιο στο καλάθι;`);
+    }
     case "add_to_cart": {
       const output = last.output as { ok: boolean; title?: string; reason?: string };
       if (!output.ok) return say(locale, "I couldn't add that: it may be out of stock.", "Δεν μπόρεσα να το προσθέσω: ίσως έχει εξαντληθεί.");
@@ -303,6 +380,18 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
         `I'd take ${output.size}.${why}${apart} Shall I remember ${output.size} as your size?`,
         `Θα έπαιρνα ${output.size}.${why}${apart} Να θυμάμαι το ${output.size} ως νούμερό σου;`,
       );
+    }
+    case "picture_in_room": {
+      const output = last.output as { ok?: boolean; reason?: string; title?: string; ready?: boolean } | null;
+      if (output?.ok === true) {
+        return output.ready === true
+          ? say(locale, `Here is ${output.title}, in a room someone already asked for, so it was free.`, `Ορίστε το ${output.title}, σε ένα δωμάτιο που είχε ζητήσει ήδη κάποιος, οπότε ήταν δωρεάν.`)
+          : say(locale, `I'm making a picture of ${output.title}. It develops below in about twenty seconds.`, `Φτιάχνω μια εικόνα με το ${output.title}. Εμφανίζεται από κάτω σε περίπου είκοσι δευτερόλεπτα.`);
+      }
+      if (output?.reason === "no_photo") return say(locale, "Attach a photo of your room first, then ask me again.", "Επισύναψε πρώτα μια φωτογραφία του δωματίου σου και ρώτα με ξανά.");
+      if (output?.reason === "not_for_rooms") return say(locale, "That piece isn't one for a room, so there's no picture to make.", "Αυτό το κομμάτι δεν είναι για δωμάτιο, οπότε δεν υπάρχει εικόνα να φτιάξω.");
+      if (output?.reason === "allowance") return say(locale, "That's today's pictures. The ready showroom pictures on the piece's page are still free.", "Αυτές ήταν οι σημερινές εικόνες. Τα έτοιμα δωμάτια στη σελίδα του κομματιού είναι ακόμα δωρεάν.");
+      return say(locale, "The picture couldn't be started right now. Try again in a moment.", "Η εικόνα δεν μπόρεσε να ξεκινήσει τώρα. Δοκίμασε ξανά σε λίγο.");
     }
     case "place_in_room": {
       const output = last.output as { placeable?: boolean; roomsSaved?: number; fits?: { room: string; fits: boolean; spareCm: number }[] } | null;

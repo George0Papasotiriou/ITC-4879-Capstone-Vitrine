@@ -9,16 +9,13 @@
 
 import {
   Box3,
-  BufferGeometry,
   Color,
   Group,
-  Mesh,
   MeshBasicMaterial,
   NeutralToneMapping,
   PCFShadowMap,
   PerspectiveCamera,
   Plane,
-  PMREMGenerator,
   Raycaster,
   Scene,
   SRGBColorSpace,
@@ -26,16 +23,15 @@ import {
   WebGLRenderer,
   type Material,
   type Texture,
-  type WebGLRenderTarget,
   type Object3D,
 } from "three";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 import { blendMoods, kelvinToLinearRgb, type Mood } from "@/lib/display/moods";
 import { arrangeScene, CEILING_M, frameShot, sceneBounds, type Bounds, type CameraShot, type Placement, type Room, type SceneLayout } from "@/lib/display/scene";
 import type { TemplateId } from "@/lib/optimize/templates";
 
 import { createCameraRig, type CameraRig } from "./camera-rig";
+import { captureRoomEnvironment } from "./environment";
 import { buildContactShadows, PIECE_LAYER, type ContactShadows } from "./contact-shadows";
 import { buildLight, type BuiltLight } from "./light";
 import { bulbOf, loadPiece, type EnginePiece, type LoadedPiece } from "./pieces";
@@ -221,42 +217,15 @@ export function createWindowEngine(options: { reducedMotion: boolean }): WindowE
       invalidate();
     });
 
-  /**
-   * The room's reflected light: three's RoomEnvironment, captured by its PMREM generator. three.js offers no
-   * asynchronous capture, and its shaders are the heaviest the window has (the GGX convolution alone held the
-   * page for 1.2 s on Windows' Direct3D at phone speed, 2026-10-02). They exist as soon as the generator has
-   * sized its targets, so they are compiled in parallel first, with the RoomEnvironment's own materials and
-   * with a render target current, as the capture draws them; the capture then only draws. This reaches into
-   * the generator's internals (three 0.183.2, pinned), so if they ever change it captures as before.
-   */
+  /** The room's reflected light (environment.ts): its heavy shaders compiled in parallel, then captured. */
   async function captureEnvironment(): Promise<void> {
-    const pmrem = new PMREMGenerator(renderer);
-    const studio = new RoomEnvironment();
-    const internals = pmrem as unknown as {
-      _setSize?: (size: number) => void;
-      _allocateTargets?: () => WebGLRenderTarget;
-      _blurMaterial?: Material | null;
-      _ggxMaterial?: Material | null;
-    };
-    if (typeof internals._setSize === "function" && typeof internals._allocateTargets === "function") {
-      internals._setSize(256);
-      const probe = internals._allocateTargets.call(pmrem);
-      const shaders = new Group();
-      for (const material of [internals._blurMaterial, internals._ggxMaterial]) if (material != null) shaders.add(new Mesh(new BufferGeometry(), material));
-      const previous = renderer.getRenderTarget();
-      renderer.setRenderTarget(probe);
-      const compiled = Promise.all([renderer.compileAsync(shaders, camera), renderer.compileAsync(studio, camera)]);
-      renderer.setRenderTarget(previous);
-      await compiled;
-      probe.dispose();
-      for (const mesh of shaders.children) (mesh as Mesh).geometry.dispose();
+    const texture = await captureRoomEnvironment(renderer, camera);
+    if (disposed) {
+      texture.dispose();
+      return;
     }
-    if (!disposed) {
-      environment = pmrem.fromScene(studio, 0.04).texture;
-      scene.environment = environment;
-    }
-    studio.dispose();
-    pmrem.dispose();
+    environment = texture;
+    scene.environment = texture;
   }
 
   let reduced = options.reducedMotion;

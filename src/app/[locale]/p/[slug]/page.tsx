@@ -18,6 +18,7 @@ import { currentRegion } from "@/lib/commerce/region";
 import { PriceWatch } from "@/components/commerce/price-watch";
 import { SizePicker, type SizeOption } from "@/components/commerce/size-picker";
 import { ModelView } from "@/components/commerce/model-view";
+import { PictureStudio } from "@/components/pictures/picture-studio";
 import { SpinView } from "@/components/commerce/spin-view";
 import { ProductGallery } from "@/components/commerce/product-gallery";
 import { ProductGrid } from "@/components/commerce/product-grid";
@@ -37,6 +38,10 @@ import { pairsWith } from "@/lib/reco/server";
 import { productJsonLd, serializeJsonLd } from "@/lib/catalog/structured-data";
 import { priceWatches, reviewsStore } from "@/lib/commerce/server";
 import { currentUser } from "@/lib/auth/session";
+import { knownActor } from "@/lib/ai/server";
+import { sameOriginImage } from "@/lib/catalog/media-url";
+import { sceneUrl } from "@/lib/pictures/pictures";
+import { pictureStore } from "@/lib/pictures/server";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
 import { sizeChartFor } from "@/lib/catalog/capsule";
 import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
@@ -151,6 +156,15 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const sizeGroup = sizeGroupOf(product.kind);
   const finder = sizeChart === null || sizeGroup === null ? undefined : { chart: sizeChart, group: sizeGroup };
   const fits = roomFits(product.dimsCm, preferences.rooms);
+
+  // "See it in a room" (docs/adr/053), for pieces that belong in a room: the showroom scenes already made,
+  // and how many pictures this shopper may still make today (a read: no guest id is minted for it).
+  const pictureable = sizes.length === 0 && roomPlacement(product.kind, product.dimsCm) !== null;
+  const studioImage = product.media.find((entry) => entry.studio === true) ?? product.image;
+  const pictureActor = pictureable ? await knownActor(user) : null;
+  const pictures = pictureable ? await pictureStore() : null;
+  const madeScenes = pictures === null ? [] : await pictures.scenesOf(product.id);
+  const picturesLeft = pictures === null || pictureActor === null ? null : await pictures.left(pictureActor);
 
   const imageLabels = product.media.map((_, index) => t("showImage", { index: index + 1, count: product.media.length }));
   // English copy on a Greek page is marked as English, for screen readers and translation tools.
@@ -336,6 +350,15 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           )}
         </div>
       </div>
+
+      {!pictureable ? null : (
+        <PictureStudio
+          piece={{ slug: product.slug, title: product.title, image: studioImage === null ? null : sameOriginImage(studioImage.src, 1080), canPlace: true }}
+          scenes={madeScenes.map((scene) => ({ id: scene.id, kind: scene.kind, style: scene.style, status: scene.status, url: sceneUrl(scene.id), drawn: scene.provider === "drawn", reason: null }))}
+          left={picturesLeft}
+          signedIn={user !== null}
+        />
+      )}
 
       <ProductReviews summary={reviews.summary} reviews={reviews.reviews} locale={locale} insights={insights} />
 

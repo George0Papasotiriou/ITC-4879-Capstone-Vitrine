@@ -10,6 +10,7 @@
 import { knownActor } from "@/lib/ai/server";
 import { currentUser } from "@/lib/auth/session";
 import { photoStore, removeFiles } from "@/lib/photos/server";
+import { pictureStore } from "@/lib/pictures/server";
 
 /**
  * "Delete now" (docs/adr/023). Only the shopper who gave the photograph can
@@ -32,6 +33,8 @@ export async function DELETE(_request: Request, context: RouteContext<"/api/phot
   if (photo === null) return Response.json({ ok: false, reason: "not_found" }, { status: 404 });
 
   const results = (await store.tryOnsForActor(actor.key)).filter((tryOn) => tryOn.uploadId === id && tryOn.resultKey !== null);
-  await removeFiles([photo.storageKey, ...results.map((tryOn) => tryOn.resultKey!)]);
+  // An AI picture of a piece in this room goes too: it is a picture of the same room (docs/adr/053).
+  const pictures = (await (await pictureStore()).forActor(actor.key)).filter((picture) => picture.uploadId === id && picture.resultKey !== null);
+  await removeFiles([photo.storageKey, ...results.map((tryOn) => tryOn.resultKey!), ...pictures.map((picture) => picture.resultKey!)]);
   return Response.json({ ok: true });
 }

@@ -207,9 +207,9 @@ export const summarizeReviews = define({
 export const findByPhoto = define({
   name: "find_by_photo",
   description:
-    "Find pieces like the photograph the shopper gave the Snap to shop page: the shop measures the photograph's colours and searches with them. " +
-    "Use it when they mention a photo they have shared, or ask for something that matches a picture. " +
-    "If there is no photograph, say so and open the page; never describe what is in their photograph, because the shop reads colour, not objects.",
+    "Find pieces in the colours of the shopper's newest photograph — one attached to their question, or given to the Snap to shop page: the shop measures the photograph's colours and searches with them. " +
+    "Use it when they attach or mention a photo, or ask for something that matches a picture or their room. " +
+    "Do not use it to learn what is in the photograph: it reads colour only. If there is no photograph, say so and open the page.",
   scope: "read",
   input: z.object({ category: z.string().trim().max(32).optional().describe("Narrow to one category slug, when the shopper named one.") }),
   output: z.discriminatedUnion("ok", [

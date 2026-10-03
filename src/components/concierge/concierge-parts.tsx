@@ -13,6 +13,7 @@ import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 
+import { ConciergePicture } from "@/components/pictures/concierge-picture";
 import { Button } from "@/components/ui/button";
 import { SmartLink } from "@/components/ui/smart-link";
 import { preferencesPatchSchema, SIZE_GROUPS } from "@/lib/prefs/preferences";
@@ -171,7 +172,9 @@ export function AssistantPart({ part, onApprove }: { part: Part; onApprove: (id:
               ? { title: t("approval.handOverTitle"), body: t("approval.handOverBody") }
               : name === "remember_preference"
                 ? { title: t("approval.rememberTitle"), body: t("approval.rememberBody") }
-                : { title: t("approval.genericTitle"), body: t("approval.genericBody") };
+                : name === "picture_in_room"
+                  ? { title: input.room === "photo" ? t("approval.pictureOwnTitle") : t("approval.pictureTitle"), body: input.room === "photo" ? t("approval.pictureOwnBody") : t("approval.pictureBody") }
+                  : { title: t("approval.genericTitle"), body: t("approval.genericBody") };
     return (
       <div className="border-lumen rounded-plinth flex flex-col gap-3 border-2 p-4" role="group" aria-label={copy.title} data-agent-id={`concierge:approval:${name}`}>
         <p className="font-medium">{copy.title}</p>
@@ -248,6 +251,12 @@ export function AssistantPart({ part, onApprove }: { part: Part; onApprove: (id:
         );
       }
       return <Status>{output.reason === "needs_contact" ? t("handOver.contactForm") : t("handOver.failed")}</Status>;
+    case "picture_in_room":
+      return output.ok === true ? (
+        <ConciergePicture pictureId={String(output.pictureId)} slug={String(output.slug)} title={String(output.title)} room={String(output.room)} />
+      ) : (
+        <Status>{t(`picture.${["not_for_rooms", "no_photo", "allowance"].includes(String(output.reason)) ? String(output.reason) : "unavailable"}`)}</Status>
+      );
     default:
       // Page actions (navigate, filters, highlight, viewers) show their caption; the Spotlight shows the action itself.
       return typeof input.caption === "string" ? <Status>{input.caption}</Status> : null;

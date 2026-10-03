@@ -349,7 +349,11 @@
       "genericTitle": "Go ahead?",
       "genericBody": "Nothing happens until you say yes.",
       "rememberTitle": "Keep this about you?",
-      "rememberBody": "The shop will remember it for next time. You can see and delete it in What we know about you."
+      "rememberBody": "The shop will remember it for next time. You can see and delete it in What we know about you.",
+      "pictureTitle": "Make an AI picture of this piece?",
+      "pictureBody": "It uses one of today's pictures, unless someone already made this room: then it's free. It takes about twenty seconds.",
+      "pictureOwnTitle": "Picture this piece in your photo?",
+      "pictureOwnBody": "The AI uses the photo you attached, and it uses one of today's pictures. Only you see it, and it goes when your photo does, within a day."
     },
     "errors": {
       "turns": "You've used today's Concierge questions. They come back tomorrow; signing in gives you more.",
@@ -423,6 +427,37 @@
       "avoid": "Would rather not see: {items}",
       "budget": "Up to €{amount} a piece",
       "budgetRemoved": "No budget kept"
+    },
+    "photo": {
+      "attach": "Add a photo",
+      "alt": "Your photo",
+      "sent": "Photo sent",
+      "consent": "Use this photo for my question. The shop keeps it for a day, then deletes it.",
+      "sending": "Sending the photo…",
+      "remove": "Remove the photo",
+      "drop": "Drop the photo here",
+      "question": "What would suit this room?",
+      "ideas": "Ideas for this photo",
+      "chips": {
+        "style": "Find pieces in this style",
+        "colours": "What colours would suit it?",
+        "room": "What's missing from this room?"
+      },
+      "errors": {
+        "type": "That isn't a photo the shop can read. Try a JPEG, PNG or WebP.",
+        "too_large": "That photo is over 12 MB. Try a smaller one.",
+        "too_small": "That photo is too small to read. Try a larger one.",
+        "too_many": "You already have a few photos with the shop. Delete one from your data page first.",
+        "unreadable": "The shop could not read that file.",
+        "no_consent": "Tick the box first: the shop reads nothing without it.",
+        "generic": "The photo couldn't be sent. Try again."
+      }
+    },
+    "picture": {
+      "not_for_rooms": "That piece isn't one for a room, so there's no picture to make.",
+      "no_photo": "Attach a photo of your room first, then ask again.",
+      "allowance": "That's today's pictures. The ready showroom ones are still free to see on the piece's page.",
+      "unavailable": "The picture couldn't be started right now. Try again in a moment."
     }
   },
   "footer": {
@@ -735,7 +770,12 @@
       "full": "You have {max} rooms already. Remove one in Your shop, or save under one of their names to replace it.",
       "failed": "The room wasn’t saved. Check the connection and try again."
     },
-    "matchLight": "Match the room's light"
+    "matchLight": "Match the room's light",
+    "announceTurned": "Turned",
+    "scanNote": "Drawn from the piece’s own 3D scan, so it turns: use the buttons, R, or two fingers on a phone.",
+    "scanLoading": "Loading the piece’s 3D scan…",
+    "photoOnly": "This piece has a photograph, not a 3D scan, so it can’t turn. Mirror shows it the other way round.",
+    "mirror": "Mirror"
   },
   "checkout": {
     "title": "Checkout",
@@ -1717,7 +1757,8 @@
         "animate": "Animate me",
         "capsule_image": "Capsule photography",
         "translation": "Greek copy",
-        "copy_draft": "Staff copy drafts"
+        "copy_draft": "Staff copy drafts",
+        "room_picture": "AI room pictures"
       },
       "settings": "Switches",
       "settingsLede": "Both changes take effect at once, for everyone, and are recorded in the audit log.",
@@ -1982,7 +2023,8 @@
         "support-new": "New support messages",
         "support-reply": "Support replies",
         "hand-over": "Hand-overs to a person",
-        "mcp": "Agent requests (MCP)"
+        "mcp": "Agent requests (MCP)",
+        "pictures": "AI pictures"
       },
       "trendingTitle": "Trending now",
       "trendingLede": "What several people searched for in the last day; each person counts once per term and hour. Shown in the search pop-up.",
@@ -2520,5 +2562,84 @@
     "webmcpChecking": "Checking this browser…",
     "webmcpOn": "This browser supports WebMCP: {count, plural, one {# tool is} other {# tools are}} ready for its assistant.",
     "webmcpOff": "This browser does not support WebMCP yet. The address above works with any assistant that speaks MCP."
+  },
+  "pictures": {
+    "eyebrow": "See it in a room",
+    "title": "Picture it",
+    "lede": "Made by AI in about twenty seconds, from the piece's own photographs and its catalogue size.",
+    "empty": "Choose a room on the right, or bring your own.",
+    "tabs": {
+      "scenes": "A room like…",
+      "own": "Your room"
+    },
+    "styles": {
+      "warm-minimal": "Warm minimal",
+      "scandinavian": "Scandinavian",
+      "dark-moody": "Dark & moody",
+      "mediterranean": "Mediterranean"
+    },
+    "ready": "Ready · free to see",
+    "make": "Make this picture",
+    "making": "Developing…",
+    "left": "{count, plural, =0 {No pictures left today} one {# picture left today} other {# pictures left today}}.",
+    "leftGuest": "A guest can make 1 picture a day, an account 3. Ready rooms are free.",
+    "leftAccounts": "With an account, 3 a day.",
+    "ownLede": "A photo of your room, and the AI places the piece in it. Its size is the AI's judgement: for an exact size, measure with a sheet of paper.",
+    "choose": "Choose, paste or drop a photo of your room",
+    "drop": "Drop the photo here",
+    "yourPhoto": "Your room",
+    "consent": "Use this photo to make the picture. It goes to the shop's AI model, is kept for a day, then deleted.",
+    "ownGo": "Picture it in my room",
+    "exact": "Exact, with a sheet of paper",
+    "save": "Save the picture",
+    "alt": "{title} in a {style} room, an AI picture",
+    "altOwn": "{title} in your room, an AI picture",
+    "label": {
+      "ai": "AI picture",
+      "drawn": "Preview without AI",
+      "approximate": "Approximate size",
+      "exact": "Placed at true size"
+    },
+    "stage": {
+      "compare": "Compare with your photo",
+      "before": "Your room",
+      "after": "With the piece",
+      "time": "About 20 seconds",
+      "stages": {
+        "light": "Reading the light…",
+        "place": "Setting the piece in place…",
+        "shadows": "Matching the shadows…",
+        "develop": "Developing the picture…"
+      }
+    },
+    "planner": {
+      "title": "Make it a photograph",
+      "lede": "The AI turns this into a real-looking photo of your room: the piece where you put it, at its true size, in your room's own light.",
+      "go": "Picture it with AI",
+      "consent": "Use this picture of my room to make the photograph. It goes to the shop's AI model, is kept for a day, then deleted."
+    },
+    "errors": {
+      "allowance": "That's today's pictures. Come back tomorrow, or look at the ready ones.",
+      "budget": "The shop's AI has done enough for today. Try again tomorrow.",
+      "kill_switch": "AI pictures are paused right now.",
+      "off": "AI pictures aren't available right now.",
+      "slow_down": "One moment: too many at once.",
+      "no_consent": "Tick the box first: the shop uses nothing without it.",
+      "type": "That isn't a photo the shop can read. Try a JPEG, PNG or WebP.",
+      "too_large": "That photo is over 12 MB. Try a smaller one.",
+      "too_small": "That photo is too small. Try a larger one.",
+      "too_many": "You already have a few photos with the shop. Delete one from your data page first.",
+      "unreadable": "The shop couldn't read that file.",
+      "not_found": "That piece isn't available any more.",
+      "invalid_request": "Something was missing. Try again.",
+      "model_refused": "The AI couldn't make this picture. Try another photo or style.",
+      "no_image": "The AI didn't return a picture. Try again.",
+      "photo_gone": "Your photo has gone (it lasts a day). Add it again.",
+      "piece_gone": "That piece's photographs aren't available.",
+      "piece_image": "That piece's photograph couldn't be loaded. Try again.",
+      "timeout": "This is taking longer than it should. Try again in a moment.",
+      "generic": "The picture couldn't be made. Try again."
+    },
+    "plannerAlt": "Your room with the piece, an AI picture"
   }
 }

@@ -8,7 +8,7 @@
  */
 
 import { createGoogle } from "@ai-sdk/google";
-import type { LanguageModel } from "ai";
+import type { ImageModel, LanguageModel } from "ai";
 
 import { MODELS, type ModelEntry } from "@/lib/ai/models";
 import { createDemoModel } from "@/lib/ai/providers/demo";
@@ -31,4 +31,14 @@ export function textModel(
   if (mode === "demo") return { model: createDemoModel({ locale }), entry: { provider: "demo", id: "vitrine-demo-rules", pricing: { kind: "tokens", inputUsdPerMillion: 0, outputUsdPerMillion: 0 } } };
   if (apiKey === undefined) return null;
   return { model: createGoogle({ apiKey })(entry.id), entry };
+}
+
+/**
+ * The image model for AI pictures (docs/adr/053), or null when there is none
+ * to pay: in demo mode, with AI off, or without a key the pictures are drawn
+ * by the shop itself instead (src/lib/pictures/render.ts), and say so.
+ */
+export function imageModel(mode: AiMode, entry: ModelEntry = MODELS.image, { apiKey }: { apiKey?: string } = {}): { model: ImageModel; entry: ModelEntry } | null {
+  if (mode !== "google" || apiKey === undefined) return null;
+  return { model: createGoogle({ apiKey }).image(entry.id), entry };
 }

@@ -225,7 +225,9 @@ async function main() {
       // Content-based neighbour lists, so recommendations work from the first view.
       (await run(TSX, ["scripts/reco.ts", "rebuild", "--if-empty"], env)) ||
       // The support desk's ready answers, as a deploy writes them.
-      (await run(TSX, ["scripts/support.ts", "macros"], env));
+      (await run(TSX, ["scripts/support.ts", "macros"], env)) ||
+      // Test runs only: one specimen piece with a 3D model, for the room planner's 3D tests (docs/adr/052).
+      (ephemeral ? await run(TSX, ["scripts/e2e-scan.ts"], env) : 0);
     if (code !== 0) {
       await stopDatabase();
       throw new Error("Seeding the catalogue failed; see the output above.");

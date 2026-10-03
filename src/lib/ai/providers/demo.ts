@@ -38,6 +38,8 @@ export function readPrompt(prompt: Prompt, tools: readonly string[], locale: "en
           .map((part) => (part as { text: string }).text)
           .join(" ")
       : "";
+  // A photograph attached to the question (docs/adr/051) arrives as an image file on the user's message.
+  const photo = userMessage?.role === "user" && userMessage.content.some((part) => part.type === "file" && part.mediaType.startsWith("image/"));
   const results: DemoToolResult[] = [];
   for (const message of prompt.slice(lastUser + 1)) {
     if (message.role !== "tool" && message.role !== "assistant") continue;
@@ -51,7 +53,7 @@ export function readPrompt(prompt: Prompt, tools: readonly string[], locale: "en
       });
     }
   }
-  return { text, results, tools, locale };
+  return { text, results, tools, locale, photo };
 }
 
 /** Rough token counts for the usage record: about four characters a token. */

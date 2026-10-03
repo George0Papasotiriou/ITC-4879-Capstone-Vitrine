@@ -16,8 +16,10 @@ import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent,
 import { ActionTimeline } from "@/components/concierge/action-timeline";
 import { AssistantPart } from "@/components/concierge/concierge-parts";
 import { useConcierge } from "@/components/concierge/concierge-provider";
+import { CameraGlyph, DropVeil, PhotoButton, PhotoChip, photoPreview, usePhotoAttachment } from "@/components/concierge/photo-attachment";
 import { VoiceBar } from "@/components/concierge/voice-bar";
 import { Button } from "@/components/ui/button";
+import { photoIdOf } from "@/lib/ai/surfaces/photos";
 import { cn } from "@/lib/ui/cn";
 import { DURATION } from "@/lib/ui/motion";
 import { usePresence } from "@/lib/ui/use-presence";
@@ -57,6 +59,9 @@ export function ConciergeDock() {
   const pathname = usePathname();
   const { open, setOpen, chat, ask, refusal, reset, approve } = useConcierge();
   const [text, setText] = useState("");
+  // A photograph for the next question: pasted, dropped or chosen (docs/adr/051).
+  const photo = usePhotoAttachment();
+  const tp = useTranslations("concierge.photo");
   const input = useRef<HTMLTextAreaElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const log = useRef<HTMLDivElement>(null);
@@ -124,14 +129,16 @@ export function ConciergeDock() {
     element.style.transform = "";
   };
 
-  const submit = (event?: FormEvent) => {
+  const submit = async (event?: FormEvent) => {
     event?.preventDefault();
-    if (busy || text.trim() === "") return;
-    ask(text);
+    if (busy || photo.sending || (text.trim() === "" && photo.attachment === null)) return;
+    const sent = await photo.send();
+    if (!sent.ok) return;
+    ask(text, sent.photoId === null ? undefined : { photoId: sent.photoId });
     setText("");
   };
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) submit(event);
+    if (event.key === "Enter" && !event.shiftKey) void submit(event);
   };
   const suggestions = Object.values(t.raw(`suggestions.${suggestionSet(pathname, locale)}`) as Record<string, string>);
 
@@ -215,11 +222,29 @@ export function ConciergeDock() {
               {chat.messages.map((message, position) => {
                 const fresh = position >= seen;
                 const words = message.parts.map((part) => (part.type === "text" ? part.text : "")).join("");
+                const sentPhoto = message.role === "user" ? photoIdOf(message) : null;
+                const preview = sentPhoto === null ? null : photoPreview(sentPhoto);
                 return (
                   <li key={message.id} className={cn("flex flex-col gap-3", message.role === "user" && "items-end", fresh && "animate-rise")} data-agent-id={`concierge:message:${message.role}`}>
                     {message.role === "user" ? (
-                      // A spoken turn whose words are still arriving shows an ellipsis until they do.
-                      <p className="bg-dusk text-glass rounded-plinth max-w-[85%] px-3 py-2 whitespace-pre-line">{words === "" ? "…" : words}</p>
+                      <>
+                        {sentPhoto === null ? null : (
+                          <span className="border-hairline block max-w-[70%] overflow-hidden rounded-[10px] border bg-white shadow-sm" data-agent-id="concierge:message-photo">
+                            {preview === null ? (
+                              <span className="text-slate flex items-center gap-2 px-3 py-2 text-sm">
+                                <CameraGlyph className="size-4" />
+                                {tp("sent")}
+                              </span>
+                            ) : (
+                              // The shopper's own photograph, from their own device (an object URL).
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={preview} alt={tp("alt")} className="block max-h-56 w-auto object-cover" />
+                            )}
+                          </span>
+                        )}
+                        {/* A spoken turn whose words are still arriving shows an ellipsis until they do. */}
+                        <p className="bg-dusk text-glass rounded-plinth max-w-[85%] px-3 py-2 whitespace-pre-line">{words === "" ? "…" : words}</p>
+                      </>
                     ) : (
                       message.parts.map((part, index) => (
                         // Keyed by state as well, so a card that becomes its result rises in again, in place.
@@ -241,7 +266,29 @@ export function ConciergeDock() {
           <ActionTimeline className="mt-6" />
         </div>
 
-        <form onSubmit={submit} className="border-hairline flex items-end gap-2 border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <form
+          onSubmit={(event) => void submit(event)}
+          {...photo.bind}
+          className="border-hairline relative flex flex-col gap-2 border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+          data-agent-id="concierge:composer"
+        >
+          <DropVeil show={photo.dragging} label={tp("drop")} />
+          <PhotoChip state={photo} />
+          {photo.attachment === null ? null : (
+            <ul className="flex flex-wrap gap-1.5" aria-label={tp("ideas")}>
+              {(["style", "colours", "room"] as const).map((idea) => (
+                <li key={idea}>
+                  <button type="button" className="border-hairline hover:border-dusk/40 rounded-full border bg-white px-2.5 py-1 text-xs transition-colors" onClick={() => setText(tp(`chips.${idea}`))} data-agent-id={`photo:idea:${idea}`}>
+                    {tp(`chips.${idea}`)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="flex items-end gap-2">
+          <PhotoButton onFile={photo.attach} label={tp("attach")} className="text-slate hover:text-dusk hover:bg-plinth rounded-plinth inline-flex size-11 shrink-0 items-center justify-center transition-colors">
+            <CameraGlyph />
+          </PhotoButton>
           <label htmlFor={`${id}-input`} className="sr-only">
             {t("placeholder")}
           </label>
@@ -262,10 +309,11 @@ export function ConciergeDock() {
               {t("stop")}
             </Button>
           ) : (
-            <Button type="submit" disabled={text.trim() === ""} data-agent-id="concierge:send">
+            <Button type="submit" disabled={(text.trim() === "" && photo.attachment === null) || photo.sending} data-agent-id="concierge:send">
               {t("send")}
             </Button>
           )}
+          </div>
         </form>
       </section>
     </>

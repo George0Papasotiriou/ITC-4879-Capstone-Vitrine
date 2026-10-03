@@ -211,6 +211,23 @@ export async function toolServices({
         return { ids: await snapSearch(seen, { category, locale }), colours: searchableColours(seen) };
       },
     },
+    pictures: {
+      start: async ({ productId, style, photoId }) => {
+        // A picture means the browser is known: the same actor the page would use.
+        const actor = await aiActor(user);
+        // Loaded on use: the pictures module reads this one's guard (a cycle otherwise).
+        const { startPicture } = await import("@/lib/pictures/start");
+        const started = await startPicture({
+          actor,
+          userId: user?.id ?? null,
+          productId,
+          kind: photoId === null ? "scene" : "quick",
+          style,
+          room: photoId === null ? null : { uploadId: photoId },
+        });
+        return started.ok ? { ok: true, id: started.picture.id, ready: started.picture.status === "done", left: started.left } : { ok: false, reason: started.reason };
+      },
+    },
     tryOn: {
       photo: async () => {
         const actor = await knownActor(user);

@@ -40,8 +40,11 @@ describe("one rhythm for the whole shop", () => {
     expect(css).toContain(':root[data-motion="reduce"] *');
     expect(css).toContain(':root[data-motion="reduce"]::view-transition-group(*)');
     expect(css).toContain(':root:not([data-motion="full"])::view-transition-group(*)');
-    // The one loop in the shop is the listening light; skeletons no longer pulse.
-    expect(css.match(/infinite/g)?.length).toBe(1);
+    // Loops are few and each one means "still working": the listening light, and the darkroom's sheen while an
+    // AI picture develops (docs/adr/053). Skeletons no longer pulse. Without motion the sheen is not drawn at all.
+    const loops = [...css.matchAll(/animation: ([\w-]+) [^;]*\binfinite\b/g)].map((match) => match[1]);
+    expect(loops).toEqual(["vitrine-breathe", "vitrine-sheen"]);
+    expect(css).toContain(':root[data-motion="reduce"] .picture-sheen {\n  display: none;');
   });
 });
 

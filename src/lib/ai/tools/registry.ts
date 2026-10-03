@@ -11,6 +11,7 @@ import { getOrders, getOrderStatus, setPriceWatch, startCheckout, startReturn, t
 import { addToCart, getCart, removeFromCart, updateCartItem } from "@/lib/ai/tools/cart";
 import { buildBundle, compareProducts, findByPhoto, getProducts, recommend, searchProducts, summarizeReviews } from "@/lib/ai/tools/catalog";
 import { composeShowcase } from "@/lib/ai/tools/display";
+import { pictureInRoom } from "@/lib/ai/tools/pictures";
 import { handToPerson } from "@/lib/ai/tools/support";
 import { APPROVAL_SCOPES, type Surface, type ToolContext, type VitrineTool } from "@/lib/ai/tools/types";
 import { getPreferences, placeInRoom, rememberPreference, suggestSize } from "@/lib/ai/tools/preferences";
@@ -43,6 +44,7 @@ export const TOOLS: readonly VitrineTool<unknown, unknown>[] = [
   rememberPreference,
   suggestSize,
   placeInRoom,
+  pictureInRoom,
   composeShowcase,
   getCart,
   addToCart,

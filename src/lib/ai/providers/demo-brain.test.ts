@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { demoStep, intentOf, measurementsOf, searchQueryOf, sizeOf, type DemoPrompt } from "@/lib/ai/providers/demo-brain";
+import { demoStep, intentOf, kindQueryOf, measurementsOf, pictureQueryOf, sceneStyleOf, searchQueryOf, sizeOf, type DemoPrompt } from "@/lib/ai/providers/demo-brain";
 import { TOOLS } from "@/lib/ai/tools/registry";
 
 const ALL = TOOLS.map((tool) => tool.name);
@@ -174,5 +174,88 @@ describe("placing in a room", () => {
     expect((fits as { text: string }).text).toBe("It fits your Living room wall with 150 cm to spare. I've opened it in the planner so you can see it in a photo of the room.");
     const noRooms = demoStep(prompt("fit my room", [{ toolName: "place_in_room", output: { placeable: true, roomsSaved: 0, fits: [] } }]));
     expect((noRooms as { text: string }).text).toContain("Save your room's wall");
+  });
+});
+
+describe("a photograph attached to the question (docs/adr/051)", () => {
+  it("reads its colours first, when the question is about pieces", () => {
+    expect(demoStep({ ...prompt("find a table that matches my room"), photo: true })).toEqual({ kind: "tools", calls: [{ toolName: "find_by_photo", input: {} }] });
+    // A question about something else is answered as usual, photograph or not.
+    expect(demoStep({ ...prompt("open my cart"), photo: true })).toEqual({ kind: "tools", calls: [{ toolName: "navigate", input: { href: "/cart", caption: "Opening the cart" } }] });
+  });
+
+  it("shows what it found and says which colours it read", () => {
+    const found = { toolName: "find_by_photo", output: { ok: true, colours: ["walnut", "cream"], products: [LAMP, CHAIR] }, denied: false };
+    // A question that names no kind of piece shows the photograph's colours as they are.
+    const shown = demoStep({ ...prompt("What would suit this room?", [found]), photo: true });
+    expect(shown).toMatchObject({ kind: "tools", calls: [{ toolName: "show_products", input: { productIds: [LAMP.id, CHAIR.id] } }] });
+    const said = demoStep({ ...prompt("What would suit this room?", [found, { toolName: "show_products", output: { products: [LAMP, CHAIR] }, denied: false }]), photo: true });
+    expect(said.kind).toBe("text");
+    expect((said as { text: string }).text).toContain("walnut, cream");
+  });
+
+  it("says so when the photograph cannot be read", () => {
+    const step = demoStep({ ...prompt("what suits this?", [{ toolName: "find_by_photo", output: { ok: false, reason: "no_photo" }, denied: false }]), photo: true });
+    expect(step).toMatchObject({ kind: "text" });
+  });
+});
+
+describe("an AI picture of a piece in a room (docs/adr/053)", () => {
+  it("knows a request for a picture from a photograph to match", () => {
+    expect(intentOf("Picture a walnut sideboard in a Scandinavian room")).toBe("picture");
+    expect(intentOf("What would the Radford chair look like in a dark moody room?")).toBe("picture");
+    expect(intentOf("Φαντάσου την καρέκλα σε μεσογειακό δωμάτιο")).toBe("picture");
+    expect(intentOf("Find a table like this picture")).not.toBe("picture");
+    expect(intentOf("What would suit this room?")).not.toBe("picture");
+  });
+
+  it("keeps the piece and reads the style", () => {
+    expect(pictureQueryOf("Picture a green sofa in a nordic room")).toBe("green sofa");
+    expect(pictureQueryOf("What would the Radford chair look like in a dark moody room?")).toBe("Radford chair");
+    expect(pictureQueryOf("Picture it in my room")).toBe("");
+    expect(sceneStyleOf("in a Nordic room")).toBe("scandinavian");
+    expect(sceneStyleOf("dark and moody")).toBe("dark-moody");
+    expect(sceneStyleOf("σε μεσογειακό δωμάτιο")).toBe("mediterranean");
+    expect(sceneStyleOf("in a room")).toBe("warm-minimal");
+  });
+
+  it("finds the piece, then asks for the picture in the style named, or in the photograph attached", () => {
+    const text = "Picture the Radford chair in a Scandinavian room";
+    expect(demoStep(prompt(text))).toEqual({ kind: "tools", calls: [{ toolName: "search_products", input: { query: "Radford chair", limit: 3 } }] });
+    const found = { toolName: "search_products", output: { products: [CHAIR, LAMP] }, denied: false };
+    expect(demoStep(prompt(text, [found]))).toEqual({ kind: "tools", calls: [{ toolName: "picture_in_room", input: { productId: CHAIR.id, room: "scandinavian" } }] });
+    expect(demoStep({ ...prompt("Picture the Radford chair here", [found]), photo: true })).toEqual({ kind: "tools", calls: [{ toolName: "picture_in_room", input: { productId: CHAIR.id, room: "photo" } }] });
+  });
+
+  it("asks which piece when none is named, and explains each answer", () => {
+    expect(demoStep(prompt("Picture it in a room"))).toMatchObject({ kind: "text" });
+    const making = demoStep(prompt("Picture the Radford chair", [{ toolName: "picture_in_room", output: { ok: true, title: "Radford Chair", ready: false }, denied: false }]));
+    expect((making as { text: string }).text).toContain("twenty seconds");
+    const free = demoStep(prompt("Picture the Radford chair", [{ toolName: "picture_in_room", output: { ok: true, title: "Radford Chair", ready: true }, denied: false }]));
+    expect((free as { text: string }).text).toContain("free");
+    const spent = demoStep(prompt("Picture the Radford chair", [{ toolName: "picture_in_room", output: { ok: false, reason: "allowance" }, denied: false }]));
+    expect((spent as { text: string }).text).toContain("today's pictures");
+    const declined = demoStep(prompt("Picture the Radford chair", [{ toolName: "picture_in_room", output: null, denied: true }]));
+    expect((declined as { text: string }).text).toContain("haven't done that");
+  });
+});
+
+describe("kindQueryOf", () => {
+  it("keeps the kind of piece a question about a photograph names, and nothing else", () => {
+    expect(kindQueryOf("Find a coffee table that suits this room")).toBe("coffee table");
+    expect(kindQueryOf("Βρες ένα τραπεζάκι που ταιριάζει στο δωμάτιό μου")).toBe("τραπεζάκι");
+    expect(kindQueryOf("What would suit this room?")).toBe("");
+    expect(kindQueryOf("What's missing from this room?")).toBe("");
+  });
+
+  it("searches that kind in the photograph's main colour after reading it", () => {
+    const found = { toolName: "find_by_photo", output: { ok: true, colours: ["walnut", "cream"], products: [LAMP] }, denied: false };
+    expect(demoStep({ ...prompt("Find a coffee table that suits this room", [found]), photo: true })).toEqual({
+      kind: "tools",
+      calls: [{ toolName: "search_products", input: { query: "coffee table walnut", limit: 6 } }],
+    });
+    // "…that matches my room" with the room's photograph shows the results; it does not open the planner.
+    const searched = { toolName: "search_products", output: { products: [LAMP, CHAIR] }, denied: false };
+    expect(demoStep({ ...prompt("find a table that matches my room", [found, searched]), photo: true })).toMatchObject({ kind: "tools", calls: [{ toolName: "show_products" }] });
   });
 });

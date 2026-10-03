@@ -41,7 +41,7 @@ export type ModelEntry = {
 };
 
 /** What the shop uses AI for; every recorded cost names one. */
-export const AI_FEATURES = ["concierge", "support_chat", "support_draft", "voice", "embedding", "snap", "try_on", "animate", "capsule_image", "translation", "copy_draft"] as const;
+export const AI_FEATURES = ["concierge", "support_chat", "support_draft", "voice", "embedding", "snap", "try_on", "animate", "capsule_image", "translation", "copy_draft", "room_picture"] as const;
 export type AiFeature = (typeof AI_FEATURES)[number];
 
 /**
@@ -63,7 +63,7 @@ export const MODELS = {
   embedding: { provider: "google", id: "gemini-embedding-2", pricing: { kind: "unverified" } },
   /** Attributes read from a shopper's photo for Snap to shop. */
   snap: GEMINI_FLASH,
-  /** Nano Banana 2: capsule photography. */
+  /** Nano Banana 2: capsule photography, and AI pictures of a piece in a room (docs/adr/053). Price to be checked again before the first real picture. */
   image: { provider: "google", id: "gemini-3.1-flash-image-preview", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.067 } },
   /** Veo 3.1 Lite: "Animate me", five seconds at 720p. */
   video: { provider: "google", id: "veo-3.1-lite-generate-preview", pricing: { kind: "per_unit", unit: "second", usdPerUnit: 0.05 } },

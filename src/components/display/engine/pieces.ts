@@ -95,7 +95,7 @@ function prepare(object: Object3D): void {
 }
 
 /** Loads and measures a scan once per address; every window that shows it reuses it. */
-function loadScan(src: string, kind: string, onBytes: (loaded: number, total: number) => void) {
+export function loadScan(src: string, kind: string, onBytes: (loaded: number, total: number) => void = () => undefined) {
   let pending = scans.get(src);
   if (pending === undefined) {
     pending = loader
