@@ -131,7 +131,8 @@
         "kept": "Kept in Your shop. Change or delete it there any time.",
         "keepFailed": "It couldn’t be kept just now. Choosing the size here still works; try keeping it later.",
         "private": "Your measurements stay on this page: they are not sent or kept."
-      }
+      },
+      "wearChartLede": "Measure your foot from heel to longest toe, with your weight on it, and choose the first size at least that long."
     },
     "model": {
       "open": "See it in 3D",
@@ -174,7 +175,8 @@
       "left": "Turn left",
       "right": "Turn right",
       "source": "Turntable photography: Amazon Berkeley Objects by Amazon.com, CC BY 4.0; 24 of 72 photographs, resized."
-    }
+    },
+    "amazonRating": "★ {average} out of 5 from {count, plural, one {# review} other {# reviews}} on Amazon.com"
   },
   "cart": {
     "title": "Cart",
@@ -534,6 +536,8 @@
     "color": "Colour",
     "material": "Material",
     "brand": "Brand",
+    "size": "Size",
+    "sizeChip": "Size {size}",
     "price": "Price",
     "availability": "Availability",
     "inStockOnly": "In stock only",
@@ -599,6 +603,7 @@
     "creditsTitle": "Credits and data",
     "creditsIntro": "Where the products, photographs and numbers on this site come from.",
     "creditsDataset": "Product data, photography and 3D models: the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0. Photographs are resized and re-encoded and 3D models compressed for the shop; prices are the shop's own.",
+    "creditsReviews": "Reviews from Amazon.com customers on shoes, bags and jewellery: Amazon Reviews 2023 (Hou, Li, He, Yan, Chen and McAuley, McAuley Lab, UC San Diego, 2024), a public research dataset. They are shown apart, as written and without names, and never counted in the shop's own rating, which comes only from people who bought here.",
     "creditsSynthetic": "Prices, stock levels and sale prices are synthetic. The dataset has none, so each is derived from the product identifier within a documented range for its kind of product. They are plausible, not real.",
     "creditsTranslation": "Category and colour names are translated by hand. Product titles and descriptions stay in English until they have been translated and reviewed.",
     "creditsGeo": "Finding your country for prices and VAT: <link>IP Geolocation by DB-IP</link>, the free “IP to Country Lite” database, licensed CC BY 4.0. It is kept on the shop's own server; your address is never sent to DB-IP.",
@@ -1207,7 +1212,8 @@
     "reviewViews": {
       "published": "Published",
       "hidden": "Hidden",
-      "all": "All"
+      "all": "All",
+      "amazon": "From Amazon.com"
     },
     "reviewViewsLabel": "Review filters",
     "reviewOf": "{product} · order {order}",
@@ -1366,7 +1372,12 @@
         "hidden": "Hidden",
         "failed": "Failed"
       }
-    }
+    },
+    "amazonLede": "Reviews Amazon.com customers wrote of the same wearables, shown in their own block on the product page and never counted in the shop's rating. Hide one that should not be shown; it stays hidden through every update.",
+    "amazonFind": "Find a product",
+    "amazonFindAction": "Find",
+    "amazonNone": "No Amazon.com reviews of a product matching “{query}”.",
+    "amazonNewest": "The {count} newest are listed. Find a product to see all of its reviews."
   },
   "reviews": {
     "heading": "Reviews",
@@ -1415,6 +1426,25 @@
         "delivery": "Delivery",
         "value": "Value for money"
       }
+    },
+    "amazon": {
+      "heading": "From Amazon.com customers",
+      "notOurs": "Reviews of this same product on Amazon.com, not reviews from this shop's buyers.",
+      "outOfFive": "out of 5",
+      "outOf": "{average} out of 5 on Amazon.com",
+      "basedOn": "{count, plural, one {From # review on Amazon.com} other {From # reviews on Amazon.com}}",
+      "starsLabel": "{stars, plural, one {# star} other {# stars}}",
+      "verified": "Verified purchase on Amazon.com",
+      "onAmazon": "On Amazon.com",
+      "helpful": "{count, plural, one {# person found it helpful} other {# people found it helpful}}",
+      "more": "{count, plural, one {One more review from Amazon.com} other {# more reviews from Amazon.com}}",
+      "fit": {
+        "small": "Reviewers say it runs small.",
+        "true": "Reviewers say it fits true to size.",
+        "large": "Reviewers say it runs large."
+      },
+      "fitShare": "{percent} of the {count} reviews that mention fit.",
+      "source": "Reviews by Amazon.com customers, from Amazon Reviews 2023 (Hou, Li, He, Yan, Chen and McAuley, McAuley Lab, UC San Diego), a public research dataset. They review this same product on Amazon.com and are shown as written, without names. They are not counted in this shop's rating."
     }
   },
   "returns": {

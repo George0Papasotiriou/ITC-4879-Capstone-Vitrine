@@ -29,6 +29,7 @@ import { productTransitionName } from "@/components/commerce/product-tile";
 import { ButtonLink } from "@/components/ui/button";
 import { Price } from "@/components/ui/price";
 import { ProductReviews } from "@/components/commerce/product-reviews";
+import { AmazonReviews } from "@/components/commerce/amazon-reviews";
 import { Rating } from "@/components/ui/rating";
 import { SmartLink } from "@/components/ui/smart-link";
 import { serverEnv } from "@/env";
@@ -55,7 +56,8 @@ import { sizeChartFor } from "@/lib/catalog/capsule";
 import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
 import { preferredSize, roomFits, sizeGroupOf } from "@/lib/prefs/preferences";
 import { currentPreferences } from "@/lib/prefs/server";
-import { productInsights } from "@/lib/reviews/server";
+import { externalReviewStore, productInsights } from "@/lib/reviews/server";
+import { wearChart } from "@/lib/catalog/wear";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
@@ -114,6 +116,8 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const reviews = await (await reviewsStore()).productReviews(product.id, { limit: 10 });
   // What buyers like and mention against, read from every published review (docs/adr/041).
   const insights = reviews.summary.count === 0 ? undefined : await productInsights(product.id);
+  // Reviews Amazon.com customers wrote of this same product, for the ABO wearables: shown apart, never counted as ours (docs/adr/061).
+  const amazon = await (await externalReviewStore()).forProduct(product.id);
   // A price watch belongs to an account, so the form only has a target to show for someone signed in.
   const user = await currentUser();
   const watch = user === null ? null : await (await priceWatches()).forProduct({ userId: user.id, productId: product.id });
@@ -158,6 +162,8 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
     .filter((variant) => variant.size !== null)
     .map((variant) => ({ variantId: variant.id, size: variant.size!, stock: variant.stock }));
   const sizeChart = sizes.length > 0 ? sizeChartFor(product.kind) : null;
+  // Shoes and hats chart their own measure: foot length by EU size, head circumference by S/M/L (docs/adr/061).
+  const wearSizeChart = sizes.length > 0 && sizeChart === null ? wearChart(product.kind, sizes.map((entry) => entry.size)) : null;
 
   // What the shopper has told the shop (docs/adr/033): their size for this kind of garment, and their rooms.
   const { preferences } = await currentPreferences();
@@ -252,8 +258,19 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             {stock.label}
           </p>
 
-          <div className="mt-4">
-            <Rating value={product.ratingCount === 0 ? 0 : product.ratingSum / product.ratingCount} count={product.ratingCount} locale={locale} />
+          <div className="mt-4 flex flex-col gap-1">
+            {/* The shop's own rating; where it has none yet but Amazon.com customers reviewed the same product, a labelled way to theirs (docs/adr/061). */}
+            {product.ratingCount === 0 && amazon !== null && amazon.reviews.length > 0 ? null : (
+              <Rating value={product.ratingCount === 0 ? 0 : product.ratingSum / product.ratingCount} count={product.ratingCount} locale={locale} />
+            )}
+            {amazon === null || amazon.reviews.length === 0 ? null : (
+              <a href="#amazon-reviews-heading" className="text-slate text-sm underline-offset-4 hover:underline" data-agent-id="product:amazon-rating">
+                {t("amazonRating", {
+                  average: new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(amazon.summary.ratingSum / amazon.summary.count),
+                  count: amazon.summary.count,
+                })}
+              </a>
+            )}
           </div>
 
           {sizes.length === 0 ? null : <SizePicker productId={product.id} sizes={sizes} preferred={yourSize ?? undefined} finder={finder} agentId={`action:add-to-cart:${product.id}`} />}
@@ -283,7 +300,8 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             )}
             {/* Room boards (docs/adr/056): pieces for a room, collected and shared. */}
             {sizes.length > 0 ? null : <AddToBoard productId={product.id} title={product.title} />}
-            {sizes.length === 0 ? null : (
+            {/* The Fitting Room tries on the clothing capsule; shoes, bags and jewellery come with Try-On Max (docs/adr/061, slice W2). */}
+            {sizes.length === 0 || product.category !== "wear" ? null : (
               <ButtonLink href="/fitting-room" variant="secondary" data-agent-id={`action:try-it-on:${product.id}`}>
                 {t("tryItOn")}
               </ButtonLink>
@@ -342,6 +360,42 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                         {CAPSULE_SIZES.map((size) => (
                           <td key={size} className="tabular py-2 pr-4 text-right">
                             {row.values[size]}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {wearSizeChart === null ? null : (
+            <section className="mt-8" data-agent-id="product:size-chart">
+              <h2 className="text-sm font-medium">{t("sizes.chartTitle")}</h2>
+              <p className="text-slate mt-1 text-sm">{t("sizes.wearChartLede")}</p>
+              <div className="-mx-1 mt-3 overflow-x-auto px-1">
+                <table className="w-full text-sm">
+                  <caption className="sr-only">{t("sizes.chartTitle")}</caption>
+                  <thead>
+                    <tr className="text-slate text-left">
+                      <th scope="col" className="py-2 pr-4 font-medium">{t("sizes.measurement")}</th>
+                      {sizes.map((entry) => (
+                        <th key={entry.size} scope="col" className="tabular py-2 pr-3 text-right font-medium">
+                          {entry.size}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {wearSizeChart.map((row) => (
+                      <tr key={row.measure.en} className="border-hairline border-t">
+                        <th scope="row" className="py-2 pr-4 text-left font-normal">
+                          {locale === "el" ? row.measure.el : row.measure.en}
+                        </th>
+                        {sizes.map((entry) => (
+                          <td key={entry.size} className="tabular py-2 pr-3 text-right">
+                            {new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(row.values[entry.size] ?? 0)}
                           </td>
                         ))}
                       </tr>
@@ -418,6 +472,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
       )}
 
       <ProductReviews summary={reviews.summary} reviews={reviews.reviews} locale={locale} insights={insights} />
+      {amazon === null || amazon.reviews.length === 0 ? null : <AmazonReviews summary={amazon.summary} reviews={amazon.reviews} sized={sizes.length > 1} locale={locale} />}
 
       {related.length === 0 ? null : (
         <section className="border-hairline mt-20 border-t pt-10" data-shelf={neighbours.source === "behavior" && neighbourCards.length > 0 ? "pairs-with" : "more-like-this"}>

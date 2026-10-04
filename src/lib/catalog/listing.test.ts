@@ -16,6 +16,7 @@ import {
   niceCeiling,
   parseListing,
   priceBuckets,
+  sortSizes,
   toggle,
   withChanges,
 } from "@/lib/catalog/listing";
@@ -27,6 +28,7 @@ describe("parseListing", () => {
         color: ["grey", "black"],
         material: "leather",
         brand: "rivet",
+        size: ["42", "38", "One size", "<script>"],
         min: "100",
         max: "300",
         stock: "1",
@@ -37,12 +39,23 @@ describe("parseListing", () => {
       colors: ["black", "grey"],
       materials: ["leather"],
       brands: ["rivet"],
+      // Sizes in their order; "One size" is not a choice, and anything that is not a size is dropped.
+      sizes: ["38", "42"],
       minCents: 10_000,
       maxCents: 30_000,
       inStock: true,
       sort: "price-asc",
       page: 2,
     });
+  });
+
+  it("orders lettered sizes as a size run and numbered ones by number, and keeps them in the URL", () => {
+    expect(sortSizes(["L", "XS", "M", "S"])).toEqual(["XS", "S", "M", "L"]);
+    expect(sortSizes(["41", "39", "40.5", "One size"])).toEqual(["39", "40.5", "41"]);
+    const state = parseListing({ size: "42,38" });
+    expect(listingQuery(state)).toBe("?size=38&size=42");
+    expect(toggle(state, "sizes", "40").sizes).toEqual(["38", "40", "42"]);
+    expect(activeFilterCount(state)).toBe(2);
   });
 
   it("accepts comma-separated lists, as the Concierge may send them", () => {

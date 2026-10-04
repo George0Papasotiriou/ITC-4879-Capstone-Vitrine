@@ -780,6 +780,59 @@ export const reviews = pgTable(
 
 export type Review = typeof reviews.$inferSelect;
 
+/**
+ * Reviews written elsewhere of the very same product (docs/adr/061): for the ABO
+ * wearables, the Amazon.com reviews in Amazon Reviews 2023. Shown in their own,
+ * labelled block and never counted in the shop's own rating (`products.rating_*`),
+ * which only buyers of the shop make. Synced from a committed fixture on every
+ * deploy; `external_id` is a hash of the review itself, so a review staff hid
+ * stays hidden through every sync.
+ */
+export const externalReviews = pgTable(
+  "external_reviews",
+  {
+    id: id(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    /** Where it was written: "amazon_reviews_2023". */
+    source: text("source").notNull(),
+    externalId: text("external_id").notNull(),
+    /** Its place among the piece's shown reviews, the most helpful first. */
+    position: integer("position").notNull(),
+    rating: integer("rating").notNull(),
+    title: text("title"),
+    body: text("body").notNull(),
+    reviewedOn: date("reviewed_on", { mode: "string" }).notNull(),
+    helpful: integer("helpful").notNull().default(0),
+    verified: boolean("verified").notNull().default(false),
+    hiddenAt: timestamp("hidden_at", { withTimezone: true }),
+    hiddenBy: uuid("hidden_by").references(() => users.id, { onDelete: "set null" }),
+    /** Why staff hid it, kept for other staff, as for the shop's own reviews. */
+    hiddenReason: text("hidden_reason"),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("external_reviews_key").on(t.productId, t.source, t.externalId),
+    index("external_reviews_product_idx").on(t.productId, t.position),
+    check("external_reviews_rating_range", sql`${t.rating} BETWEEN 1 AND 5`),
+  ],
+);
+
+/** A piece's totals in that source: every review, not only those shown, and what they say about fit. */
+export const externalReviewSummaries = pgTable("external_review_summaries", {
+  productId: uuid("product_id")
+    .primaryKey()
+    .references(() => products.id, { onDelete: "cascade" }),
+  source: text("source").notNull(),
+  count: integer("count").notNull(),
+  ratingSum: integer("rating_sum").notNull(),
+  runsSmall: integer("runs_small").notNull().default(0),
+  trueToSize: integer("true_to_size").notNull().default(0),
+  runsLarge: integer("runs_large").notNull().default(0),
+  ...timestamps,
+});
+
 /* -------------------------------------------------------------------------- */
 /* Running the shop (Phase 11, docs/adr/018)                                  */
 /* -------------------------------------------------------------------------- */

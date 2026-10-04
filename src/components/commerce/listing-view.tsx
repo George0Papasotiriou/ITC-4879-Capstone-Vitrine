@@ -83,6 +83,7 @@ export async function ListingView({
       label: listing.facets.brands.find((facet) => facet.value === slug)?.label ?? slug,
       href: href(toggle(state, "brands", slug)),
     })),
+    ...state.sizes.map((size) => ({ label: t("sizeChip", { size }), href: href(toggle(state, "sizes", size)) })),
     ...(state.minCents === null && state.maxCents === null
       ? []
       : [{ label: priceLabel(state.minCents, state.maxCents), href: href(withChanges(state, { minCents: null, maxCents: null })) }]),
@@ -90,6 +91,8 @@ export async function ListingView({
   ];
 
   const facetGroups = [
+    // Size first where there are sizes: it is what a shoe shopper filters by before anything else.
+    { key: "sizes" as const, title: t("size"), values: listing.facets.sizes, selected: state.sizes },
     { key: "colors" as const, title: t("color"), values: listing.facets.colors, selected: state.colors },
     { key: "materials" as const, title: t("material"), values: listing.facets.materials, selected: state.materials },
     { key: "brands" as const, title: t("brand"), values: listing.facets.brands, selected: state.brands },

@@ -211,6 +211,13 @@
       "when": 1791127087896,
       "tag": "0029_pictures_quality",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1791154095151,
+      "tag": "0030_external_reviews",
+      "breakpoints": true
     }
   ]
 }

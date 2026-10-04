@@ -80,9 +80,12 @@ import { archiveExcluded, upsertCatalog, type CatalogDatabase } from "@/lib/cata
 import * as schema from "@/lib/db/schema";
 import { SPECIMEN_CATALOG } from "@/lib/specimen/catalog";
 import { createTasteGraph } from "@/lib/reco/store";
+import { amazonReviewsFixtureSchema } from "@/lib/reviews/amazon";
+import { createExternalReviewStore } from "@/lib/reviews/external-store";
 import { storage } from "@/lib/storage";
 
 import { ABO_FIXTURE, aboFixture } from "./catalog-abo";
+import { AMAZON_REVIEWS_FIXTURE, WEAR_FIXTURE, WEAR_SPECIMEN_FIXTURE, wearFixture } from "./catalog-wear";
 import { importSpins, processMade, processModels } from "./catalog-media";
 
 const CACHE = ".abo-cache";
@@ -197,6 +200,7 @@ function describeReasons(reasons: Map<RejectionReason, number>): string {
  * products to a fixture therefore puts them on sale with the next deploy.
  */
 async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boolean }): Promise<void> {
+  const wantsReviews = options.fixtures.some((file) => file === WEAR_FIXTURE || file === WEAR_SPECIMEN_FIXTURE);
   const products: ProductInput[] = [];
   const seen = new Set<string>();
   for (const file of options.fixtures) {
@@ -208,7 +212,7 @@ async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boole
       products.push(product);
     }
   }
-  const inserted = await withDatabase(async (db) => {
+  const inserted: number = await withDatabase(async (db) => {
     // Runs on every start, so a newly excluded listing leaves an existing
     // database without a manual step.
     const archived = await archiveExcluded(db, "abo", [...EXCLUDED_ABO_ITEMS.keys()]);
@@ -236,6 +240,17 @@ async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boole
       await redis().quit();
     } catch (error) {
       out(`[catalog] search cache not cleared (${error instanceof Error ? error.message : String(error)}); it expires on its own within minutes`);
+    }
+  }
+  // The wearables' real Amazon.com reviews, for the pieces the shop has (docs/adr/061): every run, so staff hides last.
+  if (wantsReviews && existsSync(AMAZON_REVIEWS_FIXTURE)) {
+    const fixture = amazonReviewsFixtureSchema.parse(JSON.parse(await readFile(AMAZON_REVIEWS_FIXTURE, "utf8")));
+    const connection = postgres(process.env.DATABASE_URL as string, { max: 2, onnotice: () => {} });
+    try {
+      const written = await createExternalReviewStore(connection).syncAmazon(fixture.products);
+      out(`[catalog] Amazon reviews: ${written.reviews} shown on ${written.products} wearables`);
+    } finally {
+      await connection.end();
     }
   }
   // New products need neighbour lists before they can be recommended.
@@ -687,6 +702,7 @@ async function main(): Promise<void> {
       collection: { type: "boolean", default: false },
       capsule: { type: "boolean", default: false },
       abo: { type: "boolean", default: false },
+      "wear-specimen": { type: "boolean", default: false },
       sync: { type: "boolean", default: false },
       "dry-run": { type: "boolean", default: false },
       files: { type: "string", default: "0" },
@@ -703,10 +719,19 @@ async function main(): Promise<void> {
   switch (command) {
     case "seed":
       return seed({
-        fixtures: [values.fixture, ...(values.collection ? [COLLECTION_FIXTURE] : []), ...(values.capsule ? [CAPSULE_FIXTURE] : []), ...(values.abo ? [ABO_FIXTURE] : [])],
+        // --abo carries the wearables too, so a deploy puts them on sale; the tests take the wear specimen instead.
+        fixtures: [
+          values.fixture,
+          ...(values.collection ? [COLLECTION_FIXTURE] : []),
+          ...(values.capsule ? [CAPSULE_FIXTURE] : []),
+          ...(values.abo ? [ABO_FIXTURE, WEAR_FIXTURE] : []),
+          ...(values["wear-specimen"] ? [WEAR_SPECIMEN_FIXTURE] : []),
+        ],
         ifEmpty: values["if-empty"],
         sync: values.sync,
       });
+    case "wear-fixture":
+      return wearFixture({ dryRun: values["dry-run"] });
     case "import-abo": {
       const files =
         values.files === "all" ? [..."0123456789abcdef"] : values.files.split(",").map((file) => file.trim().toLowerCase());

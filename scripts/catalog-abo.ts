@@ -43,7 +43,7 @@ import { gunzipSync } from "node:zlib";
 import { ABO_ATTRIBUTION, ABO_BUCKET, ABO_LICENSE, EXCLUDED_ABO_ITEMS, parseAboListing, type AboProductDraft } from "@/lib/catalog/abo";
 import { catalogFixtureSchema, type MediaInput, type ProductInput } from "@/lib/catalog/input";
 import { hasWhiteGround } from "@/lib/catalog/photography";
-import { CATEGORIES, type CategorySlug } from "@/lib/catalog/taxonomy";
+import { CATEGORIES, WEAR_CATEGORIES, type CategorySlug } from "@/lib/catalog/taxonomy";
 import { parseModelIndex, parseSpinIndex, pickFrames } from "@/lib/catalog/turntable";
 
 export const ABO_FIXTURE = "src/lib/catalog/fixtures/abo.json";
@@ -141,6 +141,8 @@ export async function aboFixture(options: { dryRun: boolean; files: string[]; pe
       const result = parseAboListing(raw);
       if (!result.ok) continue;
       const draft = result.product;
+      // Wearables have their own fixture, with sizes and reviews (scripts/catalog-wear.ts, docs/adr/061).
+      if (WEAR_CATEGORIES.has(draft.category)) continue;
       if (taken.has(draft.sourceId) || EXCLUDED_ABO_ITEMS.has(draft.sourceId)) continue;
       const main = index.get(draft.mainImageId);
       if (main === undefined || Math.max(main.width, main.height) < MIN_IMAGE_EDGE) continue;

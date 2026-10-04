@@ -17,7 +17,8 @@ import { useToast } from "@/components/ui/toast";
 import { useHydrated } from "@/components/ui/use-hydrated";
 import { useRouter } from "@/i18n/navigation";
 
-export function ReviewModeration({ reviewId, status }: { reviewId: string; status: "published" | "hidden" }) {
+/** `endpoint`: where the decision goes; the shop's own reviews by default, or Amazon.com's (docs/adr/061). */
+export function ReviewModeration({ reviewId, status, endpoint = `/api/staff/reviews/${reviewId}` }: { reviewId: string; status: "published" | "hidden"; endpoint?: string }) {
   const t = useTranslations("staff");
   const router = useRouter();
   const toast = useToast();
@@ -30,7 +31,7 @@ export function ReviewModeration({ reviewId, status }: { reviewId: string; statu
   const send = (next: "published" | "hidden", reason?: string) =>
     !pending &&
     startTransition(async () => {
-      const response = await fetch(`/api/staff/reviews/${reviewId}`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(reason === undefined ? { status: next } : { status: next, reason }),

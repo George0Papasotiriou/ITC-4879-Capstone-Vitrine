@@ -88,7 +88,8 @@ export const MATERIALS = {
     english: ["metal", "metallic", "steel", "iron", "aluminum", "aluminium"],
     greekStems: ["μεταλλ", "ατσαλ", "σιδερ"],
   },
-  glass: { labelEn: "Glass", labelEl: "Γυαλί", english: ["glass"], greekStems: ["γυαλ"] },
+  // «γυαλί» and «γυάλινο/-η/-α», but not «γυαλιά», which are glasses (an accessory, docs/adr/061).
+  glass: { labelEn: "Glass", labelEl: "Γυαλί", english: ["glass"], greekStems: ["γυαλιν"], greekWords: ["γυαλι"] },
   leather: { labelEn: "Leather", labelEl: "Δέρμα", english: ["leather", "leathersoft"], greekStems: ["δερμα"] },
   fabric: {
     labelEn: "Fabric",
@@ -161,6 +162,23 @@ export const CATEGORY_TERMS: Record<CategorySlug, Entry> = {
     english: ["wear", "clothes", "clothing", "shirt", "top", "tee", "knit", "jumper", "sweater", "trousers", "skirt", "dress", "coat", "jacket", "capsule"],
     greekStems: ["ρουχ", "μπλουζ", "πουκαμισ", "πλεκτ", "παντελον", "φουστ", "φορεμ", "παλτ", "σακακ"],
   },
+  // The ABO wearables (docs/adr/061).
+  shoes: {
+    english: ["shoe", "shoes", "boot", "boots", "sandal", "sandals", "sneaker", "sneakers", "trainer", "trainers", "loafer", "loafers", "heel", "heels", "pump", "pumps", "flats", "mule", "mules", "footwear"],
+    greekStems: ["παπουτσ", "μποτ", "μποτακ", "σανδαλ", "αθλητικ", "μοκασιν", "υποδηματ"],
+    greekWords: ["γοβα", "γοβεσ"],
+  },
+  bags: {
+    // Not "bag" alone in Greek, and "bean bag" still finds seating: categories found together are joined with OR.
+    english: ["bag", "bags", "handbag", "handbags", "purse", "tote", "totes", "backpack", "backpacks", "wallet", "wallets", "clutch", "crossbody"],
+    greekStems: ["τσαντ", "σακιδ", "πορτοφολ"],
+  },
+  accessories: {
+    english: ["accessories", "accessory", "hat", "hats", "cap", "beanie", "scarf", "scarves", "sunglasses", "jewellery", "jewelry", "earring", "earrings", "necklace", "necklaces", "bracelet", "bracelets", "watch", "watches", "wristwatch"],
+    // «γυαλιά» (glasses) as a whole word: the stem would also catch «γυάλινο» (made of glass).
+    greekStems: ["αξεσουαρ", "καπελ", "σκουφ", "φουλαρ", "κασκολ", "κοσμημ", "σκουλαρικ", "κολιε", "βραχιολ"],
+    greekWords: ["γυαλια"],
+  },
 };
 
 /**
@@ -213,6 +231,20 @@ export const PIECE_NAMES: Record<string, Entry> = {
   planter: { english: ["planter", "pot"], greekStems: ["γλαστρ"] },
   vase: { english: ["vase"], greekStems: [], greekWords: ["βαζο", "βαζα"] },
   candle: { english: ["candle"], greekStems: [], greekWords: ["κερι", "κερια"] },
+  shoes: { english: ["shoes", "shoe"], greekStems: ["παπουτσ"] },
+  boots: { english: ["boots", "boot"], greekStems: ["μποτ"] },
+  sandals: { english: ["sandals", "sandal"], greekStems: ["σανδαλ"] },
+  sneakers: { english: ["sneakers", "trainers"], greekStems: ["αθλητικ"] },
+  heels: { english: ["heels", "pumps"], greekStems: [], greekWords: ["γοβα", "γοβεσ"] },
+  bag: { english: ["bag", "handbag", "purse"], greekStems: ["τσαντ"] },
+  backpack: { english: ["backpack"], greekStems: ["σακιδ"] },
+  wallet: { english: ["wallet"], greekStems: ["πορτοφολ"] },
+  hat: { english: ["hat", "cap", "beanie"], greekStems: ["καπελ", "σκουφ"] },
+  scarf: { english: ["scarf", "shawl"], greekStems: ["φουλαρ", "κασκολ"] },
+  sunglasses: { english: ["sunglasses"], greekStems: [], greekWords: ["γυαλια"] },
+  earrings: { english: ["earrings", "earring"], greekStems: ["σκουλαρικ"] },
+  necklace: { english: ["necklace", "pendant"], greekStems: ["κολιε"] },
+  bracelet: { english: ["bracelet", "bangle"], greekStems: ["βραχιολ"] },
 };
 
 /** The English names of the piece a folded Greek word names, or none. */

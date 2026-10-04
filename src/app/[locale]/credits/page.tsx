@@ -58,6 +58,7 @@ export default async function CreditsPage({ params }: PageProps<"/[locale]/credi
   return (
     <InfoPage title={t("creditsTitle")} intro={t("creditsIntro")}>
       <p>{t("creditsDataset")}</p>
+      <p>{t("creditsReviews")}</p>
       <p>{t("creditsSynthetic")}</p>
       <p>{t("creditsTranslation")}</p>
       <p>

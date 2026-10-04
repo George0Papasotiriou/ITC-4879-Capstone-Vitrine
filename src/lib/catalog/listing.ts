@@ -33,6 +33,8 @@ export type ListingState = {
   colors: string[];
   materials: string[];
   brands: string[];
+  /** Sizes in stock, for pieces sold in sizes (shoes, hats, the capsule; docs/adr/061). */
+  sizes: string[];
   /** Whole-euro bounds in the URL, cents here. */
   minCents: number | null;
   maxCents: number | null;
@@ -58,6 +60,8 @@ function euros(value: string | undefined): number | null {
 }
 
 const brandSlug = z.string().regex(/^[a-z0-9-]{1,80}$/);
+/** A size as variants name them: "38", "M", "One size". */
+const sizeValue = z.string().regex(/^[A-Za-z0-9 .]{1,12}$/);
 
 export function parseListing(params: SearchParams): ListingState {
   let minCents = euros(first(params.min));
@@ -71,6 +75,7 @@ export function parseListing(params: SearchParams): ListingState {
     colors: unique(all(params.color).filter((id) => id in COLORS)).sort(),
     materials: unique(all(params.material).filter((id) => id in MATERIALS)).sort(),
     brands: unique(all(params.brand).filter((slug) => brandSlug.safeParse(slug).success)).sort(),
+    sizes: sortSizes(unique(all(params.size).filter((size) => sizeValue.safeParse(size).success))),
     minCents,
     maxCents,
     inStock: first(params.stock) === "1",
@@ -85,6 +90,7 @@ export function listingQuery(state: ListingState): string {
   for (const color of state.colors) params.append("color", color);
   for (const material of state.materials) params.append("material", material);
   for (const brand of state.brands) params.append("brand", brand);
+  for (const size of state.sizes) params.append("size", size);
   if (state.minCents !== null) params.set("min", String(Math.floor(state.minCents / 100)));
   if (state.maxCents !== null) params.set("max", String(Math.ceil(state.maxCents / 100)));
   if (state.inStock) params.set("stock", "1");
@@ -94,13 +100,25 @@ export function listingQuery(state: ListingState): string {
   return query === "" ? "" : `?${query}`;
 }
 
-type Facet = "colors" | "materials" | "brands";
+type Facet = "colors" | "materials" | "brands" | "sizes";
 
 /** The state after toggling one facet value. Any filter change returns to page 1. */
 export function toggle(state: ListingState, facet: Facet, value: string): ListingState {
   const current = state[facet];
-  const next = current.includes(value) ? current.filter((entry) => entry !== value) : [...current, value].sort();
-  return { ...state, [facet]: next, page: 1 };
+  const next = current.includes(value) ? current.filter((entry) => entry !== value) : [...current, value];
+  return { ...state, [facet]: facet === "sizes" ? sortSizes(next) : next.sort(), page: 1 };
+}
+
+/** Lettered sizes in their own order, numbered ones by number; "One size" is not a choice and is left out. */
+const LETTERED = ["XS", "S", "M", "L", "XL", "XXL"];
+export function sortSizes(sizes: readonly string[]): string[] {
+  const rank = (size: string) => {
+    const lettered = LETTERED.indexOf(size);
+    if (lettered >= 0) return 1000 + lettered;
+    const number = Number(size);
+    return Number.isFinite(number) ? number : 2000;
+  };
+  return sizes.filter((size) => size !== "One size").sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
 }
 
 export function withChanges(state: ListingState, changes: Partial<ListingState>): ListingState {
@@ -113,6 +131,7 @@ export function activeFilterCount(state: ListingState): number {
     state.colors.length +
     state.materials.length +
     state.brands.length +
+    state.sizes.length +
     (state.minCents === null && state.maxCents === null ? 0 : 1) +
     (state.inStock ? 1 : 0)
   );

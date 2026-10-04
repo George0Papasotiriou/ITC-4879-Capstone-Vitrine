@@ -9,7 +9,7 @@
 
 import type postgres from "postgres";
 
-import type { ListingState } from "@/lib/catalog/listing";
+import { sortSizes, type ListingState } from "@/lib/catalog/listing";
 import { ABO_PRODUCT_KINDS, ROOM_PLACEMENT } from "@/lib/catalog/taxonomy";
 import { money, type Money } from "@/lib/commerce/money";
 import type { DimensionsCm } from "@/lib/db/schema";
@@ -103,6 +103,7 @@ export type Listing = {
     colors: FacetValue[];
     materials: FacetValue[];
     brands: FacetValue[];
+    sizes: FacetValue[];
     price: { minCents: number; maxCents: number } | null;
   };
 };
@@ -183,7 +184,7 @@ export function createCatalogQueries(sql: Sql) {
 
   const inStockCondition = sql`EXISTS (SELECT 1 FROM product_variants v WHERE v.product_id = p.id AND v.stock > 0)`;
 
-  type Facet = "colors" | "materials" | "brands";
+  type Facet = "colors" | "materials" | "brands" | "sizes";
 
   /** WHERE conditions for a listing, optionally leaving one facet out (for that facet's counts). */
   function conditions(category: string | null, state: ListingState, except?: Facet) {
@@ -192,6 +193,10 @@ export function createCatalogQueries(sql: Sql) {
     if (except !== "colors" && state.colors.length > 0) parts.push(sql`p.colors && ${state.colors}::text[]`);
     if (except !== "materials" && state.materials.length > 0) parts.push(sql`p.materials && ${state.materials}::text[]`);
     if (except !== "brands" && state.brands.length > 0) parts.push(sql`b.slug = ANY(${state.brands}::text[])`);
+    // A size is chosen to be bought: only pieces with that size in stock (docs/adr/061).
+    if (except !== "sizes" && state.sizes.length > 0) {
+      parts.push(sql`EXISTS (SELECT 1 FROM product_variants sv WHERE sv.product_id = p.id AND sv.size = ANY(${state.sizes}::text[]) AND sv.stock > 0)`);
+    }
     if (state.minCents !== null) parts.push(sql`p.price_cents >= ${state.minCents}`);
     if (state.maxCents !== null) parts.push(sql`p.price_cents <= ${state.maxCents}`);
     if (state.inStock) parts.push(inStockCondition);
@@ -222,7 +227,7 @@ export function createCatalogQueries(sql: Sql) {
     const { category, state, locale, pageSize } = params;
     const offset = (state.page - 1) * pageSize;
 
-    const [rows, colors, materials, brands, price] = await Promise.all([
+    const [rows, colors, materials, brands, sizes, price] = await Promise.all([
       sql<(CardRow & { total: number })[]>`
         SELECT ${cardColumns}, count(*) OVER ()::int AS total
         ${fromProducts}
@@ -248,6 +253,12 @@ export function createCatalogQueries(sql: Sql) {
         WHERE ${conditions(category, state, "brands")} AND b.id IS NOT NULL
         GROUP BY b.slug, b.name ORDER BY count DESC, b.name
         LIMIT 30
+      `,
+      sql<{ value: string; count: number }[]>`
+        SELECT v.size AS value, count(DISTINCT p.id)::int AS count
+        ${fromProducts}, product_variants v
+        WHERE v.product_id = p.id AND v.size IS NOT NULL AND v.stock > 0 AND ${conditions(category, state, "sizes")}
+        GROUP BY v.size
       `,
       sql<{ min: number | null; max: number | null }[]>`
         SELECT min(p.price_cents)::int AS min, max(p.price_cents)::int AS max
@@ -275,6 +286,7 @@ export function createCatalogQueries(sql: Sql) {
         colors: colors.map((row) => ({ ...row, label: params.labels.color(row.value) })),
         materials: materials.map((row) => ({ ...row, label: params.labels.material(row.value) })),
         brands,
+        sizes: sortSizes(sizes.map((row) => row.value)).map((value) => ({ value, label: value, count: sizes.find((row) => row.value === value)!.count })),
         price: bounds?.min == null || bounds.max == null ? null : { minCents: bounds.min, maxCents: bounds.max },
       },
     };

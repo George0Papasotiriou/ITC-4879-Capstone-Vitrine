@@ -1,0 +1,946 @@
+{
+  "version": 1,
+  "description": "Wear specimen: twelve ABO wearables with photographs in public/products/wear, for the tests (docs/adr/061).",
+  "products": [
+    {
+      "source": "abo",
+      "sourceId": "B01MR4MQTL",
+      "slug": "men-s-loafers-b01mr4mqtl",
+      "kind": "SHOES",
+      "category": "shoes",
+      "titleEn": "Men's Loafers",
+      "titleEl": null,
+      "brand": "find.",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Soft, smooth leather upper",
+        "Vamp crinkle-cut join detail",
+        "Lace-up fastening",
+        "Midweight sole"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Black",
+      "colors": [
+        "black"
+      ],
+      "materials": [],
+      "attributes": {
+        "style": "Amz28/01"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 13900,
+      "compareAtCents": 16900,
+      "stock": 37,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b01mr4mqtl.webp",
+          "width": 922,
+          "height": 1200,
+          "bytes": 20134,
+          "altEn": "Men's Loafers by find.",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b01mr4mqtl-2.webp",
+          "width": 923,
+          "height": 1200,
+          "bytes": 28422,
+          "altEn": "Men's Loafers by find., view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "40",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "41",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "42",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "43",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "44",
+          "stock": 8,
+          "priceCents": null
+        },
+        {
+          "size": "45",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "46",
+          "stock": 2,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B01MU9BWSS",
+      "slug": "men-s-trainers-b01mu9bwss",
+      "kind": "SHOES",
+      "category": "shoes",
+      "titleEn": "Men's Trainers",
+      "titleEl": null,
+      "brand": "find.",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Smooth, glossy leather finish",
+        "Contrasting brushed leather detail",
+        "Lace-up fastening",
+        "Flat, hard sole"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": null,
+      "colors": [],
+      "materials": [],
+      "attributes": {
+        "style": "Amz37/01"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 5400,
+      "compareAtCents": null,
+      "stock": 16,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b01mu9bwss.webp",
+          "width": 923,
+          "height": 1200,
+          "bytes": 21090,
+          "altEn": "Men's Trainers by find.",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b01mu9bwss-2.webp",
+          "width": 923,
+          "height": 1200,
+          "bytes": 57018,
+          "altEn": "Men's Trainers by find., view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "40",
+          "stock": 1,
+          "priceCents": null
+        },
+        {
+          "size": "41",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "42",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "43",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "44",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "45",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "46",
+          "stock": 1,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B01MUE22RQ",
+      "slug": "men-s-leather-formal-lace-up-shoes-b01mue22rq",
+      "kind": "SHOES",
+      "category": "shoes",
+      "titleEn": "Men's Leather Formal Lace-Up Shoes",
+      "titleEl": null,
+      "brand": "find.",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Soft, smooth leather upper",
+        "Vamp crinkle-cut join detail",
+        "Lace-up fastening",
+        "Midweight sole"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": null,
+      "colors": [],
+      "materials": [
+        "leather"
+      ],
+      "attributes": {
+        "style": "Loafers"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 4900,
+      "compareAtCents": null,
+      "stock": 29,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b01mue22rq.webp",
+          "width": 922,
+          "height": 1200,
+          "bytes": 20134,
+          "altEn": "Men's Leather Formal Lace-Up Shoes by find.",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b01mue22rq-2.webp",
+          "width": 923,
+          "height": 1200,
+          "bytes": 28422,
+          "altEn": "Men's Leather Formal Lace-Up Shoes by find., view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "40",
+          "stock": 1,
+          "priceCents": null
+        },
+        {
+          "size": "41",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "42",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "43",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "44",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "45",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "46",
+          "stock": 2,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B01MR9EEPR",
+      "slug": "men-s-desert-boots-with-brushed-leather-and-b01mr9eepr",
+      "kind": "BOOT",
+      "category": "shoes",
+      "titleEn": "Men's Desert Boots with Brushed Leather and Lace-Ups",
+      "titleEl": null,
+      "brand": "find.",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Brushed leather uppers",
+        "Lace-up fastening",
+        "Contrasting midweight sole",
+        "Soft leather inners"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": null,
+      "colors": [],
+      "materials": [
+        "leather"
+      ],
+      "attributes": {
+        "style": "Desert Boots",
+        "material": "Leather"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 14900,
+      "compareAtCents": null,
+      "stock": 35,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b01mr9eepr.webp",
+          "width": 923,
+          "height": 1200,
+          "bytes": 43496,
+          "altEn": "Men's Desert Boots with Brushed Leather and Lace-Ups by find.",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b01mr9eepr-2.webp",
+          "width": 923,
+          "height": 1200,
+          "bytes": 225348,
+          "altEn": "Men's Desert Boots with Brushed Leather and Lace-Ups by find., view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "40",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "41",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "42",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "43",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "44",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "45",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "46",
+          "stock": 2,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B01MT7QN5F",
+      "slug": "men-s-suede-casual-desert-boots-b01mt7qn5f",
+      "kind": "BOOT",
+      "category": "shoes",
+      "titleEn": "Men's Suede Casual Desert Boots",
+      "titleEl": null,
+      "brand": "find.",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Brushed leather uppers",
+        "Lace-up fastening",
+        "Contrasting midweight sole",
+        "Soft leather inners"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Blue",
+      "colors": [
+        "blue"
+      ],
+      "materials": [],
+      "attributes": {
+        "style": "Amz30/01"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 13900,
+      "compareAtCents": null,
+      "stock": 44,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b01mt7qn5f.webp",
+          "width": 923,
+          "height": 1200,
+          "bytes": 45436,
+          "altEn": "Men's Suede Casual Desert Boots by find.",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b01mt7qn5f-2.webp",
+          "width": 921,
+          "height": 1200,
+          "bytes": 67992,
+          "altEn": "Men's Suede Casual Desert Boots by find., view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "40",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "41",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "42",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "43",
+          "stock": 11,
+          "priceCents": null
+        },
+        {
+          "size": "44",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "45",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "46",
+          "stock": 2,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B01N4OPIRU",
+      "slug": "leather-hurrache-closed-sandals-b01n4opiru",
+      "kind": "SANDAL",
+      "category": "shoes",
+      "titleEn": "Leather Hurrache closed sandals",
+      "titleEl": null,
+      "brand": null,
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "With straps.",
+        "Semi-closed front.",
+        "Closed toes."
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": null,
+      "colors": [],
+      "materials": [
+        "leather"
+      ],
+      "attributes": {
+        "style": "Closed Sandals"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 5400,
+      "compareAtCents": null,
+      "stock": 52,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b01n4opiru.webp",
+          "width": 923,
+          "height": 1200,
+          "bytes": 30228,
+          "altEn": "Leather Hurrache closed sandals",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b01n4opiru-2.webp",
+          "width": 923,
+          "height": 1200,
+          "bytes": 113240,
+          "altEn": "Leather Hurrache closed sandals, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "36",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "37",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "38",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "39",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "40",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "41",
+          "stock": 8,
+          "priceCents": null
+        },
+        {
+          "size": "42",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "43",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "44",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "45",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "46",
+          "stock": 2,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B014492Y9W",
+      "slug": "women-s-mini-bag-b014492y9w",
+      "kind": "HANDBAG",
+      "category": "bags",
+      "titleEn": "Women's Mini Bag",
+      "titleEl": null,
+      "brand": "SOCIETY NEW YORK",
+      "descriptionEn": "Smooth, domed style with an inner zip pocket, inner slip pocket, 2 zip compartments with an inner zip and 2 slip pockets, exterior slip pocket, small lock and key; 5.75\" handle drop with optional adjustable shoulder strap",
+      "descriptionEl": null,
+      "highlightsEn": [],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Sand",
+      "colors": [
+        "beige"
+      ],
+      "materials": [],
+      "attributes": {
+        "material": "Synthetic",
+        "fabric": "Synthetic"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 6400,
+      "compareAtCents": null,
+      "stock": 13,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b014492y9w.webp",
+          "width": 1200,
+          "height": 1189,
+          "bytes": 64902,
+          "altEn": "Women's Mini Bag by SOCIETY NEW YORK",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b014492y9w-2.webp",
+          "width": 1200,
+          "height": 706,
+          "bytes": 61438,
+          "altEn": "Women's Mini Bag by SOCIETY NEW YORK, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "One size",
+          "stock": 13,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B06VTHSQ8Z",
+      "slug": "women-s-standard-flat-pu-crossbody-b06vthsq8z",
+      "kind": "HANDBAG",
+      "category": "bags",
+      "titleEn": "Women's standard Flat Pu Crossbody",
+      "titleEl": null,
+      "brand": "THE LOVELY TOTE CO.",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "This slim essentials-only bag in faux leather travels on its own thanks to an adjustable cross-body strap that removes if you want to use it as a clutch or cosmetics pouch inside a larger purse.",
+        "Metallic foil heart logo",
+        "Dimensions 9.84\" L x 6.7\" W x 0.3\" D. Strap: 20.3\""
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": null,
+      "colors": [],
+      "materials": [
+        "leather"
+      ],
+      "attributes": {
+        "style": "Flat Pu Crossbody Bag With Zipper Closure",
+        "material": "100% polyurethane vegan leather",
+        "fabric": "100% Polyurethane"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 8400,
+      "compareAtCents": 9900,
+      "stock": 7,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b06vthsq8z.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 39518,
+          "altEn": "Women's standard Flat Pu Crossbody by THE LOVELY TOTE CO.",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b06vthsq8z-2.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 207566,
+          "altEn": "Women's standard Flat Pu Crossbody by THE LOVELY TOTE CO., view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "One size",
+          "stock": 7,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B013R3PHTU",
+      "slug": "men-s-wool-cashmere-ribbed-reversible-hat-b013r3phtu",
+      "kind": "HAT",
+      "category": "accessories",
+      "titleEn": "Men's Wool/Cashmere Ribbed Reversible Hat",
+      "titleEl": null,
+      "brand": "Thirty Five Kent",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Black",
+      "colors": [
+        "black"
+      ],
+      "materials": [
+        "wool"
+      ],
+      "attributes": {
+        "fabric": "70% Wool/30% Cashmere"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 5400,
+      "compareAtCents": null,
+      "stock": 9,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b013r3phtu.webp",
+          "width": 895,
+          "height": 1200,
+          "bytes": 164248,
+          "altEn": "Men's Wool/Cashmere Ribbed Reversible Hat by Thirty Five Kent",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b013r3phtu-2.webp",
+          "width": 896,
+          "height": 1200,
+          "bytes": 159194,
+          "altEn": "Men's Wool/Cashmere Ribbed Reversible Hat by Thirty Five Kent, view 2",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "S",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 1,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B083KGK1HF",
+      "slug": "hikaro-checked-scarf-for-women-men-b083kgk1hf",
+      "kind": "SCARF",
+      "category": "accessories",
+      "titleEn": "HIKARO Checked Scarf for Women & Men",
+      "titleEl": null,
+      "brand": null,
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": null,
+      "colors": [],
+      "materials": [],
+      "attributes": {},
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 1400,
+      "compareAtCents": null,
+      "stock": 13,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b083kgk1hf.webp",
+          "width": 900,
+          "height": 1200,
+          "bytes": 83176,
+          "altEn": "HIKARO Checked Scarf for Women & Men",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b083kgk1hf-2.webp",
+          "width": 900,
+          "height": 1200,
+          "bytes": 89346,
+          "altEn": "HIKARO Checked Scarf for Women & Men, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "One size",
+          "stock": 13,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B000SMCP2Q",
+      "slug": "sterling-silver-925-4-stone-genuine-or-artificial-b000smcp2q",
+      "kind": "NECKLACE",
+      "category": "accessories",
+      "titleEn": "Sterling Silver 925 4 Stone Genuine or Artificial Gemstone Pendant",
+      "titleEl": null,
+      "brand": null,
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Beautiful sterling silver necklace featuring four 4mm round cut garnet stones in a linear prong setting.",
+        "Garnet is the birthstone for January.",
+        "A thoughtful jewellery gift that will be treasured for years to come.",
+        "18 inch cable chain with spring ring clasp.",
+        "Handmade from pure 925 sterling silver, rhodium plating added to enhance shine and durability"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Silver",
+      "colors": [
+        "silver"
+      ],
+      "materials": [],
+      "attributes": {},
+      "dimsCm": null,
+      "weightGrams": 9,
+      "priceCents": 12900,
+      "compareAtCents": null,
+      "stock": 18,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b000smcp2q.webp",
+          "width": 567,
+          "height": 1200,
+          "bytes": 22042,
+          "altEn": "Sterling Silver 925 4 Stone Genuine or Artificial Gemstone Pendant",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b000smcp2q-2.webp",
+          "width": 1200,
+          "height": 800,
+          "bytes": 13298,
+          "altEn": "Sterling Silver 925 4 Stone Genuine or Artificial Gemstone Pendant, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "One size",
+          "stock": 18,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "abo",
+      "sourceId": "B00074CGS8",
+      "slug": "sterling-silver-6mm-polished-bead-stud-post-earrings-b00074cgs8",
+      "kind": "EARRING",
+      "category": "accessories",
+      "titleEn": "Sterling Silver 6mm Polished Bead Stud Post Earrings",
+      "titleEl": null,
+      "brand": "Amazon Collection",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Sterling Silver 6mm Polished Bead Stud Post Earrings",
+        "Sterling silver high polished simple studs",
+        "Friction back posts",
+        "Crafted in .925 Sterling Silver",
+        "Available in various sizes"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Silver",
+      "colors": [
+        "silver"
+      ],
+      "materials": [
+        "metal"
+      ],
+      "attributes": {
+        "style": "6mm",
+        "material": "metal"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 6900,
+      "compareAtCents": null,
+      "stock": 18,
+      "license": "CC BY 4.0",
+      "attribution": "Product data and photography from the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0; photographs resized and re-encoded.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/wear/b00074cgs8.webp",
+          "width": 1200,
+          "height": 800,
+          "bytes": 13488,
+          "altEn": "Sterling Silver 6mm Polished Bead Stud Post Earrings by Amazon Collection",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/wear/b00074cgs8-2.webp",
+          "width": 1200,
+          "height": 868,
+          "bytes": 19108,
+          "altEn": "Sterling Silver 6mm Polished Bead Stud Post Earrings by Amazon Collection, view 2",
+          "whiteGround": true
+        }
+      ],
+      "variants": [
+        {
+          "size": "One size",
+          "stock": 18,
+          "priceCents": null
+        }
+      ]
+    }
+  ]
+}

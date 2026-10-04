@@ -31,7 +31,10 @@ export type CategorySlug =
   | "bedroom"
   | "wall-decor"
   | "accents"
-  | "wear";
+  | "wear"
+  | "shoes"
+  | "bags"
+  | "accessories";
 
 export type Category = {
   slug: CategorySlug;
@@ -110,13 +113,40 @@ export const CATEGORIES: readonly Category[] = [
   },
   {
     slug: "wear",
-    nameEn: "Wear",
+    nameEn: "Clothing",
     nameEl: "Ρούχα",
-    descriptionEn: "A small capsule: a few good pieces, in sizes.",
-    descriptionEl: "Μια μικρή κάψουλα: λίγα καλά κομμάτια, σε μεγέθη.",
+    descriptionEn: "A capsule of a few good pieces, in sizes.",
+    descriptionEl: "Μια κάψουλα από λίγα καλά κομμάτια, σε μεγέθη.",
     position: 8,
   },
+  {
+    slug: "shoes",
+    nameEn: "Shoes",
+    nameEl: "Παπούτσια",
+    descriptionEn: "Shoes, boots and sandals, in EU sizes.",
+    descriptionEl: "Παπούτσια, μπότες και σανδάλια, σε ευρωπαϊκά νούμερα.",
+    position: 9,
+  },
+  {
+    slug: "bags",
+    nameEn: "Bags",
+    nameEl: "Τσάντες",
+    descriptionEn: "Handbags, totes, backpacks and wallets.",
+    descriptionEl: "Τσάντες χειρός, tote, σακίδια και πορτοφόλια.",
+    position: 10,
+  },
+  {
+    slug: "accessories",
+    nameEn: "Accessories",
+    nameEl: "Αξεσουάρ",
+    descriptionEn: "Hats, scarves, sunglasses, jewellery and watches.",
+    descriptionEl: "Καπέλα, φουλάρια, γυαλιά ηλίου, κοσμήματα και ρολόγια.",
+    position: 11,
+  },
 ];
+
+/** The categories of things worn: the capsule's clothing and the ABO wearables (docs/adr/061). */
+export const WEAR_CATEGORIES: ReadonlySet<CategorySlug> = new Set<CategorySlug>(["wear", "shoes", "bags", "accessories"]);
 
 export const CATEGORY_SLUGS = CATEGORIES.map((category) => category.slug);
 
@@ -210,6 +240,23 @@ export const ABO_PRODUCT_KINDS: Readonly<Record<string, ProductKind>> = {
   VASE: { category: "accents", kindEn: "Vase", kindEl: "Βάζο", bands: band(18, 140, 50) },
   PLANTER: { category: "accents", kindEn: "Planter", kindEl: "Γλάστρα", bands: band(20, 160, 50) },
   CANDLE: { category: "accents", kindEn: "Candle", kindEl: "Κερί", bands: band(10, 55, 90) },
+
+  // Wearables (docs/adr/061, src/lib/catalog/wear.ts): ABO's types, and the shop's own names where ABO lumps
+  // several together (SCARF out of ACCESSORY; NECKLACE and BRACELET out of the jewellery types).
+  SHOES: { category: "shoes", kindEn: "Shoes", kindEl: "Παπούτσια", bands: band(39, 159, 14) },
+  BOOT: { category: "shoes", kindEn: "Boots", kindEl: "Μπότες", bands: band(59, 219, 12) },
+  SANDAL: { category: "shoes", kindEn: "Sandals", kindEl: "Σανδάλια", bands: band(25, 119, 14) },
+  HANDBAG: { category: "bags", kindEn: "Handbag", kindEl: "Τσάντα χειρός", bands: band(39, 199, 20) },
+  TOTE_BAG: { category: "bags", kindEn: "Tote", kindEl: "Τσάντα tote", bands: band(19, 79, 30) },
+  WALLET: { category: "bags", kindEn: "Wallet", kindEl: "Πορτοφόλι", bands: band(15, 69, 40) },
+  BACKPACK: { category: "bags", kindEn: "Backpack", kindEl: "Σακίδιο", bands: band(29, 109, 30) },
+  HAT: { category: "accessories", kindEn: "Hat", kindEl: "Καπέλο", bands: band(15, 59, 20) },
+  SCARF: { category: "accessories", kindEn: "Scarf", kindEl: "Φουλάρι", bands: band(15, 69, 40) },
+  SUNGLASSES: { category: "accessories", kindEn: "Sunglasses", kindEl: "Γυαλιά ηλίου", bands: band(25, 129, 30) },
+  EARRING: { category: "accessories", kindEn: "Earrings", kindEl: "Σκουλαρίκια", bands: band(19, 129, 30) },
+  NECKLACE: { category: "accessories", kindEn: "Necklace", kindEl: "Κολιέ", bands: band(25, 169, 30) },
+  BRACELET: { category: "accessories", kindEn: "Bracelet", kindEl: "Βραχιόλι", bands: band(19, 139, 30) },
+  WATCH: { category: "accessories", kindEn: "Watch", kindEl: "Ρολόι χειρός", bands: band(49, 249, 20) },
 };
 
 /**
