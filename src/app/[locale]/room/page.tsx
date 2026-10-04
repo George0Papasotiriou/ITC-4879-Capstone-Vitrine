@@ -22,6 +22,7 @@ import { roomPlacement } from "@/lib/catalog/taxonomy";
 import { canMakeModel } from "@/lib/catalog/model/family";
 import { roomFits } from "@/lib/prefs/preferences";
 import { currentPreferences } from "@/lib/prefs/server";
+import { picturesOpen } from "@/lib/pictures/start";
 
 /**
  * See it in your room (docs/PLAN.md Phase 10, graded algorithm A4).
@@ -130,6 +131,8 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/[lo
       <div className="mt-10">
         <RoomPlanner
           locale={locale}
+          // A photograph of the placed piece is offered only when an AI picture can really be made (docs/adr/060).
+          pictures={await picturesOpen()}
           product={{
             slug: product.slug,
             title: product.title,

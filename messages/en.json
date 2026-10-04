@@ -2650,8 +2650,9 @@
   "pictures": {
     "eyebrow": "See it in a room",
     "title": "Picture it",
-    "lede": "Made by AI in about twenty seconds, from the piece's own photographs and its catalogue size.",
+    "lede": "Photographed into a room by AI from the piece's own photographs, at its catalogue size, and checked against them before you see it.",
     "empty": "Choose a room on the right, or bring your own.",
+    "emptyBelow": "Choose a room below, or bring your own.",
     "tabs": {
       "scenes": "A room like…",
       "own": "Your room"
@@ -2680,7 +2681,6 @@
     "altOwn": "{title} in your room, an AI picture",
     "label": {
       "ai": "AI picture",
-      "drawn": "Preview without AI",
       "approximate": "Approximate size",
       "exact": "Placed at true size"
     },
@@ -2688,13 +2688,18 @@
       "compare": "Compare with your photo",
       "before": "Your room",
       "after": "With the piece",
-      "time": "About 20 seconds",
+      "time": "Usually under a minute",
       "stages": {
-        "light": "Reading the light…",
-        "place": "Setting the piece in place…",
-        "shadows": "Matching the shadows…",
-        "develop": "Developing the picture…"
-      }
+        "study": "Studying the piece…",
+        "light": "Matching the room's light…",
+        "place": "Setting it in place…",
+        "develop": "Developing the picture…",
+        "check": "Checking it against the piece…",
+        "second": "Taking a little longer to get it right…"
+      },
+      "fullSize": "View full size",
+      "actualSize": "Actual size",
+      "fit": "Fit to screen"
     },
     "planner": {
       "title": "Make it a photograph",
@@ -2722,9 +2727,35 @@
       "piece_gone": "That piece's photographs aren't available.",
       "piece_image": "That piece's photograph couldn't be loaded. Try again.",
       "timeout": "This is taking longer than it should. Try again in a moment.",
-      "generic": "The picture couldn't be made. Try again."
+      "generic": "The picture couldn't be made. Try again.",
+      "quality": "This one didn't come out well enough to show you, so it didn't count towards today. Try another style or photo.",
+      "no_room": "Add a photo of your room first.",
+      "no_references": "That piece's photographs aren't available.",
+      "retired": "That picture can't be made any more. Ask for a new one."
     },
-    "plannerAlt": "Your room with the piece, an AI picture"
+    "plannerAlt": "Your room with the piece, an AI picture",
+    "ledeReady": "This piece photographed into a room by AI, at its catalogue size.",
+    "unavailable": "Not available right now",
+    "paused": "New pictures are paused right now. The ready ones are free to see.",
+    "inStock": "In stock",
+    "outOfStock": "Out of stock",
+    "openPiece": "See this piece",
+    "chooseAnother": "Or choose, paste or drop another photo",
+    "others": {
+      "title": "Try another in this room",
+      "style": "In the {style} room. A ready picture is free; a new one uses one of today's.",
+      "own": "In your room. Each one uses one of today's pictures."
+    },
+    "visit": {
+      "title": "This visit",
+      "compare": "Compare two",
+      "done": "Done comparing"
+    },
+    "remembered": {
+      "title": "Your room",
+      "left": "Kept {hours, plural, one {# more hour} other {# more hours}}, then deleted",
+      "go": "Use it"
+    }
   },
   "fit": {
     "title": "Will it get in?",

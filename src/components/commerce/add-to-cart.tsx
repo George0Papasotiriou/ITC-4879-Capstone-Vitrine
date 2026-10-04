@@ -44,6 +44,7 @@ export function AddToCart({
   label,
   agentId,
   flightSource,
+  tone = "light",
 }: {
   productId: string;
   /** A chosen size; without one the server picks the product's only variant. */
@@ -54,6 +55,8 @@ export function AddToCart({
   agentId: string;
   /** A selector for the photograph that flies to the cart; the product page's hero by default. */
   flightSource?: string;
+  /** "dark" on a dusk band (the picture studio, docs/adr/060): a glass button instead of a dusk one. */
+  tone?: "light" | "dark";
 }) {
   const t = useTranslations("cart");
   const tp = useTranslations("product");
@@ -98,7 +101,7 @@ export function AddToCart({
 
   return (
     <>
-      <Button data-agent-id={agentId} disabled={!hydrated} aria-disabled={!inStock || pending || undefined} onClick={add}>
+      <Button data-agent-id={agentId} disabled={!hydrated} aria-disabled={!inStock || pending || undefined} onClick={add} className={tone === "dark" ? "bg-glass text-dusk hover:bg-white" : undefined}>
         {added > 0 ? (
           <span key={added} className="animate-rise inline-flex items-center gap-2" data-agent-id={`${agentId}:added`}>
             <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

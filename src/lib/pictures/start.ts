@@ -10,13 +10,13 @@
 import { uuidv7 } from "uuidv7";
 
 import { serverEnv } from "@/env";
-import { MODELS } from "@/lib/ai/models";
-import { aiMode, usageStore } from "@/lib/ai/server";
+import { usageStore } from "@/lib/ai/server";
 import type { Actor } from "@/lib/ai/usage";
 import { enqueue } from "@/lib/jobs/queue";
 import { checkUpload, MAX_UPLOAD_BYTES } from "@/lib/photos/photos";
 import { acceptPhoto, photoStore, photoUrl } from "@/lib/photos/server";
-import { sceneUrl, type PictureKind, type PictureStatus, type SceneStyle } from "@/lib/pictures/pictures";
+import { pictureModel, picturesProvider, type PicturesProvider } from "@/lib/pictures/makers";
+import { type PictureKind, type PictureStatus, type SceneStyle } from "@/lib/pictures/pictures";
 import { pictureStore } from "@/lib/pictures/server";
 import type { Picture } from "@/lib/pictures/store";
 
@@ -27,8 +27,9 @@ import type { Picture } from "@/lib/pictures/store";
  *
  * 1. A showroom scene someone already made, or is making, is returned at once:
  *    no cost, no allowance.
- * 2. The shop's guard, before anything is spent: off, the kill switch, the
- *    day's budget (skipped when the shop draws the picture itself, for nothing).
+ * 2. Whether pictures are made at all (PICTURES_PROVIDER, a key: docs/adr/060
+ *    — there is no drawn stand-in any more), then the shop's guard before
+ *    anything is spent: the kill switch and the day's budget.
  * 3. The shopper's own allowance (an account 3 a day, a guest 1).
  * 4. The photograph, for a picture of the shopper's own room: a new one
  *    through every photo rule (consent, re-encoded, a day to live), or one
@@ -37,7 +38,22 @@ import type { Picture } from "@/lib/pictures/store";
  * 5. The row, counted against the allowance in the same statement, then the job.
  */
 
-export type PictureView = { id: string; kind: PictureKind; style: SceneStyle | null; status: PictureStatus; url: string | null; drawn: boolean; reason: string | null };
+/**
+ * What a browser is shown of a picture: the picture (up to 2560 px), its
+ * 1024 px copy for strips, and where Save fetches the full-size JPEG.
+ */
+export type PictureView = {
+  id: string;
+  kind: PictureKind;
+  style: SceneStyle | null;
+  status: PictureStatus;
+  url: string | null;
+  previewUrl: string | null;
+  downloadUrl: string | null;
+  /** The shopper's room photograph it was made from, for their own pictures; null for a scene. */
+  uploadId: string | null;
+  reason: string | null;
+};
 
 export type StartRefusal =
   | "not_found"
@@ -59,18 +75,44 @@ export type RoomSource = { file: File; consent: boolean } | { uploadId: string }
 
 export type StartResult = { ok: true; picture: Picture; made: boolean; left: number } | { ok: false; reason: StartRefusal };
 
-/**
- * The model makes the picture only when George has turned it on (PICTURES_PROVIDER=google) and the shop has a
- * key; otherwise the shop draws it, for nothing. A deploy never starts spending by itself.
- */
-export const picturesDrawn = () =>
-  serverEnv().PICTURES_PROVIDER !== "google" || aiMode() !== "google" || serverEnv().GOOGLE_GENERATIVE_AI_API_KEY === undefined;
+/** Who makes pictures in this deployment: the image model, the tests' stand-in, or nobody. */
+export const currentPicturesProvider = (): PicturesProvider => picturesProvider(serverEnv());
 
-/** What a browser is shown of a picture: a scene's public address, or a short-lived link to the shopper's own. */
+/**
+ * Whether a new picture can be asked for right now: pictures are on, and the
+ * shop's guard is open (no kill switch, budget left). Pages use it to offer
+ * "Picture it" only when it can work; a ready scene is shown either way.
+ */
+export async function picturesOpen(): Promise<boolean> {
+  const provider = currentPicturesProvider();
+  if (provider === "off") return false;
+  const gate = await (await usageStore()).open(new Date(), { paid: provider === "google" });
+  return gate.ok;
+}
+
+/** A scene's files are public catalogue media; a shopper's own are given as short-lived links. */
+async function fileUrl(picture: Picture, key: string | null): Promise<string | null> {
+  if (key === null) return null;
+  return picture.kind === "scene" ? `/media/${key}` : photoUrl(key);
+}
+
 export async function pictureView(picture: Picture): Promise<PictureView> {
-  const url =
-    picture.status !== "done" || picture.resultKey === null ? null : picture.kind === "scene" ? sceneUrl(picture.id) : await photoUrl(picture.resultKey);
-  return { id: picture.id, kind: picture.kind, style: picture.style, status: picture.status, url, drawn: picture.provider === "drawn", reason: picture.failureReason };
+  const done = picture.status === "done";
+  const [url, previewUrl] = await Promise.all([fileUrl(picture, done ? picture.resultKey : null), fileUrl(picture, done ? (picture.previewKey ?? picture.resultKey) : null)]);
+  // Saved through the shop's own address, which checks whose it is and names the file (/api/pictures?download=).
+  const downloadUrl = done ? `/api/pictures?download=${picture.id}` : null;
+  return {
+    id: picture.id,
+    kind: picture.kind,
+    style: picture.style,
+    status: picture.status,
+    url,
+    previewUrl,
+    downloadUrl,
+    // Only ever shown to the photograph's owner (store.ts view): so the same room can picture another piece.
+    uploadId: picture.kind === "scene" ? null : picture.uploadId,
+    reason: picture.failureReason,
+  };
 }
 
 export async function startPicture(input: {
@@ -90,11 +132,10 @@ export async function startPicture(input: {
     if (existing !== null) return { ok: true, picture: existing, made: false, left: await store.left(actor) };
   }
 
-  const drawn = picturesDrawn();
-  if (!drawn) {
-    const gate = await (await usageStore()).open();
-    if (!gate.ok) return { ok: false, reason: gate.reason === "turns" || gate.reason === "credits" ? "allowance" : gate.reason };
-  }
+  const provider = currentPicturesProvider();
+  if (provider === "off") return { ok: false, reason: "off" };
+  const gate = await (await usageStore()).open(new Date(), { paid: provider === "google" });
+  if (!gate.ok) return { ok: false, reason: gate.reason === "turns" || gate.reason === "credits" ? "allowance" : gate.reason };
   if ((await store.left(actor)) === 0) return { ok: false, reason: "allowance" };
 
   let uploadId: string | null = null;
@@ -122,8 +163,8 @@ export async function startPicture(input: {
     style,
     uploadId,
     actor,
-    provider: drawn ? "drawn" : "google",
-    model: drawn ? "vitrine-drawn-picture" : MODELS.image.id,
+    provider,
+    model: pictureModel(serverEnv()).id,
     expiresAt,
   });
   if (!started.ok) return { ok: false, reason: "allowance" };

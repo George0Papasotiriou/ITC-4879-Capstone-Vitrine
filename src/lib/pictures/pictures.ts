@@ -99,3 +99,66 @@ export const sceneKey = (id: string) => `catalog/scenes/${id}.webp`;
 
 /** Where the shopper's browser fetches a scene from. */
 export const sceneUrl = (id: string) => `/media/${sceneKey(id)}`;
+
+/**
+ * Every file of one picture (docs/adr/060): the picture as shown (WebP, up to
+ * 2560 px), a 1024 px copy for strips and thumbnails, and the full-size JPEG
+ * that Save gives — a format every phone and program opens. A shopper's own
+ * sit with their photographs and go with them; a scene's are public.
+ */
+export function pictureFiles(id: string, kind: PictureKind) {
+  const base = kind === "scene" ? `catalog/scenes/${id}` : `photos/pictures/${id}`;
+  return { result: `${base}.webp`, preview: `${base}-1024.webp`, download: `${base}.jpg` };
+}
+
+/** The longest side of a picture as stored and shown, and of its preview. */
+export const PICTURE_LONG_SIDE = 2560;
+export const PREVIEW_LONG_SIDE = 1024;
+
+/**
+ * The rooms a showroom picture is set in (docs/adr/060). Each style has one
+ * photograph of each, made once and kept, and a piece is photographed in the
+ * room it belongs to: a bed in the bedroom, a desk in the study.
+ */
+export const ROOM_TYPES = ["living", "bedroom", "dining", "office"] as const;
+export type RoomType = (typeof ROOM_TYPES)[number];
+
+/** Kinds that belong in one room whatever their name says. */
+const ROOM_OF_KIND: Readonly<Record<string, RoomType>> = {
+  SOFA: "living",
+  BED: "bedroom",
+  HEADBOARD: "bedroom",
+  DRESSER: "bedroom",
+  CLOTHES_RACK: "bedroom",
+  LAUNDRY_HAMPER: "bedroom",
+  DESK: "office",
+};
+
+/** Words in a listing's title that say which room a piece is for, checked in this order. */
+const ROOM_WORDS: readonly [RoomType, RegExp][] = [
+  ["office", /\b(office|desk|task|gaming|ergonomic|computer|filing|swivel)\b/i],
+  ["dining", /\b(dining|kitchen|bar|counter|buffet|sideboard|breakfast)\b/i],
+  ["bedroom", /\b(bedside|night ?stand|nightstand|bedroom|vanity|wardrobe)\b/i],
+  ["living", /\b(coffee|side|end|console|sofa|nesting|accent|lounge|living|occasional)\b/i],
+];
+
+/**
+ * The room a piece is photographed in: its kind first where the kind decides
+ * (a sofa is never in the study), then the words of its title, then its size —
+ * a table at dining height and length is a dining table — and the living room
+ * for everything else.
+ */
+export function roomTypeFor(kind: string, title: string, dimsCm: { w: number; d: number; h: number } | null): RoomType {
+  const fixed = ROOM_OF_KIND[kind];
+  if (fixed !== undefined) return fixed;
+  for (const [room, words] of ROOM_WORDS) if (words.test(title)) return room;
+  if (kind === "TABLE" && dimsCm !== null && dimsCm.h >= 70 && Math.max(dimsCm.w, dimsCm.d) >= 110) return "dining";
+  return "living";
+}
+
+/** One showroom room's photograph: the full-size original the model works on, and the tile shown beside the style. */
+export const SHOWROOM_VERSION = "v1";
+export function showroomFiles(style: SceneStyle, room: RoomType) {
+  const base = `catalog/showrooms/${SHOWROOM_VERSION}/${style}-${room}`;
+  return { original: `${base}.jpg`, tile: `${base}-640.webp` };
+}

@@ -12,6 +12,7 @@ import { uuidv7 } from "uuidv7";
 
 import { utcDay, type ActorKind } from "@/lib/ai/usage";
 import { PICTURE_CAPS, type PictureKind, type PictureStatus, type SceneStyle } from "@/lib/pictures/pictures";
+import { verdictSchema, type Verdict } from "@/lib/pictures/quality";
 
 type Sql = postgres.Sql;
 
@@ -26,8 +27,14 @@ export type Picture = {
   provider: string;
   model: string;
   resultKey: string | null;
+  previewKey: string | null;
+  downloadKey: string | null;
   failureReason: string | null;
   costMicros: number | null;
+  /** The quality check on the picture kept (src/lib/pictures/quality.ts), or null. */
+  quality: Verdict | null;
+  attempts: number;
+  promptVersion: string | null;
   expiresAt: Date | null;
   createdAt: Date;
 };
@@ -43,11 +50,22 @@ type Row = {
   provider: string;
   model: string;
   result_key: string | null;
+  preview_key: string | null;
+  download_key: string | null;
   failure_reason: string | null;
   cost_micros: number | null;
+  quality: unknown;
+  attempts: number | null;
+  prompt_version: string | null;
   expires_at: Date | string | null;
   created_at: Date | string;
 };
+
+/** A stored verdict, read back as the check wrote it; anything else (an older row, a hand edit) is no verdict. */
+function readVerdict(value: unknown): Verdict | null {
+  const parsed = verdictSchema.safeParse(typeof value === "string" ? JSON.parse(value) : value);
+  return parsed.success ? parsed.data : null;
+}
 
 const toPicture = (row: Row): Picture => ({
   id: row.id,
@@ -60,8 +78,13 @@ const toPicture = (row: Row): Picture => ({
   provider: row.provider,
   model: row.model,
   resultKey: row.result_key,
+  previewKey: row.preview_key ?? null,
+  downloadKey: row.download_key ?? null,
   failureReason: row.failure_reason,
   costMicros: row.cost_micros,
+  quality: readVerdict(row.quality),
+  attempts: row.attempts ?? 0,
+  promptVersion: row.prompt_version ?? null,
   expiresAt: row.expires_at === null ? null : new Date(row.expires_at),
   createdAt: new Date(row.created_at),
 });
@@ -79,7 +102,14 @@ export type StartPicture = {
 
 export type Started = { ok: true; picture: Picture; made: boolean } | { ok: false; reason: "allowance" };
 
-export function createPictureStore(sql: Sql) {
+/**
+ * `fixtures`: whether pictures made by the tests' stand-in (PICTURES_PROVIDER=fixture) are served. Only
+ * while the stand-in is in use, so a test run's pictures never reach a normal one on the same database.
+ */
+export function createPictureStore(sql: Sql, { fixtures = false }: { fixtures?: boolean } = {}) {
+  /** Which makers' scenes are shown: never the old drawn previews, and the stand-in's only in its own runs. */
+  const served = sql`provider <> 'drawn' AND (provider <> 'fixture' OR ${fixtures})`;
+
   /**
    * Asks for a picture. A scene someone already made, or is making, is
    * returned as it is (`made: false`): it costs nothing and uses none of the
@@ -116,19 +146,23 @@ export function createPictureStore(sql: Sql) {
     return { ok: false, reason: "allowance" };
   }
 
-  /** The scene of a piece in a style that is made or being made, if any: anyone may see it. */
+  /**
+   * The scene of a piece in a style that is made or being made, if any: anyone
+   * may see it. The shop's old drawn previews (docs/adr/053) are never shown
+   * again: only a picture a model made counts (docs/adr/060).
+   */
   async function sceneFor(productId: string, style: SceneStyle): Promise<Picture | null> {
     const rows = await sql<Row[]>`
-      SELECT * FROM pictures WHERE kind = 'scene' AND product_id = ${productId} AND style = ${style} AND status <> 'failed'
+      SELECT * FROM pictures WHERE kind = 'scene' AND product_id = ${productId} AND style = ${style} AND status <> 'failed' AND ${served}
       ORDER BY created_at DESC LIMIT 1
     `;
     return rows[0] === undefined ? null : toPicture(rows[0]);
   }
 
-  /** Every finished scene of a piece, for its page. */
+  /** Every finished scene of a piece made by a model, for its page. */
   async function scenesOf(productId: string): Promise<Picture[]> {
     const rows = await sql<Row[]>`
-      SELECT * FROM pictures WHERE kind = 'scene' AND product_id = ${productId} AND status = 'done' ORDER BY created_at
+      SELECT * FROM pictures WHERE kind = 'scene' AND product_id = ${productId} AND status = 'done' AND ${served} ORDER BY created_at
     `;
     return rows.map(toPicture);
   }
@@ -150,13 +184,31 @@ export function createPictureStore(sql: Sql) {
     return rows[0] === undefined ? null : toPicture(rows[0]);
   }
 
-  async function mark(id: string, change: { status: PictureStatus; resultKey?: string; failureReason?: string; costMicros?: number | null }) {
+  async function mark(
+    id: string,
+    change: {
+      status: PictureStatus;
+      resultKey?: string;
+      previewKey?: string;
+      downloadKey?: string;
+      failureReason?: string;
+      costMicros?: number | null;
+      quality?: Verdict | null;
+      attempts?: number;
+      promptVersion?: string;
+    },
+  ) {
     await sql`
       UPDATE pictures SET
         status = ${change.status},
         result_key = COALESCE(${change.resultKey ?? null}, result_key),
+        preview_key = COALESCE(${change.previewKey ?? null}, preview_key),
+        download_key = COALESCE(${change.downloadKey ?? null}, download_key),
         failure_reason = ${change.failureReason ?? null},
         cost_micros = COALESCE(${change.costMicros ?? null}, cost_micros),
+        quality = COALESCE(${change.quality == null ? null : JSON.stringify(change.quality)}::text::jsonb, quality),
+        attempts = COALESCE(${change.attempts ?? null}::int, attempts),
+        prompt_version = COALESCE(${change.promptVersion ?? null}, prompt_version),
         updated_at = now()
       WHERE id = ${id}
     `;
@@ -181,7 +233,34 @@ export function createPictureStore(sql: Sql) {
     return rows.map(toPicture);
   }
 
-  return { start, sceneFor, scenesOf, view, byIdForJob, mark, left, forActor };
+  /** This shopper's own pictures of one piece, still alive and not failed, newest first: what they come back to. */
+  async function mineFor(actorKey: string, productId: string, at = new Date()): Promise<Picture[]> {
+    const rows = await sql<Row[]>`
+      SELECT * FROM pictures
+      WHERE actor_key = ${actorKey} AND product_id = ${productId} AND kind <> 'scene' AND provider <> 'drawn' AND status <> 'failed'
+        AND (expires_at IS NULL OR expires_at > ${at.toISOString()}::timestamptz)
+      ORDER BY created_at DESC LIMIT 6
+    `;
+    return rows.map(toPicture);
+  }
+
+  /**
+   * The room photograph this shopper last gave the shop, while it lives
+   * (docs/adr/060, "your room, remembered"): one tap pictures any other piece
+   * in it. The planner's pictures are left out — they already hold a placed
+   * piece — and so is anything deleted or past its day.
+   */
+  async function rememberedRoom(actorKey: string, at = new Date()): Promise<{ uploadId: string; storageKey: string; expiresAt: Date } | null> {
+    const [row] = await sql<{ id: string; storage_key: string; expires_at: Date | string }[]>`
+      SELECT u.id, u.storage_key, u.expires_at FROM uploads u
+      WHERE u.actor_key = ${actorKey} AND u.kind = 'room' AND u.deleted_at IS NULL AND u.expires_at > ${at.toISOString()}::timestamptz
+        AND NOT EXISTS (SELECT 1 FROM pictures p WHERE p.upload_id = u.id AND p.kind = 'room')
+      ORDER BY u.created_at DESC LIMIT 1
+    `;
+    return row === undefined ? null : { uploadId: row.id, storageKey: row.storage_key, expiresAt: new Date(row.expires_at) };
+  }
+
+  return { start, sceneFor, scenesOf, view, byIdForJob, mark, left, forActor, mineFor, rememberedRoom };
 }
 
 export type PictureStore = ReturnType<typeof createPictureStore>;

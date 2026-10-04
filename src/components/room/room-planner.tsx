@@ -111,7 +111,7 @@ function samplePhoto(): Photo {
 /** Field of view across the longer side for a 35 mm-equivalent focal length: 2·atan(18 / f). */
 const fovFrom35mm = (focal35: number) => (2 * Math.atan(18 / focal35) * 180) / Math.PI;
 
-export function RoomPlanner({ product, locale }: { product: PlaceableProduct; locale: string }) {
+export function RoomPlanner({ product, locale, pictures = false }: { product: PlaceableProduct; locale: string; pictures?: boolean }) {
   const t = useTranslations("room");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const helpId = useId();
@@ -1048,7 +1048,7 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                     {t("newPhoto")}
                   </Button>
                 </div>
-                {product.slug === undefined || placement === null ? null : <PlannerPicture slug={product.slug} picture={cleanPicture} />}
+                {!pictures || product.slug === undefined || placement === null ? null : <PlannerPicture slug={product.slug} picture={cleanPicture} />}
               </>
             )}
             <p className="text-slate text-xs">{t("privacy")}</p>

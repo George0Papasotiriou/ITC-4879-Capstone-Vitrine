@@ -86,6 +86,12 @@ export async function getWallPieces(params: Parameters<CatalogQueries["forWalls"
   return (await queries().forWalls(params)).map((entry) => ({ card: localizeCard(entry.card, country), dimsCm: entry.dimsCm }));
 }
 
+export async function getAlternatives(params: Parameters<CatalogQueries["alternatives"]>[0]) {
+  await connection();
+  const { country } = await currentRegion();
+  return (await queries().alternatives(params)).map((card) => localizeCard(card, country));
+}
+
 export async function getCardsByIds(ids: readonly string[], locale: string) {
   await connection();
   const { country } = await currentRegion();

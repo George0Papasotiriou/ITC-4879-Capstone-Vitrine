@@ -204,6 +204,13 @@
       "when": 1791068215281,
       "tag": "0028_product_models",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1791127087896,
+      "tag": "0029_pictures_quality",
+      "breakpoints": true
     }
   ]
 }

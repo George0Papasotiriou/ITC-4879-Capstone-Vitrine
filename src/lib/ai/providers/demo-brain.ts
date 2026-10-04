@@ -479,10 +479,12 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
       if (output?.ok === true) {
         return output.ready === true
           ? say(locale, `Here is ${output.title}, in a room someone already asked for, so it was free.`, `Ορίστε το ${output.title}, σε ένα δωμάτιο που είχε ζητήσει ήδη κάποιος, οπότε ήταν δωρεάν.`)
-          : say(locale, `I'm making a picture of ${output.title}. It develops below in about twenty seconds.`, `Φτιάχνω μια εικόνα με το ${output.title}. Εμφανίζεται από κάτω σε περίπου είκοσι δευτερόλεπτα.`);
+          : say(locale, `I'm making a picture of ${output.title}. It develops below, usually in under a minute.`, `Φτιάχνω μια εικόνα με το ${output.title}. Εμφανίζεται από κάτω, συνήθως σε λιγότερο από ένα λεπτό.`);
       }
       if (output?.reason === "no_photo") return say(locale, "Attach a photo of your room first, then ask me again.", "Επισύναψε πρώτα μια φωτογραφία του δωματίου σου και ρώτα με ξανά.");
       if (output?.reason === "not_for_rooms") return say(locale, "That piece isn't one for a room, so there's no picture to make.", "Αυτό το κομμάτι δεν είναι για δωμάτιο, οπότε δεν υπάρχει εικόνα να φτιάξω.");
+      if (output?.reason === "unavailable")
+        return say(locale, "AI pictures aren't available right now. The ready showroom pictures on the piece's page are still free to see.", "Οι εικόνες με AI δεν είναι διαθέσιμες τώρα. Τα έτοιμα δωμάτια στη σελίδα του κομματιού τα βλέπεις ακόμα δωρεάν.");
       if (output?.reason === "allowance") return say(locale, "That's today's pictures. The ready showroom pictures on the piece's page are still free.", "Αυτές ήταν οι σημερινές εικόνες. Τα έτοιμα δωμάτια στη σελίδα του κομματιού είναι ακόμα δωρεάν.");
       return say(locale, "The picture couldn't be started right now. Try again in a moment.", "Η εικόνα δεν μπόρεσε να ξεκινήσει τώρα. Δοκίμασε ξανά σε λίγο.");
     }

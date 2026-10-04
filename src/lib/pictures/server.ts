@@ -9,6 +9,7 @@
 
 import { connection } from "next/server";
 
+import { serverEnv } from "@/env";
 import { sql } from "@/lib/db/client";
 import { createPictureStore, type PictureStore } from "@/lib/pictures/store";
 
@@ -17,5 +18,5 @@ let store: PictureStore | undefined;
 /** The picture store, at request time (docs/adr/053). */
 export async function pictureStore(): Promise<PictureStore> {
   await connection();
-  return (store ??= createPictureStore(sql));
+  return (store ??= createPictureStore(sql, { fixtures: serverEnv().PICTURES_PROVIDER === "fixture" }));
 }

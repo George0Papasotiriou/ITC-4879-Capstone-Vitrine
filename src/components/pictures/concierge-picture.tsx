@@ -18,13 +18,14 @@ import type { PicturePhase } from "@/components/pictures/use-picture";
 import { SmartLink } from "@/components/ui/smart-link";
 import { isSceneStyle } from "@/lib/pictures/pictures";
 
-const FOLLOW_MS = 1500;
-const MAX_FOLLOWS = 80;
+const FOLLOW_MS = 2000;
+/** Six minutes, as on the product page: a picture the check sends back is made twice. */
+const MAX_FOLLOWS = 180;
 
 /**
- * docs/adr/053. `picture_in_room` answers with an id; this follows it — the
- * same darkroom as the product page, smaller — and shows the picture with its
- * label, a Save link and the way back to the piece. The picture's address
+ * docs/adr/053, docs/adr/060. `picture_in_room` answers with an id; this
+ * follows it — the same darkroom as the product page, smaller — and shows the
+ * picture with its label in the corner, a Save link and the way back to the piece. The picture's address
  * comes from the shop (a scene's public one, or a short-lived link to the
  * shopper's own), never from the model.
  */
@@ -32,6 +33,7 @@ export function ConciergePicture({ pictureId, slug, title, room }: { pictureId: 
   const t = useTranslations("pictures");
   const [picture, setPicture] = useState<PictureView | null>(null);
   const [gaveUp, setGaveUp] = useState(false);
+  const [since] = useState(() => Date.now());
 
   useEffect(() => {
     let alive = true;
@@ -62,15 +64,21 @@ export function ConciergePicture({ pictureId, slug, title, room }: { pictureId: 
           {t.has(`errors.${picture?.reason ?? "timeout"}`) ? t(`errors.${picture?.reason ?? "timeout"}`) : t("errors.generic")}
         </p>
       ) : (
-        <PictureStage phase={phase} source={null} result={done?.url ?? null} compare={false} alt={alt} />
+        <PictureStage
+          phase={phase}
+          source={null}
+          result={done?.previewUrl ?? done?.url ?? null}
+          full={done?.url ?? null}
+          compare={false}
+          alt={alt}
+          label={done === null ? null : [t("label.ai"), done.kind === "quick" ? t("label.approximate") : null].filter(Boolean).join(" · ")}
+          since={since}
+        />
       )}
       {done === null ? null : (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-          <span className="border-hairline text-slate rounded-full border px-2 py-0.5" data-agent-id="picture:label">
-            {[done.drawn ? t("label.drawn") : t("label.ai"), done.kind === "quick" ? t("label.approximate") : null].filter(Boolean).join(" · ")}
-          </span>
-          {done.url === null ? null : (
-            <a href={done.url} download={`vitrine-${slug}.webp`} className="text-dusk font-medium underline-offset-4 hover:underline">
+          {done.downloadUrl === null ? null : (
+            <a href={done.downloadUrl} download className="text-dusk font-medium underline-offset-4 hover:underline">
               {t("save")}
             </a>
           )}

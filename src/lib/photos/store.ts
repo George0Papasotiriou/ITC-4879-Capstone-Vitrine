@@ -169,12 +169,14 @@ export function createPhotoStore(sql: Sql) {
     const photos = rows.map((row) => toPhoto(row));
     if (photos.length === 0) return { photos, results: [] };
     // What was made from them goes with them: try-ons, and AI pictures of a piece in their room (docs/adr/053).
-    const resultRows = await sql<{ result_key: string }[]>`
+    // A picture is three files: as shown, its small copy and the download (docs/adr/060).
+    const resultRows = await sql<{ result_key: string | null }[]>`
       SELECT result_key FROM try_ons WHERE upload_id = ANY(${photos.map((photo) => photo.id)}::uuid[]) AND result_key IS NOT NULL
       UNION ALL
-      SELECT result_key FROM pictures WHERE upload_id = ANY(${photos.map((photo) => photo.id)}::uuid[]) AND result_key IS NOT NULL
+      SELECT unnest(ARRAY[result_key, preview_key, download_key]) AS result_key FROM pictures
+      WHERE upload_id = ANY(${photos.map((photo) => photo.id)}::uuid[]) AND result_key IS NOT NULL
     `;
-    return { photos, results: resultRows.map((row) => row.result_key) };
+    return { photos, results: resultRows.map((row) => row.result_key).filter((key): key is string => key !== null) };
   }
 
   /* --------------------------------- try-ons -------------------------------- */

@@ -101,6 +101,21 @@ describe("the production guard", () => {
     expect(result.success).toBe(true);
   });
 
+  it("refuses the AI pictures' test stand-in in production, and reads the old drawn previews as off (docs/adr/060)", () => {
+    const production = { ...base, ...s3, ...cookieSecret, NODE_ENV: "production", REDIS_URL: "redis://redis.internal:6379" };
+    const fixture = parseEnvironment({ ...production, PICTURES_PROVIDER: "fixture" });
+    expect(fixture.success).toBe(false);
+    expect(JSON.stringify(fixture.error?.issues)).toContain("PICTURES_PROVIDER=fixture");
+    // A deployment that still says "drawn" starts, with no picture made.
+    const drawn = parseEnvironment({ ...production, PICTURES_PROVIDER: "drawn" });
+    expect(drawn.success && drawn.data.PICTURES_PROVIDER).toBe("off");
+    const unset = parseEnvironment(production);
+    expect(unset.success && unset.data.PICTURES_PROVIDER).toBe("off");
+    expect(unset.success && unset.data.PICTURES_MODEL).toBe("pro");
+    // The local stack may use it, as it uses the other stand-ins.
+    expect(parseEnvironment({ ...base, ...localSecret, PICTURES_PROVIDER: "fixture" }).success).toBe(true);
+  });
+
   it("accepts a real production configuration", () => {
     const result = parseEnvironment({
       ...base,

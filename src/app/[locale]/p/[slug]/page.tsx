@@ -18,7 +18,7 @@ import { currentRegion } from "@/lib/commerce/region";
 import { PriceWatch } from "@/components/commerce/price-watch";
 import { SizePicker, type SizeOption } from "@/components/commerce/size-picker";
 import { ModelView } from "@/components/commerce/model-view";
-import { PictureStudio } from "@/components/pictures/picture-studio";
+import { PictureStudio, type StudioPiece } from "@/components/pictures/picture-studio";
 import { WayIn } from "@/components/fit/way-in";
 import { AddToBoard } from "@/components/boards/add-to-board";
 import { SpinView } from "@/components/commerce/spin-view";
@@ -34,7 +34,10 @@ import { SmartLink } from "@/components/ui/smart-link";
 import { serverEnv } from "@/env";
 import { requireLocale } from "@/i18n/params";
 import { routing } from "@/i18n/routing";
-import { getCardsByIds, getFeatured, getProduct } from "@/lib/catalog/server";
+import { getAlternatives, getCardsByIds, getFeatured, getProduct } from "@/lib/catalog/server";
+import type { CatalogImage, ProductCard } from "@/lib/catalog/queries";
+import { formatMoney, type Money } from "@/lib/commerce/money";
+import { photoUrl } from "@/lib/photos/server";
 import { canMakeModel } from "@/lib/catalog/model/family";
 import { pairsWith } from "@/lib/reco/server";
 import { productJsonLd, serializeJsonLd } from "@/lib/catalog/structured-data";
@@ -42,8 +45,11 @@ import { priceWatches, reviewsStore } from "@/lib/commerce/server";
 import { currentUser } from "@/lib/auth/session";
 import { knownActor } from "@/lib/ai/server";
 import { sameOriginImage } from "@/lib/catalog/media-url";
-import { sceneUrl } from "@/lib/pictures/pictures";
+import { roomTypeFor } from "@/lib/pictures/pictures";
 import { pictureStore } from "@/lib/pictures/server";
+import { showroomTiles } from "@/lib/pictures/showrooms";
+import { pictureView, picturesOpen } from "@/lib/pictures/start";
+import { storage } from "@/lib/storage";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
 import { sizeChartFor } from "@/lib/catalog/capsule";
 import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
@@ -162,14 +168,34 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   // "Will it get in?" (docs/adr/055): for pieces that go in a room, carried as their catalogue box.
   const wayInBox = product.dimsCm !== null && roomPlacement(product.kind, product.dimsCm) !== null ? product.dimsCm : null;
 
-  // "See it in a room" (docs/adr/053), for pieces that belong in a room: the showroom scenes already made,
-  // and how many pictures this shopper may still make today (a read: no guest id is minted for it).
+  // "Picture it" (docs/adr/053, docs/adr/060), for pieces that belong in a room: the showroom pictures already
+  // made, whether new ones can be made now, this shopper's own from the last day and the room they last gave,
+  // the style tiles, and pieces of the same kind to try in the same room. Reads only: no guest id is minted.
   const pictureable = sizes.length === 0 && roomPlacement(product.kind, product.dimsCm) !== null;
   const studioImage = product.media.find((entry) => entry.studio === true) ?? product.image;
   const pictureActor = pictureable ? await knownActor(user) : null;
   const pictures = pictureable ? await pictureStore() : null;
   const madeScenes = pictures === null ? [] : await pictures.scenesOf(product.id);
+  const canMakePictures = pictureable && (await picturesOpen());
   const picturesLeft = pictures === null || pictureActor === null ? null : await pictures.left(pictureActor);
+  const myPictures = pictures === null || pictureActor === null ? [] : await pictures.mineFor(pictureActor.key, product.id);
+  const lastRoom = pictures === null || pictureActor === null || !canMakePictures ? null : await pictures.rememberedRoom(pictureActor.key);
+  const showStudio = pictureable && (canMakePictures || madeScenes.length > 0 || myPictures.length > 0);
+  const studioTiles = showStudio ? await showroomTiles(await storage(), roomTypeFor(product.kind, product.titleEn, product.dimsCm)) : {};
+  const priceLabel = (card: { price: Money }) => formatMoney(card.price, locale);
+  const studioPiece = (card: ProductCard, image: CatalogImage | null): StudioPiece => ({
+    id: card.id,
+    slug: card.slug,
+    title: card.title,
+    image: image === null ? null : sameOriginImage(image.src, 640),
+    canPlace: true,
+    price: priceLabel(card),
+    inStock: card.inStock,
+  });
+  const studioAlternatives =
+    showStudio && canMakePictures
+      ? (await getAlternatives({ productId: product.id, kind: product.kind, priceCents: product.price.cents, locale, limit: 8 })).map((card) => studioPiece(card, card.image))
+      : [];
 
   const imageLabels = product.media.map((_, index) => t("showImage", { index: index + 1, count: product.media.length }));
   // English copy on a Greek page is marked as English, for screen readers and translation tools.
@@ -377,12 +403,17 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         </div>
       </div>
 
-      {!pictureable ? null : (
+      {!showStudio ? null : (
         <PictureStudio
-          piece={{ slug: product.slug, title: product.title, image: studioImage === null ? null : sameOriginImage(studioImage.src, 1080), canPlace: true }}
-          scenes={madeScenes.map((scene) => ({ id: scene.id, kind: scene.kind, style: scene.style, status: scene.status, url: sceneUrl(scene.id), drawn: scene.provider === "drawn", reason: null }))}
+          piece={{ ...studioPiece(product, studioImage), image: studioImage === null ? null : sameOriginImage(studioImage.src, 1080), inStock: product.stock > 0 }}
+          scenes={await Promise.all(madeScenes.map(pictureView))}
+          mine={await Promise.all(myPictures.map(pictureView))}
+          tiles={studioTiles}
+          canMake={canMakePictures}
           left={picturesLeft}
           signedIn={user !== null}
+          room={lastRoom === null ? null : { uploadId: lastRoom.uploadId, url: await photoUrl(lastRoom.storageKey), expiresAt: lastRoom.expiresAt.toISOString() }}
+          alternatives={studioAlternatives}
         />
       )}
 

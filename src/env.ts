@@ -167,12 +167,21 @@ const rawSchema = z.object({
   OPENAI_API_KEY: optionalString,
   VOICE_PROVIDER: z.enum(["browser", "google", "openai"]).default("google"),
   /**
-   * AI pictures of a piece in a room (docs/adr/053). "drawn" (the default): the
-   * shop composes each picture itself, labelled "Preview without AI", at no cost.
-   * "google": the image model makes them, through the cost guard and the
-   * shopper's allowance — turned on by George once he has seen the price.
+   * AI pictures of a piece in a room (docs/adr/053, docs/adr/060). "off" (the
+   * default): no picture is made, and "Picture it" shows only showroom pictures
+   * the AI has already made, or nothing. "google": the image model makes them,
+   * through the cost guard and the shopper's allowance — turned on by George
+   * once he has seen the price. "fixture": the tests' stand-in, which hands back
+   * a real photograph it was given; refused in production. "drawn" was the old
+   * keyless preview (removed: only photoreal pictures reach a shopper) and is
+   * read as "off", so a deployment that still sets it starts as before.
    */
-  PICTURES_PROVIDER: z.enum(["drawn", "google"]).default("drawn"),
+  PICTURES_PROVIDER: z
+    .enum(["off", "google", "fixture", "drawn"])
+    .default("off")
+    .transform((value) => (value === "drawn" ? "off" : value)),
+  /** Which image model: "pro" (Nano Banana Pro, the default, the most faithful) or "flash" (Nano Banana 2, about a quarter cheaper). */
+  PICTURES_MODEL: z.enum(["pro", "flash"]).default("pro"),
   /**
    * The learned ranking stage of search (docs/adr/057): LambdaMART trees the
    * project trained on ESCI, run in the shop after fusion. "off" goes back to
@@ -258,6 +267,7 @@ const serverSchema = rawSchema
     const standIns = [
       jobsDriver === "inline" ? "JOBS_DRIVER=inline" : null,
       storageDriver === "local" ? "STORAGE_DRIVER=local" : null,
+      raw.PICTURES_PROVIDER === "fixture" ? "PICTURES_PROVIDER=fixture" : null,
     ].filter((value) => value !== null);
 
     if (raw.NODE_ENV === "production" && !raw.VITRINE_LOCAL && standIns.length > 0) {

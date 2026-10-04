@@ -49,17 +49,23 @@ export function PlannerPicture({ slug, picture }: { slug: string; picture: () =>
     <section className="border-hairline flex flex-col gap-3 border-t pt-5" data-agent-id="room:picture">
       <h3 className="font-display text-xl">{t("planner.title")}</h3>
       <p className="text-slate text-sm">{t("planner.lede")}</p>
-      {source === null ? null : <PictureStage phase={state.phase} source={source.url} result={result?.url ?? null} compare alt={t("plannerAlt")} aspect={source.aspect} />}
-      {result === null ? null : (
+      {source === null ? null : (
+        <PictureStage
+          phase={state.phase}
+          source={source.url}
+          result={result?.url ?? null}
+          compare
+          alt={t("plannerAlt")}
+          aspect={source.aspect}
+          label={result === null ? null : [t("label.ai"), t("label.exact")].join(" · ")}
+          since={state.since}
+        />
+      )}
+      {result === null || result.downloadUrl === null ? null : (
         <div className="flex flex-wrap items-center gap-3">
-          <span className="border-hairline text-slate rounded-full border px-2.5 py-1 text-xs" data-agent-id="picture:label">
-            {[result.drawn ? t("label.drawn") : t("label.ai"), t("label.exact")].join(" · ")}
-          </span>
-          {result.url === null ? null : (
-            <a href={result.url} download="vitrine-room-picture.webp" className="text-dusk text-sm font-medium underline-offset-4 hover:underline" data-agent-id="picture:save">
-              {t("save")}
-            </a>
-          )}
+          <a href={result.downloadUrl} download className="text-dusk text-sm font-medium underline-offset-4 hover:underline" data-agent-id="picture:save">
+            {t("save")}
+          </a>
         </div>
       )}
       <label htmlFor={consentId} className="flex cursor-pointer items-start gap-2 text-sm leading-snug">

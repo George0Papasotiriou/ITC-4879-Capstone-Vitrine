@@ -230,7 +230,7 @@ describe("an AI picture of a piece in a room (docs/adr/053)", () => {
   it("asks which piece when none is named, and explains each answer", () => {
     expect(demoStep(prompt("Picture it in a room"))).toMatchObject({ kind: "text" });
     const making = demoStep(prompt("Picture the Radford chair", [{ toolName: "picture_in_room", output: { ok: true, title: "Radford Chair", ready: false }, denied: false }]));
-    expect((making as { text: string }).text).toContain("twenty seconds");
+    expect((making as { text: string }).text).toContain("under a minute");
     const free = demoStep(prompt("Picture the Radford chair", [{ toolName: "picture_in_room", output: { ok: true, title: "Radford Chair", ready: true }, denied: false }]));
     expect((free as { text: string }).text).toContain("free");
     const spent = demoStep(prompt("Picture the Radford chair", [{ toolName: "picture_in_room", output: { ok: false, reason: "allowance" }, denied: false }]));

@@ -17,6 +17,7 @@ import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 import { SCENE_STYLE_IDS, type PictureKind, type SceneStyle } from "@/lib/pictures/pictures";
 import { pictureStore } from "@/lib/pictures/server";
 import { pictureView, startPicture, type PictureView, type StartRefusal } from "@/lib/pictures/start";
+import { storage } from "@/lib/storage";
 
 /**
  * docs/adr/053. Each picture costs money with a key, so it passes the same
@@ -59,7 +60,12 @@ const STATUS: Record<StartRefusal, number> = {
 };
 const perAddress = sharedRateLimiter({ name: "pictures", limit: 12, windowMs: 60_000 });
 
-const sceneSchema = z.object({ kind: z.literal("scene"), productSlug: z.string().trim().min(1).max(200), style: z.enum(SCENE_STYLE_IDS as [SceneStyle, ...SceneStyle[]]) });
+const slugSchema = z.string().trim().min(1).max(200);
+/** A showroom scene, or the shopper's own room again from a photograph they already gave (docs/adr/060). */
+const jsonSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("scene"), productSlug: slugSchema, style: z.enum(SCENE_STYLE_IDS as [SceneStyle, ...SceneStyle[]]) }),
+  z.object({ kind: z.literal("quick"), productSlug: slugSchema, uploadId: z.uuid() }),
+]);
 
 export async function GET(request: Request): Promise<Response> {
   const params = new URL(request.url).searchParams;
@@ -67,6 +73,26 @@ export async function GET(request: Request): Promise<Response> {
   const user = await currentUser();
   const actor = await knownActor(user);
   const store = await pictureStore();
+
+  // Save: the full-size JPEG as a download, from the shop's own address so the browser names and keeps it.
+  const download = params.get("download");
+  if (download !== null) {
+    if (!z.uuid().safeParse(download).success) return refuse("invalid_request", 400);
+    const picture = await store.view(download, actor?.key ?? null);
+    const key = picture === null || picture.status !== "done" ? null : (picture.downloadKey ?? picture.resultKey);
+    const file = key === null ? null : await (await storage()).getObject(key);
+    if (file === null) return refuse("not_found", 404);
+    return new Response(new Uint8Array(file.body), {
+      headers: {
+        "content-type": file.contentType,
+        "content-length": String(file.body.byteLength),
+        "content-disposition": `attachment; filename="vitrine-picture-${download.slice(-8)}.${file.contentType === "image/jpeg" ? "jpg" : "webp"}"`,
+        // A shopper's own picture is theirs: never kept by a shared cache.
+        "cache-control": picture?.kind === "scene" ? "public, max-age=86400" : "private, no-store",
+        "x-content-type-options": "nosniff",
+      },
+    });
+  }
 
   const id = params.get("id");
   if (id !== null) {
@@ -95,6 +121,7 @@ export async function POST(request: Request): Promise<Response> {
   let style: SceneStyle | null = null;
   let file: File | null = null;
   let consent = false;
+  let uploadId: string | null = null;
   if ((request.headers.get("content-type") ?? "").includes("multipart/form-data")) {
     const form = await request.formData().catch(() => null);
     const sent = form?.get("file");
@@ -105,17 +132,19 @@ export async function POST(request: Request): Promise<Response> {
     file = sent;
     consent = form.get("consent") === "yes";
   } else {
-    const body = sceneSchema.safeParse(await request.json().catch(() => null));
+    const body = jsonSchema.safeParse(await request.json().catch(() => null));
     if (!body.success) return refuse("invalid_request", 400);
-    kind = "scene";
+    kind = body.data.kind;
     slug = body.data.productSlug;
-    style = body.data.style;
+    if (body.data.kind === "scene") style = body.data.style;
+    else uploadId = body.data.uploadId;
   }
 
   const product = slug === "" ? null : await getProduct(slug, "en");
   if (product === null) return refuse("not_found", 404);
 
-  const started = await startPicture({ actor, userId: user?.id ?? null, productId: product.id, kind, style, room: file === null ? null : { file, consent } });
+  const room = file !== null ? { file, consent } : uploadId !== null ? { uploadId } : null;
+  const started = await startPicture({ actor, userId: user?.id ?? null, productId: product.id, kind, style, room });
   if (!started.ok) return refuse(started.reason, STATUS[started.reason]);
   return Response.json({ ok: true, picture: await pictureView(started.picture), made: started.made, left: started.left } satisfies PictureResponse);
 }

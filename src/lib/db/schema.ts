@@ -1246,8 +1246,17 @@ export const pictures = pgTable(
     provider: text("provider").notNull(),
     model: text("model").notNull(),
     resultKey: text("result_key"),
+    /** A 1024 px copy for strips and thumbnails, and the full-size JPEG that Save gives (docs/adr/060). */
+    previewKey: text("preview_key"),
+    downloadKey: text("download_key"),
     failureReason: text("failure_reason"),
     costMicros: integer("cost_micros"),
+    /** The quality check's verdict on the picture kept: scores out of 10 and the issues it named (src/lib/pictures/quality.ts). */
+    quality: jsonb("quality"),
+    /** How many times the model was asked: 1, or 2 when the check sent the first back. */
+    attempts: integer("attempts").notNull().default(0),
+    /** The prompt module that made it (src/lib/ai/prompts/). */
+    promptVersion: text("prompt_version"),
     /** With the photograph, for the shopper's own; null for a scene, which is kept. */
     expiresAt: timestamp("expires_at", { withTimezone: true }),
     ...timestamps,
@@ -1256,7 +1265,9 @@ export const pictures = pgTable(
     index("pictures_actor_idx").on(t.actorKey, t.createdAt),
     index("pictures_upload_idx").on(t.uploadId),
     // One showroom scene per piece and style, unless the last one failed: the second shopper gets the first one's.
-    uniqueIndex("pictures_scene_key").on(t.productId, t.style).where(sql`${t.kind} = 'scene' AND ${t.status} <> 'failed'`),
+    // The shop's old drawn previews (docs/adr/053) are never shown again and do not hold the place, nor do the tests'
+    // stand-in's pictures (docs/adr/060), which are shown only in the stand-in's own runs.
+    uniqueIndex("pictures_scene_key").on(t.productId, t.style).where(sql`${t.kind} = 'scene' AND ${t.status} <> 'failed' AND ${t.provider} NOT IN ('drawn', 'fixture')`),
     check("pictures_kind", sql`${t.kind} IN ('room', 'quick', 'scene')`),
     check("pictures_status", sql`${t.status} IN ('queued', 'running', 'done', 'failed')`),
     check("pictures_scene_has_style", sql`(${t.kind} = 'scene') = (${t.style} IS NOT NULL)`),

@@ -23,7 +23,11 @@ import type { BoardItemResponse } from "@/app/api/boards/[id]/items/route";
  * most visits never open it. A new board is named in place and the piece goes
  * straight onto it. Escape closes the list and gives focus back to its button.
  */
-export function AddToBoard({ productId, title }: { productId: string; title: string }) {
+/**
+ * `place` names a second copy on the same page (the picture studio's, docs/adr/060), so its agent ids
+ * stay unique; the buy box's copy has none.
+ */
+export function AddToBoard({ productId, title, place, tone = "light" }: { productId: string; title: string; place?: string; tone?: "light" | "dark" }) {
   const t = useTranslations("boards.add");
   const tb = useTranslations("boards");
   const locale = useLocale();
@@ -78,9 +82,18 @@ export function AddToBoard({ productId, title }: { productId: string; title: str
           event.currentTarget.querySelector<HTMLButtonElement>(`[aria-controls="${panelId}"]`)?.focus();
         }
       }}
-      data-agent-id="board:add"
+      data-agent-id={place === undefined ? "board:add" : `board:add:${place}`}
     >
-      <Button variant="secondary" disabled={!hydrated} aria-expanded={open} aria-controls={panelId} aria-label={t("label", { title })} onClick={() => void toggle()} data-agent-id={`action:add-to-board:${productId}`}>
+      <Button
+        variant="secondary"
+        disabled={!hydrated}
+        aria-expanded={open}
+        aria-controls={panelId}
+        aria-label={t("label", { title })}
+        onClick={() => void toggle()}
+        className={tone === "dark" ? "border-white/30 bg-transparent text-white hover:bg-white/10" : undefined}
+        data-agent-id={place === undefined ? `action:add-to-board:${productId}` : `action:add-to-board:${place}:${productId}`}
+      >
         {t("button")}
       </Button>
       {!open ? null : (

@@ -20,7 +20,7 @@ import { upsertCatalog } from "@/lib/catalog/write";
 import * as schema from "@/lib/db/schema";
 import { photoKey } from "@/lib/photos/photos";
 import { createPhotoStore } from "@/lib/photos/store";
-import { pictureKey } from "@/lib/pictures/pictures";
+import { pictureFiles, pictureKey } from "@/lib/pictures/pictures";
 import { createPictureStore } from "@/lib/pictures/store";
 
 const url = process.env.DATABASE_URL;
@@ -35,7 +35,7 @@ describe.skipIf(url === undefined || url === "")("AI pictures", () => {
   let photos: ReturnType<typeof createPhotoStore>;
   let productId: string;
   const scene = (style: "warm-minimal" | "scandinavian" | "dark-moody" | "mediterranean", actor: { key: string; kind: "guest" | "customer" } = customer) =>
-    pictures.start({ kind: "scene", productId, style, uploadId: null, actor, provider: "drawn", model: "vitrine-drawn-picture", expiresAt: null });
+    pictures.start({ kind: "scene", productId, style, uploadId: null, actor, provider: "google", model: "gemini-3-pro-image", expiresAt: null });
 
   beforeAll(async () => {
     connection = postgres(url as string, { max: 4, onnotice: () => {} });
@@ -99,21 +99,84 @@ describe.skipIf(url === undefined || url === "")("AI pictures", () => {
   it("shows a shopper's own room picture to them alone, and not after its day", async () => {
     const id = uuidv7();
     const upload = await photos.record({ kind: "room", actorKey: customer.key, userId: null, storageKey: photoKey(id), contentType: "image/webp", bytes: 40_000, width: 1600, height: 1200 });
-    const started = await pictures.start({ kind: "quick", productId, style: null, uploadId: upload.id, actor: customer, provider: "drawn", model: "vitrine-drawn-picture", expiresAt: upload.expiresAt });
+    const started = await pictures.start({ kind: "quick", productId, style: null, uploadId: upload.id, actor: customer, provider: "google", model: "gemini-3-pro-image", expiresAt: upload.expiresAt });
     if (!started.ok) throw new Error("unreachable");
     expect(await pictures.view(started.picture.id, customer.key)).not.toBeNull();
     expect(await pictures.view(started.picture.id, stranger.key)).toBeNull();
     expect(await pictures.view(started.picture.id, null)).toBeNull();
     expect(await pictures.view(started.picture.id, customer.key, new Date(Date.now() + 25 * 60 * 60 * 1000))).toBeNull();
 
-    // When the photograph's day is up, the expiry job finds the picture made from it and deletes it too.
-    await pictures.mark(started.picture.id, { status: "done", resultKey: pictureKey(started.picture.id) });
+    // When the photograph's day is up, the expiry job finds every file of the picture made from it and deletes them too.
+    const keys = pictureFiles(started.picture.id, "quick");
+    await pictures.mark(started.picture.id, { status: "done", resultKey: keys.result, previewKey: keys.preview, downloadKey: keys.download });
     const { results } = await photos.expired(new Date(Date.now() + 25 * 60 * 60 * 1000));
+    expect(results).toEqual(expect.arrayContaining([keys.result, keys.preview, keys.download]));
     expect(results).toContain(pictureKey(started.picture.id));
   });
 
   it("will not store a scene without a style, or a shopper's picture without their photograph", async () => {
     await expect(connection`INSERT INTO pictures (id, kind, product_id, actor_key, provider, model) VALUES (${uuidv7()}, 'scene', ${productId}, 'guest:pictures-test-x', 'drawn', 'm')`).rejects.toThrow();
     await expect(connection`INSERT INTO pictures (id, kind, product_id, actor_key, provider, model) VALUES (${uuidv7()}, 'quick', ${productId}, 'guest:pictures-test-x', 'drawn', 'm')`).rejects.toThrow();
+  });
+
+  it("never serves or keeps the place of the old drawn previews (docs/adr/060)", async () => {
+    // A drawn scene from before: still in the table, never shown, and an AI scene may be made beside it.
+    const drawn = await connection<{ id: string }[]>`
+      INSERT INTO pictures (id, kind, product_id, style, actor_key, status, provider, model, result_key)
+      VALUES (${uuidv7()}, 'scene', ${productId}, 'dark-moody', 'guest:pictures-test-old', 'done', 'drawn', 'vitrine-drawn-picture', 'catalog/scenes/old.webp')
+      RETURNING id
+    `;
+    expect(await pictures.sceneFor(productId, "dark-moody")).toBeNull();
+    expect(await pictures.scenesOf(productId)).toEqual([]);
+    const made = await scene("dark-moody", customer);
+    expect(made).toMatchObject({ ok: true, made: true });
+    if (!made.ok) throw new Error("unreachable");
+    expect(made.picture.id).not.toBe(drawn[0]!.id);
+    expect((await pictures.sceneFor(productId, "dark-moody"))?.id).toBe(made.picture.id);
+  });
+
+  it("shows the tests' stand-in's pictures only in its own runs, and never lets one hold a real picture's place", async () => {
+    const asFixture = createPictureStore(connection, { fixtures: true });
+    const test = await asFixture.start({ kind: "scene", productId, style: "mediterranean", uploadId: null, actor: guest, provider: "fixture", model: "vitrine-picture-fixture", expiresAt: null });
+    if (!test.ok) throw new Error("unreachable");
+    await asFixture.mark(test.picture.id, { status: "done", resultKey: "catalog/scenes/test.webp" });
+    expect((await asFixture.sceneFor(productId, "mediterranean"))?.id).toBe(test.picture.id);
+    expect(await pictures.sceneFor(productId, "mediterranean")).toBeNull();
+    expect(await pictures.scenesOf(productId)).toEqual([]);
+    // A real one is made beside it.
+    expect(await scene("mediterranean", customer)).toMatchObject({ ok: true, made: true });
+  });
+
+  it("keeps the check's verdict, the attempts and the prompt that made a picture", async () => {
+    const made = await scene("scandinavian", customer);
+    if (!made.ok) throw new Error("unreachable");
+    const keys = pictureFiles(made.picture.id, "scene");
+    const verdict = { fidelity: 9, realism: 8, scale: 8, roomKept: null, issues: ["a faint seam on the left arm"] };
+    await pictures.mark(made.picture.id, { status: "done", resultKey: keys.result, previewKey: keys.preview, downloadKey: keys.download, quality: verdict, attempts: 2, promptVersion: "picture-v2", costMicros: 380_000 });
+    const stored = await pictures.byIdForJob(made.picture.id);
+    expect(stored).toMatchObject({ status: "done", previewKey: keys.preview, downloadKey: keys.download, quality: verdict, attempts: 2, promptVersion: "picture-v2", costMicros: 380_000 });
+    // A later mark without them leaves them as they were.
+    await pictures.mark(made.picture.id, { status: "done" });
+    expect(await pictures.byIdForJob(made.picture.id)).toMatchObject({ quality: verdict, attempts: 2, previewKey: keys.preview });
+  });
+
+  it("remembers the shopper's last room photograph, but not the planner's placed picture, and finds their pictures of a piece", async () => {
+    const record = () => photos.record({ kind: "room", actorKey: customer.key, userId: null, storageKey: photoKey(uuidv7()), contentType: "image/webp", bytes: 40_000, width: 1600, height: 1200 });
+    const room = await record();
+    expect((await pictures.rememberedRoom(customer.key))?.uploadId).toBe(room.id);
+    // The planner's picture is newer, but it already holds a placed piece: the room photograph is still the one remembered.
+    const placed = await record();
+    await pictures.start({ kind: "room", productId, style: null, uploadId: placed.id, actor: customer, provider: "google", model: "gemini-3-pro-image", expiresAt: placed.expiresAt });
+    expect((await pictures.rememberedRoom(customer.key))?.uploadId).toBe(room.id);
+    expect(await pictures.rememberedRoom(stranger.key)).toBeNull();
+    // Past its day, nothing is remembered.
+    expect(await pictures.rememberedRoom(customer.key, new Date(Date.now() + 25 * 60 * 60 * 1000))).toBeNull();
+
+    const quick = await pictures.start({ kind: "quick", productId, style: null, uploadId: room.id, actor: customer, provider: "google", model: "gemini-3-pro-image", expiresAt: room.expiresAt });
+    if (!quick.ok) throw new Error("unreachable");
+    const mine = await pictures.mineFor(customer.key, productId);
+    expect(mine.map((picture) => picture.id)).toContain(quick.picture.id);
+    expect(mine.every((picture) => picture.kind !== "scene")).toBe(true);
+    expect(await pictures.mineFor(stranger.key, productId)).toEqual([]);
   });
 });

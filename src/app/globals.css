@@ -642,7 +642,7 @@
 }
 
 /* The showroom styles' swatches (docs/adr/053): each style's wall, floor and light, as its tile shows them
-   before its picture exists. The same colours the shop's own drawn preview uses (src/lib/pictures/render.ts). */
+   until its room is photographed (docs/adr/060, src/lib/pictures/showrooms.ts). */
 .scene-swatch[data-style="warm-minimal"] { background: linear-gradient(180deg, #efe8dc 0 64%, #c9b293 64% 100%) }
 .scene-swatch[data-style="scandinavian"] { background: linear-gradient(180deg, #f3f4f2 0 64%, #d6c9b2 64% 100%) }
 .scene-swatch[data-style="dark-moody"] { background: linear-gradient(180deg, #2c3732 0 64%, #43352a 64% 100%) }

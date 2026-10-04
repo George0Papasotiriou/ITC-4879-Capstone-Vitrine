@@ -62,6 +62,8 @@ export type ProductCard = {
 };
 
 export type ProductDetail = ProductCard & {
+  /** The English title, whatever the page language: for rules that read the listing's words (pictures.ts roomTypeFor). */
+  titleEn: string;
   categoryName: string;
   description: string | null;
   highlights: string[];
@@ -344,6 +346,27 @@ export function createCatalogQueries(sql: Sql) {
     return rows.map((row) => ({ card: toCard(row, params.locale), dimsCm: row.dims_cm }));
   }
 
+  /**
+   * Other pieces to picture in the same room (docs/adr/060, "Try another in
+   * this room"): active and in stock, of the same kind, with measurements,
+   * nearest in price first — the distance measured as a ratio, so €400 is as
+   * near €500 as €40 is to €50 — then the most popular.
+   */
+  async function alternatives(params: { productId: string; kind: string; priceCents: number; locale: string; limit: number }): Promise<ProductCard[]> {
+    const rows = await sql<CardRow[]>`
+      SELECT ${cardColumns}
+      ${fromProducts}
+      WHERE p.status = 'active'
+        AND p.id <> ${params.productId}
+        AND p.kind = ${params.kind}
+        AND p.dims_cm IS NOT NULL
+        AND ${inStockCondition}
+      ORDER BY abs(ln(greatest(p.price_cents, 1)::float / greatest(${params.priceCents}, 1)::float)), p.popularity DESC, p.source_id
+      LIMIT ${params.limit}
+    `;
+    return rows.map((row) => toCard(row, params.locale));
+  }
+
   /** Cards for ids in the caller's order (search results, recommendations). */
   async function cardsByIds(ids: readonly string[], locale: string): Promise<ProductCard[]> {
     if (ids.length === 0) return [];
@@ -424,6 +447,7 @@ export function createCatalogQueries(sql: Sql) {
     const hasGreek = row.translation !== "none" && row.title_el !== null;
     return {
       ...toCard(row, locale),
+      titleEn: row.title_en,
       categoryName: greek ? row.category_name_el : row.category_name_en,
       description: greek ? (row.description_el ?? row.description_en) : row.description_en,
       highlights: greek ? (row.highlights_el ?? row.highlights_en) : row.highlights_en,
@@ -454,7 +478,7 @@ export function createCatalogQueries(sql: Sql) {
     return rows.map((row) => ({ slug: row.slug, updatedAt: new Date(row.updated_at) }));
   }
 
-  return { listProducts, listCategories, featured, placeable, forWalls, cardsByIds, productBySlug, allProductSlugs };
+  return { listProducts, listCategories, featured, placeable, forWalls, alternatives, cardsByIds, productBySlug, allProductSlugs };
 }
 
 export type CatalogQueries = ReturnType<typeof createCatalogQueries>;

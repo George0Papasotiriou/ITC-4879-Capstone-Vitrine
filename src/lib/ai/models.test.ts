@@ -20,7 +20,15 @@ describe("costMicros", () => {
   it("prices per unit: a try-on, five seconds of video, an image", () => {
     expect(costMicros(MODELS.tryOn.pricing, { units: 1 })).toBe(75_000);
     expect(costMicros(MODELS.video.pricing, { units: 5 })).toBe(250_000);
-    expect(costMicros(MODELS.image.pricing, { units: 1 })).toBe(67_000);
+    expect(costMicros(MODELS.image.pricing, { units: 1 })).toBe(101_000);
+  });
+
+  it("prices an AI picture by the image and by the tokens around it (docs/adr/060)", () => {
+    // Nano Banana Pro at 2K: $0.134, plus five photographs in (6,000 tokens at $2/M) and 1,500 thinking tokens at $12/M.
+    expect(costMicros(MODELS.imagePro.pricing, { units: 1, inputTokens: 6_000, outputTokens: 1_500 })).toBe(134_000 + 12_000 + 18_000);
+    expect(costMicros(MODELS.imagePro4k.pricing, { units: 1 })).toBe(240_000);
+    // Tokens alone, with no image: a refused request still costs what it read.
+    expect(costMicros(MODELS.image.pricing, { inputTokens: 2_000 })).toBe(1_000);
   });
 
   it("rounds a fraction of a micro up, never down", () => {

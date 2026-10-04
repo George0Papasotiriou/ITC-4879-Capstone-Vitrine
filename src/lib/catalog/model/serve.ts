@@ -15,7 +15,7 @@ import { decodePhoto, lookOfPhoto, paletteFromLook } from "@/lib/catalog/model/l
 import { TEXTURE_TILE_M } from "@/lib/catalog/model/textures";
 import { paletteFromWords, type Palette, type PieceFacts } from "@/lib/catalog/model/words";
 import type { ModelInput } from "@/lib/catalog/model/write";
-import { flatRug } from "@/lib/pictures/render";
+import { flatRug } from "@/lib/pictures/studio";
 import type { StorageDriver } from "@/lib/storage/types";
 
 /**
@@ -112,7 +112,7 @@ export async function readPhoto(piece: ModelPiece, deps: Pick<ModelDeps, "photo"
  * The best picture of a rug's top, in order of faithfulness:
  *
  *   1. its studio photograph on white, cut out and made flat by homography
- *      (pictures/render.ts flatRug, the Showcase's own way);
+ *      (pictures/studio.ts flatRug, the Showcase's own way);
  *   2. a photograph whose proportions are the rug's own (within 8%) — a
  *      full-frame product shot, the rug edge to edge — used whole;
  *   3. failing both, a room photograph: its middle is all rug, so a swatch cut

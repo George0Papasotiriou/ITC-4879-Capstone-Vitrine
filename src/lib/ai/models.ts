@@ -20,12 +20,19 @@
  * a budget guard should err on the high side.
  */
 
-export const PRICES_CHECKED = "2026-09-26";
+export const PRICES_CHECKED = "2026-10-04";
 export const USD_TO_EUR = 1;
 
 export type Pricing =
   | { kind: "tokens"; inputUsdPerMillion: number; outputUsdPerMillion: number }
-  | { kind: "per_unit"; unit: "image" | "second" | "minute" | "call" | "model"; usdPerUnit: number }
+  | {
+      kind: "per_unit";
+      unit: "image" | "second" | "minute" | "call" | "model";
+      usdPerUnit: number;
+      /** Tokens billed beside the unit: an image model's input (the photographs it is shown) and its thinking. */
+      inputUsdPerMillion?: number;
+      outputUsdPerMillion?: number;
+    }
   | { kind: "unverified" };
 
 export type ModelEntry = {
@@ -33,9 +40,10 @@ export type ModelEntry = {
    * "drawn" is the keyless stand-in that composes rather than generates
    * (docs/adr/023); "browser" is work the browser itself does — the speech of
    * docs/adr/026 — which costs nothing and still deserves a line in the usage
-   * table, so /admin/ai shows the feature being used.
+   * table, so /admin/ai shows the feature being used. "fixture" is the test
+   * double for AI pictures (docs/adr/060), refused in production.
    */
-  provider: "google" | "openai" | "fashn" | "fal" | "demo" | "drawn" | "browser";
+  provider: "google" | "openai" | "fashn" | "fal" | "demo" | "drawn" | "browser" | "fixture";
   id: string;
   pricing: Pricing;
 };
@@ -63,8 +71,20 @@ export const MODELS = {
   embedding: { provider: "google", id: "gemini-embedding-2", pricing: { kind: "unverified" } },
   /** Attributes read from a shopper's photo for Snap to shop. */
   snap: GEMINI_FLASH,
-  /** Nano Banana 2: capsule photography, and AI pictures of a piece in a room (docs/adr/053). Price to be checked again before the first real picture. */
-  image: { provider: "google", id: "gemini-3.1-flash-image-preview", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.067 } },
+  /**
+   * AI pictures of a piece in a room (docs/adr/053, docs/adr/060), at 2K. Nano
+   * Banana 2 (Gemini 3.1 Flash Image), the cheaper choice (PICTURES_MODEL=flash):
+   * $0.101 a 2K image, $0.50 a million tokens in (the photographs it is shown),
+   * $3 a million out for its thinking (ai.google.dev/pricing, 2026-10-04; no free
+   * tier, so a shopper's photograph never reaches one).
+   */
+  image: { provider: "google", id: "gemini-3.1-flash-image", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.101, inputUsdPerMillion: 0.5, outputUsdPerMillion: 3 } },
+  /** Nano Banana Pro (Gemini 3 Pro Image), the default: $0.134 a 1K or 2K image, $2 a million in, $12 out (same page and date). */
+  imagePro: { provider: "google", id: "gemini-3-pro-image", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.134, inputUsdPerMillion: 2, outputUsdPerMillion: 12 } },
+  /** The same model at 4K ($0.24 an image): the sixteen showroom rooms only, made once (docs/adr/060). */
+  imagePro4k: { provider: "google", id: "gemini-3-pro-image", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.24, inputUsdPerMillion: 2, outputUsdPerMillion: 12 } },
+  /** The quality check on every AI picture before anyone sees it (docs/adr/060): a fraction of a cent a look. */
+  pictureJudge: GEMINI_FLASH,
   /** Veo 3.1 Lite: "Animate me", five seconds at 720p. */
   video: { provider: "google", id: "veo-3.1-lite-generate-preview", pricing: { kind: "per_unit", unit: "second", usdPerUnit: 0.05 } },
   /** Virtual try-on (FASHN). The model name is confirmed against FASHN's API reference in Phase 9 (src/lib/ai/providers/fashn.ts). */
@@ -111,7 +131,8 @@ export function costMicros(pricing: Pricing, usage: Usage): number | null {
     pricing.kind === "tokens"
       ? ((usage.inputTokens ?? 0) * pricing.inputUsdPerMillion + (usage.outputTokens ?? 0) * pricing.outputUsdPerMillion) / 1_000_000
       : pricing.kind === "per_unit"
-        ? (usage.units ?? 0) * pricing.usdPerUnit
+        ? (usage.units ?? 0) * pricing.usdPerUnit +
+          ((usage.inputTokens ?? 0) * (pricing.inputUsdPerMillion ?? 0) + (usage.outputTokens ?? 0) * (pricing.outputUsdPerMillion ?? 0)) / 1_000_000
         : null;
   if (usd === null) return null;
   // Rounded to 1e-9 first, so 0.1 + 0.2 style noise cannot push an exact amount up by a whole micro.

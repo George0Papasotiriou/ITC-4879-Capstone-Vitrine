@@ -19,6 +19,7 @@
     "orders": "node scripts/local.mjs run scripts/orders.ts",
     "jobs": "node scripts/local.mjs run scripts/jobs.ts",
     "models": "node scripts/local.mjs run scripts/models.ts",
+    "pictures": "node scripts/local.mjs run scripts/pictures.ts",
     "support": "node scripts/local.mjs run scripts/support.ts",
     "push": "node scripts/local.mjs run scripts/push.ts",
     "demo:reset": "node scripts/demo-reset.mjs",
