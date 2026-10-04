@@ -19,6 +19,7 @@ import { routing } from "@/i18n/routing";
 import { getPlaceable, getProduct } from "@/lib/catalog/server";
 import { sameOriginImage } from "@/lib/catalog/media-url";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
+import { canMakeModel } from "@/lib/catalog/model/family";
 import { roomFits } from "@/lib/prefs/preferences";
 import { currentPreferences } from "@/lib/prefs/server";
 
@@ -137,6 +138,9 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/[lo
             imageSrc: product.image === null ? null : sameOriginImage(product.image.src, 1080),
             // Its own 3D scan, only when the file is really in storage: then the piece is drawn in 3D and turns (docs/adr/052).
             model: product.model?.src ?? null,
+            // Without a scan, the shop's own model, offered beside the photograph so the piece can turn (docs/adr/058).
+            madeModel: product.model == null && (product.aiModel != null || canMakeModel(product.kind, product.dimsCm)) ? `/api/models/${product.slug}` : null,
+            preferModel: product.model == null && product.aiModel != null,
             kind: product.kind,
           }}
         />

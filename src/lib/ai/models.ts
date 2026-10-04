@@ -25,7 +25,7 @@ export const USD_TO_EUR = 1;
 
 export type Pricing =
   | { kind: "tokens"; inputUsdPerMillion: number; outputUsdPerMillion: number }
-  | { kind: "per_unit"; unit: "image" | "second" | "minute" | "call"; usdPerUnit: number }
+  | { kind: "per_unit"; unit: "image" | "second" | "minute" | "call" | "model"; usdPerUnit: number }
   | { kind: "unverified" };
 
 export type ModelEntry = {
@@ -35,13 +35,13 @@ export type ModelEntry = {
    * docs/adr/026 — which costs nothing and still deserves a line in the usage
    * table, so /admin/ai shows the feature being used.
    */
-  provider: "google" | "openai" | "fashn" | "demo" | "drawn" | "browser";
+  provider: "google" | "openai" | "fashn" | "fal" | "demo" | "drawn" | "browser";
   id: string;
   pricing: Pricing;
 };
 
 /** What the shop uses AI for; every recorded cost names one. */
-export const AI_FEATURES = ["concierge", "support_chat", "support_draft", "voice", "embedding", "snap", "try_on", "animate", "capsule_image", "translation", "copy_draft", "room_picture", "shop_the_look"] as const;
+export const AI_FEATURES = ["concierge", "support_chat", "support_draft", "voice", "embedding", "snap", "try_on", "animate", "capsule_image", "translation", "copy_draft", "room_picture", "shop_the_look", "model_3d"] as const;
 export type AiFeature = (typeof AI_FEATURES)[number];
 
 /**
@@ -86,6 +86,15 @@ export const MODELS = {
    * re-reads. Charged by the minute at a rate that errs high, like the above.
    */
   voiceGoogle: { provider: "google", id: "gemini-3.8-live", pricing: { kind: "per_unit", unit: "minute", usdPerUnit: 0.03 } },
+  /**
+   * A 3D model from a piece's studio photograph (docs/adr/059): Microsoft's
+   * TRELLIS on fal, $0.02 a model (fal.ai/models/fal-ai/trellis, checked
+   * 2026-10-03). Run only by hand (scripts/models.ts ai), after George's yes,
+   * and the price is checked again before any batch.
+   */
+  model3d: { provider: "fal", id: "fal-ai/trellis", pricing: { kind: "per_unit", unit: "model", usdPerUnit: 0.02 } },
+  /** TRELLIS.2: sharper shapes and real PBR materials, $0.30 a model at 1024 (fal's page, checked 2026-10-03). */
+  model3dPro: { provider: "fal", id: "fal-ai/trellis-2", pricing: { kind: "per_unit", unit: "model", usdPerUnit: 0.3 } },
 } as const satisfies Record<string, ModelEntry>;
 
 export type ModelKey = keyof typeof MODELS;

@@ -35,7 +35,7 @@ import { serverEnv } from "@/env";
 import { requireLocale } from "@/i18n/params";
 import { routing } from "@/i18n/routing";
 import { getCardsByIds, getFeatured, getProduct } from "@/lib/catalog/server";
-import { hasShape } from "@/lib/catalog/shape";
+import { canMakeModel } from "@/lib/catalog/model/family";
 import { pairsWith } from "@/lib/reco/server";
 import { productJsonLd, serializeJsonLd } from "@/lib/catalog/structured-data";
 import { priceWatches, reviewsStore } from "@/lib/commerce/server";
@@ -235,14 +235,17 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           <div className="mt-8 flex flex-col gap-3">
             {sizes.length > 0 ? null : <AddToCart productId={product.id} inStock={product.inStock} agentId={`action:add-to-cart:${product.id}`} />}
             {/* The Concierge's open_viewer arrives as ?view=ar or ?view=model (docs/adr/025). */}
-            {!hasShape(product.kind, product.dimsCm) ? null : (
+            {product.model == null && !canMakeModel(product.kind, product.dimsCm) ? null : (
               <ModelView
                 slug={product.slug}
                 productId={product.id}
                 title={product.title}
                 dims={product.dimsCm!}
                 startOpen={["ar", "model"].includes(String((await searchParams).view ?? ""))}
+                origin={product.model != null ? "scan" : product.aiModel != null ? "ai" : "made"}
                 scan={product.model?.src}
+                poster={posterOf(product.media)}
+                dressed={product.model == null && product.aiModel == null && product.kind === "BED"}
               />
             )}
             {/* Turntable photographs, when the piece has them (docs/adr/035). */}
@@ -399,4 +402,10 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
       </p>
     </main>
   );
+}
+
+/** The piece's studio photograph through the shop's image optimizer, as the 3D view's poster while the model loads. */
+function posterOf(media: readonly { src: string; studio?: boolean }[]): string | undefined {
+  const photo = media.find((image) => image.studio !== false) ?? media[0];
+  return photo === undefined ? undefined : `/_next/image?url=${encodeURIComponent(photo.src)}&w=640&q=75`;
 }

@@ -103,7 +103,7 @@ async function studioPixels(studio: PictureImage) {
  * cut out, its four corners found, warped to a rectangle of its true
  * proportions — turned, if need be, so its long side runs across the picture.
  */
-async function flatRug(studio: PictureImage, dims: { w: number; d: number }) {
+export async function flatRug(studio: PictureImage, dims: { w: number; d: number }) {
   const photo = await studioPixels(studio);
   const cut = cutoutFromWhite(photo.data, photo.width, photo.height);
   if (!cut.removed) return null;

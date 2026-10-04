@@ -9,6 +9,7 @@
 
 import type { JobName, JobPayloads } from "@/lib/jobs/types";
 import { processCatalogModels } from "@/worker/processors/catalog-models";
+import { processMadeModels } from "@/worker/processors/made-models";
 import { processOrdersExpire } from "@/worker/processors/orders-expire";
 import { processPhotoExpiry } from "@/worker/processors/photo-expiry";
 import { processPing } from "@/worker/processors/ping";
@@ -42,6 +43,7 @@ export const processors: { [N in JobName]: Processor<N> } = {
   "picture-render": processPictureRender,
   "photo-expiry": processPhotoExpiry,
   "catalog-models": processCatalogModels,
+  "made-models": processMadeModels,
   "orders-expire": processOrdersExpire,
   "push-send": processPushSend,
 };

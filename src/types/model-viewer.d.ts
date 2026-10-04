@@ -32,6 +32,13 @@ type ModelViewerAttributes = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTML
   exposure?: string;
   loading?: "auto" | "lazy" | "eager";
   reveal?: "auto" | "manual";
+  poster?: string;
+  "tone-mapping"?: "neutral" | "agx" | "aces" | "commerce";
+  "environment-image"?: string;
+  "min-camera-orbit"?: string;
+  "max-camera-orbit"?: string;
+  "auto-rotate-delay"?: string;
+  "rotation-per-second"?: string;
 };
 
 declare module "react" {

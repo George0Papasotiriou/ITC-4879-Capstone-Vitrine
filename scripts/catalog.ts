@@ -33,6 +33,9 @@
  *       ABO listing files (scripts/catalog-abo.ts, docs/adr/035). Committed text;
  *       seeded on every deploy with `seed --abo`.
  *
+ *   pnpm catalog made [--limit 60]
+ *       builds the shop's own 3D models of pieces without a scan into storage, as the
+ *       made-models job does in production (docs/adr/058).
  *   pnpm catalog models [--limit 300]
  *       Compress the catalogue's ABO 3D scans into storage now, as the worker's
  *       catalog-models job does after a deploy (docs/adr/035).
@@ -80,7 +83,7 @@ import { createTasteGraph } from "@/lib/reco/store";
 import { storage } from "@/lib/storage";
 
 import { ABO_FIXTURE, aboFixture } from "./catalog-abo";
-import { importSpins, processModels } from "./catalog-media";
+import { importSpins, processMade, processModels } from "./catalog-media";
 
 const CACHE = ".abo-cache";
 const SPECIMEN_FIXTURE = "src/lib/catalog/fixtures/specimen.json";
@@ -735,6 +738,8 @@ async function main(): Promise<void> {
       });
     case "models":
       return processModels({ limit: Math.max(1, Number.parseInt(values.limit ?? "300", 10)) });
+    case "made":
+      return processMade(Math.max(1, Number.parseInt(values.limit ?? "60", 10)));
     case "spins":
       return importSpins({
         dryRun: values["dry-run"],
@@ -747,7 +752,7 @@ async function main(): Promise<void> {
     case "specimen-fixture":
       return specimenFixture();
     default:
-      out("Usage: pnpm catalog <seed|import-abo|abo-fixture|models|spins|collection-fixture|specimen-fixture> [options]");
+      out("Usage: pnpm catalog <seed|import-abo|abo-fixture|models|made|spins|collection-fixture|specimen-fixture> [options]");
       process.exitCode = 1;
   }
 }

@@ -13,10 +13,12 @@ import { expect, test } from "@playwright/test";
 import { freshPage, LAMP } from "./support/accounts";
 
 /**
- * docs/adr/025. The model is built from the product's dimensions when it is
- * asked for, so there is nothing to seed and nothing to download: the test
- * checks that the file really is a .glb, that the dialog says it is a stand-in,
- * and that a piece with no shape is not offered one.
+ * docs/adr/025, docs/adr/058. A piece without a scan gets the model the shop
+ * makes of it, built when first asked for and stored after that, so there is
+ * nothing to seed: the tests check that the file really is a .glb, that the
+ * dialog says the model is the shop's own, and that a piece with no floor to
+ * stand on is not offered one. models.spec.ts holds the rest (size, storage,
+ * the planner).
  */
 
 const GARMENT = "/en/p/poplin-shirt-ecru";
@@ -26,7 +28,7 @@ test("@smoke a piece can be seen in 3D, at the size the catalogue gives", async 
   await page.goto(LAMP, { waitUntil: "domcontentloaded" });
 
   await page.locator('[data-agent-id^="action:view-3d:"]').click();
-  await expect(page.getByRole("dialog")).toContainText("A stand-in shape");
+  await expect(page.getByRole("dialog")).toContainText("A 3D model the shop makes of this piece");
 
   // The viewer is the custom element, and it is pointed at this product's model.
   const viewer = page.locator('[data-agent-id="model:viewer"]');
@@ -42,12 +44,14 @@ test("@smoke a piece can be seen in 3D, at the size the catalogue gives", async 
   await page.context().close();
 });
 
-test("the model is a real glTF binary, and nothing is stored to make it", async ({ browser }) => {
+test("the model is a real glTF binary, served as a stored file", async ({ browser }) => {
   const page = await freshPage(browser);
   await page.goto(LAMP, { waitUntil: "domcontentloaded" });
 
+  // The address answers with the stored model (built on the first request); the redirect is followed here as a phone does.
   const response = await page.request.get("/api/models/faux-wood-table-lamp-b07mbfd87n");
   expect(response.status()).toBe(200);
+  expect(new URL(response.url()).pathname.startsWith("/media/catalog/made-3d/")).toBe(true);
   expect(response.headers()["content-type"]).toBe("model/gltf-binary");
 
   const body = await response.body();

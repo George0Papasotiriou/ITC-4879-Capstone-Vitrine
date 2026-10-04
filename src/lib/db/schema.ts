@@ -1265,6 +1265,48 @@ export const pictures = pgTable(
 );
 
 /**
+ * The models the shop keeps of a piece besides its scan (docs/adr/058, 059):
+ * "made" — drawn by the shop's own modeler from the piece's measurements,
+ * words and photograph, built ahead by the made-models job — and "ai" — made
+ * from its photograph by an image-to-3D model, only after George's yes to the
+ * spend. One row per piece and origin; a stored file is never deleted, so
+ * `storage_key` changes when a model is made again.
+ */
+export const productModels = pgTable(
+  "product_models",
+  {
+    id: id(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    /** made | ai. */
+    origin: text("origin").notNull(),
+    /** queued | running | ready | rejected | hidden | failed. Only "ready" is shown. */
+    status: text("status").notNull().default("queued"),
+    /** "vitrine" for a made model; the AI provider (fal) for an AI one. */
+    provider: text("provider").notNull(),
+    /** The modeler's version (made-v2) or the provider's model id (fal-ai/trellis). */
+    model: text("model").notNull(),
+    storageKey: text("storage_key"),
+    bytes: integer("bytes"),
+    triangles: integer("triangles"),
+    /** AI only: the voxel IoU between the AI mesh and the made model, after turning it to face the front (0–1). */
+    fit: doublePrecision("fit"),
+    costMicros: integer("cost_micros"),
+    failureReason: text("failure_reason"),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("product_models_piece").on(t.productId, t.origin),
+    index("product_models_status_idx").on(t.origin, t.status),
+    check("product_models_origin", sql`${t.origin} IN ('made', 'ai')`),
+    check("product_models_status", sql`${t.status} IN ('queued', 'running', 'ready', 'rejected', 'hidden', 'failed')`),
+    check("product_models_fit", sql`${t.fit} IS NULL OR (${t.fit} >= 0 AND ${t.fit} <= 1)`),
+    check("product_models_ready_has_file", sql`${t.status} <> 'ready' OR ${t.storageKey} IS NOT NULL`),
+  ],
+);
+
+/**
  * Room boards (docs/adr/056): a shopper's collection of pieces for one room,
  * shared by link — one link to look, one to change it with them — and kept in
  * step live for everyone who has it open. The links are not stored: each is an

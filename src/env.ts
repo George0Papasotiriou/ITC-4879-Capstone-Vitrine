@@ -181,6 +181,12 @@ const rawSchema = z.object({
   SEARCH_RANKER: z.enum(["on", "off"]).default("on"),
   /** Virtual try-on (Phase 9). Without it try-on runs in demo mode or not at all. */
   FASHN_API_KEY: optionalString,
+  /**
+   * fal.ai, for AI 3D models made from a piece's photograph (docs/adr/059). Only
+   * the hand-run batch (scripts/models.ts ai) uses it, after George's yes; without
+   * it every piece keeps the shop's own made model.
+   */
+  FAL_KEY: optionalString,
   /** The whole shop's AI spend per day, in euros; past it, AI features pause until midnight UTC. */
   AI_DAILY_BUDGET_EUR: z.coerce.number().min(0).max(1000).default(3),
   /** "1" turns every AI feature off at once; the shop falls back to classic search and hides the Concierge. */

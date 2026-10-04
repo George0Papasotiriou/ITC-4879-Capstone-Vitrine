@@ -60,6 +60,9 @@ export const SCHEDULES: readonly ScheduledJob[] = [
   // After a deploy, the pieces with a 3D scan get it a few at a time; once all have, a run finds nothing to do (docs/adr/035).
   // Not on a local timer: locally, `pnpm catalog models` does it when asked.
   { id: "catalog-models", job: "catalog-models", pattern: "*/5 * * * *", localEveryMs: null },
+  // The shop's own models of the pieces without a scan, built ahead thirty at a time (docs/adr/058). Locally,
+  // `pnpm catalog made` does it when asked; a shopper's request builds any that are missing anyway.
+  { id: "made-models", job: "made-models", pattern: "*/10 * * * *", localEveryMs: null },
   // Unpaid orders past their 30-minute hold give their stock back and their payment is voided,
   // so a card cannot be charged for an order that no longer exists (docs/adr/038).
   { id: "orders-expire", job: "orders-expire", pattern: "*/5 * * * *", localEveryMs: 5 * MINUTE },

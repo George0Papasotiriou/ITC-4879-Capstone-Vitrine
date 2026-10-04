@@ -51,7 +51,8 @@ export const getProduct = cache(async (slug: string, locale: string) => {
   await connection();
   const [product, region] = await Promise.all([queries().productBySlug(slug, locale), currentRegion()]);
   if (product === null) return null;
-  return localizeDetail({ ...product, model: await storedModel(product.model) }, region.country);
+  const [model, aiModel] = await Promise.all([storedModel(product.model), storedModel(product.aiModel)]);
+  return localizeDetail({ ...product, model, aiModel: model === null ? aiModel : null }, region.country);
 });
 
 export const getCategories = cache(async (locale: string) => {

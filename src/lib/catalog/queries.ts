@@ -77,6 +77,8 @@ export type ProductDetail = ProductCard & {
   media: CatalogImage[];
   /** A real 3D model of the piece (the ABO scan, compressed), when the shop has one (docs/adr/035). */
   model: { src: string; bytes: number | null } | null;
+  /** A model an AI made from the piece's photograph, checked and shown (docs/adr/059); only when there is no scan. */
+  aiModel: { src: string; bytes: number | null } | null;
   /** Turntable photographs, in order round the piece (docs/adr/035); empty when there are none. */
   spin: string[];
   ratingSum: number;
@@ -378,6 +380,7 @@ export function createCatalogQueries(sql: Sql) {
       updated_at: Date;
       all_images: ImageRow[] | null;
       model: { src: string; bytes: number | null } | null;
+      ai_model: { src: string; bytes: number | null } | null;
       spin: string[] | null;
       variants: { id: string; sku: string; size: string | null; stock: number; price_cents: number | null }[] | null;
     };
@@ -400,6 +403,10 @@ export function createCatalogQueries(sql: Sql) {
           FROM product_media m WHERE m.product_id = p.id AND m.kind = 'model'
           ORDER BY m.position LIMIT 1
         ) AS model,
+        (
+          SELECT json_build_object('src', '/media/' || pm.storage_key, 'bytes', pm.bytes)
+          FROM product_models pm WHERE pm.product_id = p.id AND pm.origin = 'ai' AND pm.status = 'ready'
+        ) AS ai_model,
         (
           SELECT json_agg(m.src ORDER BY m.position)
           FROM product_media m WHERE m.product_id = p.id AND m.kind = 'spin'
@@ -430,6 +437,7 @@ export function createCatalogQueries(sql: Sql) {
       variants: (row.variants ?? []).map((variant) => ({ id: variant.id, sku: variant.sku, size: variant.size, stock: variant.stock, priceCents: variant.price_cents })),
       media: (row.all_images ?? []).map((media) => image(media, locale)!),
       model: row.model,
+      aiModel: row.model === null ? row.ai_model : null,
       spin: row.spin ?? [],
       ratingSum: row.rating_sum,
       ratingCount: row.rating_count,

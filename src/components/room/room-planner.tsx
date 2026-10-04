@@ -59,6 +59,10 @@ export type PlaceableProduct = {
   imageSrc: string | null;
   /** Its own 3D scan, when the shop has the file (docs/adr/052): drawn in 3D, so it turns. */
   model?: string | null;
+  /** Without a scan, the address of the model the shop makes of it (docs/adr/058): offered beside the photograph. */
+  madeModel?: string | null;
+  /** That model is an AI model of the piece (docs/adr/059): shown first, as it looks like the photograph. */
+  preferModel?: boolean;
   kind?: string;
 };
 
@@ -139,10 +143,16 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
   const [matchLight, setMatchLight] = useState(true);
   const [cutout, setCutout] = useState<Cutout | null>(null);
   // The piece's own scan, drawn in 3D with the photograph's camera (docs/adr/052); null until loaded, or without one.
-  const [scan, setScan] = useState<ScanLayer | null>(null);
-  const [scanFailed, setScanFailed] = useState(false);
+  // Each loaded layer remembers the address it came from, so switching back to the photograph needs no reset.
+  const [loadedScan, setLoadedScan] = useState<{ source: string; layer: ScanLayer } | null>(null);
+  const [failedSource, setFailedSource] = useState<string | null>(null);
   // A photograph cannot turn, but it can be seen the other way round.
   const [mirrored, setMirrored] = useState(false);
+  // Without a scan: the photograph (as photographed, it can only mirror) or the shop's made model (it turns).
+  const [view, setView] = useState<"photo" | "model">(product.preferModel === true ? "model" : "photo");
+  const layerSource = product.model ?? (view === "model" ? (product.madeModel ?? null) : null);
+  const scan = loadedScan !== null && loadedScan.source === layerSource ? loadedScan.layer : null;
+  const scanFailed = failedSource !== null && failedSource === layerSource;
   // Two fingers on a phone turn the piece: where they started, and the rotation then.
   const twist = useRef<{ pointers: Map<number, Point2>; startAngle: number | null; startRotation: number }>({ pointers: new Map(), startAngle: null, startRotation: 0 });
   const [announcement, setAnnouncement] = useState("");
@@ -180,27 +190,28 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
     };
   }, [product.imageSrc, product.mode]);
 
-  // The scan, once per piece. A failure is no error for the shopper: the photograph stands in, as before.
+  // The scan (or the made model, when chosen), once per piece. A failure is no error for the shopper: the photograph stands in.
   useEffect(() => {
-    if (product.model == null || product.mode !== "stand") return;
+    if (layerSource === null || product.mode !== "stand") return;
     let current: ScanLayer | null = null;
     let cancelled = false;
-    void loadScanLayer(product.model, product.kind ?? "").then((layer) => {
+    void loadScanLayer(layerSource, product.kind ?? "").then((layer) => {
       if (cancelled) {
         layer?.dispose();
         return;
       }
       current = layer;
-      if (layer === null) setScanFailed(true);
-      else setScan(layer);
+      if (layer === null) setFailedSource(layerSource);
+      else setLoadedScan({ source: layerSource, layer });
     });
     return () => {
       cancelled = true;
       current?.dispose();
     };
-  }, [product.model, product.kind, product.mode]);
+  }, [layerSource, product.kind, product.mode]);
   const hasScan = scan !== null;
-  const scanLoading = product.model != null && product.mode === "stand" && scan === null && !scanFailed;
+  const scanLoading = layerSource !== null && product.mode === "stand" && scan === null && !scanFailed;
+  const canChoose = product.model == null && product.madeModel != null && product.mode === "stand";
 
   const K = useMemo(() => (photo === null ? null : intrinsics(focalFromFov(fov, Math.max(photo.width, photo.height)), photo.width, photo.height)), [photo, fov]);
 
@@ -972,7 +983,8 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                   <p>{t("keyboardPlace")}</p>
                   {product.mode === "lie" ? <p>{t("footprintNote")}</p> : null}
                   {product.mode === "stand" && product.imageSrc !== null && cutout === null && !hasScan && !scanLoading ? <p>{t("noCutout")}</p> : null}
-                  {hasScan ? <p data-agent-id="room:scan-note">{t("scanNote")}</p> : null}
+                  {hasScan && product.model != null ? <p data-agent-id="room:scan-note">{t("scanNote")}</p> : null}
+                  {hasScan && product.model == null ? <p data-agent-id="room:made-note">{t("madeNote")}</p> : null}
                   {scanLoading ? <p>{t("scanLoading")}</p> : null}
                   {product.mode === "stand" && !hasScan && !scanLoading && cutout !== null ? <p data-agent-id="room:photo-note">{t("photoOnly")}</p> : null}
                 </div>
@@ -988,6 +1000,16 @@ export function RoomPlanner({ product, locale }: { product: PlaceableProduct; lo
                     </div>
                   ) : null}
                 </dl>
+                {canChoose ? (
+                  <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("viewLabel")} data-agent-id="room:view">
+                    <span className="text-slate text-sm">{t("viewLabel")}</span>
+                    {(["photo", "model"] as const).map((option) => (
+                      <Button key={option} size="sm" variant={view === option ? "primary" : "secondary"} aria-pressed={view === option} onClick={() => setView(option)} data-agent-id={`room:view-${option}`}>
+                        {option === "photo" ? t("viewPhoto") : t("viewModel")}
+                      </Button>
+                    ))}
+                  </div>
+                ) : null}
                 <div className="flex flex-wrap gap-3">
                   {product.mode === "stand" && !hasScan && cutout !== null ? (
                     // A photograph cannot turn (docs/adr/052), but it can be seen the other way round.

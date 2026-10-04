@@ -33,6 +33,8 @@ export const AUDIT_ACTIONS = [
   "macro.remove",
   "agent.create",
   "agent.revoke",
+  "model.hide",
+  "model.show",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

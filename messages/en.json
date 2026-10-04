@@ -136,14 +136,29 @@
     "model": {
       "open": "See it in 3D",
       "title": "{title} in 3D",
-      "standIn": "A stand-in shape at the piece's real size, not a scan of it: the shop has photographs of this piece, not a 3D model. Use it to judge how big it is and whether it fits.",
-      "alt": "A simplified 3D shape of {title}, at its real dimensions",
       "inYourSpace": "Stand it in your room",
-      "loading": "Bringing up the shape…",
+      "loading": "Bringing up the model… the first time can take a few seconds.",
       "failed": "The 3D view could not start here. The dimensions below say the same thing.",
       "size": "{w} × {d} × {h} cm, the size you see here.",
       "scan": "A 3D scan of this very piece, from the Amazon Berkeley Objects dataset by Amazon.com, at the size it was scanned. Turn it round, or stand it in your room.",
-      "scanAlt": "A 3D scan of {title}, at its real size"
+      "scanAlt": "A 3D scan of {title}, at its real size",
+      "made": "A 3D model the shop makes of this piece from its measurements, its photographs and the words in its listing, at its real size. It is the shop's drawing of the piece, not a scan: for the exact design, look at the photographs.",
+      "madeAlt": "A 3D model of {title}, made by the shop at its real size",
+      "ai": "A 3D model made by AI from the shop's photograph of this piece, scaled to its listed size. The sides the photograph does not show may differ.",
+      "aiAlt": "An AI-made 3D model of {title}, at its real size",
+      "origin": {
+        "scan": "3D scan",
+        "made": "Made by the shop",
+        "ai": "AI model"
+      },
+      "bedding": "Bedding is shown for scale; it is not included.",
+      "showSize": "Show size",
+      "hideSize": "Hide size",
+      "fullscreen": "Full screen",
+      "exitFullscreen": "Leave full screen",
+      "dimW": "W {cm} cm",
+      "dimD": "D {cm} cm",
+      "dimH": "H {cm} cm"
     },
     "fits": {
       "yes": "Fits your {room} wall ({wall} cm), with room to walk past.",
@@ -792,8 +807,12 @@
     "announceTurned": "Turned",
     "scanNote": "Drawn from the piece’s own 3D scan, so it turns: use the buttons, R, or two fingers on a phone.",
     "scanLoading": "Loading the piece’s 3D scan…",
-    "photoOnly": "This piece has a photograph, not a 3D scan, so it can’t turn. Mirror shows it the other way round.",
-    "mirror": "Mirror"
+    "photoOnly": "This piece has a photograph, not a 3D scan, so the photograph can’t turn. Mirror shows it the other way round, or switch to the 3D model.",
+    "mirror": "Mirror",
+    "viewLabel": "Show the piece as",
+    "viewPhoto": "Photograph",
+    "viewModel": "3D model",
+    "madeNote": "The shop’s 3D model of the piece, at its real size, so it turns: use the buttons, R, or two fingers on a phone. It is the shop’s drawing of the piece; the photograph shows it exactly."
   },
   "checkout": {
     "title": "Checkout",
@@ -1315,6 +1334,38 @@
         "invalid": "Check this field.",
         "failed": "That did not save. Try again."
       }
+    },
+    "models": {
+      "title": "3D models made by AI",
+      "lede": "Models an AI made from a piece's studio photograph, turned to face the front and scaled to its listed size. Fit says how closely the shape matched the shop's own model of the piece (1 is a perfect match; below 0.35 a model is held back). Look at each one: hide what looks wrong, show what was held back but looks right. Shoppers see a model only while it is shown, and never instead of a real scan.",
+      "viewsLabel": "Which models",
+      "views": {
+        "ready": "Shown",
+        "rejected": "Held back",
+        "hidden": "Hidden",
+        "failed": "Failed",
+        "all": "All"
+      },
+      "empty": "None here. The batch is run by hand (scripts/models.ts ai), after the spend is approved.",
+      "fit": "Fit {fit}",
+      "noFit": "Fit not measured",
+      "size": "{size} · {triangles} triangles",
+      "cost": "Cost {cost}",
+      "scanned": "Has a real scan: this model is for comparison only",
+      "look": "Look at it",
+      "hide": "Hide",
+      "show": "Show",
+      "hidden": "Hidden from shoppers",
+      "shown": "Shown to shoppers",
+      "failed": "That did not save. Try again.",
+      "status": {
+        "queued": "Waiting",
+        "running": "Being made",
+        "ready": "Shown",
+        "rejected": "Held back",
+        "hidden": "Hidden",
+        "failed": "Failed"
+      }
     }
   },
   "reviews": {
@@ -1432,6 +1483,10 @@
       "system": {
         "title": "Store and caches",
         "lede": "Redis: shared rate limits, the search cache, trending searches, live updates."
+      },
+      "models": {
+        "title": "3D models made by AI",
+        "lede": "Look over the models an AI made from photographs; hide one that looks wrong."
       }
     },
     "products": {
@@ -1705,7 +1760,9 @@
         "product_create": "Made a product",
         "product_photo": "Added a product photograph",
         "agent_create": "Made an agent key",
-        "agent_revoke": "Revoked an agent key"
+        "agent_revoke": "Revoked an agent key",
+        "model_hide": "Hid an AI 3D model",
+        "model_show": "Showed an AI 3D model"
       },
       "reason": "Reason: {reason}",
       "empty": "Nothing recorded yet.",
@@ -1777,7 +1834,8 @@
         "translation": "Greek copy",
         "copy_draft": "Staff copy drafts",
         "room_picture": "AI room pictures",
-        "shop_the_look": "Shop the look"
+        "shop_the_look": "Shop the look",
+        "model_3d": "AI 3D models"
       },
       "settings": "Switches",
       "settingsLede": "Both changes take effect at once, for everyone, and are recorded in the audit log.",

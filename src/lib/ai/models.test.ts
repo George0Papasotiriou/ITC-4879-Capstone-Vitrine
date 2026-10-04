@@ -40,8 +40,9 @@ describe("costMicros", () => {
 describe("MODELS", () => {
   it("names every model once, with its provider", () => {
     for (const entry of Object.values(MODELS)) {
-      expect(entry.id).toMatch(/^[a-z0-9.-]+$/);
-      expect(["google", "openai", "fashn", "demo"]).toContain(entry.provider);
+      // fal's models are namespaced by their publisher ("fal-ai/trellis"); the others are plain names.
+      expect(entry.id).toMatch(entry.provider === "fal" ? /^[a-z0-9.-]+\/[a-z0-9.-]+$/ : /^[a-z0-9.-]+$/);
+      expect(["google", "openai", "fashn", "fal", "demo"]).toContain(entry.provider);
     }
   });
 });

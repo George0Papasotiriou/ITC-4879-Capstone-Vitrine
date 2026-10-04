@@ -161,3 +161,15 @@ export async function processModels(options: { limit: number }): Promise<void> {
     if (stats.remaining === 0 || done >= options.limit || stats.processed + stats.skipped === 0) break;
   }
 }
+
+/** `pnpm catalog made`: the made-models job's work, run here until `limit` models are built or none are left (docs/adr/058). */
+export async function processMade(limit: number): Promise<void> {
+  const { processMadeModels } = await import("@/worker/processors/made-models");
+  let done = 0;
+  for (;;) {
+    const stats = await processMadeModels({ requestedAt: new Date().toISOString(), reason: "manual", limit: Math.min(12, limit - done) }, `local-${Date.now()}`);
+    done += stats.built + stats.found;
+    out(`  ${done} done: +${stats.built} built, ${stats.found} already stored, ${stats.deferred} waiting for their photograph, ${stats.remaining} still to do`);
+    if (stats.remaining === 0 || done >= limit || stats.built + stats.found === 0) break;
+  }
+}

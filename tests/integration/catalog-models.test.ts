@@ -15,7 +15,7 @@ import postgres from "postgres";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { ABO_BUCKET } from "@/lib/catalog/abo";
-import { glbFromParts } from "@/lib/catalog/glb";
+import { makeModel } from "@/lib/catalog/model";
 import { catalogFixtureSchema, type ProductInput } from "@/lib/catalog/input";
 import { modelKey } from "@/lib/catalog/model-compress";
 import { upsertCatalog } from "@/lib/catalog/write";
@@ -41,8 +41,8 @@ describe.skipIf(url === undefined || url === "")("3D scans job", () => {
     exists: async (key: string) => stored.has(key),
   };
   const log = { warn: () => {} };
-  // A real glTF binary: an 80 × 40 × 75 cm box, the size of a sideboard.
-  const glb = glbFromParts([{ x: 0, y: 0.375, z: 0, width: 0.8, height: 0.75, depth: 0.4, color: "#8a6a4a" }]);
+  // A real glTF binary: the shop's own model of an 80 × 40 × 75 cm sideboard.
+  let glb: Uint8Array = new Uint8Array();
   const requested: string[] = [];
   const answers = new Map<string, () => Response>();
   const download = async (address: string) => {
@@ -52,6 +52,7 @@ describe.skipIf(url === undefined || url === "")("3D scans job", () => {
   };
 
   beforeAll(async () => {
+    glb = await makeModel({ slug: "test-sideboard", kind: "CABINET", title: "Oak Sideboard", attributes: {}, materials: ["wood"], colors: ["brown"], dims: { w: 80, d: 40, h: 75 } });
     connection = postgres(url as string, { max: 2, onnotice: () => {} });
     const db = drizzle(connection, { schema });
     await migrate(db, { migrationsFolder: "./drizzle" });
