@@ -83,6 +83,8 @@ export const MODELS = {
   imagePro: { provider: "google", id: "gemini-3-pro-image", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.134, inputUsdPerMillion: 2, outputUsdPerMillion: 12 } },
   /** The same model at 4K ($0.24 an image): the sixteen showroom rooms only, made once (docs/adr/060). */
   imagePro4k: { provider: "google", id: "gemini-3-pro-image", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.24, inputUsdPerMillion: 2, outputUsdPerMillion: 12 } },
+  /** Nano Banana 2 at 4K ($0.151 an image): a showroom room's fallback when Pro cannot make it. */
+  image4k: { provider: "google", id: "gemini-3.1-flash-image", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.151, inputUsdPerMillion: 0.5, outputUsdPerMillion: 3 } },
   /** The quality check on every AI picture before anyone sees it (docs/adr/060): a fraction of a cent a look. */
   pictureJudge: GEMINI_FLASH,
   /** Veo 3.1 Lite: "Animate me", five seconds at 720p. */

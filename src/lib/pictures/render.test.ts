@@ -33,8 +33,8 @@ function recordingMaker(outcomes: ("image" | "refuse")[] = []) {
     async make({ prompt, images, aspectRatio, size }) {
       const sizes = await Promise.all(images.map(async (image) => Math.max((await sharp(Buffer.from(image.bytes)).metadata()).width!, (await sharp(Buffer.from(image.bytes)).metadata()).height!)));
       asked.push({ prompt, images: images.length, aspectRatio, size, sizes });
-      if (outcomes[asked.length - 1] === "refuse") return { ok: false, reason: "model_refused", usage: { units: 0, inputTokens: 900 } };
-      return { ok: true, image: await photo(2400, 1792, asked.length === 1 ? "#405060" : "#605040"), usage: { units: 1, inputTokens: 5_000, outputTokens: 1_000 } };
+      if (outcomes[asked.length - 1] === "refuse") return { ok: false, reason: "model_refused", detail: "no image returned", calls: [{ entry: FIXTURE_MODEL, usage: { units: 0, inputTokens: 900 } }] };
+      return { ok: true, image: await photo(2400, 1792, asked.length === 1 ? "#405060" : "#605040"), entry: FIXTURE_MODEL, calls: [{ entry: FIXTURE_MODEL, usage: { units: 1, inputTokens: 5_000, outputTokens: 1_000 } }] };
     },
   };
   return { maker, asked };
@@ -109,7 +109,7 @@ describe("renderPicture (docs/adr/060)", () => {
     const { judge } = scriptedJudge([POOR, BETTER_BUT_POOR]);
     const { spend } = spending();
     const result = await renderPicture({ maker, judge, spend }, await input());
-    expect(result).toEqual({ ok: false, reason: "quality", attempts: 2, verdict: BETTER_BUT_POOR });
+    expect(result).toEqual({ ok: false, reason: "quality", attempts: 2, verdict: BETTER_BUT_POOR, notes: [] });
   });
 
   it("keeps the first picture if the second is refused, only when the first passed — otherwise fails as 'quality'", async () => {
@@ -117,6 +117,28 @@ describe("renderPicture (docs/adr/060)", () => {
     const { judge } = scriptedJudge([POOR]);
     const { spend } = spending();
     expect(await renderPicture({ maker, judge, spend }, await input())).toMatchObject({ ok: false, reason: "quality", attempts: 2 });
+  });
+
+  it("pays for every call under the model that served it, and records which model made the picture", async () => {
+    const pro = { ...FIXTURE_MODEL, id: "pro-stand-in" };
+    const flash = { ...FIXTURE_MODEL, id: "flash-stand-in" };
+    // A chain: the first model refused the request, the second made the picture.
+    const maker: ImageMaker = {
+      entry: pro,
+      make: async () => ({
+        ok: true,
+        image: await photo(2048, 1536),
+        entry: flash,
+        calls: [
+          { entry: pro, usage: { units: 0 } },
+          { entry: flash, usage: { units: 1, inputTokens: 4_000 } },
+        ],
+      }),
+    };
+    const { calls, spend } = spending();
+    const result = await renderPicture({ maker, judge: scriptedJudge([GOOD]).judge, spend }, await input());
+    expect(result).toMatchObject({ ok: true, model: flash, notes: ["made by flash-stand-in after 1 failed call(s)"] });
+    expect(calls.map((call) => call.entry.id)).toEqual(["pro-stand-in", "flash-stand-in", FIXTURE_JUDGE.id]);
   });
 
   it("keeps a picture the check could not answer about, rather than throw away a paid one", async () => {
@@ -130,7 +152,7 @@ describe("renderPicture (docs/adr/060)", () => {
     const { maker, asked } = recordingMaker(["refuse"]);
     const { judge, looked } = scriptedJudge([GOOD]);
     const { calls, spend } = spending();
-    expect(await renderPicture({ maker, judge, spend }, await input())).toEqual({ ok: false, reason: "model_refused", attempts: 1, verdict: null });
+    expect(await renderPicture({ maker, judge, spend }, await input())).toEqual({ ok: false, reason: "model_refused", attempts: 1, verdict: null, notes: ["model_refused: no image returned"] });
     expect(asked).toHaveLength(1);
     expect(looked).toHaveLength(0);
     // What the refusal read is still recorded.

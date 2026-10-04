@@ -49,11 +49,11 @@ describe("showrooms (docs/adr/060)", () => {
       async make({ prompt, images, size, aspectRatio }) {
         asked.push({ prompt, images: images.length, size, aspectRatio });
         const bytes = await sharp({ create: { width: 4096, height: 3072, channels: 3, background: "#d8cbb5" } }).jpeg().toBuffer();
-        return { ok: true, image: { bytes: new Uint8Array(bytes), contentType: "image/jpeg" }, usage: { units: 1, outputTokens: 900 } };
+        return { ok: true, image: { bytes: new Uint8Array(bytes), contentType: "image/jpeg" }, entry: FIXTURE_MODEL, calls: [{ entry: FIXTURE_MODEL, usage: { units: 1, outputTokens: 900 } }] };
       },
     };
     const made = await makeShowroom({ maker, files, spend: async (entry, usage) => void spent.push({ entry, usage }) }, { style: "scandinavian", room: "bedroom" });
-    expect(made.ok).toBe(true);
+    expect(made).toMatchObject({ ok: true, model: FIXTURE_MODEL.id });
     expect(asked).toEqual([{ prompt: expect.stringContaining("a bedroom"), images: 0, size: "4K", aspectRatio: "4:3" }]);
     expect(spent).toEqual([{ entry: FIXTURE_MODEL, usage: { units: 1, outputTokens: 900 } }]);
 
@@ -68,8 +68,8 @@ describe("showrooms (docs/adr/060)", () => {
   it("records the cost of a refusal too, and stores nothing", async () => {
     const files = memoryStorage();
     const spent: Usage[] = [];
-    const maker: ImageMaker = { entry: FIXTURE_MODEL, make: async () => ({ ok: false, reason: "model_refused", usage: { units: 0, inputTokens: 300 } }) };
-    expect(await makeShowroom({ maker, files, spend: async (_entry, usage) => void spent.push(usage) }, { style: "dark-moody", room: "office" })).toEqual({ ok: false, reason: "model_refused", usage: { units: 0, inputTokens: 300 } });
+    const maker: ImageMaker = { entry: FIXTURE_MODEL, make: async () => ({ ok: false, reason: "model_refused", detail: "no image returned", calls: [{ entry: FIXTURE_MODEL, usage: { units: 0, inputTokens: 300 } }] }) };
+    expect(await makeShowroom({ maker, files, spend: async (_entry, usage) => void spent.push(usage) }, { style: "dark-moody", room: "office" })).toEqual({ ok: false, reason: "model_refused", detail: "no image returned" });
     expect(spent).toEqual([{ units: 0, inputTokens: 300 }]);
     expect(files.objects.size).toBe(0);
   });

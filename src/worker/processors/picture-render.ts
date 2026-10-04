@@ -14,7 +14,7 @@ import { ABO_PRODUCT_KINDS, roomPlacement } from "@/lib/catalog/taxonomy";
 import { sql } from "@/lib/db/client";
 import type { JobPayloads } from "@/lib/jobs/types";
 import { loggerFor } from "@/lib/log";
-import { fixtureJudge, fixtureMaker, googleJudge, googleMaker, type ImageMaker, type PictureJudge } from "@/lib/pictures/makers";
+import { fixtureJudge, fixtureMaker, googleChain, googleJudge, type ImageMaker, type PictureJudge } from "@/lib/pictures/makers";
 import { pictureFiles, roomTypeFor, showroomFiles } from "@/lib/pictures/pictures";
 import { encodePicture, renderPicture } from "@/lib/pictures/render";
 import { chooseReferenceMedia, detailCrop, prepareImage, type PictureImage } from "@/lib/pictures/studio";
@@ -43,8 +43,9 @@ function workersFor(picture: Picture, env: ReturnType<typeof serverEnv>): { make
   // The old drawn previews are not made any more (docs/adr/060); a row still queued from before is let go.
   if (picture.provider !== "google") return "retired";
   if (env.GOOGLE_GENERATIVE_AI_API_KEY === undefined || env.aiMode !== "google") return "off";
+  // The model asked for first; the other stands in if it cannot make the picture (makers.ts googleChain).
   const entry: ModelEntry = picture.model === MODELS.image.id ? MODELS.image : MODELS.imagePro;
-  return { maker: googleMaker(entry, env.GOOGLE_GENERATIVE_AI_API_KEY), judge: googleJudge(env.GOOGLE_GENERATIVE_AI_API_KEY) };
+  return { maker: googleChain(entry, env.GOOGLE_GENERATIVE_AI_API_KEY), judge: googleJudge(env.GOOGLE_GENERATIVE_AI_API_KEY) };
 }
 
 /** One photograph by its address: the shop's own paths against APP_URL, the catalogue bucket's as they are. */
@@ -66,10 +67,12 @@ export async function processPictureRender(payload: JobPayloads["picture-render"
   if (picture.status === "done") return { ok: true, already: true };
 
   let spent = 0;
-  const fail = async (reason: string, extra: { attempts?: number; quality?: Parameters<typeof pictures.mark>[1]["quality"] } = {}) => {
+  const fail = async (reason: string, extra: { attempts?: number; quality?: Parameters<typeof pictures.mark>[1]["quality"]; notes?: string[] } = {}) => {
     // A failed picture does not count against the shopper's day (store.ts counts only the others); what was spent stays recorded.
-    await pictures.mark(picture.id, { status: "failed", failureReason: reason, costMicros: spent, ...extra });
-    log.warn({ picture: picture.id, kind: picture.kind, reason, attempts: extra.attempts ?? 0, costMicros: spent }, "picture failed");
+    const { notes = [], ...change } = extra;
+    await pictures.mark(picture.id, { status: "failed", failureReason: reason, costMicros: spent, ...change });
+    // What Google said, in its own words (never the request: the room may be the shopper's), so a failure can be put right.
+    log.warn({ picture: picture.id, kind: picture.kind, model: picture.model, reason, attempts: change.attempts ?? 0, costMicros: spent, notes }, "picture failed");
     return { ok: false, reason };
   };
 
@@ -129,7 +132,7 @@ export async function processPictureRender(payload: JobPayloads["picture-render"
       detail,
     },
   );
-  if (!rendered.ok) return fail(rendered.reason, { attempts: rendered.attempts, quality: rendered.verdict });
+  if (!rendered.ok) return fail(rendered.reason, { attempts: rendered.attempts, quality: rendered.verdict, notes: rendered.notes });
 
   const encoded = await encodePicture(rendered.image);
   const keys = pictureFiles(picture.id, picture.kind);
@@ -145,8 +148,9 @@ export async function processPictureRender(payload: JobPayloads["picture-render"
     quality: rendered.verdict,
     attempts: rendered.attempts,
     promptVersion: rendered.promptVersion,
+    model: rendered.model.id,
   });
-  const stats = { picture: picture.id, kind: picture.kind, roomType, attempts: rendered.attempts, costMicros: spent, width: encoded.width, height: encoded.height, references: references.length, showroom: picture.kind === "scene" && room !== null };
+  const stats = { picture: picture.id, kind: picture.kind, model: rendered.model.id, notes: rendered.notes, roomType, attempts: rendered.attempts, costMicros: spent, width: encoded.width, height: encoded.height, references: references.length, showroom: picture.kind === "scene" && room !== null };
   log.info(stats, "picture made");
   return { ok: true, ...stats };
 }

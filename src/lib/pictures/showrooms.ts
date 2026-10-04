@@ -45,10 +45,10 @@ export async function madeShowrooms(files: StorageDriver): Promise<Showroom[]> {
 export async function makeShowroom(
   deps: { maker: ImageMaker; files: StorageDriver; spend: (entry: ModelEntry, usage: Usage) => Promise<void> },
   { style, room }: Showroom,
-): Promise<{ ok: true; bytes: number } | { ok: false; reason: string }> {
+): Promise<{ ok: true; bytes: number; model: string } | { ok: false; reason: string; detail: string | null }> {
   const made = await deps.maker.make({ prompt: showroomPrompt(style, room), images: [], aspectRatio: SCENE_ASPECT, size: "4K" });
-  await deps.spend(deps.maker.entry, made.usage);
-  if (!made.ok) return made;
+  for (const call of made.calls) await deps.spend(call.entry, call.usage);
+  if (!made.ok) return { ok: false, reason: made.reason, detail: made.detail };
   const { default: sharp } = await import("sharp");
   const source = Buffer.from(made.image.bytes);
   const original = await sharp(source).jpeg({ quality: 93, chromaSubsampling: "4:4:4", mozjpeg: true }).toBuffer();
@@ -56,7 +56,7 @@ export async function makeShowroom(
   const keys = showroomFiles(style, room);
   await deps.files.putObject({ key: keys.original, body: new Uint8Array(original), contentType: "image/jpeg" });
   await deps.files.putObject({ key: keys.tile, body: new Uint8Array(tile), contentType: "image/webp" });
-  return { ok: true, bytes: original.byteLength };
+  return { ok: true, bytes: original.byteLength, model: made.entry.id };
 }
 
 /** How long the product page trusts what it learnt about which tiles exist. */

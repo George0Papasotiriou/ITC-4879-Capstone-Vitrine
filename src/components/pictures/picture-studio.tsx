@@ -154,6 +154,9 @@ export function PictureStudio({
   const altFor = (shot: { picture: PictureView; piece: StudioPiece }) =>
     shot.picture.kind === "scene" && shot.picture.style !== null ? t("alt", { title: shot.piece.title, style: t(`styles.${shot.picture.style}`) }) : t("altOwn", { title: shot.piece.title });
   const error = state.phase === "refused" || state.phase === "failed" ? state.reason : photo.error;
+  const errorText = error === null ? null : t.has(`errors.${error}`) ? t(`errors.${error}`) : t("errors.generic");
+  // Nothing made yet and this one did not come: the frame rests again and says why, rather than stay "developing".
+  const restingWithError = (state.phase === "failed" || state.phase === "refused") && current === null;
   const compareWith = comparing ? (shots.find((entry) => entry.picture.id === other) ?? shots.find((entry) => entry.picture.id !== current?.picture.id) ?? null) : null;
   const ownRoom = context?.kind === "own" && context.uploadId !== null ? context : room === null ? null : ({ kind: "own", uploadId: room.uploadId, preview: room.url } as const);
 
@@ -186,17 +189,23 @@ export function PictureStudio({
                 </figure>
               ))}
             </div>
-          ) : state.phase === "idle" && current === null ? (
+          ) : (state.phase === "idle" || restingWithError) && current === null ? (
             <div className="ring-gilt/30 relative grid aspect-[4/3] w-full place-items-center overflow-hidden rounded-[10px] ring-1" data-agent-id="picture:empty">
               {piece.image === null ? null : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={piece.image} alt="" aria-hidden="true" className="picture-resting absolute inset-0 size-full object-contain opacity-60" />
               )}
-              <p className="font-display relative max-w-[26ch] text-center text-xl text-white">
-                {/* The rooms are beside the picture on a wide screen, under it on a phone. */}
-                <span className="hidden lg:inline">{t("empty")}</span>
-                <span className="lg:hidden">{t("emptyBelow")}</span>
-              </p>
+              {restingWithError ? (
+                <p role="alert" className="font-display relative max-w-[34ch] px-6 text-center text-xl text-white" data-agent-id="pictures:error">
+                  {errorText}
+                </p>
+              ) : (
+                <p className="font-display relative max-w-[26ch] text-center text-xl text-white">
+                  {/* The rooms are beside the picture on a wide screen, under it on a phone. */}
+                  <span className="hidden lg:inline">{t("empty")}</span>
+                  <span className="lg:hidden">{t("emptyBelow")}</span>
+                </p>
+              )}
             </div>
           ) : (
             <PictureStage
@@ -451,9 +460,9 @@ export function PictureStudio({
               {t("paused")}
             </p>
           )}
-          {error === null ? null : (
+          {errorText === null || restingWithError ? null : (
             <p role="alert" className="text-sm text-white" data-agent-id="pictures:error">
-              {t.has(`errors.${error}`) ? t(`errors.${error}`) : t("errors.generic")}
+              {errorText}
             </p>
           )}
         </div>

@@ -63,7 +63,11 @@ test("@smoke a showroom picture is made once, shown to the next shopper at once 
   // One quiet label on the picture itself, and nothing that says "preview".
   await expect(section.locator('[data-agent-id="picture:label"]')).toHaveText("AI picture");
   await expect(section).not.toContainText("Preview without AI");
-  await expect.poll(() => result.evaluate((image: HTMLImageElement) => image.naturalWidth), { timeout: 10_000 }).toBeGreaterThan(400);
+  // The picture's address answers with an image (a broken picture fails here, not as a slow one), and the browser draws it.
+  const shown = await first.request.get((await result.getAttribute("src"))!);
+  expect(shown.status()).toBe(200);
+  expect(shown.headers()["content-type"]).toBe("image/webp");
+  await expect.poll(() => result.evaluate((image: HTMLImageElement) => image.naturalWidth), { timeout: 30_000 }).toBeGreaterThan(400);
 
   // Decided from the picture: the price and stock from the shop, Add to cart, a board, and Save.
   const decide = section.locator('[data-agent-id="picture:decide"]');
@@ -164,6 +168,28 @@ test("another piece is pictured in the same room in one tap, and two pictures ca
   await expect(both.nth(0)).toContainText("Westview");
   await expect(both.nth(1)).toContainText("Canova");
   await expect(section.locator('[data-agent-id^="picture:compare-add:"]')).toHaveCount(2);
+  await page.context().close();
+});
+
+test("a picture the models cannot make says why, in the frame, and nothing is taken from the day", async ({ browser }) => {
+  const page = await freshPage(browser, { country: "GR" });
+  // The models' side is played here: the shop answers that the picture is being made, then that it failed as busy
+  // (the reason the job records when both models are overloaded; makers.ts).
+  // Warm minimal: the one style no other test here makes for real, so the request is sent on both projects.
+  const failed = { id: "01a10000-0000-7000-8000-000000000001", kind: "scene", style: "warm-minimal", url: null, previewUrl: null, downloadUrl: null, uploadId: null };
+  await page.route("**/api/pictures", (route) =>
+    route.request().method() === "POST" ? route.fulfill({ json: { ok: true, picture: { ...failed, status: "queued", reason: null }, made: true, left: 0 } }) : route.fallback(),
+  );
+  await page.route("**/api/pictures?id=*", (route) => route.fulfill({ json: { ok: true, picture: { ...failed, status: "failed", reason: "busy" } } }));
+  const section = await studio(page);
+  await section.locator('[data-agent-id="pictures:style:warm-minimal"]').click();
+
+  const error = section.locator('[data-agent-id="pictures:error"]');
+  await expect(error).toHaveText("Pictures are busy right now. Try again in a minute. This one didn't count towards today.", { timeout: 15_000 });
+  // The frame rests again, rather than stay "developing"; the message is said once.
+  await expect(section.locator('[data-agent-id="picture:empty"]')).toContainText("Pictures are busy right now");
+  await expect(section.locator('[data-agent-id="picture:words"]')).toHaveCount(0);
+  await expect(error).toHaveCount(1);
   await page.context().close();
 });
 

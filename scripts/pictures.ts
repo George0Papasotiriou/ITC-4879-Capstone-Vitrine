@@ -45,7 +45,7 @@ import { MODELS, USD_TO_EUR, type ModelEntry, type Usage, costMicros } from "@/l
 import { createUsageStore } from "@/lib/ai/usage";
 import { ABO_PRODUCT_KINDS, roomPlacement } from "@/lib/catalog/taxonomy";
 import { sql } from "@/lib/db/client";
-import { fixtureJudge, fixtureMaker, googleJudge, googleMaker, type ImageMaker, type PictureJudge } from "@/lib/pictures/makers";
+import { fixtureJudge, fixtureMaker, googleChain, googleJudge, googleMaker, type ImageMaker, type PictureJudge } from "@/lib/pictures/makers";
 import { roomTypeFor, SCENE_STYLE_IDS, showroomFiles, type PictureKind, type SceneStyle } from "@/lib/pictures/pictures";
 import { encodePicture, renderPicture } from "@/lib/pictures/render";
 import { forgetShowroomTiles, madeShowrooms, makeShowroom, SHOWROOMS } from "@/lib/pictures/showrooms";
@@ -125,7 +125,8 @@ async function main() {
       `Google key ${key === undefined ? "is NOT set" : "is set"}${fixture ? " (PICTURES_PROVIDER=fixture: the test stand-in, nothing is paid)" : ""}. Today's budget: €${(settings.dailyBudgetMicros / 1e6).toFixed(2)}, €${((await usage.spentToday()) / 1e6).toFixed(2)} spent. Kill switch ${settings.killSwitch ? "ON" : "off"}.`,
     );
   };
-  const maker = (entry: ModelEntry): ImageMaker => (fixture ? fixtureMaker() : googleMaker(entry, key!));
+  // The showroom rooms take whichever model can make them (the other stands in); the pilot compares the two, so each stands alone.
+  const maker = (entry: ModelEntry, { alone = false }: { alone?: boolean } = {}): ImageMaker => (fixture ? fixtureMaker() : alone ? googleMaker(entry, key!) : googleChain(entry, key!));
   const judge = (): PictureJudge => (fixture ? fixtureJudge() : googleJudge(key!));
   const spendAs = (surface: string) => async (entry: ModelEntry, used: Usage) => {
     await usage.record({ feature: "room_picture", model: entry, surface, actorKey: null, usage: used, paid: !fixture });
@@ -170,7 +171,7 @@ async function main() {
       }
       const started = Date.now();
       const result = await makeShowroom({ maker: maker(MODELS.imagePro4k), files, spend: spendAs("showroom-base") }, entry);
-      out(`  ${entry.style}-${entry.room}: ${result.ok ? `made, ${(result.bytes / 1e6).toFixed(1)} MB` : `failed (${result.reason})`} in ${Math.round((Date.now() - started) / 1000)} s`);
+      out(`  ${entry.style}-${entry.room}: ${result.ok ? `made by ${result.model}, ${(result.bytes / 1e6).toFixed(1)} MB` : `failed (${result.reason}${result.detail === null ? "" : `: ${result.detail}`})`} in ${Math.round((Date.now() - started) / 1000)} s`);
       if (result.ok) done += 1;
     }
     forgetShowroomTiles();
@@ -242,7 +243,7 @@ async function main() {
         const photos = await piecePhotos(task.piece.id);
         const roomType = roomTypeFor(task.piece.kind, task.piece.title_en, task.piece.dims_cm);
         const rendered = await renderPicture(
-          { maker: maker(entry), judge: judge(), spend },
+          { maker: maker(entry, { alone: true }), judge: judge(), spend },
           {
             kind: task.kind,
             piece: {
@@ -262,9 +263,9 @@ async function main() {
         );
         const seconds = Math.round((Date.now() - started) / 1000);
         if (rendered.ok) await writeFile(path.join(folder, name, `${task.label}.jpg`), (await encodePicture(rendered.image)).download);
-        const line = { model: entry.id, folder: name, label: task.label, title: task.piece.title_en, piece: task.piece.slug, kind: task.piece.kind, picture: task.kind, style: task.style, roomType, showroom: task.room !== null && task.kind === "scene", ok: rendered.ok, reason: rendered.ok ? null : rendered.reason, attempts: rendered.attempts, verdict: rendered.verdict, seconds, costEur: (spent / 1e6) * USD_TO_EUR };
+        const line = { model: entry.id, folder: name, label: task.label, title: task.piece.title_en, piece: task.piece.slug, kind: task.piece.kind, picture: task.kind, style: task.style, roomType, showroom: task.room !== null && task.kind === "scene", ok: rendered.ok, reason: rendered.ok ? null : rendered.reason, notes: rendered.notes, attempts: rendered.attempts, verdict: rendered.verdict, seconds, costEur: (spent / 1e6) * USD_TO_EUR };
         results.push(line);
-        out(`  ${name} ${task.label}: ${rendered.ok ? "kept" : `failed (${rendered.reason})`}, ${rendered.attempts} attempt(s), ${seconds} s, €${line.costEur.toFixed(3)}${rendered.verdict === null ? "" : `, scores ${rendered.verdict.fidelity}/${rendered.verdict.realism}/${rendered.verdict.scale}`}`);
+        out(`  ${name} ${task.label}: ${rendered.ok ? "kept" : `failed (${rendered.reason})`}, ${rendered.attempts} attempt(s), ${seconds} s, €${line.costEur.toFixed(3)}${rendered.verdict === null ? "" : `, scores ${rendered.verdict.fidelity}/${rendered.verdict.realism}/${rendered.verdict.scale}`}${rendered.notes.length === 0 ? "" : ` — ${rendered.notes.join("; ")}`}`);
       }
     }
     await writeFile(path.join(folder, "results.json"), JSON.stringify(results, null, 2));

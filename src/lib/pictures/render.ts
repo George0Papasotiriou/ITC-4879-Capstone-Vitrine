@@ -9,7 +9,7 @@
 
 import { judgePrompt, PICTURE_PROMPT_VERSION, picturePrompt, type PictureImages, type PicturePiece } from "@/lib/ai/prompts/picture-v2";
 import type { ModelEntry, Usage } from "@/lib/ai/models";
-import type { ImageMaker, PictureJudge } from "@/lib/pictures/makers";
+import type { ImageMaker, MakeFailure, PictureJudge } from "@/lib/pictures/makers";
 import { aspectFor, PICTURE_LONG_SIDE, PREVIEW_LONG_SIDE, SCENE_ASPECT, type AspectRatio, type PictureKind, type RoomType, type SceneStyle } from "@/lib/pictures/pictures";
 import { better, corrections, passes, type Verdict } from "@/lib/pictures/quality";
 import { prepareImage, type PictureImage } from "@/lib/pictures/studio";
@@ -51,11 +51,17 @@ export type RenderInput = {
   detail: PictureImage | null;
 };
 
-export type RenderFailure = "no_room" | "no_references" | "unreadable" | "model_refused" | "no_image" | "quality";
+export type RenderFailure = "no_room" | "no_references" | "unreadable" | MakeFailure | "quality";
 
+/**
+ * What came of it. `model` is the model that made the kept picture (the
+ * chain may have had Nano Banana 2 stand in for Pro); `notes` are what the
+ * models said when something went wrong — Google's own error text, never the
+ * request — for the job's log.
+ */
 export type Rendered =
-  | { ok: true; image: PictureImage; verdict: Verdict | null; attempts: number; promptVersion: string }
-  | { ok: false; reason: RenderFailure; attempts: number; verdict: Verdict | null };
+  | { ok: true; image: PictureImage; verdict: Verdict | null; attempts: number; promptVersion: string; model: ModelEntry; notes: string[] }
+  | { ok: false; reason: RenderFailure; attempts: number; verdict: Verdict | null; notes: string[] };
 
 export type Spend = (entry: ModelEntry, usage: Usage) => Promise<void>;
 
@@ -89,7 +95,8 @@ async function dimensions(image: PictureImage): Promise<{ width: number; height:
 }
 
 export async function renderPicture(deps: RenderDeps, input: RenderInput): Promise<Rendered> {
-  const fail = (reason: RenderFailure, attempts = 0, verdict: Verdict | null = null): Rendered => ({ ok: false, reason, attempts, verdict });
+  const notes: string[] = [];
+  const fail = (reason: RenderFailure, attempts = 0, verdict: Verdict | null = null): Rendered => ({ ok: false, reason, attempts, verdict, notes });
   if (input.kind !== "scene" && input.room === null) return fail("no_room");
   if (input.references.length === 0) return fail("no_references");
 
@@ -115,19 +122,24 @@ export async function renderPicture(deps: RenderDeps, input: RenderInput): Promi
     const prompt = judgePrompt(input.kind, input.piece, { references: Math.min(JUDGE_REFERENCES, input.references.length), room: input.kind !== "scene" });
     const judged = await deps.judge.judge({ prompt, images: await judgeImages(picture) });
     await deps.spend(deps.judge.entry, judged.usage);
+    if (judged.detail != null) notes.push(`check: ${judged.detail}`);
     return judged.verdict;
   };
   const attempt = async (fixes: readonly string[]) => {
     const prompt = picturePrompt({ kind: input.kind, piece: input.piece, style: input.style, roomType: input.roomType, images, corrections: fixes });
     const made = await deps.maker.make({ prompt, images: sent, aspectRatio, size: "2K" });
-    await deps.spend(deps.maker.entry, made.usage);
+    // Every call is paid for under the model that served it, kept or not.
+    for (const call of made.calls) await deps.spend(call.entry, call.usage);
+    if (!made.ok && made.detail !== null) notes.push(`${made.reason}: ${made.detail}`);
+    // A model that stood in after another failed is worth knowing about, even when the picture is made.
+    if (made.ok && made.calls.length > 1) notes.push(`made by ${made.entry.id} after ${made.calls.length - 1} failed call(s)`);
     return made;
   };
 
   const first = await attempt([]);
   if (!first.ok) return fail(first.reason, 1);
   const one: Attempt = { image: first.image, verdict: await check(first.image) };
-  if (one.verdict === null || passes(one.verdict, input.kind)) return { ok: true, image: one.image, verdict: one.verdict, attempts: 1, promptVersion: PICTURE_PROMPT_VERSION };
+  if (one.verdict === null || passes(one.verdict, input.kind)) return { ok: true, image: one.image, verdict: one.verdict, attempts: 1, promptVersion: PICTURE_PROMPT_VERSION, model: first.entry, notes };
 
   // Once more, told what was wrong.
   const second = await attempt(corrections(one.verdict));
@@ -135,7 +147,7 @@ export async function renderPicture(deps: RenderDeps, input: RenderInput): Promi
   const two: Attempt = { image: second.image, verdict: await check(second.image) };
   const kept = better(one, two, input.kind);
   if (kept.verdict !== null && !passes(kept.verdict, input.kind)) return fail("quality", 2, kept.verdict);
-  return { ok: true, image: kept.image, verdict: kept.verdict, attempts: 2, promptVersion: PICTURE_PROMPT_VERSION };
+  return { ok: true, image: kept.image, verdict: kept.verdict, attempts: 2, promptVersion: PICTURE_PROMPT_VERSION, model: kept === one ? first.entry : second.entry, notes };
 }
 
 /**

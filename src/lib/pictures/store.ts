@@ -196,6 +196,8 @@ export function createPictureStore(sql: Sql, { fixtures = false }: { fixtures?: 
       quality?: Verdict | null;
       attempts?: number;
       promptVersion?: string;
+      /** The model that made it, when another stood in for the one first asked (makers.ts googleChain). */
+      model?: string;
     },
   ) {
     await sql`
@@ -209,6 +211,7 @@ export function createPictureStore(sql: Sql, { fixtures = false }: { fixtures?: 
         quality = COALESCE(${change.quality == null ? null : JSON.stringify(change.quality)}::text::jsonb, quality),
         attempts = COALESCE(${change.attempts ?? null}::int, attempts),
         prompt_version = COALESCE(${change.promptVersion ?? null}, prompt_version),
+        model = COALESCE(${change.model ?? null}, model),
         updated_at = now()
       WHERE id = ${id}
     `;

@@ -2721,7 +2721,7 @@
       "unreadable": "The shop couldn't read that file.",
       "not_found": "That piece isn't available any more.",
       "invalid_request": "Something was missing. Try again.",
-      "model_refused": "The AI couldn't make this picture. Try another photo or style.",
+      "model_refused": "The AI wouldn't make this picture; it turns some photos down. Try another photo or style. This one didn't count towards today.",
       "no_image": "The AI didn't return a picture. Try again.",
       "photo_gone": "Your photo has gone (it lasts a day). Add it again.",
       "piece_gone": "That piece's photographs aren't available.",
@@ -2731,7 +2731,11 @@
       "quality": "This one didn't come out well enough to show you, so it didn't count towards today. Try another style or photo.",
       "no_room": "Add a photo of your room first.",
       "no_references": "That piece's photographs aren't available.",
-      "retired": "That picture can't be made any more. Ask for a new one."
+      "retired": "That picture can't be made any more. Ask for a new one.",
+      "busy": "Pictures are busy right now. Try again in a minute. This one didn't count towards today.",
+      "rejected": "This picture couldn't be made right now. Try again later. This one didn't count towards today.",
+      "unavailable": "Pictures aren't working right now. Try again later. This one didn't count towards today.",
+      "not_allowed": "Pictures aren't working right now. Try again later. This one didn't count towards today."
     },
     "plannerAlt": "Your room with the piece, an AI picture",
     "ledeReady": "This piece photographed into a room by AI, at its catalogue size.",
