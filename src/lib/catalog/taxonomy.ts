@@ -259,6 +259,11 @@ export const ABO_PRODUCT_KINDS: Readonly<Record<string, ProductKind>> = {
   WATCH: { category: "accessories", kindEn: "Watch", kindEl: "Ρολόι χειρός", bands: band(49, 249, 20) },
 };
 
+/** Any product's kind, whichever table it comes from: ABO's types, or the clothing kinds (the real garments of ADR-062 use the capsule's). */
+export function productKindOf(code: string): ProductKind | undefined {
+  return ABO_PRODUCT_KINDS[code] ?? CAPSULE_PRODUCT_KINDS[code];
+}
+
 /**
  * How a kind of product can be shown in a photo of a room (A4, Phase 10).
  * "stand": it stands on the floor, drawn as a scaled cutout on its footprint.

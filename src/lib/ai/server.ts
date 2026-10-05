@@ -23,6 +23,7 @@ import { getCardsByIds, getProduct, runSearch } from "@/lib/catalog/server";
 import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
 import { stretchPercent } from "@/lib/fit/size/body";
 import { fitStore } from "@/lib/fit/size/server";
+import { roleOf } from "@/lib/optimize/outfit";
 import { currentRegion } from "@/lib/commerce/region";
 import { accessibleOrder, commerce, currentCart, lastOrder, orderOwner, priceWatches, rememberCart, reviewsStore } from "@/lib/commerce/server";
 import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
@@ -33,7 +34,7 @@ import { searchableColours } from "@/lib/vision/palette";
 import { readPalette, snapSearch } from "@/lib/vision/snap-server";
 import { newTicketIdentity, notifyTicket, supportStore } from "@/lib/support/server";
 import { pairsWith, recommendationsForCurrentShopper } from "@/lib/reco/server";
-import { buildBundles } from "@/lib/stylist/server";
+import { buildBundles, capsuleFor, lookFor } from "@/lib/stylist/server";
 import { serverEnv } from "@/env";
 import { currentPreferences } from "@/lib/prefs/server";
 import { createVoiceSessionStore, type VoiceSessionStore } from "@/lib/ai/surfaces/voice/sessions";
@@ -316,6 +317,15 @@ export async function toolServices({
     },
     preferences: {
       read: async () => (await currentPreferences()).preferences,
+    },
+    wardrobe: {
+      look: async (productId, budgetCents) => {
+        const [card] = await getCardsByIds([productId], locale);
+        if (card === undefined) return "not_found";
+        if (roleOf(card.kind) === null) return "not_wearable";
+        return (await lookFor(productId, budgetCents)) ?? "not_found";
+      },
+      capsule: (department, size, budgetCents) => capsuleFor(department, size, budgetCents),
     },
     fit: {
       forProduct: async (productId) => {

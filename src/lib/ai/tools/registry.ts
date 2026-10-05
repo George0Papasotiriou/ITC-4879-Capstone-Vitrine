@@ -17,7 +17,8 @@ import { pictureInRoom } from "@/lib/ai/tools/pictures";
 import { handToPerson } from "@/lib/ai/tools/support";
 import { APPROVAL_SCOPES, type Surface, type ToolContext, type VitrineTool } from "@/lib/ai/tools/types";
 import { checkWayIn, getPreferences, placeInRoom, rememberPreference, suggestSize } from "@/lib/ai/tools/preferences";
-import { highlight, navigate, adjustComfort, openViewer, setFilters, showProducts } from "@/lib/ai/tools/ui";
+import { highlight, navigate, adjustComfort, openViewer, setFilters, showProducts, tryInMirror } from "@/lib/ai/tools/ui";
+import { buildCapsuleTool, completeTheLook, readMyColours } from "@/lib/ai/tools/wardrobe";
 
 /**
  * Every surface reads this list (CLAUDE.md rule 4). Adding a capability means
@@ -42,6 +43,10 @@ export const TOOLS: readonly VitrineTool<unknown, unknown>[] = [
   highlight,
   showProducts,
   openViewer,
+  tryInMirror,
+  completeTheLook,
+  buildCapsuleTool,
+  readMyColours,
   adjustComfort,
   getPreferences,
   rememberPreference,

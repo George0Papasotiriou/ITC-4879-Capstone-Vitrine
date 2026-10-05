@@ -9,6 +9,7 @@
  * Estimates a depth map in the browser: the self-hosted model when installed, and the drawn sample room's exact depth.
  */
 
+import { cachedBytes, sha256Hex } from "@/components/media/model-files";
 import { sampleRoomDepth } from "@/components/room/sample-room";
 import { depthToPhoto, letterbox } from "@/lib/vision/depth-image";
 import type { DepthMap } from "@/lib/vision/depth";
@@ -162,46 +163,7 @@ function loadRuntime(url: string): Promise<Ort | null> {
   return runtimePromise;
 }
 
-/**
- * A file from the model folder, from Cache Storage when it has been fetched
- * before, otherwise downloaded with its progress reported and then kept. The
- * cache name carries the model's hash, so a new conversion is a new cache and
- * the old one is cleared.
- */
-async function cachedBytes(url: string, cacheName: string, onChunk: (bytes: number) => void): Promise<ArrayBuffer> {
-  const cache = typeof caches === "undefined" ? null : await caches.open(cacheName).catch(() => null);
-  const hit = await cache?.match(url);
-  if (hit !== undefined) {
-    const buffer = await hit.arrayBuffer();
-    onChunk(buffer.byteLength);
-    return buffer;
-  }
-  const response = await fetch(url);
-  if (!response.ok || response.body === null) throw new Error(`${url}: ${response.status}`);
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let received = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    received += value.byteLength;
-    onChunk(value.byteLength);
-  }
-  const bytes = new Uint8Array(received);
-  let offset = 0;
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-  await cache?.put(url, new Response(bytes, { headers: { "content-type": response.headers.get("content-type") ?? "application/octet-stream" } })).catch(() => {});
-  return bytes.buffer;
-}
 
-async function sha256Hex(buffer: ArrayBuffer): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", buffer);
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
 
 /** Threads for the runtime: several when the page may share memory with workers, one otherwise. */
 function threadCount(): number {

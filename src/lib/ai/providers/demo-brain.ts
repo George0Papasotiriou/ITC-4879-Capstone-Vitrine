@@ -17,6 +17,7 @@
  * interface labels every demo answer as a demo.
  */
 
+import { ABO_PRODUCT_KINDS, CAPSULE_PRODUCT_KINDS } from "@/lib/catalog/taxonomy";
 import { guessTopic } from "@/lib/support/tickets";
 import { comfortRequestOf } from "@/lib/comfort/requests";
 
@@ -37,7 +38,7 @@ export type DemoPrompt = {
 export type DemoCall = { toolName: string; input: Record<string, unknown> };
 export type DemoStep = { kind: "tools"; calls: DemoCall[] } | { kind: "text"; text: string };
 
-type Intent = "greet" | "comfort" | "size_advice" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "showcase" | "look" | "picture" | "way_in" | "board" | "room" | "browse";
+type Intent = "greet" | "comfort" | "size_advice" | "remember_size" | "preferences" | "person" | "cart" | "checkout" | "orders" | "order_status" | "return" | "compare" | "add" | "bundle" | "showcase" | "look" | "picture" | "way_in" | "board" | "mirror" | "capsule" | "colours" | "look_complete" | "room" | "browse";
 
 const ORDER_NUMBER = /\bvt-[0-9a-z]{4}-[0-9a-z]{4}\b/i;
 
@@ -49,6 +50,9 @@ const COMMAND_WORDS = new Set(
     "πρόσθεσε", "βάλε", "σύγκρινε", "δείξε", "μου", "βρες", "θέλω", "ένα", "μια", "έναν", "το", "τα", "τον", "την", "στο", "στην", "καλάθι", "και", "για", "με", "σε",
   ].map((word) => word.normalize("NFD").replace(/\p{M}/gu, "")),
 );
+
+/** The kinds the outfit builder can complete a look around (docs/adr/066). */
+const WEARABLE_KINDS: ReadonlySet<string> = new Set(["TOP", "SHIRT", "KNIT", "TROUSERS", "SKIRT", "DRESS", "COAT", "JACKET", "SHOES", "BOOT", "SANDAL", "HANDBAG", "BACKPACK", "EARRING", "NECKLACE", "BRACELET", "HAT", "SCARF"]);
 
 const fold = (text: string) => text.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
 
@@ -69,6 +73,10 @@ export function intentOf(text: string): Intent {
   if (/\b(return|send (it|this|them) back)\b|επιστρ/.test(t) && ORDER_NUMBER.test(t)) return "return";
   if (ORDER_NUMBER.test(t)) return "order_status";
   if (/\border|παραγγελ/.test(t)) return "orders";
+  // The outfit builder (docs/adr/066), before checkout ("ολοκλήρωσε το σύνολο" is not paying) and before a set with a budget.
+  if (/\bcapsule\b|\bwardrobe\b|γκαρνταρομπ/.test(t)) return "capsule";
+  if (/\bcolou?rs? (that |which )?(suit|go with) me\b|\bcolou?r (analysis|season|reading)\b|\bwhich season am i\b|\bmy colou?rs\b|χρωματα (μου )?(πανε|ταιριαζουν)|χρωματικη αναλυση|τα χρωματα μου/.test(t)) return "colours";
+  if (/\b(complete|finish) the (look|outfit)\b|\bwhat (goes|would go|to wear) with\b|\bstyle (this|it|the)\b|\b(an )?outfit (with|around)\b|ολοκληρωσε το (συνολο|look)|τι (ταιριαζει|να φορεσω) με/.test(t)) return "look_complete";
   if (/\b(check ?out|pay)\b|ολοκληρωσ|πληρωμ/.test(t)) return "checkout";
   if (/\b(compare|versus|vs)\b|συγκριν/.test(t)) return "compare";
   // A shop window to look at (docs/adr/040), before a set in the chat.
@@ -83,6 +91,11 @@ export function intentOf(text: string): Intent {
   // An AI picture of a piece in a room (docs/adr/053): "picture it", "what would it look like", «φαντάσου το».
   // "…like this picture" is a photograph, not a request for one.
   if (/\b(picture|render|visuali[sz]e|imagine)\b|\bwhat (would|will|does) [^?.!]{0,48}?\blooks? like\b|φαντασου|φτιαξε (μια )?εικονα/.test(t) && !/\b(this|my|the|that) (picture|photo)\b/.test(t)) return "picture";
+  // Trying a hat, earrings or a necklace on live through the camera (docs/adr/065), before a picture or the cart.
+  // "Live" alone is too loose ("a live demo"): it counts only with trying or wearing.
+  const mirrorWords = /\b(in the mirror|with (my|the) (camera|webcam)|on my face|on me (now|live))\b|καθρεφτ|με την καμερα|στο προσωπο μου/.test(t);
+  const liveTry = /\blive\b|ζωντανα/.test(t) && /\b(try|wear)\b|δοκιμ|φορεσ/.test(t);
+  if ((mirrorWords && /\b(try|see|wear|show)\b|δοκιμ|δειξ|φορεσ/.test(t)) || liveTry) return "mirror";
   // A room board (docs/adr/056) before the cart: "add it to my board" keeps it, it does not buy it.
   if (/\b(board|moodboard)\b|πινακα/.test(t)) return "board";
   if (/\b(add|put|buy)\b|προσθεσ|βαλε/.test(t)) return "add";
@@ -135,6 +148,43 @@ const MEASURE_NAMES: Record<string, { en: string; el: string }> = { chest: { en:
 export function searchQueryOf(text: string): string {
   const words = text.replace(ORDER_NUMBER, " ").split(/[^\p{L}\p{N}€.,-]+/u).filter((word) => word !== "" && !COMMAND_WORDS.has(fold(word)));
   return words.join(" ").trim() || text.trim();
+}
+
+/** Words asking for the live mirror that name no piece: "try it on live with my camera", «δοκίμασέ το ζωντανά στον καθρέφτη». */
+const MIRROR_WORDS = new Set(
+  [
+    "try", "on", "live", "mirror", "camera", "face", "wear", "now", "these", "this", "those", "it", "them", "how", "look", "looks", "would",
+    "να", "δοκιμασω", "δοκιμασε", "δοκιμασ", "ζωντανα", "στον", "καθρεφτη", "καθρεφτης", "καμερα", "την", "προσωπο", "φορεσω", "πως", "αυτο", "αυτα", "αυτη",
+  ].map((word) => word.normalize("NFD").replace(/\p{M}/gu, "")),
+);
+
+/** Words asking to complete a look that name no piece: "what goes with this tee", «τι ταιριάζει με αυτό το πουκάμισο». */
+const LOOK_WORDS = new Set(
+  [
+    "complete", "finish", "look", "outfit", "what", "goes", "go", "would", "wear", "style", "this", "it", "around", "with", "the", "for", "me", "an", "to",
+    "ολοκληρωσε", "συνολο", "τι", "ταιριαζει", "να", "φορεσω", "με", "αυτο", "αυτη", "αυτον", "το", "τη", "την",
+  ].map((word) => word.normalize("NFD").replace(/\p{M}/gu, "")),
+);
+
+/** The piece a request to complete a look names. */
+export function lookQueryOf(text: string): string {
+  const words = text.split(/[^\p{L}\p{N}-]+/u).filter((word) => word.length > 1 && !COMMAND_WORDS.has(fold(word)) && !LOOK_WORDS.has(fold(word)));
+  return words.join(" ").trim();
+}
+
+/** "A capsule for men for €600, medium": who it is for, the budget in euros and the size, with the shop's defaults. */
+export function capsuleRequestOf(text: string): { for: "women" | "men"; budgetEuros: number; size: "small" | "medium" } {
+  const t = fold(text);
+  const men = /\b(men|mens|men's|man|male|him)\b|αντρ|ανδρ/.test(t) && !/\bwomen\b|γυναικ/.test(t);
+  const amount = /(\d[\d.,]*)\s*(?:€|eur|euros?|ευρω)|€\s*(\d[\d.,]*)/u.exec(t);
+  const budget = amount === null ? 600 : Number((amount[1] ?? amount[2]!).replace(/[.,](?=\d{3}\b)/g, "").replace(",", "."));
+  return { for: men ? "men" : "women", budgetEuros: Math.min(5000, Math.max(100, Math.round(budget))), size: /\bmedium\b|\b12\b|μεσαια/.test(t) ? "medium" : "small" };
+}
+
+/** The piece a request for the mirror names. */
+export function mirrorQueryOf(text: string): string {
+  const words = text.split(/[^\p{L}\p{N}-]+/u).filter((word) => word.length > 1 && !COMMAND_WORDS.has(fold(word)) && !MIRROR_WORDS.has(fold(word)));
+  return words.join(" ").trim();
 }
 
 /** Words a question about a photograph uses that name no kind of piece: "that suits this room", «που ταιριάζει». */
@@ -248,7 +298,16 @@ function showcaseInput(text: string, locale: "en" | "el"): Record<string, unknow
 
 const say = (locale: "en" | "el", en: string, el: string): DemoStep => ({ kind: "text", text: locale === "el" ? el : en });
 
-type Brief = { id: string; title: string; inStock?: boolean };
+type Brief = { id: string; title: string; inStock?: boolean; kind?: string | null };
+
+/**
+ * A product brief names its kind as the page shows it ("Earrings",
+ * «Σκουλαρίκια»); the rules below need the catalogue's code behind it
+ * ("EARRING"). Labels shared by two kinds are furniture only, never a
+ * wearable. A code passes through unchanged.
+ */
+const KIND_BY_LABEL: ReadonlyMap<string, string> = new Map(Object.entries({ ...ABO_PRODUCT_KINDS, ...CAPSULE_PRODUCT_KINDS }).flatMap(([code, kind]) => [[kind.kindEn, code] as const, [kind.kindEl, code] as const]));
+const kindCodeOf = (brief: Brief): string | null => (brief.kind === undefined || brief.kind === null ? null : (KIND_BY_LABEL.get(brief.kind) ?? brief.kind));
 const productsIn = (output: unknown): Brief[] => ((output as { products?: Brief[] } | null)?.products ?? []);
 
 /** The next step: tools to call, or the answer. */
@@ -322,6 +381,22 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
         if (piece === "") return say(locale, "Which piece shall I check? Name it, for example \"will the Radford chair get through my door?\"", "Ποιο κομμάτι να ελέγξω; Πες μου το, για παράδειγμα «θα περάσει η καρέκλα Radford από την πόρτα μου;»");
         return call("search_products", { query: piece, limit: 3 });
       }
+      case "capsule": {
+        const request = capsuleRequestOf(text);
+        return call("build_capsule", { ...request, caption: locale === "el" ? "Άνοιγμα της γκαρνταρόμπας σου" : "Opening your capsule" });
+      }
+      case "colours":
+        return call("read_my_colours", { caption: locale === "el" ? "Άνοιγμα της ανάγνωσης χρωμάτων" : "Opening your colour reading" });
+      case "look_complete": {
+        const piece = lookQueryOf(text);
+        if (piece === "") return say(locale, "Which piece shall I build a look around? Name it, for example \"what goes with the pocket tee\".", "Γύρω από ποιο κομμάτι να φτιάξω σύνολο; Πες μου, για παράδειγμα «τι ταιριάζει με το μπλουζάκι με την τσέπη».");
+        return call("search_products", { query: piece, limit: 6 });
+      }
+      case "mirror": {
+        const piece = mirrorQueryOf(text);
+        if (piece === "") return say(locale, "Which hat, earrings or necklace would you like to try on? Name it and I'll open the mirror.", "Ποιο καπέλο, σκουλαρίκια ή κολιέ θες να δοκιμάσεις; Πες μου και θα ανοίξω τον καθρέφτη.");
+        return call("search_products", { query: piece, limit: 6 });
+      }
       case "picture": {
         const piece = pictureQueryOf(text);
         if (piece === "") return say(locale, "Which piece shall I picture? Name it, for example \"picture a walnut sideboard in a Scandinavian room\".", "Ποιο κομμάτι να φανταστώ; Πες μου το, για παράδειγμα «φαντάσου μια καρυδένια μπουφέ σε σκανδιναβικό δωμάτιο».");
@@ -343,6 +418,18 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
       if (intent === "board") {
         const { board } = boardRequestOf(text);
         return call("add_to_board", { productId: products[0]!.id, ...(board === undefined ? {} : { board }) });
+      }
+      // A look around the first piece of clothing, shoes, bag or accessory found.
+      if (intent === "look_complete") {
+        const wearable = products.find((product) => WEARABLE_KINDS.has(kindCodeOf(product) ?? ""));
+        if (wearable === undefined) return say(locale, "I can complete a look around clothes, shoes, bags or accessories. Which piece did you mean?", "Μπορώ να ολοκληρώσω σύνολο γύρω από ρούχα, παπούτσια, τσάντες ή αξεσουάρ. Ποιο κομμάτι εννοούσες;");
+        return call("complete_the_look", { productId: wearable.id });
+      }
+      // The live mirror for the first hat, pair of earrings or necklace found.
+      if (intent === "mirror") {
+        const wearable = products.find((product) => ["HAT", "EARRING", "NECKLACE"].includes(kindCodeOf(product) ?? ""));
+        if (wearable === undefined) return say(locale, "The mirror tries on hats, earrings and necklaces. Which of those would you like to see on you?", "Ο καθρέφτης δοκιμάζει καπέλα, σκουλαρίκια και κολιέ. Ποιο από αυτά θες να δεις πάνω σου;");
+        return call("try_in_mirror", { productId: wearable.id, caption: locale === "el" ? "Άνοιγμα του καθρέφτη" : "Opening the mirror" });
       }
       // The way in for the first piece found.
       if (intent === "way_in") return call("check_way_in", { productId: products[0]!.id });
@@ -487,6 +574,43 @@ export function demoStep(prompt: DemoPrompt): DemoStep {
         return say(locale, "AI pictures aren't available right now. The ready showroom pictures on the piece's page are still free to see.", "Οι εικόνες με AI δεν είναι διαθέσιμες τώρα. Τα έτοιμα δωμάτια στη σελίδα του κομματιού τα βλέπεις ακόμα δωρεάν.");
       if (output?.reason === "allowance") return say(locale, "That's today's pictures. The ready showroom pictures on the piece's page are still free.", "Αυτές ήταν οι σημερινές εικόνες. Τα έτοιμα δωμάτια στη σελίδα του κομματιού είναι ακόμα δωρεάν.");
       return say(locale, "The picture couldn't be started right now. Try again in a moment.", "Η εικόνα δεν μπόρεσε να ξεκινήσει τώρα. Δοκίμασε ξανά σε λίγο.");
+    }
+    case "complete_the_look": {
+      const output = last.output as { ok?: boolean; reason?: string; looks?: { totalCents: number; products: { id: string }[] }[] } | null;
+      const look = output?.looks?.[0];
+      if (output?.ok !== true || look === undefined) return say(locale, "I couldn't complete a look around that piece from what is in stock right now.", "Δεν βρήκα σύνολο γύρω από αυτό το κομμάτι από όσα είναι διαθέσιμα τώρα.");
+      return call("show_products", { productIds: look.products.map((product) => product.id), caption: locale === "el" ? "Εμφάνιση του συνόλου" : "Showing the look" });
+    }
+    case "build_capsule": {
+      const output = last.output as { ok?: boolean; pieces?: number; outfits?: number; budgetEuros?: number; totalCents?: number } | null;
+      if (output?.ok !== true) {
+        return say(
+          locale,
+          `€${output?.budgetEuros ?? ""} cannot buy a capsule of that size from what is in stock. A larger budget or the small capsule would work.`,
+          `Με €${output?.budgetEuros ?? ""} δεν φτιάχνεται γκαρνταρόμπα αυτού του μεγέθους από όσα είναι διαθέσιμα. Μεγαλύτερος προϋπολογισμός ή η μικρή θα έκαναν.`,
+        );
+      }
+      const total = ((output.totalCents ?? 0) / 100).toFixed(0);
+      return say(
+        locale,
+        `Here is your capsule: ${output.pieces} pieces for €${total} that make ${output.outfits} outfits, on the capsule page.`,
+        `Ορίστε η γκαρνταρόμπα σου: ${output.pieces} κομμάτια για €${total} που φτιάχνουν ${output.outfits} σύνολα, στη σελίδα της γκαρνταρόμπας.`,
+      );
+    }
+    case "read_my_colours":
+      return say(
+        locale,
+        "I've opened your colour reading. Use your camera or a photograph: it is read on your device and nothing is sent.",
+        "Άνοιξα την ανάγνωση χρωμάτων. Χρησιμοποίησε την κάμερα ή μια φωτογραφία: διαβάζεται στη συσκευή σου και τίποτα δεν στέλνεται.",
+      );
+    case "try_in_mirror": {
+      const output = last.output as { ok?: boolean; reason?: string } | null;
+      if (output?.ok !== true) return say(locale, "The mirror tries on hats, earrings and necklaces only; for clothes, shoes and bags there is the Fitting Room.", "Ο καθρέφτης δοκιμάζει μόνο καπέλα, σκουλαρίκια και κολιέ· για ρούχα, παπούτσια και τσάντες υπάρχει το δοκιμαστήριο.");
+      return say(
+        locale,
+        "I've opened the mirror with it. Press Start and allow the camera: it stays on your device, and nothing is recorded or sent.",
+        "Άνοιξα τον καθρέφτη με αυτό. Πάτα «Άνοιξε τον καθρέφτη» και επίτρεψε την κάμερα: μένει στη συσκευή σου και τίποτα δεν καταγράφεται ούτε στέλνεται.",
+      );
     }
     case "place_in_room": {
       const output = last.output as { placeable?: boolean; roomsSaved?: number; fits?: { room: string; fits: boolean; spareCm: number }[] } | null;

@@ -10,7 +10,7 @@
 import type postgres from "postgres";
 
 import { DEPARTMENTS, sortSizes, type ListingState } from "@/lib/catalog/listing";
-import { ABO_PRODUCT_KINDS, ROOM_PLACEMENT } from "@/lib/catalog/taxonomy";
+import { productKindOf, ROOM_PLACEMENT } from "@/lib/catalog/taxonomy";
 import { money, type Money } from "@/lib/commerce/money";
 import type { DimensionsCm } from "@/lib/db/schema";
 
@@ -138,7 +138,7 @@ function image(row: ImageRow | undefined, locale: string): CatalogImage | null {
 }
 
 function toCard(row: CardRow, locale: string): ProductCard {
-  const kind = ABO_PRODUCT_KINDS[row.kind];
+  const kind = productKindOf(row.kind);
   const images = row.images ?? [];
   const second = images[1];
   return {
@@ -320,13 +320,14 @@ export function createCatalogQueries(sql: Sql) {
     }));
   }
 
-  async function featured(params: { locale: string; limit: number; category?: string; excludeIds?: string[] }): Promise<ProductCard[]> {
+  async function featured(params: { locale: string; limit: number; category?: string; kinds?: readonly string[]; excludeIds?: string[] }): Promise<ProductCard[]> {
     const exclude = params.excludeIds ?? [];
     const rows = await sql<CardRow[]>`
       SELECT ${cardColumns}
       ${fromProducts}
       WHERE p.status = 'active'
         ${params.category === undefined ? sql`` : sql`AND c.slug = ${params.category}`}
+        ${params.kinds === undefined ? sql`` : sql`AND p.kind = ANY(${[...params.kinds]}::text[])`}
         AND NOT (p.id = ANY(${exclude}::uuid[]))
       ORDER BY (${inStockCondition}) DESC, p.popularity DESC, p.source_id
       LIMIT ${params.limit}

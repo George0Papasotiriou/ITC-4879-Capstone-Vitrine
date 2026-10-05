@@ -39,8 +39,13 @@ export function generateStaticParams() {
  * serves, so the line appears with the files and not before.
  */
 async function depthModel(): Promise<{ name: string; licence: string } | null> {
+  return modelCredit("depth");
+}
+
+/** A browser model's name and licence from its manifest, or null when its files are not served (docs/adr/014, docs/adr/065). */
+async function modelCredit(folder: "depth" | "face"): Promise<{ name: string; licence: string } | null> {
   try {
-    const manifest = JSON.parse(await readFile(path.join("public", "models", "depth", "manifest.json"), "utf8")) as {
+    const manifest = JSON.parse(await readFile(path.join("public", "models", folder, "manifest.json"), "utf8")) as {
       name?: string;
       licence?: string;
     };
@@ -54,6 +59,7 @@ export default async function CreditsPage({ params }: PageProps<"/[locale]/credi
   await requireLocale(params);
   const t = await getTranslations("pages");
   const model = await depthModel();
+  const face = await modelCredit("face");
 
   return (
     <InfoPage title={t("creditsTitle")} intro={t("creditsIntro")}>
@@ -71,6 +77,7 @@ export default async function CreditsPage({ params }: PageProps<"/[locale]/credi
         })}
       </p>
       {model === null ? null : <p>{t("creditsDepthModel", model)}</p>}
+      {face === null ? null : <p>{t("creditsFaceModel", face)}</p>}
       <p>{t("creditsType")}</p>
     </InfoPage>
   );

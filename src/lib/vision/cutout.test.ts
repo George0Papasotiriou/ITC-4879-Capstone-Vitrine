@@ -61,6 +61,16 @@ describe("cutout from a photo on white", () => {
     expect(alphaAt(cutout.rgba, 100, 50, 22)).toBe(255);
   });
 
+  it("sees through a piece's openings anywhere when asked, as through a hoop earring", () => {
+    // A pendant: a solid piece with the studio's white showing through a hole near its top.
+    const rgba = image(100, 100, [254, 254, 254], [{ x: 30, y: 20, w: 40, h: 60, rgb: [150, 150, 150] }]);
+    for (let y = 24; y < 32; y += 1) for (let x = 40; x < 60; x += 1) rgba.set([254, 254, 254, 255], (y * 100 + x) * 4);
+    expect(alphaAt(cutoutFromWhite(rgba, 100, 100, { openings: true }).rgba, 100, 50, 28)).toBe(0);
+    // A standing piece keeps enclosed white near its top (a lamp's lit shade); only openings anywhere are seen through.
+    expect(alphaAt(cutoutFromWhite(rgba, 100, 100, { standing: true }).rgba, 100, 50, 28)).toBe(255);
+    expect(alphaAt(cutoutFromWhite(rgba, 100, 100, { openings: true }).rgba, 100, 35, 50)).toBe(255);
+  });
+
   it("turns a studio's deep, soft shadow into a shadow, and stops at a grey product's sharp edge", () => {
     // In the proportions of the Canova sofa's photograph: a grey sofa (rows 10–78, the same grey as the
     // shadow's core) with a dark seam along its foot (row 79), on a shadow whose core (rows 80–87) is

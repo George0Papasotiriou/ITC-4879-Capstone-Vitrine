@@ -104,6 +104,11 @@ export type ToolServices = {
     set(productId: string, targetCents: number): Promise<SetWatchResult>;
     remove(productId: string): Promise<boolean>;
   };
+  /** The outfit builder (docs/adr/066): looks around a piece, and capsule wardrobes. */
+  wardrobe: {
+    look(productId: string, budgetCents?: number): Promise<{ looks: { ids: string[]; totalCents: number }[] } | "not_found" | "not_wearable">;
+    capsule(department: "women" | "men", size: "small" | "medium", budgetCents: number): Promise<{ ids: string[]; outfits: number; possible: number; totalCents: number } | null>;
+  };
   /** How a garment fits, as the Fit Engine believes it (docs/adr/064); null for anything that is not a charted garment. */
   fit: {
     forProduct(productId: string): Promise<ProductFit | null>;

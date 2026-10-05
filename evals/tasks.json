@@ -584,6 +584,77 @@
       "expect": {
         "approvalOrRefusal": "see_it_move"
       }
+    },
+    {
+      "id": "g51-mirror",
+      "locale": "en",
+      "message": "Can I try the flattened hoop earrings on live with my camera?",
+      "expect": {
+        "tools": [
+          "search_products",
+          "try_in_mirror"
+        ],
+        "answerMatches": "mirror"
+      }
+    },
+    {
+      "id": "g52-mirror-greek",
+      "locale": "el",
+      "message": "Θέλω να δοκιμάσω ένα καπέλο ζωντανά στον καθρέφτη",
+      "expect": {
+        "tools": [
+          "search_products",
+          "try_in_mirror"
+        ],
+        "answerMatches": "καθρέφτη",
+        "answerLanguage": "el"
+      }
+    },
+    {
+      "id": "g53-capsule",
+      "locale": "en",
+      "message": "Build me a capsule wardrobe for €450",
+      "expect": {
+        "tools": [
+          "build_capsule"
+        ],
+        "answerMatches": "capsule"
+      }
+    },
+    {
+      "id": "g54-colours",
+      "locale": "en",
+      "message": "What colours suit me?",
+      "expect": {
+        "tools": [
+          "read_my_colours"
+        ],
+        "answerMatches": "colour reading"
+      }
+    },
+    {
+      "id": "g55-colours-greek",
+      "locale": "el",
+      "message": "Ποια χρώματα μου πάνε;",
+      "expect": {
+        "tools": [
+          "read_my_colours"
+        ],
+        "answerMatches": "χρωμάτων",
+        "answerLanguage": "el"
+      }
+    },
+    {
+      "id": "g56-complete-look",
+      "locale": "en",
+      "message": "What goes with the short sleeve pocket tee?",
+      "expect": {
+        "tools": [
+          "search_products",
+          "complete_the_look",
+          "show_products"
+        ]
+      }
     }
   ],
   "adversarial": [

@@ -87,6 +87,13 @@ export default async function FittingRoomPage({ params, searchParams }: PageProp
           </SmartLink>
         </li>
       </ul>
+      {/* Hats, earrings and necklaces can also be worn live, through the camera, on the shopper's own device (docs/adr/065). */}
+      <p className="text-slate mt-4 max-w-[70ch] text-sm">
+        {t("mirrorNote")}{" "}
+        <SmartLink href="/mirror" className="underline underline-offset-4" data-agent-id="fitting:mirror-link">
+          {t("mirrorLink")}
+        </SmartLink>
+      </p>
 
       <FittingRoom groups={groups} focus={wanted?.slug ?? null} signedIn={(await currentUser()) !== null} canMove={canAnimate(currentStudioMode())} />
     </main>

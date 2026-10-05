@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 import { sizeChartFor } from "@/lib/catalog/capsule";
 import { EXCLUDED_LISTINGS, MAX_TITLE } from "@/lib/catalog/clothes";
 import { AMAZON_MEDIA_URL, catalogFixtureSchema } from "@/lib/catalog/input";
-import { CAPSULE_PRODUCT_KINDS, CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
+import { CAPSULE_PRODUCT_KINDS, CAPSULE_SIZES, productKindOf } from "@/lib/catalog/taxonomy";
 import { amazonReviewsFixtureSchema } from "@/lib/reviews/amazon";
 
 /**
@@ -46,6 +46,16 @@ describe("the clothes fixture", () => {
     const slugs = new Set(others.map((product) => product.slug));
     expect(clothes.filter((product) => slugs.has(product.slug))).toEqual([]);
     for (const product of clothes) expect(EXCLUDED_LISTINGS.has(product.sourceId), product.slug).toBe(false);
+  });
+
+  it("names every garment's kind as cards and the Concierge see it, in both languages", () => {
+    // Cards read the label through productKindOf (queries.ts); without the clothing kinds a garment had none.
+    for (const product of [...clothes, ...specimen]) {
+      expect(productKindOf(product.kind)?.kindEn).toBeTruthy();
+      expect(productKindOf(product.kind)?.kindEl).toBeTruthy();
+    }
+    expect(productKindOf("EARRING")?.kindEn).toBe("Earrings");
+    expect(productKindOf("NOT_A_KIND")).toBeUndefined();
   });
 
   it("files every garment under Clothing, in a kind with a size chart, sized XS–XL with stock that adds up, at a price in its band", () => {

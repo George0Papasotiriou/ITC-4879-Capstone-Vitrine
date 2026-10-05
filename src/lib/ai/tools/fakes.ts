@@ -116,6 +116,10 @@ export function context(overrides: Partial<ToolServices> = {}, cartLines: Partia
     fit: {
       forProduct: async () => null,
     },
+    wardrobe: {
+      look: async () => "not_found" as const,
+      capsule: async () => null,
+    },
     support: {
       handOver: async () => ({ ok: true, id: "01890000-0000-7000-8000-0000000000d1", number: "VS-7K2M-Q4HD" }),
     },

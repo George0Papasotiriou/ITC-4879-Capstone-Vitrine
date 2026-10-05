@@ -117,9 +117,10 @@ export function baseSecurityHeaders({ https }: { https: boolean }): [string, str
     [
       "Permissions-Policy",
       [
-        // The Concierge listens on every page (voice, docs/adr/026); photographs come from file inputs, never the camera API.
+        // The Concierge listens on every page (voice, docs/adr/026). The camera API serves the AR Mirror (docs/adr/065),
+        // on this shop's own pages only: no frame embedded in a page may ask for it. Photographs still come from file inputs.
         "microphone=(self)",
-        "camera=()",
+        "camera=(self)",
         "geolocation=()",
         // Apple Pay and Google Pay in Stripe's Express Checkout.
         'payment=(self "https://js.stripe.com")',

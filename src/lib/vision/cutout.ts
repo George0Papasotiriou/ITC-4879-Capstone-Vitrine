@@ -68,6 +68,7 @@ export function cutoutFromWhite(
     flatStep = 20,
     minBorderShare = 0.9,
     standing = false,
+    openings = false,
   }: {
     threshold?: number;
     shadowFloor?: number;
@@ -80,6 +81,11 @@ export function cutoutFromWhite(
      * and canvases are part of the piece.
      */
     standing?: boolean;
+    /**
+     * The piece has openings anywhere (a hoop earring, an open heart, a chain's loop): enclosed studio white
+     * is background wherever it lies, not only below the top of the piece (the AR Mirror, docs/adr/065).
+     */
+    openings?: boolean;
   } = {},
 ): Cutout {
   const rgba = new Uint8ClampedArray(source);
@@ -157,7 +163,7 @@ export function cutoutFromWhite(
   const gapRow = top + 0.3 * (bottom - top);
   const minGap = Math.max(16, Math.round(width * height * 0.0002));
   const seen = new Uint8Array(width * height);
-  for (let start = 0; standing && start < width * height; start += 1) {
+  for (let start = 0; (standing || openings) && start < width * height; start += 1) {
     if (background[start] === 1 || seen[start] === 1 || !isBackground(rgba, start * 4, threshold)) continue;
     head = 0;
     tail = 0;
@@ -182,7 +188,7 @@ export function cutoutFromWhite(
     }
     const mean = sum / tail;
     const spread = Math.sqrt(Math.max(0, squares / tail - mean * mean));
-    if (tail >= minGap && Math.abs(mean - ground) <= 2.5 && spread <= 2.5 && rows / tail >= gapRow) {
+    if (tail >= minGap && Math.abs(mean - ground) <= 2.5 && spread <= 2.5 && (openings || rows / tail >= gapRow)) {
       for (let k = 0; k < tail; k += 1) background[queue[k]!] = 1;
     }
   }

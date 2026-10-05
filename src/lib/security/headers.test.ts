@@ -79,12 +79,13 @@ describe("the bucket in the policy", () => {
 });
 
 describe("headers on every response", () => {
-  it("send HSTS only over https, and keep the microphone to the shop and the camera API off", () => {
+  it("send HSTS only over https, and keep the microphone and the camera to the shop's own pages", () => {
     const secure = new Map(baseSecurityHeaders({ https: true }));
     expect(secure.get("Strict-Transport-Security")).toBe("max-age=63072000; includeSubDomains");
     expect(new Map(baseSecurityHeaders({ https: false })).has("Strict-Transport-Security")).toBe(false);
     expect(secure.get("Permissions-Policy")).toContain("microphone=(self)");
-    expect(secure.get("Permissions-Policy")).toContain("camera=()");
+    expect(secure.get("Permissions-Policy")).toContain("camera=(self)");
+    expect(secure.get("Permissions-Policy")).not.toContain("camera=*");
     expect(secure.get("X-Content-Type-Options")).toBe("nosniff");
   });
 });

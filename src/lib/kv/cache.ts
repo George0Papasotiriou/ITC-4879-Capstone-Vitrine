@@ -14,7 +14,8 @@ import type { KeyValue } from "@/lib/kv/types";
 
 /**
  * docs/adr/039. What is cached is what is expensive and the same for
- * everybody: a search's ranking (ids, what the query was read as), never
+ * everybody: a search's ranking (ids, what the query was read as), a
+ * capsule wardrobe or a completed look (ids, docs/adr/066), never
  * prices, stock or anything about a person — those are read fresh from the
  * database every time, so a cached ranking can be a little old but never
  * wrong about money.
@@ -25,7 +26,7 @@ import type { KeyValue } from "@/lib/kv/types";
  * live bounds the rest (stock changes, reviews).
  */
 
-export type CacheSpace = "search";
+export type CacheSpace = "search" | "wardrobe";
 
 const VERSION_KEY = "vt:catalog:version";
 const YEAR_SECONDS = 60 * 60 * 24 * 365;

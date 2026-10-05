@@ -16,6 +16,7 @@ import { comfortPatchSchema } from "@/lib/comfort/schema";
 import { EMPTY_LISTING, listingQuery, SORTS, type Sort } from "@/lib/catalog/listing";
 import { CATEGORY_SLUGS, type CategorySlug } from "@/lib/catalog/taxonomy";
 import { COLORS, MATERIALS } from "@/lib/search/vocabulary";
+import { isMirrorKind } from "@/lib/vision/mirror/pieces";
 
 /**
  * The page runs these commands through the Spotlight, which shows each one,
@@ -116,6 +117,27 @@ export const adjustComfort = define({
   output: commandsOutput,
   async run(_ctx, { settings, caption: text }) {
     return commands({ type: "comfort", agentId: "nav:comfort", settings, caption: text });
+  },
+});
+
+/**
+ * The AR Mirror (docs/adr/065): free, and nothing leaves the shopper's
+ * device, so it needs no approval; the camera itself asks the shopper.
+ */
+export const tryInMirror = define({
+  name: "try_in_mirror",
+  description:
+    "Open the live AR Mirror with a hat, a pair of earrings or a necklace, so the shopper sees it on their own face through their camera, at true size, as they move. " +
+    "Use it when they want to try one of those on live, \"with my camera\", \"in the mirror\" or \"on me now\". It is free and nothing leaves their device. " +
+    "Do not use it for clothes, shoes or bags (that is try_on, on a photograph), and not without the piece's id.",
+  scope: "ui",
+  input: z.object({ productId: z.uuid(), caption }),
+  output: z.object({ ok: z.boolean(), reason: z.enum(["not_found", "not_for_mirror"]).optional(), commands: z.array(uiCommandSchema) }),
+  async run(ctx, { productId, caption: text }) {
+    const [card] = await ctx.services.cards([productId]);
+    if (card === undefined) return { ok: false, reason: "not_found" as const, commands: [] };
+    if (!isMirrorKind(card.kind)) return { ok: false, reason: "not_for_mirror" as const, commands: [] };
+    return { ok: true, ...commands({ type: "navigate", href: `/mirror?piece=${card.slug}`, caption: text }) };
   },
 });
 

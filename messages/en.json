@@ -53,6 +53,7 @@
     "added": "Added to cart",
     "seeInYourRoom": "See it in your room",
     "tryItOn": "Try it on in the Fitting Room",
+    "tryLive": "Try it on live in the Mirror",
     "outOfStock": "Out of stock",
     "pairsWith": "Pairs well with",
     "reviews": "What reviewers say",
@@ -241,6 +242,11 @@
         "budget": "The shop has reached what it spends on AI today. Try again tomorrow.",
         "failed": "That did not work. Try again."
       }
+    },
+    "look": {
+      "title": "Complete the look",
+      "lede": "Pieces chosen to wear with this one: they go together in colour, style and how dressed-up they are, for the same person, within about three times this piece's price, and at least €150.",
+      "total": "The whole look, {count} pieces: {price}"
     }
   },
   "cart": {
@@ -686,7 +692,8 @@
     "privacyLocation": "To show prices with the right VAT, the shop looks up the country of your internet address in a database kept on its own server. For that lookup the address is not stored, not logged, and not sent to anyone. You can choose a different country at any time, and at checkout VAT always follows your delivery address.",
     "privacyRoom": "In “See it in your room”, your photo is measured and drawn on your own device and never uploaded. The paper-free mode downloads a depth-estimation model to your browser the first time you use it; the model runs on your device, and your photo still never leaves it.",
     "privacyAccount": "If you create an account, the shop keeps your name, your email address and a one-way hash of your password (never the password itself). For each device you sign in on it keeps the internet address and browser at sign-in, so the account page can show where you are signed in and let you sign a device out. Passkeys are stored as public keys only. Emails the shop sends you are kept for a week, then deleted. To have your account deleted, write to us from the contact page.",
-    "privacySearch": "Searches. To learn what people look for and what the shop is missing, we keep each search's words, language and number of results for 90 days, with nothing that identifies you: no account, no address, no cookie. Email addresses are dropped and long numbers are masked before anything is stored."
+    "privacySearch": "Searches. To learn what people look for and what the shop is missing, we keep each search's words, language and number of results for 90 days, with nothing that identifies you: no account, no address, no cookie. Email addresses are dropped and long numbers are masked before anything is stored.",
+    "creditsFaceModel": "The Mirror finds your face with {name}, licensed {licence}, and MediaPipe's canonical face model (Apache License 2.0). It runs in your browser, on this shop's own copy: your camera's picture is never sent anywhere."
   },
   "stylist": {
     "title": "Budget Stylist",
@@ -2356,7 +2363,9 @@
         "not_ready": "That try-on is not ready to move yet, or already has its video.",
         "credits": "A video needs more credits than you have left today."
       }
-    }
+    },
+    "mirrorNote": "Hats, earrings and necklaces can also be tried on live, through your camera, without sending a photograph.",
+    "mirrorLink": "Open the Mirror"
   },
   "snap": {
     "title": "Snap to shop",
@@ -3047,5 +3056,140 @@
       "slow_down": "One moment: too many at once.",
       "not_found": "Your photo has gone (it lasts a day). Add it again."
     }
+  },
+  "mirror": {
+    "title": "Mirror",
+    "lede": "Try hats, earrings and necklaces on live, through your camera. The piece follows your face as you move, at its true size.",
+    "stageTitle": "Your mirror",
+    "intro": "The mirror uses your front camera. Turn your head to see the piece from the side; earrings swing as you move.",
+    "promises": {
+      "device": "Everything happens on this device: the camera's picture goes to a model running in this page and nowhere else.",
+      "nothingSent": "Nothing is recorded, sent or kept by the shop.",
+      "download": "The first time, the face model (about 4 MB) is downloaded from this shop and kept on your device."
+    },
+    "start": "Start the mirror",
+    "tryAgain": "Try again",
+    "stop": "Stop the camera",
+    "save": "Save a picture",
+    "viewPiece": "View the piece",
+    "status": {
+      "starting": "Starting the camera…",
+      "loading": "Loading the face model… {percent}%",
+      "searching": "Looking for your face…",
+      "tracking": "Tracking your face"
+    },
+    "problems": {
+      "camera_denied": "The camera was not allowed. Allow it in your browser's settings for this site, then try again.",
+      "no_camera": "No camera could be opened on this device. On a phone or a laptop with a camera it works.",
+      "not_installed": "The mirror is not available in this version of the shop.",
+      "integrity": "The face model did not download correctly. Try again in a moment.",
+      "no_webassembly": "This browser cannot run the face model. A current Chrome, Edge, Firefox or Safari can.",
+      "failed": "The face model could not start on this device. Try again, or use another browser."
+    },
+    "photoNote": "It is the piece's own photograph placed on you, not a 3D model.",
+    "size": {
+      "hat": "Sized to your head.",
+      "necklace": "Drawn about {mm} mm across, as a necklace sits round a neck.",
+      "earringTitle": "Drawn {mm} mm long, as its listing says.",
+      "earringTypical": "Drawn {mm} mm long, typical for {style}; its listing does not give a size."
+    },
+    "styles": {
+      "stud": "studs",
+      "hoop": "hoops",
+      "drop": "drop earrings",
+      "threader": "threaders",
+      "other": "earrings"
+    },
+    "piecesTitle": "Pieces to try",
+    "filterLabel": "Show",
+    "kinds": {
+      "all": "All",
+      "HAT": "Hats",
+      "EARRING": "Earrings",
+      "NECKLACE": "Necklaces"
+    }
+  },
+  "capsule": {
+    "title": "Capsule wardrobe",
+    "lede": "A few pieces that all go together, chosen to make as many outfits as possible within your budget.",
+    "for": "For",
+    "forValue": {
+      "women": "Women",
+      "men": "Men"
+    },
+    "budget": "Budget",
+    "size": "Size",
+    "sizes": {
+      "small": "Small: 8 pieces",
+      "medium": "Medium: 12 pieces"
+    },
+    "build": "Build my capsule",
+    "howTitle": "How it is chosen",
+    "how": "Every piece is in stock and for the person you choose. Two pieces go together when their colours, materials and style agree and they are about as dressed-up as each other; an outfit is a top, a bottom and shoes (or a dress and shoes) that all go together. The shop tries many capsules within the budget and keeps the one with the most outfits.",
+    "none": "That budget cannot buy a capsule of this size from what is in stock. Try a larger budget or the small capsule.",
+    "result": "{pieces} pieces that make {outfits, plural, one {# outfit} other {# outfits}}",
+    "total": "{price} in all; the most a capsule this size could make is {possible}.",
+    "examples": "Some of the outfits",
+    "outfit": "Outfit {number}"
+  },
+  "colours": {
+    "title": "Your colours",
+    "lede": "A colour reading of your skin, eyes and hair, and the colours in the shop that go with them.",
+    "promises": {
+      "device": "Your picture is read on this device and never sent or kept.",
+      "light": "The light is corrected using the whites of your eyes, so a warm lamp or a cold window does not change the answer much.",
+      "convention": "Colour \"seasons\" are a styling convention, not a science: a starting point for choosing, nothing more."
+    },
+    "useCamera": "Use my camera",
+    "usePhoto": "Choose a photograph",
+    "cameraHint": "Face the camera in even light, without make-up on the cheeks if you can, then take the reading.",
+    "read": "Take my reading",
+    "cancel": "Cancel",
+    "reading": "Reading your colours…",
+    "problems": {
+      "camera_denied": "The camera was not allowed. Allow it in your browser's settings for this site, or choose a photograph.",
+      "no_camera": "No camera could be opened. Choose a photograph instead.",
+      "no_face": "No face was found in that picture. Try one where your face is clear and facing the camera.",
+      "not_installed": "Colour reading is not available in this version of the shop.",
+      "failed": "The face model could not start on this device. Try again, or another browser.",
+      "unreadable": "That picture could not be read. Try another, in even light."
+    },
+    "seasons": {
+      "spring": {
+        "name": "Spring",
+        "about": "Warm and light: clear, warm colours suit you, such as cream, golden yellow, coral and fresh greens."
+      },
+      "summer": {
+        "name": "Summer",
+        "about": "Cool and soft: gentle, cool colours suit you, such as rose, lavender, soft blue and grey."
+      },
+      "autumn": {
+        "name": "Autumn",
+        "about": "Warm and deep: rich, earthy colours suit you, such as camel, rust, olive and mustard."
+      },
+      "winter": {
+        "name": "Winter",
+        "about": "Cool and clear, with contrast: strong, cool colours suit you, such as black, white, true red and navy."
+      }
+    },
+    "measured": "Measured: {warmth} undertone, {depth} colouring.",
+    "warm": "a warm",
+    "cool": "a cool",
+    "light": "light",
+    "deep": "deep",
+    "yourColours": "Your colours, as measured",
+    "parts": {
+      "skin": "Skin",
+      "eyes": "Eyes",
+      "hair": "Hair"
+    },
+    "suits": "Colours that suit you",
+    "easyOn": "Go easy on: {colours}.",
+    "shopAll": "Shop clothes in these colours",
+    "keep": "Keep these colours in Your shop",
+    "again": "Read again",
+    "kept": "Kept in Your shop: these colours come first where the shop suggests pieces. Change or delete them there any time.",
+    "keepFailed": "They could not be kept just now. Try again later.",
+    "private": "Only the colour words are kept, and only if you press Keep."
   }
 }

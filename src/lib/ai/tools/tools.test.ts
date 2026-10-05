@@ -117,6 +117,35 @@ describe("UI tools", () => {
     expect(needsApproval(findTool("suggest_size", "chat")!)).toBe(false);
   });
 
+  it("completes a look around a piece and builds a capsule from the outfit builder's answers, never its own", async () => {
+    const tee = { ...card(LAMP, "Pocket Tee", 2900), kind: "TOP", category: "wear" };
+    const jeans = { ...card(CHAIR, "Straight Jeans", 5900), kind: "TROUSERS", category: "wear" };
+    const { ctx } = context({
+      cards: async (ids) => [tee, jeans].filter((entry) => ids.includes(entry.id)),
+      // Totals the optimiser worked out earlier (as if cached before a price change): the tools say the prices of now.
+      wardrobe: { look: async () => ({ looks: [{ ids: [LAMP, CHAIR], totalCents: 9900 }] }), capsule: async () => ({ ids: [LAMP, CHAIR], outfits: 7, possible: 14, totalCents: 44000 }) },
+    });
+    const look = await run("complete_the_look", { productId: LAMP }, ctx);
+    expect(look).toMatchObject({ ok: true, looks: [{ totalCents: 8800, products: [{ id: LAMP }, { id: CHAIR }] }] });
+    // Budgets go to the page's nearest, so the page shows the same capsule.
+    const capsule = await run("build_capsule", { for: "women", budgetEuros: 500, caption: "Opening your capsule" }, ctx);
+    expect(capsule).toMatchObject({ ok: true, budgetEuros: 450, outfits: 7, totalCents: 8800, commands: [{ type: "navigate", href: "/capsule?for=women&budget=450&size=small" }] });
+    await expect(run("complete_the_look", { productId: LAMP }, context().ctx)).resolves.toEqual({ ok: false, reason: "not_found" });
+    await expect(run("read_my_colours", { caption: "Opening your colours" }, ctx)).resolves.toEqual({ commands: [{ type: "navigate", href: "/colours", caption: "Opening your colours" }] });
+    expect(needsApproval(findTool("build_capsule", "chat")!)).toBe(false);
+  });
+
+  it("opens the live mirror for a hat, earrings or a necklace, and refuses anything else", async () => {
+    const earrings = { ...card(LAMP, "Flattened Hoop Earrings", 4900), kind: "EARRING", category: "accessories" };
+    const { ctx } = context({ cards: async () => [earrings] });
+    await expect(run("try_in_mirror", { productId: LAMP, caption: "Opening the mirror" }, ctx)).resolves.toEqual({
+      ok: true,
+      commands: [{ type: "navigate", href: "/mirror?piece=flattened-hoop-earrings", caption: "Opening the mirror" }],
+    });
+    await expect(run("try_in_mirror", { productId: LAMP, caption: "Opening the mirror" }, context().ctx)).resolves.toMatchObject({ ok: false, reason: "not_for_mirror" });
+    expect(needsApproval(findTool("try_in_mirror", "chat")!)).toBe(false);
+  });
+
   it("allows for how a piece runs when asked about that piece, and says how likely the size is to fit", async () => {
     const plain = await run("suggest_size", { garment: "top", chestCm: 97 }, context().ctx);
     expect(plain).toMatchObject({ size: "M", piece: null, certainty: expect.stringMatching(/sure|likely|between/) });

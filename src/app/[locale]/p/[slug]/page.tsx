@@ -41,6 +41,8 @@ import { formatMoney, type Money } from "@/lib/commerce/money";
 import { photoUrl } from "@/lib/photos/server";
 import { canMakeModel } from "@/lib/catalog/model/family";
 import { pairsWith } from "@/lib/reco/server";
+import { roleOf } from "@/lib/optimize/outfit";
+import { lookFor } from "@/lib/stylist/server";
 import { productJsonLd, serializeJsonLd } from "@/lib/catalog/structured-data";
 import { priceWatches, reviewsStore } from "@/lib/commerce/server";
 import { currentUser } from "@/lib/auth/session";
@@ -54,6 +56,7 @@ import { storage } from "@/lib/storage";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
 import { sizeChartFor } from "@/lib/catalog/capsule";
 import { stretchPercent } from "@/lib/fit/size/body";
+import { isMirrorKind } from "@/lib/vision/mirror/pieces";
 import { fitStore } from "@/lib/fit/size/server";
 import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
 import { preferredSize, roomFits, sizeGroupOf } from "@/lib/prefs/preferences";
@@ -118,6 +121,11 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const neighbourCards = neighbours.ids.length > 0 ? await getCardsByIds(neighbours.ids, locale) : [];
   const related = neighbourCards.length > 0 ? neighbourCards : await getFeatured({ locale, limit: 4, category: product.category, excludeIds: [product.id] });
   const relatedTitle = neighbours.source === "behavior" && neighbourCards.length > 0 ? t("pairsWith") : t("moreLikeThis");
+
+  // "Complete the look" (docs/adr/066): the pieces that finish an outfit around this one, chosen by the outfit builder.
+  const look = roleOf(product.kind) === null ? null : await lookFor(product.id);
+  const lookCards = look === null || look.looks.length === 0 ? [] : await getCardsByIds(look.looks[0]!.ids.slice(1), locale);
+  const lookTotal = lookCards.length === 0 ? null : { cents: product.price.cents + lookCards.reduce((sum, card) => sum + card.price.cents, 0), currency: product.price.currency };
 
   const reviews = await (await reviewsStore()).productReviews(product.id, { limit: 10 });
   // What buyers like and mention against, read from every published review (docs/adr/041).
@@ -324,6 +332,12 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                 {t("tryItOn")}
               </ButtonLink>
             )}
+            {/* The AR Mirror tries hats, earrings and necklaces on live, through the camera (docs/adr/065). */}
+            {!isMirrorKind(product.kind) ? null : (
+              <ButtonLink href={`/mirror?piece=${product.slug}`} variant="secondary" data-agent-id={`action:mirror:${product.id}`}>
+                {t("tryLive")}
+              </ButtonLink>
+            )}
           </div>
 
           <PriceWatch
@@ -493,6 +507,19 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
       {WEARABLE_CATEGORIES.has(product.category) ? (
         <ModelShots slug={product.slug} title={product.title} department={product.attributes.department === "men" ? "men" : product.attributes.department === "women" ? "women" : null} />
       ) : null}
+
+      {lookCards.length === 0 || lookTotal === null ? null : (
+        <section className="border-hairline mt-20 border-t pt-10" data-agent-id="look:complete" data-shelf="complete-the-look">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-display text-2xl">{t("look.title")}</h2>
+            <p className="text-slate text-sm tabular-nums" data-agent-id="look:total">
+              {t("look.total", { price: formatMoney(lookTotal, locale), count: lookCards.length + 1 })}
+            </p>
+          </div>
+          <p className="text-slate mt-2 max-w-[65ch] text-sm">{t("look.lede")}</p>
+          <ProductGrid products={lookCards} locale={locale} className="mt-8" priorityCount={0} />
+        </section>
+      )}
 
       <ProductReviews summary={reviews.summary} reviews={reviews.reviews} locale={locale} insights={insights} />
       {amazon === null || amazon.reviews.length === 0 ? null : <AmazonReviews summary={amazon.summary} reviews={amazon.reviews} sized={sizes.length > 1} locale={locale} />}

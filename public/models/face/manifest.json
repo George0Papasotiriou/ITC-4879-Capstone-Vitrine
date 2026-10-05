@@ -1,0 +1,9 @@
+{
+  "name": "MediaPipe Face Landmarker (Face Mesh V2, 478 landmarks)",
+  "model": "face_landmarker.task",
+  "sha256": "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff",
+  "bytes": 3758596,
+  "licence": "Apache License 2.0, © Google LLC",
+  "source": "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task (fetched 2026-10-05)",
+  "runtime": "@mediapipe/tasks-vision 1.0.1 (copied from node_modules by pnpm build)"
+}

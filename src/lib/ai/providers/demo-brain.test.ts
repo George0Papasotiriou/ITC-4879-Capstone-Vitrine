@@ -313,3 +313,32 @@ describe("kindQueryOf", () => {
     expect(demoStep({ ...prompt("find a table that matches my room", [found, searched]), photo: true })).toMatchObject({ kind: "tools", calls: [{ toolName: "show_products" }] });
   });
 });
+
+describe("pieces read by their kind's label", () => {
+  // Search results carry the label the page shows, in its language (briefs.ts), not the catalogue's code.
+  const TEE = { id: "01890000-0000-7000-8000-000000000003", title: "Short Sleeve Pocket Tee", inStock: true, kind: "Top" };
+  const HOOPS = { id: "01890000-0000-7000-8000-000000000004", title: "Flattened Hoop Earrings", inStock: true, kind: "Earrings" };
+  const HAT = { id: "01890000-0000-7000-8000-000000000005", title: "Καπέλο μπίνι", inStock: true, kind: "Καπέλο" };
+  const SOFA = { id: "01890000-0000-7000-8000-000000000006", title: "Velvet Sofa", inStock: true, kind: "Sofa" };
+  const searched = (products: object[]) => ({ toolName: "search_products", output: { products }, denied: false });
+
+  it("opens the mirror for the first hat, pair of earrings or necklace found, in either language", () => {
+    expect(demoStep(prompt("Can I try the flattened hoop earrings on live with my camera?", [searched([TEE, HOOPS])]))).toMatchObject({
+      kind: "tools",
+      calls: [{ toolName: "try_in_mirror", input: { productId: HOOPS.id } }],
+    });
+    expect(demoStep(prompt("Θέλω να δοκιμάσω ένα καπέλο ζωντανά στον καθρέφτη", [searched([HAT])], "el"))).toMatchObject({
+      kind: "tools",
+      calls: [{ toolName: "try_in_mirror", input: { productId: HAT.id } }],
+    });
+    expect(demoStep(prompt("Can I try the velvet sofa on live with my camera?", [searched([SOFA])]))).toMatchObject({ kind: "text", text: expect.stringContaining("hats, earrings and necklaces") });
+  });
+
+  it("completes a look around the first piece of clothing found, and never around furniture", () => {
+    expect(demoStep(prompt("What goes with the short sleeve pocket tee?", [searched([SOFA, TEE])]))).toEqual({
+      kind: "tools",
+      calls: [{ toolName: "complete_the_look", input: { productId: TEE.id } }],
+    });
+    expect(demoStep(prompt("What goes with the velvet sofa?", [searched([SOFA])]))).toMatchObject({ kind: "text", text: expect.stringContaining("clothes, shoes, bags or accessories") });
+  });
+});
