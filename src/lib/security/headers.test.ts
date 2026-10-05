@@ -62,7 +62,9 @@ describe("the bucket in the policy", () => {
     expect(bucketOrigins({ endpoint: "http://localhost:9000/", bucket: "vitrine", forcePathStyle: true })).toEqual(["http://localhost:9000"]);
     const policy = contentSecurityPolicy({ nonce: "n", dev: false, https: true, bucket: bucketOrigins({ endpoint: r2, bucket: "vitrine", forcePathStyle: false }) });
     expect(directive(policy, "img-src")).toEqual(expect.arrayContaining(["'self'", "https://vitrine.0123abcd.r2.cloudflarestorage.com"]));
-    // Images only: the page never fetches, frames or runs anything from the bucket.
+    // A try-on video plays from the bucket too (docs/adr/063).
+    expect(directive(policy, "media-src")).toEqual(expect.arrayContaining(["https://vitrine.0123abcd.r2.cloudflarestorage.com"]));
+    // Pictures and videos only: the page never fetches, frames or runs anything from the bucket.
     for (const name of ["connect-src", "script-src", "frame-src", "default-src"]) expect(directive(policy, name)).not.toContain(r2);
   });
 

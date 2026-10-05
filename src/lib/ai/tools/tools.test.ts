@@ -15,6 +15,8 @@ import { findTool, needsApproval, runTool, TOOLS, toolsFor } from "@/lib/ai/tool
 import type { ToolContext } from "@/lib/ai/tools/types";
 import { createUndoToken, readUndoToken, UNDO_LIFETIME_MS } from "@/lib/ai/tools/undo";
 import type { OrderView } from "@/lib/commerce/store";
+import { SHOP_FIT_PARAMS } from "@/lib/fit/size/model";
+import { itemFromCounts } from "@/lib/fit/size/ordinal";
 import { EMPTY_PREFERENCES } from "@/lib/prefs/preferences";
 
 const run = async (name: string, input: unknown, ctx: ToolContext) => {
@@ -113,6 +115,16 @@ describe("UI tools", () => {
     await expect(run("suggest_size", { garment: "dress" }, ctx)).resolves.toMatchObject({ problem: "no_measurements" });
     await expect(run("suggest_size", { garment: "top", chestCm: 38 }, ctx)).resolves.toMatchObject({ problem: "out_of_range" });
     expect(needsApproval(findTool("suggest_size", "chat")!)).toBe(false);
+  });
+
+  it("allows for how a piece runs when asked about that piece, and says how likely the size is to fit", async () => {
+    const plain = await run("suggest_size", { garment: "top", chestCm: 97 }, context().ctx);
+    expect(plain).toMatchObject({ size: "M", piece: null, certainty: expect.stringMatching(/sure|likely|between/) });
+    expect(plain.fitChance).toBeGreaterThan(40);
+    // A piece the shop knows runs small: the same chest takes the next size up.
+    const runsSmall = itemFromCounts(SHOP_FIT_PARAMS, { small: 70, trueToSize: 28, large: 2 });
+    const { ctx } = context({ fit: { forProduct: async () => ({ item: runsSmall, remarks: 100, outcomes: 3, lean: "small", cut: "usual" }) } });
+    await expect(run("suggest_size", { garment: "top", chestCm: 97, productId: CHAIR }, ctx)).resolves.toMatchObject({ size: "L", piece: { lean: "small", remarks: 100, outcomes: 3 } });
   });
 
   it("says whether a piece fits the saved rooms and opens the planner, pointing at a named room", async () => {
@@ -241,16 +253,26 @@ describe("account and sensitive tools", () => {
   });
 });
 
-describe("the Fitting Room tool", () => {
-  it("tries clothes on, and nothing else", async () => {
+describe("the Fitting Room tools (docs/adr/023, 063)", () => {
+  const studio = (overrides: Partial<{ photo: () => Promise<{ id: string; minutesLeft: number } | null>; start: (input: { photoId: string; productIds: string[] }) => Promise<{ ok: true; ids: string[]; outfitId: string | null } | { ok: false; reason: string }>; latest: () => Promise<{ id: string } | null>; animate: (input: { tryOnId: string }) => Promise<{ ok: true } | { ok: false; reason: string }> }> = {}) => ({
+    photo: async () => ({ id: "photo-1", minutesLeft: 1400 }),
+    start: async () => ({ ok: true as const, ids: ["try-1"], outfitId: null }),
+    latest: async () => ({ id: "try-1" }),
+    animate: async () => ({ ok: true as const }),
+    ...overrides,
+  });
+
+  it("tries on clothes, shoes, bags and accessories, and nothing else", async () => {
     const { ctx } = context({ cards: async () => [{ ...card(LAMP, "Lamp", 9400), category: "lighting" }] });
     await expect(run("try_on", { productId: LAMP }, ctx)).resolves.toMatchObject({ ok: false, reason: "not_clothes" });
+    const shoes = context({ cards: async () => [{ ...card(LAMP, "Desert Boots", 12900), category: "shoes" }], tryOn: studio() });
+    await expect(run("try_on", { productId: LAMP }, shoes.ctx)).resolves.toMatchObject({ ok: true, tryOnId: "try-1" });
   });
 
   it("opens the Fitting Room when there is no photograph to use", async () => {
     const { ctx } = context({
       cards: async () => [{ ...card(LAMP, "Linen Dress", 14900), category: "wear" }],
-      tryOn: { photo: async () => null, start: async () => ({ ok: true, id: "t1" }) },
+      tryOn: studio({ photo: async () => null }),
     });
     const result = (await run("try_on", { productId: LAMP }, ctx)) as { ok: boolean; reason: string; commands: { href: string }[] };
     expect(result).toMatchObject({ ok: false, reason: "no_photo" });
@@ -261,13 +283,52 @@ describe("the Fitting Room tool", () => {
     const asked: unknown[] = [];
     const { ctx } = context({
       cards: async () => [{ ...card(LAMP, "Linen Dress", 14900), category: "wear" }],
-      tryOn: {
-        photo: async () => ({ id: "photo-1", minutesLeft: 1400 }),
-        start: async (input) => (asked.push(input), { ok: true, id: "try-1" }),
-      },
+      tryOn: studio({ start: async (input) => (asked.push(input), { ok: true as const, ids: ["try-1"], outfitId: null }) }),
     });
     await expect(run("try_on", { productId: LAMP }, ctx)).resolves.toMatchObject({ ok: true, tryOnId: "try-1", minutesLeft: 1400 });
-    expect(asked).toEqual([{ photoId: "photo-1", productId: LAMP }]);
+    expect(asked).toEqual([{ photoId: "photo-1", productIds: [LAMP] }]);
+  });
+
+  it("tries a whole outfit on at once, and says why one cannot be put on", async () => {
+    const SHOE = "01890000-0000-7000-8000-00000000aa02";
+    const asked: unknown[] = [];
+    const ok = context({
+      cards: async () => [
+        { ...card(LAMP, "Poplin Shirt", 8900), category: "wear" },
+        { ...card(SHOE, "Desert Boots", 12900), category: "shoes" },
+      ],
+      tryOn: studio({ start: async (input) => (asked.push(input), { ok: true as const, ids: ["s1", "s2"], outfitId: "outfit-1" }) }),
+    });
+    await expect(run("try_on_outfit", { productIds: [LAMP, SHOE] }, ok.ctx)).resolves.toMatchObject({ ok: true, outfitId: "outfit-1", pieces: 2 });
+    expect(asked).toEqual([{ photoId: "photo-1", productIds: [LAMP, SHOE] }]);
+
+    const twoTops = context({
+      cards: async () => [
+        { ...card(LAMP, "Poplin Shirt", 8900), category: "wear" },
+        { ...card(SHOE, "Linen Shirt", 9900), category: "wear" },
+      ],
+      tryOn: studio({ start: async () => ({ ok: false as const, reason: "same_slot" }) }),
+    });
+    await expect(run("try_on_outfit", { productIds: [LAMP, SHOE] }, twoTops.ctx)).resolves.toMatchObject({ ok: false, reason: "same_slot" });
+
+    const credits = context({
+      cards: async () => [
+        { ...card(LAMP, "Poplin Shirt", 8900), category: "wear" },
+        { ...card(SHOE, "Desert Boots", 12900), category: "shoes" },
+      ],
+      tryOn: studio({ start: async () => ({ ok: false as const, reason: "credits" }) }),
+    });
+    await expect(run("try_on_outfit", { productIds: [LAMP, SHOE] }, credits.ctx)).resolves.toMatchObject({ ok: false, reason: "refused" });
+  });
+
+  it("makes a try-on move for an account, and asks a guest to sign in", async () => {
+    const guest = context({ tryOn: studio() });
+    await expect(run("see_it_move", {}, { ...guest.ctx, user: null })).resolves.toMatchObject({ ok: false, reason: "sign_in" });
+    const asked: unknown[] = [];
+    const account = context({ tryOn: studio({ animate: async (input) => (asked.push(input), { ok: true as const }) }) });
+    const signedIn = { ...account.ctx, user: { id: "u1", email: "a@example.com", emailVerified: true, roles: ["customer" as const] } };
+    await expect(run("see_it_move", {}, signedIn)).resolves.toMatchObject({ ok: true, tryOnId: "try-1" });
+    expect(asked).toEqual([{ tryOnId: "try-1" }]);
   });
 });
 
@@ -436,7 +497,7 @@ describe("registry", () => {
   });
 
   it("asks before sensitive and costly tools only", () => {
-    expect(TOOLS.filter(needsApproval).map((tool) => tool.name).sort()).toEqual(["hand_to_person", "picture_in_room", "remember_preference", "start_checkout", "start_return", "try_on"]);
+    expect(TOOLS.filter(needsApproval).map((tool) => tool.name).sort()).toEqual(["hand_to_person", "picture_in_room", "remember_preference", "see_it_move", "start_checkout", "start_return", "try_on", "try_on_outfit"]);
   });
 
   it("gives the support assistant order and policy tools, not the cart or the page", () => {

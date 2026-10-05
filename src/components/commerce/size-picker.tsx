@@ -16,6 +16,7 @@ import { AddToCart } from "@/components/commerce/add-to-cart";
 import { SizeFinder } from "@/components/commerce/size-finder";
 import { useHydrated } from "@/components/ui/use-hydrated";
 import type { SizeChart } from "@/lib/catalog/capsule";
+import type { ProductFit } from "@/lib/fit/size/store";
 import type { SizeGroup } from "@/lib/prefs/preferences";
 import { cn } from "@/lib/ui/cn";
 
@@ -44,8 +45,8 @@ export function SizePicker({
   sizes: readonly SizeOption[];
   agentId: string;
   preferred?: string;
-  /** The piece's size chart, for "Find your size" (docs/adr/034). */
-  finder?: { chart: readonly SizeChart[]; group: SizeGroup };
+  /** The piece's size chart, for "Find your size" (docs/adr/034), and how it fits (docs/adr/064). */
+  finder?: { chart: readonly SizeChart[]; group: SizeGroup; fit?: ProductFit };
 }) {
   const t = useTranslations("product.sizes");
   // The shopper's own size, from their preferences (docs/adr/033): chosen to start with when it is in stock.
@@ -103,6 +104,7 @@ export function SizePicker({
         <SizeFinder
           chart={finder.chart}
           group={finder.group}
+          fit={finder.fit}
           inStock={new Set(sizes.filter((size) => size.stock > 0).map((size) => size.size))}
           onChoose={(size) => setChosen(sizes.find((option) => option.size === size) ?? null)}
         />

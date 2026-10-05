@@ -60,8 +60,8 @@ test("a shoe is bought in a size, and the cart says which one", async ({ browser
   // EU sizes with the foot length each one fits, in centimetres.
   await expect(page.locator('[data-agent-id="product:size-chart"]')).toContainText("Foot length, cm");
   await expect(page.locator('[data-agent-id="product:size-chart"]')).toContainText("23.8");
-  // Shoes are not tried on in the Fitting Room, which dresses the clothing capsule.
-  await expect(page.locator('[data-agent-id^="action:try-it-on"]')).toHaveCount(0);
+  // Shoes are tried on too (Try-On Max, docs/adr/063): the Fitting Room opens with this pair first.
+  await expect(page.locator('[data-agent-id^="action:try-it-on"]')).toHaveAttribute("href", /\/fitting-room\?piece=leather-hurrache-closed-sandals-b01n4opiru$/);
 
   await page.locator('[data-agent-id="size:38"]').click();
   await expect(page.locator('[data-agent-id="sizes:state"]')).toContainText("38");

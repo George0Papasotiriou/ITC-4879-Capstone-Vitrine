@@ -225,6 +225,13 @@
       "when": 1791160032699,
       "tag": "0031_clothes_from_amazon_listings",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1791189912978,
+      "tag": "0032_fashn_studio",
+      "breakpoints": true
     }
   ]
 }

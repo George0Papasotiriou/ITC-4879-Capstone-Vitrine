@@ -140,7 +140,24 @@
         "keep": "Keep {size} as my size for {group}",
         "kept": "Kept in Your shop. Change or delete it there any time.",
         "keepFailed": "It couldn’t be kept just now. Choosing the size here still works; try keeping it later.",
-        "private": "Your measurements stay on this page: they are not sent or kept."
+        "private": "Your measurements stay on this page: they are not sent or kept.",
+        "sure": "{percent}% likely to fit you.",
+        "likely": "{percent}% likely to fit you; next most likely {other} ({otherPercent}%).",
+        "between": "You are between sizes: {size} ({percent}% likely to fit) or {other} ({otherPercent}%). {roomier, select, yes {{size} gives more room; {other} sits closer.} other {{size} sits closer; {other} gives more room.}}",
+        "zone": {
+          "snug": "{measure}: a close fit in {size}.",
+          "right": "{measure}: a comfortable fit in {size}.",
+          "roomy": "{measure}: room to spare in {size}."
+        },
+        "lean": {
+          "small": "This piece runs small, by {source, select, reviews {its reviews} returns {the shop's returns} other {its reviews and the shop's returns}}; the advice allows for it.",
+          "large": "This piece runs large, by {source, select, reviews {its reviews} returns {the shop's returns} other {its reviews and the shop's returns}}; the advice allows for it."
+        },
+        "cut": {
+          "close": "It is a close cut, with little room either way.",
+          "forgiving": "It is a forgiving cut."
+        },
+        "evidence": "Learned from {remarks, plural, =0 {no fit remarks} one {# fit remark} other {# fit remarks}} in Amazon.com reviews and {outcomes, plural, =0 {no orders here yet} one {# size kept or returned here} other {# sizes kept or returned here}}."
       },
       "wearChartLede": "Measure your foot from heel to longest toe, with your weight on it, and choose the first size at least that long."
     },
@@ -186,7 +203,45 @@
       "right": "Turn right",
       "source": "Turntable photography: Amazon Berkeley Objects by Amazon.com, CC BY 4.0; 24 of 72 photographs, resized."
     },
-    "amazonRating": "★ {average} out of 5 from {count, plural, one {# review} other {# reviews}} on Amazon.com"
+    "amazonRating": "★ {average} out of 5 from {count, plural, one {# review} other {# reviews}} on Amazon.com",
+    "modelShots": {
+      "title": "On a model like you",
+      "lede": "Pick the model closest to you and see this piece worn. Each picture is made once, then free for everyone who picks that model.",
+      "pick": "Choose a model",
+      "presets": {
+        "slim-light": {
+          "women": "Slim build, light skin",
+          "men": "Slim build, light skin"
+        },
+        "average-medium": {
+          "women": "Average build, medium skin",
+          "men": "Average build, medium skin"
+        },
+        "curvy-deep": {
+          "women": "Curvy build, deep skin",
+          "men": "Broad build, deep skin"
+        },
+        "tall-olive": {
+          "women": "Tall, olive skin",
+          "men": "Tall, olive skin"
+        }
+      },
+      "make": "Make this picture",
+      "asking": "Asking…",
+      "cost": "Uses {credits} credits from today, once; after that it is free for everyone.",
+      "making": "Being made… this takes about half a minute.",
+      "failed": "That picture could not be made. Your credits were given back; try again.",
+      "none": "Not made yet for this model.",
+      "alt": "{title}, worn by a model: {model}",
+      "aiLabel": "AI picture",
+      "errors": {
+        "credits": "That needs more credits than you have left today. Signing in gives you more.",
+        "needs_service": "The shop cannot make these pictures yet.",
+        "kill_switch": "AI features are paused right now.",
+        "budget": "The shop has reached what it spends on AI today. Try again tomorrow.",
+        "failed": "That did not work. Try again."
+      }
+    }
   },
   "cart": {
     "title": "Cart",
@@ -380,7 +435,11 @@
       "pictureTitle": "Make an AI picture of this piece?",
       "pictureBody": "It uses one of today's pictures, unless someone already made this room: then it's free. It takes about twenty seconds.",
       "pictureOwnTitle": "Picture this piece in your photo?",
-      "pictureOwnBody": "The AI uses the photo you attached, and it uses one of today's pictures. Only you see it, and it goes when your photo does, within a day."
+      "pictureOwnBody": "The AI uses the photo you attached, and it uses one of today's pictures. Only you see it, and it goes when your photo does, within a day.",
+      "outfitTitle": "Try these {count} pieces on together?",
+      "outfitBody": "Each piece uses credits from today, and goes on over the one before, in the order you would dress. Only you see the result, and it goes when your photograph does.",
+      "moveTitle": "Make your newest try-on move?",
+      "moveBody": "Five seconds of video, for accounts; it uses a large share of today's credits. The try-on service keeps its copy for up to three days; the shop's goes with your photograph."
     },
     "errors": {
       "turns": "You've used today's Concierge questions. They come back tomorrow; signing in gives you more.",
@@ -1468,6 +1527,8 @@
     "lede": "You can send this order back until {date}. Tell us why; the courier will contact you to collect it, and your refund follows once it arrives.",
     "reason": "Why are you returning it?",
     "reasons": {
+      "too_small": "It is too small",
+      "too_big": "It is too big",
       "changed_mind": "I changed my mind",
       "damaged": "It arrived damaged",
       "not_as_described": "It is not as described",
@@ -2217,10 +2278,10 @@
   },
   "fitting": {
     "title": "Fitting Room",
-    "lede": "Try our clothes on a photograph of yourself. The photograph stays in the shop for a day, is used for nothing else, and you can delete it at any moment.",
+    "lede": "Try our clothes, shoes, bags and accessories on a photograph of yourself, one at a time or as a whole outfit. The photograph stays in the shop for a day, is used for nothing else, and you can delete it at any moment.",
     "promises": {
       "day": "Kept for 24 hours, then deleted automatically.",
-      "purpose": "Used only for the try-ons you ask for, one piece at a time.",
+      "purpose": "Used only for the try-ons you ask for.",
       "delete": "\"Delete now\" removes it and every result made from it, at once.",
       "privacy": "Never shown to anyone else, never used to train anything, never in a log.",
       "privacyLink": "How the shop handles data"
@@ -2234,7 +2295,7 @@
     "countdown": "Deleted in {minutes} minutes, or now, if you prefer.",
     "deleteNow": "Delete now",
     "deleted": "Deleted, with everything made from it.",
-    "piecesTitle": "Clothes to try on",
+    "piecesTitle": "Pieces to try on",
     "piecesLede": "Choose a piece. It takes a few seconds.",
     "piecesLocked": "Give a photograph first, and the pieces below can be tried on it.",
     "tryIt": "Try it on",
@@ -2259,9 +2320,43 @@
       "credits": "That is all the try-ons for today. Signing in gives you more.",
       "off": "Try-on is not switched on in this shop yet.",
       "not_found": "That piece or photograph is no longer here.",
-      "failed": "That did not work. Try again."
+      "failed": "That did not work. Try again.",
+      "not_wearable": "That piece is not something the Fitting Room can put on."
     },
-    "choosePhoto": "Choose a photograph"
+    "choosePhoto": "Choose a photograph",
+    "outfit": {
+      "title": "Your outfit",
+      "lede": "Pick up to {max} pieces, one for each place on the body. They go on in the order you would dress, each over the one before.",
+      "empty": "Nothing picked yet: use “Add to outfit” on any piece below.",
+      "add": "Add to outfit",
+      "inIt": "In the outfit",
+      "remove": "Remove",
+      "tryOn": "{count, plural, one {Try the outfit on} other {Try the outfit on (# pieces)}}",
+      "cost": "Uses {credits} credits from today: {per} a piece.",
+      "label": "{count, plural, other {Outfit of # pieces}}",
+      "progress": "Putting on {step} of {count}…",
+      "errors": {
+        "too_few": "Pick at least two pieces for an outfit.",
+        "too_many": "Four pieces at most.",
+        "same_slot": "Two of these go in the same place on the body: keep one.",
+        "dress_and_separates": "A dress is already top and bottom: drop the dress, or the separates.",
+        "not_wearable": "One of these is not something the Fitting Room can put on."
+      }
+    },
+    "move": {
+      "button": "See it move",
+      "note": "Five seconds of video; uses {credits} credits. The try-on service keeps its copy for up to three days.",
+      "making": "Making it move… this takes about a minute.",
+      "failed": "It could not be made to move. Your credits were given back; try again.",
+      "signIn": "Sign in to see it move",
+      "videoLabel": "Your try-on, moving",
+      "errors": {
+        "sign_in": "Videos are for accounts: sign in to see it move.",
+        "needs_service": "The shop cannot make videos yet.",
+        "not_ready": "That try-on is not ready to move yet, or already has its video.",
+        "credits": "A video needs more credits than you have left today."
+      }
+    }
   },
   "snap": {
     "title": "Snap to shop",

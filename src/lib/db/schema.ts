@@ -1269,9 +1269,53 @@ export const tryOns = pgTable(
     failureReason: text("failure_reason"),
     costMicros: integer("cost_micros"),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    /**
+     * An outfit (docs/adr/063): its pieces are try-ons sharing one id, put on
+     * in `outfitPosition` order, each on the picture the one before made.
+     */
+    outfitId: uuid("outfit_id"),
+    outfitPosition: integer("outfit_position"),
+    /** "See it move": five seconds of video made from the result. queued | running | done | failed. */
+    videoStatus: text("video_status"),
+    videoKey: text("video_key"),
+    videoFailure: text("video_failure"),
+    videoCostMicros: integer("video_cost_micros"),
     ...timestamps,
   },
-  (t) => [index("try_ons_actor_idx").on(t.actorKey, t.createdAt), index("try_ons_upload_idx").on(t.uploadId)],
+  (t) => [
+    index("try_ons_actor_idx").on(t.actorKey, t.createdAt),
+    index("try_ons_upload_idx").on(t.uploadId),
+    index("try_ons_outfit_idx").on(t.outfitId, t.outfitPosition),
+  ],
+);
+
+/**
+ * "On a model like you" (docs/adr/063): a piece worn by a model of the build
+ * and skin tone a shopper chose, made once by FASHN's Product to Model and
+ * then shown to everyone who picks that model, for free. Nothing personal is
+ * in it, so it is kept like a showroom picture.
+ */
+export const modelShots = pgTable(
+  "model_shots",
+  {
+    id: id(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    /** One of MODEL_PRESETS (src/lib/fitting/presets.ts). */
+    preset: text("preset").notNull(),
+    /** queued | running | done | failed. A failed shot can be asked for again. */
+    status: text("status").notNull().default("queued"),
+    provider: text("provider").notNull(),
+    model: text("model").notNull(),
+    storageKey: text("storage_key"),
+    failureReason: text("failure_reason"),
+    costMicros: integer("cost_micros"),
+    /** Who had it made: the only shopper it cost credits. */
+    requestedBy: text("requested_by"),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("model_shots_product_preset_key").on(t.productId, t.preset)],
 );
 
 /**

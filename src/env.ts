@@ -191,6 +191,15 @@ const rawSchema = z.object({
   /** Virtual try-on (Phase 9). Without it try-on runs in demo mode or not at all. */
   FASHN_API_KEY: optionalString,
   /**
+   * Which FASHN (docs/adr/063): "auto" (the default) uses the service when
+   * FASHN_API_KEY is set and the side-by-side stand-in when it is not;
+   * "fixture" is the tests' stand-in, which answers as the service would
+   * (try-on, video, model shot) with no key and no bill — refused in production.
+   */
+  FASHN_PROVIDER: z.enum(["auto", "fixture"]).default("auto"),
+  /** Which try-on engine clothes use: "v1.6" (1 credit, the default) or "max" (2). Shoes, bags and jewellery always use Try-On Max. */
+  FASHN_TRYON_MODEL: z.enum(["v1.6", "max"]).default("v1.6"),
+  /**
    * fal.ai, for AI 3D models made from a piece's photograph (docs/adr/059). Only
    * the hand-run batch (scripts/models.ts ai) uses it, after George's yes; without
    * it every piece keeps the shop's own made model.
@@ -268,6 +277,7 @@ const serverSchema = rawSchema
       jobsDriver === "inline" ? "JOBS_DRIVER=inline" : null,
       storageDriver === "local" ? "STORAGE_DRIVER=local" : null,
       raw.PICTURES_PROVIDER === "fixture" ? "PICTURES_PROVIDER=fixture" : null,
+      raw.FASHN_PROVIDER === "fixture" ? "FASHN_PROVIDER=fixture" : null,
     ].filter((value) => value !== null);
 
     if (raw.NODE_ENV === "production" && !raw.VITRINE_LOCAL && standIns.length > 0) {

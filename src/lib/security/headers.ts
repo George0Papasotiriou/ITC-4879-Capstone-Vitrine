@@ -77,7 +77,8 @@ export function contentSecurityPolicy({ nonce, dev, https, bucket = [] }: { nonc
     ["connect-src", ["'self'", "blob:", "data:", ...STRIPE.connect, ...VOICE, ...(dev ? ["ws:"] : [])]],
     ["frame-src", STRIPE.frame],
     ["worker-src", ["'self'", "blob:"]],
-    ["media-src", ["'self'", "blob:", "data:"]],
+    // The bucket too: a try-on video ("See it move", docs/adr/063) plays from a link to the shopper's own file there.
+    ["media-src", ["'self'", "blob:", "data:", ...bucket]],
     ["manifest-src", ["'self'"]],
     ["object-src", ["'none'"]],
     ["base-uri", ["'self'"]],

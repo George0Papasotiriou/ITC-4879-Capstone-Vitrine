@@ -19,6 +19,7 @@ import type { PublicReview } from "@/lib/commerce/review-store";
 import type { StylistRequest, StylistResult } from "@/lib/stylist/stylist";
 import type { ProductBrief } from "@/lib/ai/tools/briefs";
 import type { SceneStyle } from "@/lib/pictures/pictures";
+import type { ProductFit } from "@/lib/fit/size/store";
 import type { Preferences } from "@/lib/prefs/preferences";
 import type { TicketTopic } from "@/lib/support/tickets";
 
@@ -66,11 +67,16 @@ export type ToolServices = {
     /** A signed token that puts the line back to `quantity` (src/lib/ai/tools/undo.ts). */
     undoToken(payload: { cartId: string; variantId: string; quantity: number; tool?: string }): string;
   };
-  /** The Fitting Room (docs/adr/023): the photograph the shopper gave, and one try-on. */
+  /** The Fitting Room (docs/adr/023, 063): the photograph the shopper gave, try-ons and outfits, and their videos. */
   tryOn: {
     /** The newest photograph this shopper gave for trying pieces on, if any. */
     photo(): Promise<{ id: string; minutesLeft: number } | null>;
-    start(input: { photoId: string; productId: string }): Promise<{ ok: true; id: string } | { ok: false; reason: string }>;
+    /** One piece, or an outfit of two to four (src/lib/fitting/server.ts). */
+    start(input: { photoId: string; productIds: string[] }): Promise<{ ok: true; ids: string[]; outfitId: string | null } | { ok: false; reason: string }>;
+    /** The newest finished try-on (the last step of an outfit), if any. */
+    latest(): Promise<{ id: string } | null>;
+    /** "See it move" for a try-on. */
+    animate(input: { tryOnId: string }): Promise<{ ok: true } | { ok: false; reason: string }>;
   };
   /** Search by photo (docs/adr/024): the photograph the shopper gave, and what the shop has like it. */
   snap: {
@@ -97,6 +103,10 @@ export type ToolServices = {
     get(productId: string): Promise<{ targetCents: number } | null>;
     set(productId: string, targetCents: number): Promise<SetWatchResult>;
     remove(productId: string): Promise<boolean>;
+  };
+  /** How a garment fits, as the Fit Engine believes it (docs/adr/064); null for anything that is not a charted garment. */
+  fit: {
+    forProduct(productId: string): Promise<ProductFit | null>;
   };
   /** What the shopper has told the shop about themselves (docs/adr/033); changes go through the page, after approval. */
   preferences: {

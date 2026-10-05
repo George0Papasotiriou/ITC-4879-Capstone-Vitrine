@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { categoryFor, createFashnDriver, dataUriBytes, toDataUri } from "@/lib/ai/providers/fashn";
+import { categoryFor, createDrawnTryOnDriver, createFashnDriver, createFixtureStudioDriver, dataUriBytes, toDataUri } from "@/lib/ai/providers/fashn";
 
 const PERSON = toDataUri(new Uint8Array([1, 2, 3]), "image/webp");
 const GARMENT = toDataUri(new Uint8Array([4, 5, 6]), "image/webp");
@@ -115,6 +115,85 @@ describe("the FASHN driver", () => {
     } finally {
       Date.now = started;
     }
+  });
+});
+
+describe("the studio's other calls (docs/adr/063)", () => {
+  const body = (call: Call) => JSON.parse(String(call.init?.body)) as { model_name: string; inputs: Record<string, unknown> };
+
+  it("asks Try-On Max for shoes, bags and jewellery, and reads the base64 answer without fetching anything", async () => {
+    const jpeg = toDataUri(new Uint8Array([0xff, 0xd8, 0xff]), "image/jpeg");
+    const { driver, calls } = driverWith([
+      { status: 200, body: { id: "pred-5" } },
+      { status: 200, body: { id: "pred-5", status: "completed", output: [jpeg], error: null } },
+    ]);
+    const result = await driver.run({ person: PERSON, garment: GARMENT, category: "auto", engine: "max" });
+    expect(result).toEqual({ ok: true, image: new Uint8Array([0xff, 0xd8, 0xff]), contentType: "image/jpeg", credits: 2, model: "tryon-max" });
+    const sent = body(calls[0]!);
+    expect(sent.model_name).toBe("tryon-max");
+    expect(sent.inputs).toMatchObject({ product_image: GARMENT, model_image: PERSON, generation_mode: "balanced", resolution: "1k", num_images: 1, return_base64: true });
+    // Two calls only: the run and the status. The picture came inside the answer.
+    expect(calls).toHaveLength(2);
+  });
+
+  it("asks Try-On v1.6 for base64 too, so FASHN keeps the picture an hour, not three days", async () => {
+    const { driver, calls } = driverWith([
+      { status: 200, body: { id: "pred-6" } },
+      { status: 200, body: { id: "pred-6", status: "completed", output: [toDataUri(new Uint8Array([1]), "image/jpeg")] } },
+    ]);
+    await expect(driver.run({ person: PERSON, garment: GARMENT, category: "tops" })).resolves.toMatchObject({ ok: true, credits: 1, model: "tryon-v1.6" });
+    expect(body(calls[0]!).inputs).toMatchObject({ return_base64: true, garment_photo_type: "auto", output_format: "jpeg" });
+  });
+
+  it("makes five seconds of video at 480p from a try-on, and keeps its own copy of the video", async () => {
+    const { driver, calls } = driverWith([
+      { status: 200, body: { id: "pred-7" } },
+      { status: 200, body: { id: "pred-7", status: "completed", output: ["https://cdn.fashn.ai/pred-7/output_0.mp4"] } },
+      { status: 200, bytes: new Uint8Array([0, 0, 0, 32]) },
+    ]);
+    const result = await driver.animate({ image: PERSON });
+    expect(result).toMatchObject({ ok: true, credits: 1, model: "image-to-video" });
+    const sent = body(calls[0]!);
+    expect(sent.model_name).toBe("image-to-video");
+    expect(sent.inputs).toMatchObject({ image: PERSON, duration: 5, resolution: "480p" });
+    expect(calls[2]!.url).toBe("https://cdn.fashn.ai/pred-7/output_0.mp4");
+  });
+
+  it("puts a piece on a model from the product photograph and a brief, with no face of anyone's", async () => {
+    const { driver, calls } = driverWith([
+      { status: 200, body: { id: "pred-8" } },
+      { status: 200, body: { id: "pred-8", status: "completed", output: [toDataUri(new Uint8Array([7]), "image/jpeg")] } },
+    ]);
+    await expect(driver.modelShot({ product: GARMENT, prompt: "a woman with a tall build" })).resolves.toMatchObject({ ok: true, credits: 2, model: "product-to-model" });
+    const sent = body(calls[0]!);
+    expect(sent.model_name).toBe("product-to-model");
+    expect(sent.inputs).toMatchObject({ product_image: GARMENT, prompt: "a woman with a tall build", aspect_ratio: "3:4", return_base64: true });
+    expect(sent.inputs).not.toHaveProperty("face_reference");
+  });
+
+  it("reads FASHN's named errors", async () => {
+    const failed = driverWith([
+      { status: 200, body: { id: "pred-9" } },
+      { status: 200, body: { id: "pred-9", status: "failed", error: { name: "ImageLoadError", message: "could not load" } } },
+    ]);
+    await expect(failed.driver.animate({ image: PERSON })).resolves.toEqual({ ok: false, reason: "ImageLoadError" });
+  });
+});
+
+describe("the stand-ins", () => {
+  it("makes no video and no model shot without the service", async () => {
+    const drawn = createDrawnTryOnDriver();
+    await expect(drawn.animate({ image: PERSON })).resolves.toEqual({ ok: false, reason: "needs_key" });
+    await expect(drawn.modelShot({ product: GARMENT, prompt: "x" })).resolves.toEqual({ ok: false, reason: "needs_key" });
+  });
+
+  it("answers the tests as the service would, with FASHN's credits, and nothing paid", async () => {
+    const video = new Uint8Array([0x1a, 0x45, 0xdf, 0xa3]);
+    const fixture = createFixtureStudioDriver(async () => video);
+    expect(fixture.drawn).toBe(false);
+    await expect(fixture.animate({ image: PERSON })).resolves.toEqual({ ok: true, image: video, contentType: "video/webm", credits: 1, model: "image-to-video" });
+    await expect(fixture.modelShot({ product: GARMENT, prompt: "x" })).resolves.toMatchObject({ ok: true, contentType: "image/webp", credits: 2 });
+    await expect(fixture.animate({ image: "https://example.com/a.jpg" })).resolves.toEqual({ ok: false, reason: "bad_input" });
   });
 });
 

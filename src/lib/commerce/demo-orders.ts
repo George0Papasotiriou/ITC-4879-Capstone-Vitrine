@@ -57,6 +57,8 @@ const RATING_WEIGHTS: readonly [1 | 2 | 3 | 4 | 5, number][] = [
 ];
 
 const RETURN_WEIGHTS: Readonly<Record<ReturnReason, number>> = {
+  too_small: 0.15,
+  too_big: 0.15,
   changed_mind: 0.4,
   damaged: 0.2,
   not_as_described: 0.2,

@@ -7,7 +7,7 @@
  * The one tool registry: every tool, which surfaces offer it, and running one with its input and output checked.
  */
 
-import { getOrders, getOrderStatus, setPriceWatch, startCheckout, startReturn, tryOnPiece } from "@/lib/ai/tools/account";
+import { getOrders, getOrderStatus, seeItMove, setPriceWatch, startCheckout, startReturn, tryOnOutfit, tryOnPiece } from "@/lib/ai/tools/account";
 import { addToBoard } from "@/lib/ai/tools/boards";
 import { shopTheLookTool } from "@/lib/ai/tools/look";
 import { addToCart, getCart, removeFromCart, updateCartItem } from "@/lib/ai/tools/cart";
@@ -59,6 +59,8 @@ export const TOOLS: readonly VitrineTool<unknown, unknown>[] = [
   getOrderStatus,
   setPriceWatch,
   tryOnPiece,
+  tryOnOutfit,
+  seeItMove,
   startCheckout,
   startReturn,
   handToPerson,

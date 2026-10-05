@@ -53,11 +53,17 @@ import { pictureView, picturesOpen } from "@/lib/pictures/start";
 import { storage } from "@/lib/storage";
 import { roomPlacement } from "@/lib/catalog/taxonomy";
 import { sizeChartFor } from "@/lib/catalog/capsule";
+import { stretchPercent } from "@/lib/fit/size/body";
+import { fitStore } from "@/lib/fit/size/server";
 import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
 import { preferredSize, roomFits, sizeGroupOf } from "@/lib/prefs/preferences";
 import { currentPreferences } from "@/lib/prefs/server";
 import { externalReviewStore, productInsights } from "@/lib/reviews/server";
 import { wearChart } from "@/lib/catalog/wear";
+import { ModelShots } from "@/components/fitting/model-shots";
+
+/** What can be worn (docs/adr/061, 062): the Fitting Room and "On a model like you" offer these. */
+const WEARABLE_CATEGORIES: ReadonlySet<string> = new Set(["wear", "shoes", "bags", "accessories"]);
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
@@ -175,7 +181,13 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const { preferences } = await currentPreferences();
   const yourSize = sizes.length > 0 ? preferredSize(preferences, product.kind) : null;
   const sizeGroup = sizeGroupOf(product.kind);
-  const finder = sizeChart === null || sizeGroup === null ? undefined : { chart: sizeChart, group: sizeGroup };
+  // How the piece fits, from its reviews, its fabric and the shop's own kept and returned sizes (docs/adr/064),
+  // on the chart's ladder (XS = 0 … XL = 4) whichever sizes this piece still has.
+  const fit =
+    sizeChart === null || sizeGroup === null
+      ? undefined
+      : await (await fitStore()).forProduct(product.id, CAPSULE_SIZES, stretchPercent(product.attributes.fabric));
+  const finder = sizeChart === null || sizeGroup === null ? undefined : { chart: sizeChart, group: sizeGroup, fit };
   const fits = roomFits(product.dimsCm, preferences.rooms);
   // "Will it get in?" (docs/adr/055): for pieces that go in a room, carried as their catalogue box.
   const wayInBox = product.dimsCm !== null && roomPlacement(product.kind, product.dimsCm) !== null ? product.dimsCm : null;
@@ -306,9 +318,9 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             )}
             {/* Room boards (docs/adr/056): pieces for a room, collected and shared. */}
             {sizes.length > 0 ? null : <AddToBoard productId={product.id} title={product.title} />}
-            {/* The Fitting Room tries on the clothing capsule; shoes, bags and jewellery come with Try-On Max (docs/adr/061, slice W2). */}
-            {sizes.length === 0 || product.category !== "wear" ? null : (
-              <ButtonLink href="/fitting-room" variant="secondary" data-agent-id={`action:try-it-on:${product.id}`}>
+            {/* The Fitting Room tries on clothes, shoes, bags and accessories, this piece first (docs/adr/063). */}
+            {!WEARABLE_CATEGORIES.has(product.category) ? null : (
+              <ButtonLink href={`/fitting-room?piece=${product.slug}`} variant="secondary" data-agent-id={`action:try-it-on:${product.id}`}>
                 {t("tryItOn")}
               </ButtonLink>
             )}
@@ -476,6 +488,11 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           alternatives={studioAlternatives}
         />
       )}
+
+      {/* "On a model like you" (docs/adr/063): shown when the service can make shots, or one is already made. */}
+      {WEARABLE_CATEGORIES.has(product.category) ? (
+        <ModelShots slug={product.slug} title={product.title} department={product.attributes.department === "men" ? "men" : product.attributes.department === "women" ? "women" : null} />
+      ) : null}
 
       <ProductReviews summary={reviews.summary} reviews={reviews.reviews} locale={locale} insights={insights} />
       {amazon === null || amazon.reviews.length === 0 ? null : <AmazonReviews summary={amazon.summary} reviews={amazon.reviews} sized={sizes.length > 1} locale={locale} />}

@@ -12,7 +12,7 @@ import { z } from "zod";
 import type { VitrineTool } from "@/lib/ai/tools/types";
 import { uiCommandSchema } from "@/lib/ai/ui-commands";
 import { sizeChartFor } from "@/lib/catalog/capsule";
-import { adviseSize, ASKED_MEASURES, isAdvice, MEASURE_MAX_CM, MEASURE_MIN_CM } from "@/lib/catalog/size-advice";
+import { adviseSize, ASKED_MEASURES, engineAdvice, isAdvice, MEASURE_MAX_CM, MEASURE_MIN_CM } from "@/lib/catalog/size-advice";
 import { CAPSULE_SIZES, roomPlacement } from "@/lib/catalog/taxonomy";
 import { wayIn } from "@/lib/fit/path";
 import { preferencesPatchSchema, roomFits, roomSchema, sizeGroupOf } from "@/lib/prefs/preferences";
@@ -76,12 +76,14 @@ const MEASURES = ["chest", "waist", "hip"] as const;
 export const suggestSize = define({
   name: "suggest_size",
   description:
-    "Work out a clothing size from the shopper's body measurements in centimetres, using the shop's own size chart: garment top (also shirts, knitwear, jackets, coats), trousers, skirt or dress; chest, waist and/or hip. " +
-    "Use it when the shopper gives measurements and asks what size to take. It returns the size, which measurement decided it and whether their measurements are far apart; explain that in one sentence. " +
+    "Work out a clothing size from the shopper's body measurements in centimetres, using the shop's own size chart and its Fit Engine: garment top (also shirts, knitwear, jackets, coats), trousers, skirt or dress; chest, waist and/or hip. " +
+    "Use it when the shopper gives measurements and asks what size to take. Give productId when they are asking about a particular piece: the advice then allows for how that piece runs, from its reviews and the shop's returns. " +
+    "It returns the size, how likely it is to fit (fitChance, percent), the next size when it is close, which measurement decided and whether the measurements are far apart, and the piece's lean; explain that in one or two sentences. " +
     "Do not use it without measurements (ask for them, or point to \"Find your size\" on the piece's page), and do not guess sizes for shoes or furniture. To keep the size, offer remember_preference afterwards.",
   scope: "read",
   input: z.object({
     garment: z.enum(Object.keys(GARMENTS) as [keyof typeof GARMENTS, ...(keyof typeof GARMENTS)[]]),
+    productId: z.uuid().optional(),
     chestCm: z.number().optional(),
     waistCm: z.number().optional(),
     hipCm: z.number().optional(),
@@ -94,12 +96,19 @@ export const suggestSize = define({
       apart: z.number().int(),
       sizeGroup: z.enum(["upper", "lower", "dress"]),
       verdicts: z.array(z.object({ measure: z.enum(MEASURES), cm: z.number(), size: z.enum(CAPSULE_SIZES), upToCm: z.number() })),
+      /** The Fit Engine's chance that `size` fits, in percent, and how sure the advice is (docs/adr/064). */
+      fitChance: z.number().int(),
+      certainty: z.enum(["sure", "likely", "between"]),
+      runnerUp: z.object({ size: z.enum(CAPSULE_SIZES), fitChance: z.number().int() }).nullable(),
+      /** How the piece runs, when productId was given and the shop knows the piece. */
+      piece: z.object({ lean: z.enum(["small", "true", "large"]), cut: z.enum(["close", "usual", "forgiving"]), remarks: z.number().int(), outcomes: z.number().int() }).nullable(),
     }),
     z.object({ problem: z.enum(["no_measurements", "out_of_range", "not_on_chart"]), hint: z.string() }),
   ]),
-  async run(_ctx, input) {
+  async run(ctx, input) {
     const kind = GARMENTS[input.garment];
     const chart = sizeChartFor(kind)!;
+    const piece = input.productId === undefined ? null : await ctx.services.fit.forProduct(input.productId);
     // The chart's girth rows, by name: chest and waist above, waist and hip below.
     const named = chart.slice(0, ASKED_MEASURES).map((row) => row.measure.en.toLowerCase() as (typeof MEASURES)[number]);
     const given: Record<(typeof MEASURES)[number], number | undefined> = { chest: input.chestCm, waist: input.waistCm, hip: input.hipCm };
@@ -113,13 +122,21 @@ export const suggestSize = define({
       }
       return { problem: "out_of_range" as const, hint: `The ${named[result.index]} must be between ${MEASURE_MIN_CM} and ${MEASURE_MAX_CM} cm; inches times 2.54.` };
     }
+    const measured = named.map((measure) => given[measure]);
+    const engine = engineAdvice(chart, measured, piece?.item);
+    const size = (engine?.best.size ?? result.size) as (typeof CAPSULE_SIZES)[number];
+    const chance = (p: number) => Math.round(p * 100);
     return {
-      size: result.size,
+      size,
       beyondChart: result.beyondChart,
       decidedBy: named[result.decidedBy]!,
       apart: result.apart,
       sizeGroup: sizeGroupOf(kind)!,
       verdicts: result.verdicts.map((verdict) => ({ measure: named[verdict.index]!, cm: verdict.cm, size: verdict.size, upToCm: verdict.upToCm })),
+      fitChance: engine === null ? 0 : chance(engine.best.probabilities.fit),
+      certainty: engine?.verdict ?? ("between" as const),
+      runnerUp: engine?.runnerUp == null ? null : { size: engine.runnerUp.size as (typeof CAPSULE_SIZES)[number], fitChance: chance(engine.runnerUp.probabilities.fit) },
+      piece: piece === null ? null : { lean: piece.lean, cut: piece.cut, remarks: piece.remarks, outcomes: piece.outcomes },
     };
   },
 });

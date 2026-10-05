@@ -10,7 +10,7 @@
  */
 
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { placeBadges } from "@/lib/comfort/badges";
 
@@ -148,8 +148,9 @@ export function PointByNumber() {
     return () => window.removeEventListener(NUMBERS_EVENT, onRequest);
   }, [hide, press, show, shown]);
 
-  // While shown: numbers follow the page as it scrolls, and digits are read from the keyboard.
-  useEffect(() => {
+  // While shown: numbers follow the page as it scrolls, and digits are read from the keyboard. Attached
+  // before the numbers are painted, so an Escape or a digit typed the moment they appear is never missed.
+  useLayoutEffect(() => {
     if (!shown) return;
     let frame = 0;
     const remeasure = () => {

@@ -8,7 +8,7 @@
 [project]
 name = "vitrine-research"
 version = "0.1.0"
-description = "Offline evaluations for Vitrine: E2, the Taste Graph against co-visitation on the OTTO sessions; E1-ML, LambdaMART on ESCI."
+description = "Offline evaluations for Vitrine: E2, the Taste Graph against co-visitation on the OTTO sessions; E1-ML, LambdaMART on ESCI; E12, the Fit Engine on RentTheRunway and ModCloth."
 requires-python = ">=3.13"
 # Exact versions, as the shop pins its own (polars for the session tables, matplotlib for the charts).
 dependencies = ["polars==1.42.1", "numpy==2.5.3", "matplotlib==3.10.9"]
@@ -17,4 +17,4 @@ dependencies = ["polars==1.42.1", "numpy==2.5.3", "matplotlib==3.10.9"]
 dev = ["pytest==9.0.3"]
 
 [tool.pytest.ini_options]
-testpaths = ["reco_otto/tests", "ranker/tests"]
+testpaths = ["reco_otto/tests", "ranker/tests", "fit/tests"]

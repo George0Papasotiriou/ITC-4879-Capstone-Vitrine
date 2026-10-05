@@ -43,8 +43,8 @@ export const DAILY_CAPS: Readonly<Record<ActorKind, { turns: number; credits: nu
   customer: { turns: 60, credits: 20 },
 };
 
-/** What a costly action takes from the daily credits (PLAN 3.3). */
-export const CREDIT_COSTS = { try_on: 3, harmonize: 2, voice_minute: 1, animate: 10 } as const;
+/** What a costly action takes from the daily credits (PLAN 3.3). A model shot is charged only to the shopper who has it made: once made, it is free for everyone (docs/adr/063). */
+export const CREDIT_COSTS = { try_on: 3, harmonize: 2, voice_minute: 1, animate: 10, model_shot: 3 } as const;
 export type CostlyAction = keyof typeof CREDIT_COSTS;
 
 export type GateRefusal = "off" | "kill_switch" | "budget" | "turns" | "credits";

@@ -26,6 +26,10 @@ export type JobPayloads = {
   "price-watches": { requestedAt: string; reason: "schedule" | "manual" };
   /** Phase 9: run one try-on for a shopper who asked for it (docs/adr/023). */
   "try-on": { tryOnId: string; requestedAt: string };
+  /** docs/adr/063: five seconds of video made from a finished try-on, for an account that asked for it. */
+  "try-on-video": { tryOnId: string; requestedAt: string };
+  /** docs/adr/063: a piece worn by the model a shopper picked, made once and kept for everyone. */
+  "model-shot": { shotId: string; requestedAt: string };
   /** docs/adr/053: make one AI picture of a piece in a room, for a shopper who asked for it. */
   "picture-render": { pictureId: string; requestedAt: string };
   /** Phase 9: delete the photographs whose day is up, and the results made from them. Every 15 minutes. */
@@ -57,6 +61,8 @@ export const JOB_QUEUE: Record<JobName, QueueName> = {
   "price-watches": QUEUE_NAMES.default,
   "weekly-report": QUEUE_NAMES.default,
   "try-on": QUEUE_NAMES.default,
+  "try-on-video": QUEUE_NAMES.default,
+  "model-shot": QUEUE_NAMES.default,
   "picture-render": QUEUE_NAMES.default,
   "photo-expiry": QUEUE_NAMES.default,
   "catalog-models": QUEUE_NAMES.default,

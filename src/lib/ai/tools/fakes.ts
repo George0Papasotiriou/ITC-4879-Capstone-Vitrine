@@ -92,7 +92,9 @@ export function context(overrides: Partial<ToolServices> = {}, cartLines: Partia
     },
     tryOn: {
       photo: async () => ({ id: "01890000-0000-7000-8000-0000000000f1", minutesLeft: 1400 }),
-      start: async () => ({ ok: true, id: "01890000-0000-7000-8000-0000000000f2" }),
+      start: async () => ({ ok: true, ids: ["01890000-0000-7000-8000-0000000000f2"], outfitId: null }),
+      latest: async () => ({ id: "01890000-0000-7000-8000-0000000000f2" }),
+      animate: async () => ({ ok: true }),
     },
     look: {
       find: async () => ({ ok: true, drawn: false, pieces: [{ kind: "lamp", colours: ["beige"], products: [] }] }),
@@ -110,6 +112,9 @@ export function context(overrides: Partial<ToolServices> = {}, cartLines: Partia
     },
     preferences: {
       read: async () => EMPTY_PREFERENCES,
+    },
+    fit: {
+      forProduct: async () => null,
     },
     support: {
       handOver: async () => ({ ok: true, id: "01890000-0000-7000-8000-0000000000d1", number: "VS-7K2M-Q4HD" }),

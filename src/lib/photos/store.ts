@@ -53,6 +53,13 @@ export type TryOnRow = {
   costMicros: number | null;
   expiresAt: Date;
   createdAt: Date;
+  /** An outfit's pieces share an id and are put on in position order (docs/adr/063). */
+  outfitId: string | null;
+  outfitPosition: number | null;
+  /** "See it move": null until asked for. */
+  videoStatus: TryOnStatus | null;
+  videoKey: string | null;
+  videoFailure: string | null;
 };
 
 const toPhoto = (row: Record<string, unknown>): PhotoRow => ({
@@ -83,6 +90,11 @@ const toTryOn = (row: Record<string, unknown>): TryOnRow => ({
   costMicros: (row.cost_micros as number | null) ?? null,
   expiresAt: new Date(row.expires_at as string),
   createdAt: new Date(row.created_at as string),
+  outfitId: (row.outfit_id as string | null) ?? null,
+  outfitPosition: (row.outfit_position as number | null) ?? null,
+  videoStatus: (row.video_status as TryOnStatus | null) ?? null,
+  videoKey: (row.video_key as string | null) ?? null,
+  videoFailure: (row.video_failure as string | null) ?? null,
 });
 
 export function createPhotoStore(sql: Sql) {
@@ -171,7 +183,7 @@ export function createPhotoStore(sql: Sql) {
     // What was made from them goes with them: try-ons, and AI pictures of a piece in their room (docs/adr/053).
     // A picture is three files: as shown, its small copy and the download (docs/adr/060).
     const resultRows = await sql<{ result_key: string | null }[]>`
-      SELECT result_key FROM try_ons WHERE upload_id = ANY(${photos.map((photo) => photo.id)}::uuid[]) AND result_key IS NOT NULL
+      SELECT unnest(ARRAY[result_key, video_key]) AS result_key FROM try_ons WHERE upload_id = ANY(${photos.map((photo) => photo.id)}::uuid[]) AND result_key IS NOT NULL
       UNION ALL
       SELECT unnest(ARRAY[result_key, preview_key, download_key]) AS result_key FROM pictures
       WHERE upload_id = ANY(${photos.map((photo) => photo.id)}::uuid[]) AND result_key IS NOT NULL
@@ -182,16 +194,59 @@ export function createPhotoStore(sql: Sql) {
   /* --------------------------------- try-ons -------------------------------- */
 
   async function startTryOn(
-    input: { uploadId: string; productId: string | null; variantId: string | null; actorKey: string; provider: string; model: string; expiresAt: Date },
+    input: {
+      uploadId: string;
+      productId: string | null;
+      variantId: string | null;
+      actorKey: string;
+      provider: string;
+      model: string;
+      expiresAt: Date;
+      outfitId?: string | null;
+      outfitPosition?: number | null;
+    },
     at = new Date(),
   ): Promise<string> {
     const id = uuidv7();
     await sql`
-      INSERT INTO try_ons (id, upload_id, product_id, variant_id, actor_key, status, provider, model, expires_at, created_at, updated_at)
+      INSERT INTO try_ons (id, upload_id, product_id, variant_id, actor_key, status, provider, model, expires_at, outfit_id, outfit_position, created_at, updated_at)
       VALUES (${id}, ${input.uploadId}, ${input.productId}, ${input.variantId}, ${input.actorKey}, 'queued', ${input.provider}, ${input.model},
-              ${input.expiresAt.toISOString()}::timestamptz, ${at.toISOString()}::timestamptz, ${at.toISOString()}::timestamptz)
+              ${input.expiresAt.toISOString()}::timestamptz, ${input.outfitId ?? null}, ${input.outfitPosition ?? null},
+              ${at.toISOString()}::timestamptz, ${at.toISOString()}::timestamptz)
     `;
     return id;
+  }
+
+  /** An outfit's try-ons, in the order they are put on. */
+  async function outfitSteps(outfitId: string): Promise<TryOnRow[]> {
+    const rows = await sql`SELECT * FROM try_ons WHERE outfit_id = ${outfitId} ORDER BY outfit_position`;
+    return rows.map((row) => toTryOn(row));
+  }
+
+  /**
+   * Asks for a try-on's video, once: only a finished try-on can move, and a
+   * video already asked for (or made) is not asked for again. False when it
+   * cannot be.
+   */
+  async function requestVideo(id: string, actorKey: string, at = new Date()): Promise<boolean> {
+    const rows = await sql`
+      UPDATE try_ons SET video_status = 'queued', video_failure = NULL, updated_at = ${at.toISOString()}::timestamptz
+      WHERE id = ${id} AND actor_key = ${actorKey} AND status = 'done' AND result_key IS NOT NULL AND expires_at > now()
+        AND (video_status IS NULL OR video_status = 'failed')
+      RETURNING id
+    `;
+    return rows.length === 1;
+  }
+
+  async function markVideo(id: string, change: { status: TryOnStatus; videoKey?: string | null; failure?: string | null; costMicros?: number | null }, at = new Date()): Promise<void> {
+    await sql`
+      UPDATE try_ons SET video_status = ${change.status},
+             video_key = COALESCE(${change.videoKey ?? null}, video_key),
+             video_failure = ${change.failure ?? null},
+             video_cost_micros = COALESCE(${change.costMicros ?? null}, video_cost_micros),
+             updated_at = ${at.toISOString()}::timestamptz
+      WHERE id = ${id}
+    `;
   }
 
   async function markTryOn(
@@ -222,7 +277,7 @@ export function createPhotoStore(sql: Sql) {
     return rows.map((row) => toTryOn(row));
   }
 
-  return { record, byId, forActor, countForActor, markDeleted, deleteOwn, expired, startTryOn, markTryOn, tryOnById, tryOnsForActor };
+  return { record, byId, forActor, countForActor, markDeleted, deleteOwn, expired, startTryOn, markTryOn, tryOnById, tryOnsForActor, outfitSteps, requestVideo, markVideo };
 }
 
 export type PhotoStore = ReturnType<typeof createPhotoStore>;

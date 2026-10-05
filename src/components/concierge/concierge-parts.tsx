@@ -191,6 +191,10 @@ export function AssistantPart({ part, onApprove }: { part: Part; onApprove: (id:
           ? { title: t("approval.returnTitle", { number: String(input.number ?? "") }), body: t("approval.returnBody") }
           : name === "try_on"
             ? { title: t("approval.tryOnTitle"), body: t("approval.tryOnBody") }
+            : name === "try_on_outfit"
+              ? { title: t("approval.outfitTitle", { count: Array.isArray(input.productIds) ? input.productIds.length : 2 }), body: t("approval.outfitBody") }
+              : name === "see_it_move"
+                ? { title: t("approval.moveTitle"), body: t("approval.moveBody") }
             : name === "hand_to_person"
               ? { title: t("approval.handOverTitle"), body: t("approval.handOverBody") }
               : name === "remember_preference"

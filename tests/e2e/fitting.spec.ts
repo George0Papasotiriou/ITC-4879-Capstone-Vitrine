@@ -10,13 +10,13 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { freshPage } from "./support/accounts";
+import { freshPage, signUpAndConfirm, uniqueEmail } from "./support/accounts";
 
 /**
- * docs/adr/023 and docs/adr/062. The test server has no try-on key, so the
- * result is the photograph beside the garment's own photograph — the same
- * path, the same storage, the same day to live, and labelled in the interface
- * as side by side, not a fitting.
+ * docs/adr/023, docs/adr/062 and docs/adr/063. The test server talks to the
+ * tests' FASHN (FASHN_PROVIDER=fixture): it answers try-ons, videos and model
+ * shots as the service would, from what it was given, with no key and no bill —
+ * the same jobs, storage and day to live as the real thing.
  *
  * The photograph used here is a drawn figure in tests/e2e/fixtures: nobody's
  * likeness, so nobody's privacy.
@@ -93,7 +93,7 @@ test("@smoke the Fitting Room takes a photograph, tries a piece on it, and delet
   // One piece, tried on: it is made as a job, so the page waits for it.
   await page.locator('[data-agent-id^="action:try-on:"]').first().click();
   await expect(page.locator('[data-agent-id="fitting:result:done"]')).toBeVisible({ timeout: 45_000 });
-  await expect(page.locator('[data-agent-id="fitting:results"]')).toContainText("Side by side, not a fitting");
+  await expect(page.locator('[data-agent-id="fitting:results"]')).toContainText("Virtual try-on");
 
   // "Delete now" takes the photograph and everything made from it.
   await page.locator('[data-agent-id="action:delete-photo"]').click();
@@ -163,4 +163,74 @@ test("the clothes and the Fitting Room pass the accessibility checks", async ({ 
     expect(results.violations, `${path}: ${results.violations.map((violation) => violation.id).join(", ")}`).toEqual([]);
   }
   await page.context().close();
+});
+
+/* ---------------------------- the studio (docs/adr/063) ---------------------------- */
+
+const TEE = "short-sleeve-pocket-tee-b00blo0cqq";
+const JEAN = "relaxed-fit-straight-leg-jean-b0041g5sec";
+const SNAP_SHIRT = "sport-western-two-pocket-long-sleeve-snap-shirt-b07w4cfnfg";
+
+test("an account tries a whole outfit on, in dressing order, and makes it move", async ({ browser }) => {
+  const page = await freshPage(browser, { country: "GR" });
+  await signUpAndConfirm(page, uniqueEmail("outfit"));
+  await giveAPhotograph(page);
+
+  // A tee, jeans and a pair of shoes: three places on the body.
+  await page.locator(`[data-agent-id="action:outfit:${TEE}"]`).click();
+  await page.locator(`[data-agent-id="action:outfit:${JEAN}"]`).click();
+  await page.locator('[data-agent-id="fitting:group:shoes"] [data-agent-id^="action:outfit:"]').first().click();
+  const tray = page.locator('[data-agent-id="fitting:outfit-pieces"] li');
+  await expect(tray).toHaveCount(3);
+  // Put on as a person dresses: the jeans before the tee, the shoes last.
+  await expect(tray.nth(0)).toContainText("Jean");
+  await expect(tray.nth(1)).toContainText("Tee");
+  await expect(page.locator('[data-agent-id="fitting:outfit"]')).toContainText("Uses 9 credits");
+
+  await page.locator('[data-agent-id="action:try-outfit"]').click();
+  const outfit = page.locator('[data-agent-id="fitting:result:done"]').filter({ hasText: "Outfit of 3 pieces" });
+  await expect(outfit).toBeVisible({ timeout: 60_000 });
+
+  await outfit.locator('[data-agent-id^="action:see-it-move:"]').click();
+  await expect(outfit.locator('[data-agent-id="fitting:video"]')).toBeVisible({ timeout: 60_000 });
+  const src = await outfit.locator('[data-agent-id="fitting:video"]').getAttribute("src");
+  expect((await page.request.get(src!)).headers()["content-type"]).toBe("video/webm");
+  await page.context().close();
+});
+
+test("an outfit that cannot be put on says why, and a guest is asked to sign in to see a try-on move", async ({ browser }) => {
+  const page = await freshPage(browser, { country: "GR" });
+  await giveAPhotograph(page);
+  await page.locator(`[data-agent-id="action:outfit:${TEE}"]`).click();
+  await page.locator(`[data-agent-id="action:outfit:${SNAP_SHIRT}"]`).click();
+  await expect(page.locator('[data-agent-id="fitting:outfit-problem"]')).toHaveText("Two of these go in the same place on the body: keep one.");
+  await expect(page.locator('[data-agent-id="action:try-outfit"]')).toBeDisabled();
+
+  await page.locator(`[data-agent-id="action:try-on:${TEE}"]`).click();
+  await expect(page.locator('[data-agent-id="fitting:result:done"]')).toBeVisible({ timeout: 45_000 });
+  await expect(page.locator('[data-agent-id="fitting:move-sign-in"]')).toHaveText("Sign in to see it move");
+  await page.context().close();
+});
+
+test("on a model like you: made once by the first shopper, then shown free to the next", async ({ browser }, info) => {
+  // Each device project its own model: they share one database, and the second would find the first one's shot already made.
+  const preset = info.project.name === "mobile" ? "curvy-deep" : "tall-olive";
+  const first = await freshPage(browser, { country: "GR" });
+  await first.goto(`/en/p/${JEAN}`, { waitUntil: "domcontentloaded" });
+  const panel = first.locator('[data-agent-id="product:model-shots"]');
+  await expect(panel.getByRole("heading", { name: "On a model like you" })).toBeVisible();
+  await panel.locator(`[data-agent-id="model-shots:preset:${preset}"]`).click();
+  await expect(panel).toContainText("Uses 3 credits from today, once");
+  await panel.locator('[data-agent-id="action:make-model-shot"]').click();
+  await expect(panel.locator('[data-agent-id="model-shots:image"]')).toBeVisible({ timeout: 45_000 });
+  await expect(panel).toContainText("AI picture");
+  await first.context().close();
+
+  const next = await freshPage(browser, { country: "GR" });
+  await next.goto(`/en/p/${JEAN}`, { waitUntil: "domcontentloaded" });
+  const theirs = next.locator('[data-agent-id="product:model-shots"]');
+  await theirs.locator(`[data-agent-id="model-shots:preset:${preset}"]`).click();
+  await expect(theirs.locator('[data-agent-id="model-shots:image"]')).toBeVisible({ timeout: 15_000 });
+  await expect(theirs.locator('[data-agent-id="action:make-model-shot"]')).toHaveCount(0);
+  await next.context().close();
 });

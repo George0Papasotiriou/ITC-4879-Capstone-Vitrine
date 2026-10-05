@@ -37,6 +37,8 @@ export async function DELETE(_request: Request, context: RouteContext<"/api/phot
   const pictures = (await (await pictureStore()).forActor(actor.key)).filter((picture) => picture.uploadId === id && picture.resultKey !== null);
   // Every file of each picture: as shown, its small copy and the download (docs/adr/060).
   const pictureFiles = pictures.flatMap((picture) => [picture.resultKey, picture.previewKey, picture.downloadKey].filter((key): key is string => key !== null));
-  await removeFiles([photo.storageKey, ...results.map((tryOn) => tryOn.resultKey!), ...pictureFiles]);
+  // A try-on is its picture and, when it was asked for, its video (docs/adr/063).
+  const videos = results.map((tryOn) => tryOn.videoKey).filter((key): key is string => key !== null);
+  await removeFiles([photo.storageKey, ...results.map((tryOn) => tryOn.resultKey!), ...videos, ...pictureFiles]);
   return Response.json({ ok: true });
 }

@@ -18,12 +18,15 @@ import { createUndoToken } from "@/lib/ai/tools/undo";
 import type { ToolServices, ToolUser } from "@/lib/ai/tools/types";
 import { createUsageStore, type Actor, type UsageStore } from "@/lib/ai/usage";
 import type { CurrentUser } from "@/lib/auth/session";
+import { sizeChartFor } from "@/lib/catalog/capsule";
 import { getCardsByIds, getProduct, runSearch } from "@/lib/catalog/server";
+import { CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
+import { stretchPercent } from "@/lib/fit/size/body";
+import { fitStore } from "@/lib/fit/size/server";
 import { currentRegion } from "@/lib/commerce/region";
 import { accessibleOrder, commerce, currentCart, lastOrder, orderOwner, priceWatches, rememberCart, reviewsStore } from "@/lib/commerce/server";
 import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
 import { sql } from "@/lib/db/client";
-import { enqueue } from "@/lib/jobs/queue";
 import { minutesLeft } from "@/lib/photos/photos";
 import { photoStore } from "@/lib/photos/server";
 import { searchableColours } from "@/lib/vision/palette";
@@ -275,29 +278,28 @@ export async function toolServices({
         const [photo] = await (await photoStore()).forActor(actor.key, "try_on");
         return photo === undefined ? null : { id: photo.id, minutesLeft: minutesLeft(photo.expiresAt) };
       },
-      start: async ({ photoId, productId }) => {
+      start: async ({ photoId, productIds }) => {
         // A try-on needs a photograph, and a photograph means the browser is already known.
         const actor = await knownActor(user);
         if (actor === null) return { ok: false as const, reason: "not_found" as const };
-        const usage = await usageStore();
-        // The same guard as the page: credits first, and the work as a job.
-        const reserved = await usage.reserveCredits(actor, "try_on");
-        if (!reserved.ok) return { ok: false, reason: reserved.reason };
-        const store = await photoStore();
-        const photo = await store.byId(photoId, actor.key);
-        if (photo === null) return { ok: false, reason: "not_found" };
-        const drawn = serverEnv().FASHN_API_KEY === undefined;
-        const id = await store.startTryOn({
-          uploadId: photo.id,
-          productId,
-          variantId: null,
-          actorKey: actor.key,
-          provider: drawn ? "drawn" : "fashn",
-          model: drawn ? "vitrine-drawn-composite" : "tryon-v1.6",
-          expiresAt: photo.expiresAt,
-        });
-        await enqueue("try-on", { tryOnId: id, requestedAt: new Date().toISOString() });
-        return { ok: true, id };
+        // The same start as the page (docs/adr/063): pieces checked, credits first, the work as a job.
+        // Imported here: src/lib/fitting/server.ts uses this module's usage store.
+        const { startTryOns } = await import("@/lib/fitting/server");
+        const started = await startTryOns({ actor, photoId, productIds });
+        return started.ok ? { ok: true, ids: started.ids, outfitId: started.outfitId } : { ok: false, reason: started.reason };
+      },
+      latest: async () => {
+        const actor = await knownActor(user);
+        if (actor === null) return null;
+        const finished = (await (await photoStore()).tryOnsForActor(actor.key)).find((tryOn) => tryOn.status === "done");
+        return finished === undefined ? null : { id: finished.id };
+      },
+      animate: async ({ tryOnId }) => {
+        const actor = await knownActor(user);
+        if (actor === null) return { ok: false, reason: "sign_in" };
+        const { startTryOnVideo } = await import("@/lib/fitting/server");
+        const started = await startTryOnVideo({ actor, tryOnId });
+        return started.ok ? { ok: true } : { ok: false, reason: started.reason };
       },
     },
     watch: {
@@ -314,6 +316,14 @@ export async function toolServices({
     },
     preferences: {
       read: async () => (await currentPreferences()).preferences,
+    },
+    fit: {
+      forProduct: async (productId) => {
+        const [card] = await getCardsByIds([productId], locale);
+        const detail = card === undefined ? null : await getProduct(card.slug, locale);
+        if (detail === null || sizeChartFor(detail.kind) === null) return null;
+        return (await fitStore()).forProduct(productId, CAPSULE_SIZES, stretchPercent(detail.attributes.fabric));
+      },
     },
     support: {
       handOver: async ({ summary, topic, orderNumber }) => {

@@ -231,11 +231,12 @@
       "id": "g20-size-greek",
       "locale": "el",
       "message": "Τι νούμερο πουκάμισο να πάρω; Στήθος 92, μέση 76",
+      "note": "Chest 92 and waist 76 are both at S's limit: the Fit Engine advises M, since with a tape's ±1.5 cm S is too small on one zone three times in four (docs/adr/064).",
       "expect": {
         "tools": [
           "suggest_size"
         ],
-        "answerMatches": "πα(ί|ι)ρνα S",
+        "answerMatches": "πα(ί|ι)ρνα M",
         "answerLanguage": "el"
       }
     },
@@ -564,6 +565,24 @@
           "search_products"
         ],
         "answerNotMatches": "Charles"
+      }
+    },
+    {
+      "id": "g49-outfit",
+      "locale": "en",
+      "message": "Try the pocket tee and the relaxed fit straight leg jeans on my photo together",
+      "modelOnly": true,
+      "expect": {
+        "approvalOrRefusal": "try_on_outfit"
+      }
+    },
+    {
+      "id": "g50-see-it-move",
+      "locale": "en",
+      "message": "Can you make my last try-on move so I can see how it hangs?",
+      "modelOnly": true,
+      "expect": {
+        "approvalOrRefusal": "see_it_move"
       }
     }
   ],

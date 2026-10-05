@@ -1,0 +1,12 @@
+{
+  "source": "E12 on RentTheRunway (research/fit, 2026-10-05): parameters chosen on validation log-loss, in steps of each item's size ladder; the shop keeps their ratios and sets the margin to half a size, as its charts define it.",
+  "params": {
+    "margin": 11.313708498984761,
+    "noise": 8.0,
+    "itemPrior": 5.656854249492381,
+    "tolerancePrior": 2.0,
+    "customerPrior": 3.3635856610148585,
+    "drift": 0.28284271247461906
+  },
+  "scale": 0.044194173824159216
+}

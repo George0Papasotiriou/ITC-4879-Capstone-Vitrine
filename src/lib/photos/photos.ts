@@ -81,6 +81,8 @@ export const photoKey = (id: string) => `photos/${id}.webp`;
 
 /** Where the result of a try-on lives. It expires with the photograph it was made from. */
 export const tryOnKey = (id: string) => `photos/try-on/${id}.webp`;
+/** A try-on's video ("See it move", docs/adr/063), beside its picture and gone with it. */
+export const tryOnVideoKey = (id: string, contentType: string) => `photos/try-on/${id}-move.${contentType === "video/webm" ? "webm" : "mp4"}`;
 
 /** Minutes left before a photograph goes, for the interface to say so. */
 export function minutesLeft(expiresAt: Date, now = new Date()): number {

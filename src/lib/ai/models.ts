@@ -27,7 +27,7 @@ export type Pricing =
   | { kind: "tokens"; inputUsdPerMillion: number; outputUsdPerMillion: number }
   | {
       kind: "per_unit";
-      unit: "image" | "second" | "minute" | "call" | "model";
+      unit: "image" | "second" | "minute" | "call" | "model" | "credit";
       usdPerUnit: number;
       /** Tokens billed beside the unit: an image model's input (the photographs it is shown) and its thinking. */
       inputUsdPerMillion?: number;
@@ -49,7 +49,7 @@ export type ModelEntry = {
 };
 
 /** What the shop uses AI for; every recorded cost names one. */
-export const AI_FEATURES = ["concierge", "support_chat", "support_draft", "voice", "embedding", "snap", "try_on", "animate", "capsule_image", "translation", "copy_draft", "room_picture", "shop_the_look", "model_3d"] as const;
+export const AI_FEATURES = ["concierge", "support_chat", "support_draft", "voice", "embedding", "snap", "try_on", "animate", "capsule_image", "translation", "copy_draft", "room_picture", "shop_the_look", "model_3d", "model_shot"] as const;
 export type AiFeature = (typeof AI_FEATURES)[number];
 
 /**
@@ -89,8 +89,19 @@ export const MODELS = {
   pictureJudge: GEMINI_FLASH,
   /** Veo 3.1 Lite: "Animate me", five seconds at 720p. */
   video: { provider: "google", id: "veo-3.1-lite-generate-preview", pricing: { kind: "per_unit", unit: "second", usdPerUnit: 0.05 } },
-  /** Virtual try-on (FASHN). The model name is confirmed against FASHN's API reference in Phase 9 (src/lib/ai/providers/fashn.ts). */
-  tryOn: { provider: "fashn", id: "tryon", pricing: { kind: "per_unit", unit: "call", usdPerUnit: 0.075 } },
+  /**
+   * FASHN (docs/adr/023, docs/adr/063), billed in credits at $0.075 each on
+   * demand (minimum purchase $7.50; checked 2026-10-05). How many credits a
+   * call takes is FASHN's table in src/lib/fitting/engines.ts; usage records
+   * those credits as units. Try-On v1.6 takes 1 credit, for clothes.
+   */
+  tryOn: { provider: "fashn", id: "tryon-v1.6", pricing: { kind: "per_unit", unit: "credit", usdPerUnit: 0.075 } },
+  /** Try-On Max: shoes, bags, hats and jewellery as well as clothes; 1–5 credits by mode and resolution. */
+  tryOnMax: { provider: "fashn", id: "tryon-max", pricing: { kind: "per_unit", unit: "credit", usdPerUnit: 0.075 } },
+  /** FASHN Image to Video: "See it move", five seconds of a try-on; 1 credit at 480p, 3 at 720p. */
+  tryOnVideo: { provider: "fashn", id: "image-to-video", pricing: { kind: "per_unit", unit: "credit", usdPerUnit: 0.075 } },
+  /** FASHN Product to Model: "On a model like you", a piece worn by a model of a chosen build and skin tone; 1–5 credits. */
+  modelShot: { provider: "fashn", id: "product-to-model", pricing: { kind: "per_unit", unit: "credit", usdPerUnit: 0.075 } },
   /**
    * Realtime voice, OpenAI (docs/adr/030). gpt-realtime-2.1 rather than the
    * newer gpt-live-1: Live cannot be given a short-lived browser token or the

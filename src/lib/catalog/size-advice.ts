@@ -9,6 +9,9 @@
 
 import type { SizeChart } from "@/lib/catalog/capsule";
 import { CAPSULE_SIZES, type CapsuleSize } from "@/lib/catalog/taxonomy";
+import { SHOP_FIT_PARAMS } from "@/lib/fit/size/model";
+import { unknownItem, type ItemBelief } from "@/lib/fit/size/ordinal";
+import { adviseFit, isFitAdvice, type FitAdvice } from "@/lib/fit/size/recommend";
 
 /**
  * docs/adr/034. The questionnaire on a garment's page and the Concierge's
@@ -95,4 +98,24 @@ export function adviseSize(chart: readonly SizeChart[], measurements: readonly (
 
 export function isAdvice(result: SizeAdvice | AdviceProblem): result is SizeAdvice {
   return "size" in result;
+}
+
+/**
+ * The Fit Engine's advice from the same chart rows and measurements
+ * (docs/adr/064): every size's chance of fitting, allowing for how this piece
+ * runs and how forgiving it is (`item`, from its reviews and the shop's
+ * returns). With nothing known about the piece it agrees with the chart rule
+ * above; what it adds is how sure the advice is, the size next most likely,
+ * each zone in words, and the piece's own lean. Measurements out of range
+ * are left out, as the chart rule refuses them.
+ */
+export function engineAdvice(chart: readonly SizeChart[], measurements: readonly (number | null | undefined)[], item: ItemBelief = unknownItem(SHOP_FIT_PARAMS)): FitAdvice | null {
+  const rows = chart.slice(0, ASKED_MEASURES).map((row) => ({ zone: row.measure.en, values: CAPSULE_SIZES.map((size) => row.values[size]) }));
+  const measured: Record<string, number> = {};
+  rows.forEach((row, index) => {
+    const cm = measurements[index];
+    if (typeof cm === "number" && Number.isFinite(cm) && cm >= MEASURE_MIN_CM && cm <= MEASURE_MAX_CM) measured[row.zone] = cm;
+  });
+  const advice = adviseFit({ sizes: CAPSULE_SIZES, rows, measurements: measured, item, params: SHOP_FIT_PARAMS });
+  return isFitAdvice(advice) ? advice : null;
 }

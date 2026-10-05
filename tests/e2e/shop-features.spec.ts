@@ -79,6 +79,20 @@ test("@smoke instant search: results while typing, arrows and Enter open a piece
   await page.context().close();
 });
 
+test("find your size allows for a piece that runs small: a chest at M's limit takes L, and says why", async ({ browser }) => {
+  const page = await freshPage(browser, { country: "GR" });
+  await ready(page, "/en/p/faux-leather-moto-biker-short-coat-b01csc6oji");
+  await page.locator('[data-agent-id="sizes:finder"]').click();
+  const dialog = page.locator('[data-agent-id="sizes:finder-dialog"]');
+  await dialog.locator('[data-agent-id="sizes:measure-0"]').fill("98");
+  // The chart alone says M; the coat's reviewers say it runs small, so the engine says L.
+  await expect(dialog.locator('[data-agent-id="sizes:advice"]')).toContainText("Chest 98 cm fits M (up to 98 cm).");
+  await expect(dialog.locator('[data-agent-id="sizes:advised"]')).toHaveText("L");
+  await expect(dialog.locator('[data-agent-id="sizes:lean"]')).toContainText("This piece runs small");
+  await expect(dialog.locator('[data-agent-id="sizes:choose-advised"]')).toHaveText("Choose L");
+  await page.context().close();
+});
+
 test("find your size: two measurements give a size with the reason, which can be chosen and kept", async ({ browser }) => {
   const page = await freshPage(browser, { country: "GR" });
   await ready(page, TEE);
@@ -92,6 +106,10 @@ test("find your size: two measurements give a size with the reason, which can be
   await expect(dialog.locator('[data-agent-id="sizes:advised"]')).toHaveText("L");
   await expect(dialog.locator('[data-agent-id="sizes:advice"]')).toContainText("Waist 88 cm fits L (up to 90 cm).");
   await expect(dialog.locator('[data-agent-id="sizes:advice"]')).toContainText("closes around your waist");
+  // The Fit Engine (docs/adr/064): how likely it is to fit, the next size, and how each zone sits.
+  await expect(dialog.locator('[data-agent-id="sizes:chance"]')).toContainText(/\d+% likely to fit you; next most likely XL/);
+  await expect(dialog.locator('[data-agent-id="sizes:zones"]')).toContainText("Waist: a close fit in L.");
+  await expect(dialog.locator('[data-agent-id="sizes:evidence"]')).toContainText("fit remarks in Amazon.com reviews");
   await axe(page, '[role="dialog"]');
 
   // Inches are caught rather than sized.

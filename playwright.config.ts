@@ -70,6 +70,8 @@ export default defineConfig({
             GEO_COUNTRY_HEADER: E2E_COUNTRY_HEADER,
             // AI pictures through the tests' stand-in for the image model (docs/adr/060): the whole flow, nothing paid.
             PICTURES_PROVIDER: "fixture",
+            // The tests' FASHN (docs/adr/063): try-on, video and model shots answered without a key.
+            FASHN_PROVIDER: "fixture",
             ADMIN_EMAILS: Object.values(E2E_ADMIN_EMAILS).join(","),
             // Web Push on, with a key pair made for this run only (docs/adr/044); the local stack logs pushes instead of sending them.
             ...(() => {

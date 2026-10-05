@@ -119,7 +119,7 @@ export const startReturn = define({
   name: "start_return",
   description:
     "Ask for a return of one of the shopper's own delivered orders, within 14 days of delivery, after the shopper approves. " +
-    "Use it only when the shopper asks to send an order back, with their reason. The shop then arranges the collection and the refund.",
+    "Use it only when the shopper asks to send an order back, with their reason. For a size that did not fit, the reason is too_small or too_big (the shop learns from them how the piece fits). The shop then arranges the collection and the refund.",
   scope: "sensitive",
   input: z.object({ number: orderNumber, reason: z.enum(RETURN_REASONS), note: z.string().trim().max(300).optional() }),
   output: z.discriminatedUnion("ok", [z.object({ ok: z.literal(true), number: z.string() }), z.object({ ok: z.literal(false), reason: z.string() })]),
@@ -163,12 +163,12 @@ export const setPriceWatch = define({
 export const tryOnPiece = define({
   name: "try_on",
   description:
-    "Try one piece of clothing on the photograph the shopper gave the Fitting Room. It costs the shopper credits, so ask first, and only for one piece at a time. " +
-    "Use it when they ask to see something on themselves. It needs a photograph they have already given; if there is none, say so and open the Fitting Room instead. " +
+    "Try one piece — clothes, shoes, a bag, a hat or jewellery — on the photograph the shopper gave the Fitting Room. It costs the shopper credits, so ask first. " +
+    "Use it when they ask to see one thing on themselves. For two to four pieces together use try_on_outfit instead. It needs a photograph they have already given; if there is none, say so and open the Fitting Room instead. " +
     "Never describe how the result looks: the shopper sees it, and it is their own photograph.",
   scope: "costly",
   credits: "try_on",
-  input: z.object({ productId: z.uuid().describe("A product id from a search; clothes only.") }),
+  input: z.object({ productId: z.uuid().describe("A product id from a search: clothes, shoes, bags or accessories.") }),
   output: z.discriminatedUnion("ok", [
     z.object({ ok: z.literal(true), tryOnId: z.string(), minutesLeft: z.number().int(), commands: z.array(uiCommandSchema) }),
     z.object({ ok: z.literal(false), reason: z.enum(["no_photo", "not_clothes", "not_found", "refused"]), commands: z.array(uiCommandSchema) }),
@@ -176,20 +176,80 @@ export const tryOnPiece = define({
   async run(ctx, { productId }) {
     const [card] = await ctx.services.cards([productId]);
     if (card === undefined) return { ok: false as const, reason: "not_found" as const, commands: [] };
-    if (card.category !== "wear") return { ok: false as const, reason: "not_clothes" as const, commands: [] };
+    if (!WEARABLE_CATEGORIES.has(card.category)) return { ok: false as const, reason: "not_clothes" as const, commands: [] };
 
-    const fittingRoom = uiCommandSchema.parse({
-      type: "navigate",
-      href: "/fitting-room",
-      caption: ctx.locale === "el" ? "Άνοιγμα του δοκιμαστηρίου" : "Opening the Fitting Room",
-    });
-
+    const fittingRoom = fittingRoomCommand(ctx.locale);
     // Without a photograph there is nothing to try it on; the page is where one is given.
     const photo = await ctx.services.tryOn.photo();
     if (photo === null) return { ok: false as const, reason: "no_photo" as const, commands: [fittingRoom] };
 
-    const started = await ctx.services.tryOn.start({ photoId: photo.id, productId });
+    const started = await ctx.services.tryOn.start({ photoId: photo.id, productIds: [productId] });
     if (!started.ok) return { ok: false as const, reason: "refused" as const, commands: [] };
-    return { ok: true as const, tryOnId: started.id, minutesLeft: photo.minutesLeft, commands: [fittingRoom] };
+    return { ok: true as const, tryOnId: started.ids[0]!, minutesLeft: photo.minutesLeft, commands: [fittingRoom] };
+  },
+});
+
+/** Where trying things on happens: the Fitting Room, with a caption in the shopper's language. */
+const fittingRoomCommand = (locale: string) =>
+  uiCommandSchema.parse({ type: "navigate", href: "/fitting-room", caption: locale === "el" ? "Άνοιγμα του δοκιμαστηρίου" : "Opening the Fitting Room" });
+
+/** The categories that can be worn (docs/adr/061, 062): the Fitting Room tries every one of them on. */
+const WEARABLE_CATEGORIES: ReadonlySet<string> = new Set(["wear", "shoes", "bags", "accessories"]);
+
+export const tryOnOutfit = define({
+  name: "try_on_outfit",
+  description:
+    "Try a whole outfit — two to four pieces, at most one per place on the body (a top, trousers or a skirt, a dress, a coat or jacket, shoes, a bag, a hat or jewellery) — on the shopper's Fitting Room photograph, put on in order, each over the one before. " +
+    "Each piece costs the shopper credits, so ask first and say how many pieces. Use it for 'how would this look together' or 'try the outfit on me'. For one piece use try_on. " +
+    "A dress never goes with a top or a bottom. Never describe how the result looks: the shopper sees it.",
+  scope: "costly",
+  credits: "try_on",
+  input: z.object({ productIds: z.array(z.uuid()).min(2).max(4).describe("Two to four product ids from a search, one per place on the body.") }),
+  output: z.discriminatedUnion("ok", [
+    z.object({ ok: z.literal(true), outfitId: z.string(), pieces: z.number().int(), minutesLeft: z.number().int(), commands: z.array(uiCommandSchema) }),
+    z.object({
+      ok: z.literal(false),
+      reason: z.enum(["no_photo", "not_clothes", "not_found", "same_slot", "dress_and_separates", "too_few", "too_many", "refused"]),
+      commands: z.array(uiCommandSchema),
+    }),
+  ]),
+  async run(ctx, { productIds }) {
+    const cards = await ctx.services.cards(productIds);
+    if (cards.length !== productIds.length) return { ok: false as const, reason: "not_found" as const, commands: [] };
+    if (cards.some((card) => !WEARABLE_CATEGORIES.has(card.category))) return { ok: false as const, reason: "not_clothes" as const, commands: [] };
+    const fittingRoom = fittingRoomCommand(ctx.locale);
+    const photo = await ctx.services.tryOn.photo();
+    if (photo === null) return { ok: false as const, reason: "no_photo" as const, commands: [fittingRoom] };
+
+    const started = await ctx.services.tryOn.start({ photoId: photo.id, productIds });
+    if (!started.ok) {
+      // An outfit the shop cannot put on says why; anything else (credits, the shop's switches) is a refusal.
+      const known = ["same_slot", "dress_and_separates", "too_few", "too_many"] as const;
+      const reason: (typeof known)[number] | "refused" = (known as readonly string[]).includes(started.reason) ? (started.reason as (typeof known)[number]) : "refused";
+      return { ok: false as const, reason, commands: [] };
+    }
+    return { ok: true as const, outfitId: started.outfitId ?? started.ids[0]!, pieces: started.ids.length, minutesLeft: photo.minutesLeft, commands: [fittingRoom] };
+  },
+});
+
+export const seeItMove = define({
+  name: "see_it_move",
+  description:
+    "Make five seconds of video from the shopper's newest finished try-on, so they see how it moves. Accounts only, and it costs a lot of today's credits, so ask first. " +
+    "Use it only when they ask to see a try-on move or turn. Not for furniture, and not before a try-on is finished. The video stays with the try-on and goes when the photograph does.",
+  scope: "costly",
+  credits: "animate",
+  input: z.object({}),
+  output: z.discriminatedUnion("ok", [
+    z.object({ ok: z.literal(true), tryOnId: z.string(), commands: z.array(uiCommandSchema) }),
+    z.object({ ok: z.literal(false), reason: z.enum(["sign_in", "no_try_on", "needs_service", "refused"]), commands: z.array(uiCommandSchema) }),
+  ]),
+  async run(ctx) {
+    if (ctx.user === null) return { ok: false as const, reason: "sign_in" as const, commands: [] };
+    const latest = await ctx.services.tryOn.latest();
+    if (latest === null) return { ok: false as const, reason: "no_try_on" as const, commands: [fittingRoomCommand(ctx.locale)] };
+    const started = await ctx.services.tryOn.animate({ tryOnId: latest.id });
+    if (!started.ok) return { ok: false as const, reason: started.reason === "needs_service" ? ("needs_service" as const) : ("refused" as const), commands: [] };
+    return { ok: true as const, tryOnId: latest.id, commands: [fittingRoomCommand(ctx.locale)] };
   },
 });
