@@ -29,6 +29,7 @@ import {
   garmentColour,
   EXCLUDED_LISTINGS,
   GARMENT_CROP,
+  isGarmentPhotoShape,
   isGarmentStudioShot,
   MAX_TITLE,
   priceRanks,
@@ -38,7 +39,7 @@ import {
 import { catalogFixtureSchema, type MediaInput, type ProductInput } from "@/lib/catalog/input";
 import { CAPSULE_PRODUCT_KINDS, CAPSULE_SIZES } from "@/lib/catalog/taxonomy";
 import { canonicalBrand } from "@/lib/catalog/wear";
-import { amazonReviewsFixtureSchema, AMAZON_REVIEWS_CITATION, type AmazonProductReviews } from "@/lib/reviews/amazon";
+import { amazonReviewsFixtureSchema, AMAZON_REVIEWS_CITATION, decodedReviews, type AmazonProductReviews } from "@/lib/reviews/amazon";
 import { colorLabel, type ColorId } from "@/lib/search/vocabulary";
 import { pixelsFrom } from "@/lib/vision/palette";
 
@@ -268,7 +269,17 @@ async function look(url: string, kind: CapsuleKind): Promise<{ studio: boolean; 
   return { studio: isGarmentStudioShot(data, size), colour: garmentColour(pixelsFrom(crop, 3, 1)) };
 }
 
-const shown = (entry: AmazonProductReviews): AmazonProductReviews => ({ ...entry, reviews: entry.reviews.slice(0, REVIEWS_SHOWN) });
+/** A photograph's width and height, from its thumbnail. */
+async function shapeOf(url: string): Promise<{ width: number; height: number } | null> {
+  const { default: sharp } = await import("sharp");
+  const response = await fetch(sized(url, 320)).catch(() => null);
+  if (response === null || !response.ok) return null;
+  const meta = await sharp(Buffer.from(await response.arrayBuffer())).metadata();
+  return meta.width === undefined || meta.height === undefined ? null : { width: meta.width, height: meta.height };
+}
+
+/** The reviews kept for a piece: the totals as they are, the most helpful few, as their writers typed them (escapes decoded). */
+const shown = (entry: AmazonProductReviews): AmazonProductReviews => decodedReviews({ ...entry, reviews: entry.reviews.slice(0, REVIEWS_SHOWN) });
 
 async function fixture(options: { dryRun: boolean }) {
   if (!existsSync(CLOTHES_REVIEWS)) throw new Error(`${CLOTHES_REVIEWS} is missing: run the review pass first (see \`catalog-clothes.ts candidates\`).`);
@@ -306,9 +317,20 @@ async function fixture(options: { dryRun: boolean }) {
         refused += 1;
         continue;
       }
+      // The gallery: the main photograph, then the extras shaped like garment photographs (not the brand's size charts).
+      const extras: ScannedListing["images"] = [];
+      for (const image of entry.images.slice(1)) {
+        if (extras.length === IMAGES - 1) break;
+        const shape = await shapeOf(image.url);
+        if (shape !== null && isGarmentPhotoShape(shape.width, shape.height)) extras.push(image);
+      }
+      if (extras.length < 2) {
+        refused += 1;
+        continue;
+      }
       brands.set(brand, (brands.get(brand) ?? 0) + 1);
       accepted.push(entry);
-      chosen.push({ entry, brand, colour: titleColours(entry.title, entry.store)[0] ?? seen.colour });
+      chosen.push({ entry: { ...entry, images: [entry.images[0]!, ...extras] }, brand, colour: titleColours(entry.title, entry.store)[0] ?? seen.colour });
     }
     // Prices once the kind is chosen: each piece's place in its kind's band follows its listing price among them.
     const ranks = priceRanks(chosen.map(({ entry }) => ({ id: entry.asin, usd: entry.price })));
@@ -378,7 +400,7 @@ async function fixture(options: { dryRun: boolean }) {
   await writeFile(CLOTHES_REVIEWS_FIXTURE, `{"version":1,"citation":${JSON.stringify(AMAZON_REVIEWS_CITATION)},"products":{\n${ids.map((id) => `${JSON.stringify(id)}:${JSON.stringify(reviewsFixture.products[id])}`).join(",\n")}\n}}\n`);
   const shownCount = ids.reduce((sum, id) => sum + reviewsFixture.products[id]!.reviews.length, 0);
   const total = ids.reduce((sum, id) => sum + reviewsFixture.products[id]!.count, 0);
-  out(`  ${products.length} garments written to ${CLOTHES_FIXTURE} (${refused} refused: not on white or not found); reviews of all of them (${total} in total, ${shownCount} shown) in ${CLOTHES_REVIEWS_FIXTURE}`);
+  out(`  ${products.length} garments written to ${CLOTHES_FIXTURE} (${refused} refused: main photograph not on white, or fewer than three garment photographs); reviews of all of them (${total} in total, ${shownCount} shown) in ${CLOTHES_REVIEWS_FIXTURE}`);
   await clothesSpecimen(products);
 }
 

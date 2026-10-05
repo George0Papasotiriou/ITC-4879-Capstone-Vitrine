@@ -62,7 +62,32 @@ export const amazonReviewsFixtureSchema = z.object({
 });
 
 /** The mean rating to one decimal, as shown. */
-export const meanRating = (entry: Pick<AmazonProductReviews, "count" | "ratingSum">) => Math.round((entry.ratingSum / entry.count) * 10) / 10;
+const NAMED_ENTITIES: Readonly<Record<string, string>> = { quot: '"', amp: "&", lt: "<", gt: ">", apos: "'", nbsp: " ", eacute: "é", egrave: "è", ntilde: "ñ", uuml: "ü", ouml: "ö", auml: "ä", hellip: "…", rsquo: "’", lsquo: "‘", rdquo: "”", ldquo: "“", mdash: "—", ndash: "–" };
+
+/**
+ * A review as its writer typed it. The dataset keeps Amazon's HTML escapes
+ * ("&#34;just right&#34;", "&amp;"); a page that printed them would show the
+ * codes, and one that injected them would trust a stranger's markup. They are
+ * decoded to plain characters here, and React escapes them again on the page.
+ * An escape the table does not know is left as it is.
+ */
+export function decodeEntities(text: string): string {
+  return text.replace(/&(#\d{1,7}|#x[0-9a-f]{1,6}|[a-z]{2,8});/gi, (whole, name: string) => {
+    if (name.startsWith("#")) {
+      const code = name[1] === "x" || name[1] === "X" ? Number.parseInt(name.slice(2), 16) : Number.parseInt(name.slice(1), 10);
+      return Number.isFinite(code) && code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : whole;
+    }
+    return NAMED_ENTITIES[name.toLowerCase()] ?? whole;
+  });
+}
+
+/** A product's reviews with their titles and texts decoded (`decodeEntities`). */
+export const decodedReviews = (entry: AmazonProductReviews): AmazonProductReviews => ({
+  ...entry,
+  reviews: entry.reviews.map((review) => ({ ...review, title: decodeEntities(review.title), text: decodeEntities(review.text) })),
+});
+
+export const meanRating =(entry: Pick<AmazonProductReviews, "count" | "ratingSum">) => Math.round((entry.ratingSum / entry.count) * 10) / 10;
 
 export type FitLean = "small" | "true" | "large" | "unknown";
 

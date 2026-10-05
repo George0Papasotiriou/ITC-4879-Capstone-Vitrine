@@ -41,7 +41,7 @@ import { catalogFixtureSchema, type MediaInput, type ProductInput } from "@/lib/
 import { hasWhiteGround } from "@/lib/catalog/photography";
 import { ABO_PRODUCT_KINDS } from "@/lib/catalog/taxonomy";
 import { ABO_WEAR_TYPES, brandFromTitle, canonicalBrand, cleanColourLabel, cleanWearTitle, isKindAsListed, wearKindFor, wearSizes, wearStock, WEAR_KINDS, type WearKind } from "@/lib/catalog/wear";
-import { amazonReviewsFixtureSchema, AMAZON_REVIEWS_CITATION, type AmazonProductReviews } from "@/lib/reviews/amazon";
+import { amazonReviewsFixtureSchema, AMAZON_REVIEWS_CITATION, decodedReviews, type AmazonProductReviews } from "@/lib/reviews/amazon";
 
 export const WEAR_FIXTURE = "src/lib/catalog/fixtures/abo-wear.json";
 export const WEAR_SPECIMEN_FIXTURE = "src/lib/catalog/fixtures/wear-specimen.json";
@@ -116,7 +116,8 @@ function order(a: Candidate, b: Candidate): number {
 }
 
 /** The reviews kept for a piece: the totals as they are, the most helpful few. */
-const shown = (entry: AmazonProductReviews): AmazonProductReviews => ({ ...entry, reviews: entry.reviews.slice(0, REVIEWS_SHOWN) });
+/** The reviews kept for a piece: the totals as they are, the most helpful few, as their writers typed them (escapes decoded). */
+const shown = (entry: AmazonProductReviews): AmazonProductReviews => decodedReviews({ ...entry, reviews: entry.reviews.slice(0, REVIEWS_SHOWN) });
 
 export async function wearFixture(options: { dryRun: boolean }): Promise<void> {
   if (!existsSync(REVIEWS_CACHE)) throw new Error(`${REVIEWS_CACHE} is missing: run \`pnpm exec tsx scripts/amazon-reviews.ts --run\` first.`);

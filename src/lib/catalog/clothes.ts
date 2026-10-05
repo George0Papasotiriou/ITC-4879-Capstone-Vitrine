@@ -322,6 +322,16 @@ export function isGarmentStudioShot(rgb: Uint8Array | Buffer, size: number, { co
 }
 
 /**
+ * Whether a listing's extra photograph can stand in a garment's gallery.
+ * Garments are photographed upright, on a model or laid flat, so their
+ * photographs are portrait or square; the wide ones among a listing's
+ * extras are mostly the brand's own size charts and measuring guides
+ * (22 of the 31 wide ones in the range, reviewed by eye), which would
+ * contradict the shop's chart.
+ */
+export const isGarmentPhotoShape = (width: number, height: number): boolean => height > 0 && width / height <= 1.05;
+
+/**
  * Skin, roughly: a warm hue (red to yellow-orange), moderately saturated, not
  * very dark or very light. Good enough to keep a model's arms out of a
  * garment's colour; a beige garment loses a little of its own area to it,

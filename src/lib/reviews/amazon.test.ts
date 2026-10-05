@@ -11,7 +11,7 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { amazonReviewsFixtureSchema, fitLean, meanRating } from "@/lib/reviews/amazon";
+import { amazonReviewsFixtureSchema, decodeEntities, fitLean, meanRating } from "@/lib/reviews/amazon";
 import { externalReviewId } from "@/lib/reviews/external-store";
 
 describe("the committed reviews fixture (docs/adr/061)", () => {
@@ -34,6 +34,13 @@ describe("the committed reviews fixture (docs/adr/061)", () => {
     expect(text).not.toMatch(/"user_id"|"userId"|"author"|"name"\s*:/);
   });
 
+  it("holds reviews as their writers typed them, with no HTML escapes left", () => {
+    for (const file of ["amazon-reviews.json", "amazon-clothes-reviews.json"]) {
+      const products = amazonReviewsFixtureSchema.parse(JSON.parse(readFileSync(`src/lib/catalog/fixtures/${file}`, "utf8"))).products;
+      for (const entry of Object.values(products)) for (const review of entry.reviews) expect(`${review.title} ${review.text}`).not.toMatch(/&(#\d+|#x[0-9a-f]+|[a-z]{2,8});/i);
+    }
+  });
+
   it("says where the reviews come from", () => {
     expect(fixture.citation).toMatch(/Amazon Reviews 2023/);
     expect(fixture.citation).toMatch(/McAuley/);
@@ -52,6 +59,14 @@ describe("meanRating and fitLean", () => {
     expect(fitLean({ small: 4, trueToSize: 4, large: 4 }).lean).toBe("unknown");
     // Four remarks are too few to label a shoe.
     expect(fitLean({ small: 4, trueToSize: 0, large: 0 }).lean).toBe("unknown");
+  });
+});
+
+describe("decodeEntities", () => {
+  it("turns the dataset's HTML escapes back into the characters typed, and leaves unknown ones alone", () => {
+    expect(decodeEntities("a L might be &#34;just right&#34; &amp; roomy")).toBe('a L might be "just right" & roomy');
+    expect(decodeEntities("caf&eacute; &lt;3 &#x27;yes&#x27; &quot;ok&quot;")).toBe("café <3 'yes' \"ok\"");
+    expect(decodeEntities("&bogus; and &#0; stay")).toBe("&bogus; and &#0; stay");
   });
 });
 

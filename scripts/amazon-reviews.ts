@@ -39,6 +39,7 @@ import { parseArgs } from "node:util";
 
 import { englishValue } from "@/lib/catalog/abo";
 import { ABO_WEAR_TYPES, wearKindFor } from "@/lib/catalog/wear";
+import { decodeEntities } from "@/lib/reviews/amazon";
 
 const SOURCE = "https://mcauleylab.ucsd.edu/public_datasets/data/amazon_2023/raw/review_categories/Clothing_Shoes_and_Jewelry.jsonl.gz";
 const CACHE = ".abo-cache";
@@ -116,7 +117,7 @@ async function main() {
     const key = asin !== undefined && asins.has(asin) ? asin : parent !== undefined && asins.has(parent) ? parent : null;
     if (key === null) continue;
     const raw = JSON.parse(line) as { rating: number; title?: string; text?: string; timestamp?: number; helpful_vote?: number; verified_purchase?: boolean };
-    const text = (raw.text ?? "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").replace(/[ \t]+/g, " ").trim();
+    const text = decodeEntities((raw.text ?? "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "")).replace(/[ \t]+/g, " ").trim();
     const entry = found.get(key) ?? { count: 0, ratingSum: 0, small: 0, trueToSize: 0, large: 0, reviews: [] };
     entry.count += 1;
     entry.ratingSum += raw.rating;
@@ -126,7 +127,7 @@ async function main() {
     if (text.length >= 20) {
       const review: KeptReview = {
         rating: raw.rating,
-        title: (raw.title ?? "").trim().slice(0, 140),
+        title: decodeEntities(raw.title ?? "").trim().slice(0, 140),
         text: text.length > MAX_TEXT ? `${text.slice(0, text.lastIndexOf(" ", MAX_TEXT))}…` : text,
         at: new Date(raw.timestamp ?? 0).toISOString().slice(0, 10),
         helpful: raw.helpful_vote ?? 0,

@@ -18,6 +18,7 @@ import {
   departmentOf,
   fabricOf,
   garmentColour,
+  isGarmentPhotoShape,
   isGarmentStudioShot,
   looksLikeSkin,
   MAX_TITLE,
@@ -172,6 +173,15 @@ describe("isGarmentStudioShot", () => {
     expect(isGarmentStudioShot(frame((x, y) => (y < 5 ? [200, 160, 140] : x >= 5 && x <= 10 ? [40, 50, 90] : [255, 255, 255])), size)).toBe(true);
     expect(isGarmentStudioShot(frame(() => [214, 214, 214]), size)).toBe(false);
     expect(isGarmentStudioShot(frame((x, y) => [120 + x * 4, 100 + y * 3, 80]), size)).toBe(false);
+  });
+});
+
+describe("isGarmentPhotoShape", () => {
+  it("keeps upright and square photographs, and leaves out the wide size charts", () => {
+    expect(isGarmentPhotoShape(1000, 1500)).toBe(true);
+    expect(isGarmentPhotoShape(1500, 1500)).toBe(true);
+    expect(isGarmentPhotoShape(1500, 1000)).toBe(false);
+    expect(isGarmentPhotoShape(1500, 0)).toBe(false);
   });
 });
 

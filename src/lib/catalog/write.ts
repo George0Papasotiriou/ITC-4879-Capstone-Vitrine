@@ -7,7 +7,7 @@
  * Idempotent catalogue writer that upserts products, images and search documents.
  */
 
-import { and, eq, inArray, ne, sql, type SQL } from "drizzle-orm";
+import { and, eq, inArray, ne, notInArray, sql, type SQL } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { PgTable } from "drizzle-orm/pg-core";
 
@@ -119,6 +119,22 @@ export async function archiveSource(db: CatalogDatabase, source: "capsule"): Pro
     .update(schema.products)
     .set({ status: "archived", updatedAt: sql`now()` })
     .where(and(eq(schema.products.source, source), ne(schema.products.status, "archived")))
+    .returning({ id: schema.products.id });
+  return rows.length;
+}
+
+/**
+ * Archives the products of a source that a full fixture no longer holds: a
+ * garment dropped from the clothes fixture when it is rebuilt leaves the shop
+ * on the next deploy instead of staying on sale (docs/adr/062). Nothing is
+ * deleted. Only for a source whose whole range is one fixture.
+ */
+export async function archiveMissing(db: CatalogDatabase, source: "amazon", keepSourceIds: readonly string[]): Promise<number> {
+  if (keepSourceIds.length === 0) return 0;
+  const rows = await db
+    .update(schema.products)
+    .set({ status: "archived", updatedAt: sql`now()` })
+    .where(and(eq(schema.products.source, source), notInArray(schema.products.sourceId, [...keepSourceIds]), ne(schema.products.status, "archived")))
     .returning({ id: schema.products.id });
   return rows.length;
 }

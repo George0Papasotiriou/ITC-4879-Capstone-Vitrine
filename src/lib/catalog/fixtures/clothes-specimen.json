@@ -50,9 +50,9 @@
         {
           "kind": "image",
           "src": "/products/clothes/b00blo0cqq-2.webp",
-          "width": 1200,
-          "height": 1082,
-          "bytes": 34014,
+          "width": 783,
+          "height": 1200,
+          "bytes": 84624,
           "altEn": "Short Sleeve Pocket Tee by Dickies, view 2",
           "whiteGround": false
         }
@@ -628,7 +628,7 @@
       },
       "dimsCm": null,
       "weightGrams": null,
-      "priceCents": 10900,
+      "priceCents": 8900,
       "compareAtCents": null,
       "stock": 26,
       "license": "Amazon Reviews 2023 research release",
@@ -646,9 +646,9 @@
         {
           "kind": "image",
           "src": "/products/clothes/b01frrq0gi-2.webp",
-          "width": 1200,
-          "height": 1117,
-          "bytes": 79910,
+          "width": 493,
+          "height": 1200,
+          "bytes": 83896,
           "altEn": "Print High Waist Maxi Skirt by Novia's Choice, view 2",
           "whiteGround": false
         }
@@ -852,21 +852,103 @@
     },
     {
       "source": "amazon",
-      "sourceId": "B009YDCJ12",
-      "slug": "ridge-coat-b009ydcj12",
+      "sourceId": "B01CSC6OJI",
+      "slug": "faux-leather-moto-biker-short-coat-b01csc6oji",
       "kind": "COAT",
       "category": "wear",
-      "titleEn": "Ridge Coat",
+      "titleEn": "Faux Leather Moto Biker Short Coat",
       "titleEl": null,
-      "brand": "Carhartt",
+      "brand": "Tanming",
       "descriptionEn": null,
       "descriptionEl": null,
       "highlightsEn": [
-        "Carhartt Company Gear Collection",
-        "Front-zip coat featuring Sherpa-lined body with quilted nylon lining in sleeves",
-        "Contrast fold-over collar",
-        "Zippered side-entry pocket on chest",
-        "Patch pockets at front"
+        "Faux leather jacket women featured with the short length",
+        "Slant zipper design and two side pockets for convenience",
+        "The vegan pleather jacket available for multi colors: black, blue, green, beige and red,super cute and stylish",
+        "This black leather moto biker jacket made of the soft, comfortable and high qulity fabric, suits for casual daily wear, perfect to be the halloween costume"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Red",
+      "colors": [
+        "red"
+      ],
+      "materials": [],
+      "attributes": {
+        "department": "women"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 14900,
+      "compareAtCents": null,
+      "stock": 36,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b01csc6oji.webp",
+          "width": 908,
+          "height": 1200,
+          "bytes": 118084,
+          "altEn": "Faux Leather Moto Biker Short Coat by Tanming",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b01csc6oji-2.webp",
+          "width": 910,
+          "height": 1200,
+          "bytes": 96016,
+          "altEn": "Faux Leather Moto Biker Short Coat by Tanming, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 12,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 12,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 1,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B0084AVW7I",
+      "slug": "steens-mountain-2-0-full-zip-fleece-jacket-b0084avw7i",
+      "kind": "JACKET",
+      "category": "wear",
+      "titleEn": "Steens Mountain 2.0 Full Zip Fleece Jacket",
+      "titleEl": null,
+      "brand": "Columbia",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "This Columbia Men's Steens Mountain Full Zip 2.0 Fleece Jacket is crafted of ultra-soft 100% polyester MTR filament fleece for the perfect amount of warmth",
+        "This fleece jacket features two side zippered security pockets to keep your small items secure",
+        "With a collared neck and zippered closure, you're sure to be protected from the frigid cold",
+        "A modern classic fit and with a soft, lightweight feel make this fleece jacket a staple for comfortable outdoor activity",
+        "Soft and warm, this fleece jacket is the perfect layer for any winter activity"
       ],
       "highlightsEl": null,
       "translation": "none",
@@ -875,146 +957,64 @@
         "brown"
       ],
       "materials": [
-        "cotton"
+        "fabric"
       ],
       "attributes": {
         "department": "men",
-        "fabric": "100% cotton",
+        "fabric": "100% polyester",
         "care": "Machine Wash"
       },
       "dimsCm": null,
       "weightGrams": null,
-      "priceCents": 22900,
+      "priceCents": 13900,
       "compareAtCents": null,
-      "stock": 29,
+      "stock": 8,
       "license": "Amazon Reviews 2023 research release",
       "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
       "media": [
         {
           "kind": "image",
-          "src": "/products/clothes/b009ydcj12.webp",
-          "width": 993,
+          "src": "/products/clothes/b0084avw7i.webp",
+          "width": 726,
           "height": 1200,
-          "bytes": 57636,
-          "altEn": "Ridge Coat by Carhartt",
+          "bytes": 90468,
+          "altEn": "Steens Mountain 2.0 Full Zip Fleece Jacket by Columbia",
           "whiteGround": true
         },
         {
           "kind": "image",
-          "src": "/products/clothes/b009ydcj12-2.webp",
-          "width": 899,
+          "src": "/products/clothes/b0084avw7i-2.webp",
+          "width": 742,
           "height": 1200,
-          "bytes": 37520,
-          "altEn": "Ridge Coat by Carhartt, view 2",
+          "bytes": 83616,
+          "altEn": "Steens Mountain 2.0 Full Zip Fleece Jacket by Columbia, view 2",
           "whiteGround": false
         }
       ],
       "variants": [
         {
           "size": "XS",
-          "stock": 2,
-          "priceCents": null
-        },
-        {
-          "size": "S",
-          "stock": 6,
-          "priceCents": null
-        },
-        {
-          "size": "M",
-          "stock": 9,
-          "priceCents": null
-        },
-        {
-          "size": "L",
-          "stock": 9,
-          "priceCents": null
-        },
-        {
-          "size": "XL",
-          "stock": 3,
-          "priceCents": null
-        }
-      ]
-    },
-    {
-      "source": "amazon",
-      "sourceId": "B005FOCNKQ",
-      "slug": "full-zip-eco-fleece-hoodie-jacket-b005focnkq",
-      "kind": "JACKET",
-      "category": "wear",
-      "titleEn": "Full-zip Eco Fleece Hoodie Jacket",
-      "titleEl": null,
-      "brand": "Champion",
-      "descriptionEn": null,
-      "descriptionEl": null,
-      "highlightsEn": [
-        "9.3 oz. heavyweight fleece helps block out cold and chill",
-        "Brushed lining for warmth and softness",
-        "Full-zip Hoodie with drawstring for adjustability"
-      ],
-      "highlightsEl": null,
-      "translation": "none",
-      "colorLabel": "Black",
-      "colors": [
-        "black"
-      ],
-      "materials": [],
-      "attributes": {
-        "department": "men",
-        "care": "Machine Wash"
-      },
-      "dimsCm": null,
-      "weightGrams": null,
-      "priceCents": 10900,
-      "compareAtCents": null,
-      "stock": 7,
-      "license": "Amazon Reviews 2023 research release",
-      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
-      "media": [
-        {
-          "kind": "image",
-          "src": "/products/clothes/b005focnkq.webp",
-          "width": 821,
-          "height": 1200,
-          "bytes": 56552,
-          "altEn": "Full-zip Eco Fleece Hoodie Jacket by Champion",
-          "whiteGround": true
-        },
-        {
-          "kind": "image",
-          "src": "/products/clothes/b005focnkq-2.webp",
-          "width": 721,
-          "height": 1200,
-          "bytes": 43902,
-          "altEn": "Full-zip Eco Fleece Hoodie Jacket by Champion, view 2",
-          "whiteGround": false
-        }
-      ],
-      "variants": [
-        {
-          "size": "XS",
-          "stock": 2,
-          "priceCents": null
-        },
-        {
-          "size": "S",
           "stock": 0,
           "priceCents": null
         },
         {
-          "size": "M",
+          "size": "S",
           "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 3,
           "priceCents": null
         },
         {
           "size": "L",
-          "stock": 2,
+          "stock": 3,
           "priceCents": null
         },
         {
           "size": "XL",
-          "stock": 1,
+          "stock": 0,
           "priceCents": null
         }
       ]

@@ -18,7 +18,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { catalogFixtureSchema, type ProductInput } from "@/lib/catalog/input";
 import { parseListing } from "@/lib/catalog/listing";
 import { createCatalogQueries } from "@/lib/catalog/queries";
-import { archiveSource, upsertCatalog } from "@/lib/catalog/write";
+import { archiveMissing, archiveSource, upsertCatalog } from "@/lib/catalog/write";
 import * as schema from "@/lib/db/schema";
 import { amazonReviewsFixtureSchema } from "@/lib/reviews/amazon";
 import { createExternalReviewStore } from "@/lib/reviews/external-store";
@@ -96,6 +96,17 @@ describe.skipIf(url === undefined || url === "")("real clothes in place of the d
     // Still never the shop's own rating.
     const [rating] = await connection<{ rating_count: number }[]>`SELECT rating_count FROM products WHERE id = ${row!.id}`;
     expect(rating?.rating_count).toBe(0);
+  });
+
+  it("archives a garment a rebuilt fixture no longer holds, and nothing else", async () => {
+    const db = drizzle(connection, { schema });
+    const kept = clothes.slice(1).map((product) => product.sourceId);
+    expect(await archiveMissing(db, "amazon", kept)).toBe(1);
+    const [row] = await connection<{ status: string }[]>`SELECT status FROM products WHERE source = 'amazon' AND source_id = ${clothes[0]!.sourceId}`;
+    expect(row?.status).toBe("archived");
+    // Run again: nothing more to archive.
+    expect(await archiveMissing(db, "amazon", kept)).toBe(0);
+    await connection`UPDATE products SET status = 'active' WHERE source = 'amazon' AND source_id = ${clothes[0]!.sourceId}`;
   });
 
   it("keeps product photographs to the shop's own files, ABO's bucket and Amazon's image CDN", async () => {

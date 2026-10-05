@@ -76,7 +76,7 @@ import {
 import { catalogFixtureSchema, type MediaInput, type ProductInput } from "@/lib/catalog/input";
 import { catalogImageKey, hasWhiteGround, webMaster, type WebMaster } from "@/lib/catalog/photography";
 import { CATEGORIES, type CategorySlug } from "@/lib/catalog/taxonomy";
-import { archiveExcluded, archiveSource, upsertCatalog, type CatalogDatabase } from "@/lib/catalog/write";
+import { archiveExcluded, archiveMissing, archiveSource, upsertCatalog, type CatalogDatabase } from "@/lib/catalog/write";
 import * as schema from "@/lib/db/schema";
 import { SPECIMEN_CATALOG } from "@/lib/specimen/catalog";
 import { createTasteGraph } from "@/lib/reco/store";
@@ -237,6 +237,11 @@ async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boole
     out(
       `[catalog] ${options.sync ? "synced" : "seeded"} ${summary.products} products (${summary.inserted} new${summary.keptStaffEdits > 0 ? `, ${summary.keptStaffEdits} kept as staff edited them` : ""}), ${summary.media} media from ${options.fixtures.join(" + ")} in ${Date.now() - started} ms`,
     );
+    // The clothes are one fixture: a garment it no longer holds leaves the shop (docs/adr/062).
+    if (options.fixtures.includes(CLOTHES_FIXTURE)) {
+      const dropped = await archiveMissing(db, "amazon", products.filter((product) => product.source === "amazon").map((product) => product.sourceId));
+      if (dropped > 0) out(`[catalog] archived ${dropped} garment(s) the clothes fixture no longer holds`);
+    }
     return summary.inserted;
   });
   // The deploy's sync may have changed words and prices: cached search rankings start again (docs/adr/039).

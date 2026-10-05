@@ -18,8 +18,10 @@ import { freshPage } from "./support/accounts";
  * no drawn capsule.
  */
 
-const COAT = "/en/p/ridge-coat-b009ydcj12";
-const JACKET = "b005focnkq";
+/** A men's snap shirt from the specimen: its label has a fabric and a care line, and its reviewers say it fits true to size. */
+const SHIRT = "/en/p/sport-western-two-pocket-long-sleeve-snap-shirt-b07w4cfnfg";
+/** Columbia's Steens Mountain fleece jacket. */
+const JACKET = "b0084avw7i";
 
 async function noViolations(page: Page) {
   await page.waitForLoadState("load");
@@ -46,7 +48,7 @@ test("@smoke Clothing is real garments, narrowed by who they are for and by size
   const men = await tiles(page);
   expect(men.length).toBeGreaterThan(0);
   expect(men.length).toBeLessThan(all.length);
-  expect(men).toContain(new URL(COAT, "http://x").pathname);
+  expect(men).toContain(new URL(SHIRT, "http://x").pathname);
 
   const sizes = page.locator("fieldset").filter({ has: page.locator("legend", { hasText: /^Size$/ }) }).first();
   const offered = await sizes.locator("a").evaluateAll((links) => links.map((link) => new URL((link as HTMLAnchorElement).href).searchParams.get("size")));
@@ -56,21 +58,22 @@ test("@smoke Clothing is real garments, narrowed by who they are for and by size
 
 test("a garment shows its label, its size chart and what reviewers say of its fit, and is bought in a size", async ({ browser }) => {
   const page = await freshPage(browser, { country: "GR" });
-  await page.goto(COAT, { waitUntil: "domcontentloaded" });
+  await page.goto(SHIRT, { waitUntil: "domcontentloaded" });
   await expect(page.locator("main")).toContainText("For");
-  await expect(page.locator("main")).toContainText("100% cotton");
+  await expect(page.locator("main")).toContainText("55% cotton, 45% polyester");
+  await expect(page.locator("main")).toContainText("Machine Wash");
   await expect(page.locator('[data-agent-id="product:size-chart"]')).toContainText("Chest");
-  // Most of the coat's reviewers who mention fit say it runs large.
+  // Most of the shirt's reviewers who mention fit say it fits true to size.
   const block = page.locator('[data-agent-id="product:amazon-reviews"]');
   await expect(block.getByRole("heading", { name: "From Amazon.com customers" })).toBeVisible();
-  await expect(block.locator('[data-agent-id="amazon-reviews:fit"]')).toContainText("Reviewers say it runs large.");
+  await expect(block.locator('[data-agent-id="amazon-reviews:fit"]')).toContainText("Reviewers say it fits true to size.");
   await expect(block.locator('[data-agent-id="amazon-reviews:source"]')).toContainText("Amazon Reviews 2023");
 
   await page.locator('[data-agent-id="size:M"]').click();
   await page.locator('[data-agent-id^="action:add-to-cart"]').click();
   await expect(page.locator('[data-agent-id="mini-cart"]')).toBeVisible({ timeout: 15_000 });
   const cart = (await (await page.request.get("/api/cart?locale=en")).json()) as { lines: { title: string }[] };
-  expect(cart.lines[0]!.title).toBe("Ridge Coat, M");
+  expect(cart.lines[0]!.title).toBe("Sport Western Two Pocket Long Sleeve Snap Shirt, M");
   await noViolations(page);
   await page.context().close();
 });
