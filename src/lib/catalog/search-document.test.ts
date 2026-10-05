@@ -31,6 +31,11 @@ describe("buildSearchDocument", () => {
     expect(document.searchMeta).toBe("sofa καναπεσ rivet seating καθισματα");
   });
 
+  it("indexes a garment's kind too, so «φόρεμα» finds a dress with an English title", () => {
+    const dress = { ...sofa, kind: "DRESS", category: "wear" as const, titleEn: "Boatneck Sleeveless Vintage Tea Dress", brand: "Hepburn" };
+    expect(tokenize(buildSearchDocument(dress).searchMeta)).toEqual(expect.arrayContaining(["dress", "φορεμα"]));
+  });
+
   it("folds every field the way queries are folded", () => {
     const document = buildSearchDocument({ ...sofa, titleEl: "Μοντέρνος Καναπές Emerly" });
     expect(document.searchTitle).toBe("emerly modern sofa μοντερνοσ καναπεσ emerly");

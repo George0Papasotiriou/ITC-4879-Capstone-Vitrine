@@ -36,7 +36,7 @@ export const MCP_SERVER_INFO = { name: "vitrine", title: "Vitrine", version: "1.
 
 export function mcpInstructions(appUrl: string): string {
   return (
-    "Vitrine is an EU shop for furniture, lighting, rugs and home pieces, and a small clothing capsule. " +
+    "Vitrine is an EU shop for furniture, lighting, rugs and home pieces, and for clothes, shoes, bags and accessories. " +
     "Prices are in euros for the shopper's country and every figure comes from the shop's database; quote them, never work them out. " +
     "Anyone may search and read the catalogue, compare pieces, read what buyers say, and put a set or a shop window together within a budget. " +
     `The shopper's cart and orders need an agent key the shopper makes at ${new URL("/en/account/agents", appUrl).toString()}, sent as "Authorization: Bearer <key>". ` +

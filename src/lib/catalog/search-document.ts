@@ -7,7 +7,7 @@
  * Builds the weighted bilingual text a product is found by in search.
  */
 
-import { ABO_PRODUCT_KINDS, CATEGORIES, type CategorySlug } from "@/lib/catalog/taxonomy";
+import { CATEGORIES, productKindOf, type CategorySlug } from "@/lib/catalog/taxonomy";
 import { normalize } from "@/lib/search/normalize";
 import { COLORS, MATERIALS, type LabelledEntry } from "@/lib/search/vocabulary";
 
@@ -66,7 +66,8 @@ const join = (...parts: (string | null | undefined)[]) =>
   normalize(parts.filter((part): part is string => typeof part === "string" && part !== "").join(" "));
 
 export function buildSearchDocument(input: SearchDocumentInput): SearchDocument {
-  const kind = ABO_PRODUCT_KINDS[input.kind];
+  // Garments use the clothing kinds (ADR-062): without them «φόρεμα» found no dress.
+  const kind = productKindOf(input.kind);
   const category = CATEGORIES.find((candidate) => candidate.slug === input.category);
 
   const description = join(
