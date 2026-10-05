@@ -29,10 +29,18 @@ const cents = z.number().int().nonnegative();
  */
 export const ABO_MEDIA_URL = /^https:\/\/amazon-berkeley-objects\.s3\.amazonaws\.com\/(images|spins)\/original\/(?!.*\.\.)[A-Za-z0-9/_.+-]+\.(jpg|jpeg|png)$/;
 
+/** A clothes listing's photograph on Amazon's image CDN (docs/adr/062): one image name and its size suffix, nothing else. */
+export const AMAZON_MEDIA_URL = /^https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+(\._[A-Za-z0-9_,]+_)?\.(jpg|jpeg|png)$/;
+
 export const mediaInputSchema = z.object({
   kind: z.enum(["image", "spin", "model", "video"]),
-  /** An application path — `/media/<storage key>` or `/products/<file>` — or an ABO original (ABO_MEDIA_URL). */
-  src: z.string().refine((src) => /^\/(media|products)\/[A-Za-z0-9/_.-]+$/.test(src) || ABO_MEDIA_URL.test(src), "an application path or an ABO original"),
+  /** An application path — `/media/<storage key>` or `/products/<file>` — an ABO original (ABO_MEDIA_URL), or a clothes listing's photograph (AMAZON_MEDIA_URL). */
+  src: z
+    .string()
+    .refine(
+      (src) => /^\/(media|products)\/[A-Za-z0-9/_.-]+$/.test(src) || ABO_MEDIA_URL.test(src) || AMAZON_MEDIA_URL.test(src),
+      "an application path, an ABO original or an Amazon listing photograph",
+    ),
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),
   bytes: z.number().int().positive().nullable(),
@@ -52,7 +60,7 @@ export const variantInputSchema = z.object({
 
 export const productInputSchema = z
   .object({
-    source: z.enum(["abo", "capsule"]),
+    source: z.enum(["abo", "capsule", "amazon"]),
     sourceId: z.string().min(1).max(64),
     slug,
     kind: z.string().regex(/^[A-Z_]+$/),

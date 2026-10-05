@@ -108,6 +108,21 @@ export async function archiveExcluded(db: CatalogDatabase, source: "abo" | "caps
   return rows.length;
 }
 
+/**
+ * Archives every product from one source: how the drawn capsule leaves the
+ * shop once real clothes take its place (docs/adr/062). Archived products are
+ * off listings, search and their pages, but stay in the orders that bought
+ * them; nothing is deleted, so any of them can be made active again.
+ */
+export async function archiveSource(db: CatalogDatabase, source: "capsule"): Promise<number> {
+  const rows = await db
+    .update(schema.products)
+    .set({ status: "archived", updatedAt: sql`now()` })
+    .where(and(eq(schema.products.source, source), ne(schema.products.status, "archived")))
+    .returning({ id: schema.products.id });
+  return rows.length;
+}
+
 export type WriteSummary = {
   products: number;
   media: number;

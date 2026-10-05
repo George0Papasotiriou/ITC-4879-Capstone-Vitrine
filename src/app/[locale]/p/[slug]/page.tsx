@@ -149,6 +149,12 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   if (product.attributes.style !== undefined && locale === "en") {
     specs.push({ label: t("style"), value: product.attributes.style });
   }
+  // A garment's label: who it is for, its fabric as the label gives it, and its care (docs/adr/062).
+  if (product.attributes.department === "women" || product.attributes.department === "men") {
+    specs.push({ label: t("for"), value: t(`forValue.${product.attributes.department}`) });
+  }
+  if (product.attributes.fabric !== undefined && locale === "en") specs.push({ label: t("fabric"), value: product.attributes.fabric });
+  if (product.attributes.care !== undefined && locale === "en") specs.push({ label: t("care"), value: product.attributes.care });
 
   const stock =
     product.stock === 0

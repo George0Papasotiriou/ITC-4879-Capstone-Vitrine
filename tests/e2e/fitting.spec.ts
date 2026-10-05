@@ -4,7 +4,7 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * End-to-end tests for the Wear capsule and the Fitting Room: sizes, a photograph, a try-on, and deleting it.
+ * End-to-end tests for the clothes and the Fitting Room: sizes, a photograph, a try-on, and deleting it.
  */
 
 import AxeBuilder from "@axe-core/playwright";
@@ -13,9 +13,10 @@ import { expect, test, type Page } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/022 and docs/adr/023. The test server has no try-on key, so the
- * result is the piece drawn over the photograph — the same path, the same
- * storage, the same day to live, and labelled as a drawing in the interface.
+ * docs/adr/023 and docs/adr/062. The test server has no try-on key, so the
+ * result is the photograph beside the garment's own photograph — the same
+ * path, the same storage, the same day to live, and labelled in the interface
+ * as side by side, not a fitting.
  *
  * The photograph used here is a drawn figure in tests/e2e/fixtures: nobody's
  * likeness, so nobody's privacy.
@@ -24,7 +25,8 @@ import { freshPage } from "./support/accounts";
 test.describe.configure({ timeout: 90_000 });
 
 const PERSON = "tests/e2e/fixtures/person.webp";
-const PIECE = "/en/p/poplin-shirt-ecru";
+/** A real men's shirt from the clothes specimen (docs/adr/062), every size in stock. */
+const PIECE = "/en/p/short-sleeve-woven-shirt-b01b48nssw";
 
 async function giveAPhotograph(page: Page): Promise<void> {
   await page.goto("/en/fitting-room", { waitUntil: "domcontentloaded" });
@@ -46,16 +48,16 @@ test("@smoke a shopper picks a size, and the cart says which one", async ({ brow
   await page.locator(`[data-agent-id^="action:add-to-cart"]`).click();
   // The mini cart opens on success; a refusal would be a message instead.
   await expect(page.locator('[data-agent-id="mini-cart"]')).toBeVisible({ timeout: 15_000 });
-  await expect(page.locator('[data-agent-id="mini-cart"]')).toContainText("Poplin Shirt, M");
+  await expect(page.locator('[data-agent-id="mini-cart"]')).toContainText("Short Sleeve Woven Shirt, M");
 
   const cart = (await (await page.request.get("/api/cart?locale=en")).json()) as { lines: { title: string }[] };
-  expect(cart.lines[0]!.title).toBe("Poplin Shirt, M");
+  expect(cart.lines[0]!.title).toBe("Short Sleeve Woven Shirt, M");
   await page.context().close();
 });
 
 test("a size that has sold out is shown, and cannot be chosen", async ({ browser }) => {
   const page = await freshPage(browser, { country: "GR" });
-  // Every capsule piece has five sizes; the shop sells a few of them out.
+  // Every garment has five sizes; the shop sells a few of them out.
   await page.goto("/en/c/wear", { waitUntil: "domcontentloaded" });
   const links = await page.locator('[data-agent-id^="product-tile:"] a, main a[href*="/p/"]').evaluateAll((nodes) =>
     [...new Set(nodes.map((node) => (node as HTMLAnchorElement).getAttribute("href")))].filter((href): href is string => href !== null),
@@ -73,7 +75,7 @@ test("a size that has sold out is shown, and cannot be chosen", async ({ browser
       break;
     }
   }
-  expect(found, "no capsule piece had a size that had sold out").toBe(true);
+  expect(found, "no garment had a size that had sold out").toBe(true);
   await page.context().close();
 });
 
@@ -91,7 +93,7 @@ test("@smoke the Fitting Room takes a photograph, tries a piece on it, and delet
   // One piece, tried on: it is made as a job, so the page waits for it.
   await page.locator('[data-agent-id^="action:try-on:"]').first().click();
   await expect(page.locator('[data-agent-id="fitting:result:done"]')).toBeVisible({ timeout: 45_000 });
-  await expect(page.locator('[data-agent-id="fitting:results"]')).toContainText("Drawn over the photograph");
+  await expect(page.locator('[data-agent-id="fitting:results"]')).toContainText("Side by side, not a fitting");
 
   // "Delete now" takes the photograph and everything made from it.
   await page.locator('[data-agent-id="action:delete-photo"]').click();
@@ -151,7 +153,7 @@ test("one shopper cannot see or delete another's photograph", async ({ browser }
   await owner.context().close();
 });
 
-test("the capsule and the Fitting Room pass the accessibility checks", async ({ browser }) => {
+test("the clothes and the Fitting Room pass the accessibility checks", async ({ browser }) => {
   const page = await freshPage(browser, { country: "GR" });
   for (const path of ["/en/c/wear", PIECE, "/en/fitting-room", "/el/fitting-room"]) {
     // Not `networkidle`: a listing page prefetches every tile, so it never goes quiet.

@@ -19,7 +19,9 @@ import { ButtonLink } from "@/components/ui/button";
 import { SmartLink } from "@/components/ui/smart-link";
 import { requireLocale } from "@/i18n/params";
 import { routing } from "@/i18n/routing";
+import { FilterLink } from "@/components/commerce/filter-link";
 import { getCardsByIds, getFeatured, getWallPieces } from "@/lib/catalog/server";
+import { CATEGORIES } from "@/lib/catalog/taxonomy";
 import { AGAINST_A_WALL, fitsYourSpace, WALL_CLEARANCE_CM, WALL_PIECE_MIN_CM } from "@/lib/prefs/preferences";
 import { currentPreferences } from "@/lib/prefs/server";
 import { recommendationsForCurrentShopper } from "@/lib/reco/server";
@@ -84,6 +86,15 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     8,
   );
   const spaceCards = spaceFits.map((fit) => wallPieces.find((entry) => entry.card.id === fit.productId)!.card);
+
+  // "Clothes, shoes and bags" (docs/adr/061, 062): the wear ranges, which the furniture-led page would otherwise hide.
+  const shown = new Set([...onPage, ...spaceCards.map((card) => card.id)]);
+  const wearShelf = (
+    await Promise.all(
+      ([["wear", 4], ["shoes", 2], ["bags", 1], ["accessories", 1]] as const).map(([category, limit]) => getFeatured({ locale, limit, category, excludeIds: [...shown].filter((id): id is string => id !== undefined) })),
+    )
+  ).flat();
+  const wearLinks = CATEGORIES.filter((category) => ["wear", "shoes", "bags", "accessories"].includes(category.slug));
   const spaceNotes = new Map(spaceFits.map((fit) => [fit.productId, t("fitsRoom", { room: fit.room, spare: fit.spareCm })]));
 
   return (
@@ -135,6 +146,25 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
         <ProductGrid products={rail} locale={locale} className="mt-8" priorityCount={0} notes={notes} />
       </section>
+
+      {wearShelf.length === 0 ? null : (
+        <section className="border-hairline border-t py-12" aria-labelledby="wear-title" data-agent-id="home:wear" data-shelf="wear">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            <h2 id="wear-title" className="font-display text-2xl">
+              {t("wearTitle")}
+            </h2>
+            <p className="text-slate max-w-[48ch] text-sm">{t("wearNote")}</p>
+          </div>
+          <nav aria-label={t("wearLinks")} className="mt-4 flex flex-wrap gap-2">
+            {wearLinks.map((category) => (
+              <FilterLink key={category.slug} href={`/c/${category.slug}`} selected={false} selectedLabel="">
+                {locale === "el" ? category.nameEl : category.nameEn}
+              </FilterLink>
+            ))}
+          </nav>
+          <ProductGrid products={wearShelf} locale={locale} className="mt-8" priorityCount={0} />
+        </section>
+      )}
 
       {spaceCards.length === 0 ? null : (
         <section className="border-hairline border-t py-12" aria-labelledby="fits-space-title" data-agent-id="home:fits-your-space" data-shelf="fits-your-space">

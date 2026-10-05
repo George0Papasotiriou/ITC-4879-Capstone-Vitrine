@@ -96,7 +96,8 @@ const tsvector = customType<{ data: string }>({
 });
 
 /** Where a product came from; drives licensing and attribution. "staff": made in the shop at /staff/products/new (docs/adr/034). */
-export const productSource = pgEnum("product_source", ["abo", "capsule", "staff"]);
+/** Where a product comes from: ABO, the drawn capsule (archived, docs/adr/062), staff, or Amazon Reviews 2023's listings (the clothes). */
+export const productSource = pgEnum("product_source", ["abo", "capsule", "staff", "amazon"]);
 
 export const productStatus = pgEnum("product_status", ["draft", "active", "archived"]);
 
@@ -310,12 +311,13 @@ export const productMedia = pgTable(
   (t) => [
     uniqueIndex("product_media_position_key").on(t.productId, t.kind, t.position),
     index("product_media_image_embedding_idx").using("hnsw", t.imageEmbedding.op("vector_cosine_ops")),
-    // The shop's own files, or the ABO bucket's original photographs and
-    // turntable frames, served through the image optimizer (docs/adr/035
-    // addendum). Nothing else from outside: the list matches next.config.ts.
+    // The shop's own files, the ABO bucket's original photographs and
+    // turntable frames (docs/adr/035 addendum), or the clothes' listing
+    // photographs on Amazon's image CDN (docs/adr/062), all served through the
+    // image optimizer. Nothing else from outside: the list matches next.config.ts.
     check(
       "product_media_src_allowed",
-      sql`${t.src} LIKE '/%' OR ${t.src} LIKE 'https://amazon-berkeley-objects.s3.amazonaws.com/images/original/%' OR ${t.src} LIKE 'https://amazon-berkeley-objects.s3.amazonaws.com/spins/original/%'`,
+      sql`${t.src} LIKE '/%' OR ${t.src} LIKE 'https://amazon-berkeley-objects.s3.amazonaws.com/images/original/%' OR ${t.src} LIKE 'https://amazon-berkeley-objects.s3.amazonaws.com/spins/original/%' OR ${t.src} LIKE 'https://m.media-amazon.com/images/I/%'`,
     ),
   ],
 );

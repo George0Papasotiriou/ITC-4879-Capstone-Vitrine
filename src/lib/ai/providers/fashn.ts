@@ -127,10 +127,11 @@ export function createFashnDriver({ apiKey, baseUrl = FASHN_BASE_URL, fetch: sen
 }
 
 /**
- * The stand-in with no key: the garment's flat lay, composed over the
- * shopper's photograph at the size it would hang. It shows the piece against
- * the person's own colours and light, which is worth something; it is not a
- * fitting, and the interface says so in as many words.
+ * The stand-in with no key: the shopper's photograph and the garment's own
+ * photograph side by side at one height. The capsule's drawings could be laid
+ * over the person (docs/adr/023); a real product photograph, often on a model,
+ * cannot (docs/adr/062). It is not a fitting, and the interface says so in as
+ * many words.
  */
 export function createDrawnTryOnDriver(): TryOnDriver {
   return {
@@ -145,30 +146,21 @@ export function createDrawnTryOnDriver(): TryOnDriver {
       if (person === null || garment === null) return { ok: false, reason: "bad_input" };
 
       try {
-        const base = sharp(person).rotate();
-        const meta = await base.metadata();
-        const width = meta.width ?? 900;
-        const height = meta.height ?? 1200;
-
-        // The piece is drawn on the shop's white studio ground; without lifting
-        // it off that ground, compositing would paste a white box on the person.
-        const raw = await sharp(garment).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-        const pixels = raw.data;
-        for (let index = 0; index < pixels.length; index += 4) {
-          if (pixels[index]! > 236 && pixels[index + 1]! > 236 && pixels[index + 2]! > 236) pixels[index + 3] = 0;
-        }
-        const cutout = sharp(pixels, { raw: { width: raw.info.width, height: raw.info.height, channels: 4 } }).trim({ threshold: 1 });
-
-        // Where a piece sits on a standing person, roughly: centred, over the
-        // torso for tops and from the hip down for what is worn on the legs.
-        const garmentWidth = Math.round(width * (request.category === "bottoms" ? 0.34 : 0.44));
-        const piece = await cutout.resize(garmentWidth, null, { fit: "inside" }).png().toBuffer();
-        const pieceHeight = (await sharp(piece).metadata()).height ?? garmentWidth;
-        const top = Math.round(height * (request.category === "bottoms" ? 0.52 : 0.24));
-        const left = Math.round((width - garmentWidth) / 2);
-
-        const composed = await base
-          .composite([{ input: piece, top: Math.min(top, Math.max(0, height - pieceHeight)), left, blend: "over" }])
+        // The garment is a real product photograph now (docs/adr/062), often worn by a
+        // model, so it cannot be pasted onto the shopper. The stand-in shows the two side
+        // by side, the same height, on the shop's white: a preview, labelled as one, of
+        // what the try-on service will fit together once the shop has its key.
+        const height = 1200;
+        const left = await sharp(person).rotate().resize({ height, fit: "inside" }).flatten({ background: "#ffffff" }).png().toBuffer();
+        const right = await sharp(garment).resize({ height, fit: "inside" }).flatten({ background: "#ffffff" }).png().toBuffer();
+        const leftWidth = (await sharp(left).metadata()).width ?? 900;
+        const rightWidth = (await sharp(right).metadata()).width ?? 900;
+        const gutter = 48;
+        const composed = await sharp({ create: { width: leftWidth + gutter + rightWidth, height, channels: 3, background: "#ffffff" } })
+          .composite([
+            { input: left, top: 0, left: 0 },
+            { input: right, top: 0, left: leftWidth + gutter },
+          ])
           .webp({ quality: 88 })
           .toBuffer();
         return { ok: true, image: new Uint8Array(composed), contentType: "image/webp" };

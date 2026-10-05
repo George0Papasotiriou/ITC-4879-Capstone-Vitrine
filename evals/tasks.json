@@ -447,7 +447,7 @@
     {
       "id": "g39-try-on",
       "locale": "en",
-      "message": "Try the heavy cotton tee on my photo",
+      "message": "Try the short sleeve pocket tee on my photo",
       "modelOnly": true,
       "expect": {
         "approvalOrRefusal": "try_on"

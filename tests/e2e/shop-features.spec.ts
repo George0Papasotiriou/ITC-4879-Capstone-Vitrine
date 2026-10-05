@@ -19,7 +19,8 @@ import { signInAdmin } from "./support/orders";
 
 test.describe.configure({ timeout: 120_000 });
 
-const TEE = "/en/p/heavy-cotton-tee-ecru";
+/** A real tee from the clothes specimen (docs/adr/062): a top, with M in stock. */
+const TEE = "/en/p/short-sleeve-pocket-tee-b00blo0cqq";
 const SOFA = "canova-3-seater-maxi-b07g2h3l4l";
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 

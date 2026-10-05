@@ -39,7 +39,7 @@ export function createExternalReviewStore(sql: Sql) {
   async function syncAmazon(products: Readonly<Record<string, AmazonProductReviews>>): Promise<{ products: number; reviews: number }> {
     const sourceIds = Object.keys(products);
     if (sourceIds.length === 0) return { products: 0, reviews: 0 };
-    const rows = await sql<{ id: string; source_id: string }[]>`SELECT id, source_id FROM products WHERE source = 'abo' AND source_id = ANY(${sourceIds}::text[])`;
+    const rows = await sql<{ id: string; source_id: string }[]>`SELECT id, source_id FROM products WHERE source IN ('abo', 'amazon') AND source_id = ANY(${sourceIds}::text[])`;
     let reviews = 0;
     for (const row of rows) {
       const entry = products[row.source_id]!;

@@ -78,9 +78,13 @@ async function wearAsins(): Promise<Set<string>> {
 const rank = (review: KeptReview) => review.helpful * 1000 + Math.min(review.text.length, 600) / 10;
 
 async function main() {
-  const { values } = parseArgs({ options: { "dry-run": { type: "boolean", default: false }, run: { type: "boolean", default: false }, file: { type: "string" } } });
-  const asins = await wearAsins();
-  out(`${asins.size} ABO wearables (by ASIN) to look for.`);
+  const { values } = parseArgs({
+    options: { "dry-run": { type: "boolean", default: false }, run: { type: "boolean", default: false }, file: { type: "string" }, asins: { type: "string" }, out: { type: "string" } },
+  });
+  // --asins reads a list written by another step (the clothes shortlist, docs/adr/062); without it, the ABO wearables.
+  const asins = values.asins === undefined ? await wearAsins() : new Set((JSON.parse(await readFile(values.asins, "utf8")) as { asins: string[] }).asins);
+  const target = values.out ?? REVIEWS_CACHE;
+  out(`${asins.size} products (by ASIN) to look for${values.asins === undefined ? " among the ABO wearables" : ` from ${values.asins}`}.`);
   const head = await fetch(SOURCE, { method: "HEAD" }).catch(() => null);
   const size = Number(head?.headers.get("content-length") ?? 0);
   out(`Amazon Reviews 2023, Clothing_Shoes_and_Jewelry: ${(size / 1e9).toFixed(1)} GB to read once (streamed; only matching reviews are kept).`);
@@ -134,9 +138,9 @@ async function main() {
     found.set(key, entry);
   }
   for (const entry of found.values()) entry.reviews = entry.reviews.sort((a, b) => rank(b) - rank(a)).slice(0, KEEP_PER_PRODUCT);
-  await writeFile(REVIEWS_CACHE, JSON.stringify({ source: SOURCE, read, products: Object.fromEntries(found) }));
+  await writeFile(target, JSON.stringify({ source: SOURCE, read, products: Object.fromEntries(found) }));
   const total = [...found.values()].reduce((sum, entry) => sum + entry.count, 0);
-  out(`${read} reviews read in ${Math.round((Date.now() - started) / 1000)} s: ${found.size} ABO wearables have ${total} reviews. Written to ${REVIEWS_CACHE}.`);
+  out(`${read} reviews read in ${Math.round((Date.now() - started) / 1000)} s: ${found.size} products have ${total} reviews. Written to ${target}.`);
 }
 
 main().catch((error: unknown) => {

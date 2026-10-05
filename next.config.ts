@@ -28,6 +28,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "amazon-berkeley-objects.s3.amazonaws.com", pathname: "/images/original/**" },
       { protocol: "https", hostname: "amazon-berkeley-objects.s3.amazonaws.com", pathname: "/spins/original/**" },
+      // The clothes' listing photographs on Amazon's image CDN (docs/adr/062), the same way.
+      { protocol: "https", hostname: "m.media-amazon.com", pathname: "/images/I/**" },
     ],
     formats: ["image/avif", "image/webp"],
   },

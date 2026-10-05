@@ -76,7 +76,7 @@ import {
 import { catalogFixtureSchema, type MediaInput, type ProductInput } from "@/lib/catalog/input";
 import { catalogImageKey, hasWhiteGround, webMaster, type WebMaster } from "@/lib/catalog/photography";
 import { CATEGORIES, type CategorySlug } from "@/lib/catalog/taxonomy";
-import { archiveExcluded, upsertCatalog, type CatalogDatabase } from "@/lib/catalog/write";
+import { archiveExcluded, archiveSource, upsertCatalog, type CatalogDatabase } from "@/lib/catalog/write";
 import * as schema from "@/lib/db/schema";
 import { SPECIMEN_CATALOG } from "@/lib/specimen/catalog";
 import { createTasteGraph } from "@/lib/reco/store";
@@ -85,6 +85,7 @@ import { createExternalReviewStore } from "@/lib/reviews/external-store";
 import { storage } from "@/lib/storage";
 
 import { ABO_FIXTURE, aboFixture } from "./catalog-abo";
+import { CLOTHES_FIXTURE, CLOTHES_REVIEWS_FIXTURE, CLOTHES_SPECIMEN_FIXTURE } from "./catalog-clothes";
 import { AMAZON_REVIEWS_FIXTURE, WEAR_FIXTURE, WEAR_SPECIMEN_FIXTURE, wearFixture } from "./catalog-wear";
 import { importSpins, processMade, processModels } from "./catalog-media";
 
@@ -200,7 +201,9 @@ function describeReasons(reasons: Map<RejectionReason, number>): string {
  * products to a fixture therefore puts them on sale with the next deploy.
  */
 async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boolean }): Promise<void> {
-  const wantsReviews = options.fixtures.some((file) => file === WEAR_FIXTURE || file === WEAR_SPECIMEN_FIXTURE);
+  const wantsReviews = options.fixtures.some((file) => [WEAR_FIXTURE, WEAR_SPECIMEN_FIXTURE, CLOTHES_FIXTURE, CLOTHES_SPECIMEN_FIXTURE].includes(file));
+  // Real clothes replace the drawn capsule (docs/adr/062) unless the capsule is asked for by name.
+  const replacesCapsule = options.fixtures.some((file) => file === CLOTHES_FIXTURE || file === CLOTHES_SPECIMEN_FIXTURE) && !options.fixtures.includes(CAPSULE_FIXTURE);
   const products: ProductInput[] = [];
   const seen = new Set<string>();
   for (const file of options.fixtures) {
@@ -217,6 +220,10 @@ async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boole
     // database without a manual step.
     const archived = await archiveExcluded(db, "abo", [...EXCLUDED_ABO_ITEMS.keys()]);
     if (archived > 0) out(`[catalog] archived ${archived} excluded product(s)`);
+    if (replacesCapsule) {
+      const drawn = await archiveSource(db, "capsule");
+      if (drawn > 0) out(`[catalog] archived the ${drawn} drawn capsule piece(s): real clothes take their place`);
+    }
 
     if (options.ifEmpty) {
       const [row] = await db.select({ n: count() }).from(schema.products);
@@ -243,12 +250,14 @@ async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boole
     }
   }
   // The wearables' real Amazon.com reviews, for the pieces the shop has (docs/adr/061): every run, so staff hides last.
-  if (wantsReviews && existsSync(AMAZON_REVIEWS_FIXTURE)) {
-    const fixture = amazonReviewsFixtureSchema.parse(JSON.parse(await readFile(AMAZON_REVIEWS_FIXTURE, "utf8")));
+  const reviewFiles = [AMAZON_REVIEWS_FIXTURE, CLOTHES_REVIEWS_FIXTURE].filter((file) => existsSync(file));
+  if (wantsReviews && reviewFiles.length > 0) {
+    // One sync for both files: a sync removes the reviews of any product it is not given.
+    const products = Object.assign({}, ...(await Promise.all(reviewFiles.map(async (file) => amazonReviewsFixtureSchema.parse(JSON.parse(await readFile(file, "utf8"))).products))));
     const connection = postgres(process.env.DATABASE_URL as string, { max: 2, onnotice: () => {} });
     try {
-      const written = await createExternalReviewStore(connection).syncAmazon(fixture.products);
-      out(`[catalog] Amazon reviews: ${written.reviews} shown on ${written.products} wearables`);
+      const written = await createExternalReviewStore(connection).syncAmazon(products);
+      out(`[catalog] Amazon reviews: ${written.reviews} shown on ${written.products} products`);
     } finally {
       await connection.end();
     }
@@ -703,6 +712,8 @@ async function main(): Promise<void> {
       capsule: { type: "boolean", default: false },
       abo: { type: "boolean", default: false },
       "wear-specimen": { type: "boolean", default: false },
+      clothes: { type: "boolean", default: false },
+      "clothes-specimen": { type: "boolean", default: false },
       sync: { type: "boolean", default: false },
       "dry-run": { type: "boolean", default: false },
       files: { type: "string", default: "0" },
@@ -726,6 +737,8 @@ async function main(): Promise<void> {
           ...(values.capsule ? [CAPSULE_FIXTURE] : []),
           ...(values.abo ? [ABO_FIXTURE, WEAR_FIXTURE] : []),
           ...(values["wear-specimen"] ? [WEAR_SPECIMEN_FIXTURE] : []),
+          ...(values.clothes ? [CLOTHES_FIXTURE] : []),
+          ...(values["clothes-specimen"] ? [CLOTHES_SPECIMEN_FIXTURE] : []),
         ],
         ifEmpty: values["if-empty"],
         sync: values.sync,

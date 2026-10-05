@@ -29,6 +29,7 @@ describe("parseListing", () => {
         material: "leather",
         brand: "rivet",
         size: ["42", "38", "One size", "<script>"],
+        for: ["men", "women", "kids"],
         min: "100",
         max: "300",
         stock: "1",
@@ -41,6 +42,8 @@ describe("parseListing", () => {
       brands: ["rivet"],
       // Sizes in their order; "One size" is not a choice, and anything that is not a size is dropped.
       sizes: ["38", "42"],
+      // Women's first, as the range is laid out; a department the shop has not is dropped.
+      departments: ["women", "men"],
       minCents: 10_000,
       maxCents: 30_000,
       inStock: true,
@@ -56,6 +59,15 @@ describe("parseListing", () => {
     expect(listingQuery(state)).toBe("?size=38&size=42");
     expect(toggle(state, "sizes", "40").sizes).toEqual(["38", "40", "42"]);
     expect(activeFilterCount(state)).toBe(2);
+  });
+
+  it("filters clothes by who they are for, in the URL as `for` (docs/adr/062)", () => {
+    const state = parseListing({ for: "men" });
+    expect(state.departments).toEqual(["men"]);
+    expect(listingQuery(state)).toBe("?for=men");
+    expect(toggle(state, "departments", "women").departments).toEqual(["women", "men"]);
+    expect(toggle(state, "departments", "men").departments).toEqual([]);
+    expect(activeFilterCount(state)).toBe(1);
   });
 
   it("accepts comma-separated lists, as the Concierge may send them", () => {

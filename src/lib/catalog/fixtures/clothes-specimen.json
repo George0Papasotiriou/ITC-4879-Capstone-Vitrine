@@ -1,0 +1,1023 @@
+{
+  "version": 1,
+  "description": "Clothes specimen: twelve garments from Amazon Reviews 2023's listings, photographs in public/products/clothes, for the tests (docs/adr/062).",
+  "products": [
+    {
+      "source": "amazon",
+      "sourceId": "B00BLO0CQQ",
+      "slug": "short-sleeve-pocket-tee-b00blo0cqq",
+      "kind": "TOP",
+      "category": "wear",
+      "titleEn": "Short Sleeve Pocket Tee",
+      "titleEl": null,
+      "brand": "Dickies",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Anything labeled X in the catalog is the same as XL as labeled on the garment.Example:6X is the same as 6XL."
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Grey",
+      "colors": [
+        "grey"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "department": "men",
+        "fabric": "100% cotton",
+        "care": "Machine Wash"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 4400,
+      "compareAtCents": null,
+      "stock": 25,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b00blo0cqq.webp",
+          "width": 747,
+          "height": 1200,
+          "bytes": 80886,
+          "altEn": "Short Sleeve Pocket Tee by Dickies",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b00blo0cqq-2.webp",
+          "width": 1200,
+          "height": 1082,
+          "bytes": 34014,
+          "altEn": "Short Sleeve Pocket Tee by Dickies, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 0,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B01B48NSSW",
+      "slug": "short-sleeve-woven-shirt-b01b48nssw",
+      "kind": "SHIRT",
+      "category": "wear",
+      "titleEn": "Short Sleeve Woven Shirt",
+      "titleEl": null,
+      "brand": "Wrangler Authentics",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Button-front shirt with short sleeves featuring spread collar and dual button-flap chest pockets"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Red",
+      "colors": [
+        "red"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "department": "men",
+        "fabric": "100% cotton",
+        "care": "Machine Wash"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 10900,
+      "compareAtCents": null,
+      "stock": 19,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b01b48nssw.webp",
+          "width": 784,
+          "height": 1200,
+          "bytes": 82500,
+          "altEn": "Short Sleeve Woven Shirt by Wrangler Authentics",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b01b48nssw-2.webp",
+          "width": 855,
+          "height": 1200,
+          "bytes": 60546,
+          "altEn": "Short Sleeve Woven Shirt by Wrangler Authentics, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 4,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B07W4CFNFG",
+      "slug": "sport-western-two-pocket-long-sleeve-snap-shirt-b07w4cfnfg",
+      "kind": "SHIRT",
+      "category": "wear",
+      "titleEn": "Sport Western Two Pocket Long Sleeve Snap Shirt",
+      "titleEl": null,
+      "brand": "Wrangler",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "CLASSIC FIT. Designed with style in mind, this sport shirt dresses up any outfit. This western dress shirt is constructed with a classic fit through the torso and arms.",
+        "CLASSIC WESTERN STYLE. This classic western shirt is a tried and true classic. Complete with our signature Western finishes - authentic Western front and back yokes, three-snap Western cuffs, and classic snap pockets…",
+        "QUALITY MATERIALS. It's no question that this classic shirt will keep you looking sharp. Built with durable cotton blend, this work shirt will make you feel put together.",
+        "COMFORTABLE WEAR. Whether you're out to lunch or going to a business meeting, you need a reliable shirt that keeps you comfortable throughout the day.",
+        "ACCESS STORAGE. (2) Flap chest pockets with snap closure for easy-access storage."
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Black",
+      "colors": [
+        "black"
+      ],
+      "materials": [
+        "cotton",
+        "fabric"
+      ],
+      "attributes": {
+        "department": "men",
+        "fabric": "55% cotton, 45% polyester",
+        "care": "Machine Wash"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 8900,
+      "compareAtCents": null,
+      "stock": 25,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b07w4cfnfg.webp",
+          "width": 846,
+          "height": 1200,
+          "bytes": 81082,
+          "altEn": "Sport Western Two Pocket Long Sleeve Snap Shirt by Wrangler",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b07w4cfnfg-2.webp",
+          "width": 728,
+          "height": 1200,
+          "bytes": 49376,
+          "altEn": "Sport Western Two Pocket Long Sleeve Snap Shirt by Wrangler, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 8,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 3,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B00P5ZYCZE",
+      "slug": "comfortable-fit-cardigan-b00p5zycze",
+      "kind": "KNIT",
+      "category": "wear",
+      "titleEn": "Comfortable Fit Cardigan",
+      "titleEl": null,
+      "brand": "H2H",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Style no : #CMOCAL064 - Nordic Fair Isle Jacquard Shawl Collar Sweater Cardigan",
+        "V Neck Shawl collar cardigan for men made of soft, warm, durable which can with stand shrinkage and wrinkles. It not only provides comfort and elegance, but also keeps you warm in cold weather.",
+        "Machine Wash Cold, Tumble Dry Low. (Hand Wash Recommended)"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Red",
+      "colors": [
+        "red"
+      ],
+      "materials": [],
+      "attributes": {
+        "department": "men",
+        "fabric": "100% acrylic",
+        "care": "Machine Wash"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 10900,
+      "compareAtCents": null,
+      "stock": 19,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b00p5zycze.webp",
+          "width": 878,
+          "height": 1200,
+          "bytes": 250120,
+          "altEn": "Comfortable Fit Cardigan by H2H",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b00p5zycze-2.webp",
+          "width": 929,
+          "height": 1200,
+          "bytes": 274632,
+          "altEn": "Comfortable Fit Cardigan by H2H, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 0,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B01G4GENHO",
+      "slug": "thin-cotton-zip-up-hoodie-b01g4genho",
+      "kind": "KNIT",
+      "category": "wear",
+      "titleEn": "Thin Cotton Zip Up Hoodie",
+      "titleEl": null,
+      "brand": "Sofra",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Full zip up closure with pockets",
+        "The perfect year-long hoodie",
+        "Uniquely thin design",
+        "Pullover Series also available",
+        "Model is 5' 7\" with 34-25-36 measurement."
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Beige",
+      "colors": [
+        "beige"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "department": "women",
+        "fabric": "95% cotton, 5% spandex"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 8400,
+      "compareAtCents": null,
+      "stock": 35,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b01g4genho.webp",
+          "width": 673,
+          "height": 1200,
+          "bytes": 41614,
+          "altEn": "Thin Cotton Zip Up Hoodie by Sofra",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b01g4genho-2.webp",
+          "width": 597,
+          "height": 1200,
+          "bytes": 42178,
+          "altEn": "Thin Cotton Zip Up Hoodie by Sofra, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 14,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 14,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 4,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B0041G5SEC",
+      "slug": "relaxed-fit-straight-leg-jean-b0041g5sec",
+      "kind": "TROUSERS",
+      "category": "wear",
+      "titleEn": "Relaxed Fit Straight Leg Jean",
+      "titleEl": null,
+      "brand": "Lee",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "RELAXED FIT. With a loose fit through the hip and thigh, these mid-rise jeans provide all around comfort. These jeans are the classic you know and love with more colors than ever before.",
+        "POCKET STYLING. A classic fit jean designed with an authentic five-pocket style. Our bestselling relaxed fit jean is designed with a timeless five-pocket style, perfect for most occasions.",
+        "JEANS FOR ALL. This jean is available in a midweight denim with a wide variety of washes, finishes, and fits.",
+        "A LIFETIME OF QUALITY. For over 100 years, Lee has produced quality apparel with durability and long-lasting construction in mind."
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Black",
+      "colors": [
+        "black"
+      ],
+      "materials": [
+        "cotton",
+        "fabric"
+      ],
+      "attributes": {
+        "department": "women",
+        "fabric": "82% cotton, 17% polyester, 1% spandex",
+        "care": "Machine Wash"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 9900,
+      "compareAtCents": null,
+      "stock": 20,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b0041g5sec.webp",
+          "width": 500,
+          "height": 1200,
+          "bytes": 14390,
+          "altEn": "Relaxed Fit Straight Leg Jean by Lee",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b0041g5sec-2.webp",
+          "width": 745,
+          "height": 1200,
+          "bytes": 18818,
+          "altEn": "Relaxed Fit Straight Leg Jean by Lee, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 5,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 2,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B07842ZZ58",
+      "slug": "ruffled-high-waist-pants-b07842zz58",
+      "kind": "TROUSERS",
+      "category": "wear",
+      "titleEn": "Ruffled High Waist Pants",
+      "titleEl": null,
+      "brand": "GRACE KARIN",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Women's High waist Slim Fit Office Casual Pants Trousers with Pockets",
+        "Functional two sides pockets, Elasticated waist with tie, High Waist design, Cropped length",
+        "A great choose for Business, Office, Celebrations, Dates, Cocktail night out and any occasions you want it for"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Green",
+      "colors": [
+        "green"
+      ],
+      "materials": [
+        "fabric"
+      ],
+      "attributes": {
+        "department": "women",
+        "fabric": "95% polyester, 5% elastane"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 12900,
+      "compareAtCents": null,
+      "stock": 23,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b07842zz58.webp",
+          "width": 460,
+          "height": 1200,
+          "bytes": 17678,
+          "altEn": "Ruffled High Waist Pants by GRACE KARIN",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b07842zz58-2.webp",
+          "width": 334,
+          "height": 1200,
+          "bytes": 18268,
+          "altEn": "Ruffled High Waist Pants by GRACE KARIN, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 3,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 2,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B01FRRQ0GI",
+      "slug": "print-high-waist-maxi-skirt-b01frrq0gi",
+      "kind": "SKIRT",
+      "category": "wear",
+      "titleEn": "Print High Waist Maxi Skirt",
+      "titleEl": null,
+      "brand": "Novia's Choice",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Features: Elastic waistband with maximum stretch for comfortable fit, versatile skirt can also be worn as a dress, feminine and flattering that every wardrobe needs",
+        "Occasions: Perfect for beach, party, travel, vocation, shopping and daily wear. It can match up with T-shirt or crop top",
+        "Washing Instruction: Hand wash Gently, Machine wash, do not bleach, do not tumble dry"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Black",
+      "colors": [
+        "black"
+      ],
+      "materials": [
+        "fabric"
+      ],
+      "attributes": {
+        "department": "women",
+        "fabric": "95% polyester, 5% spandex",
+        "care": "Machine Wash"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 10900,
+      "compareAtCents": null,
+      "stock": 26,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b01frrq0gi.webp",
+          "width": 701,
+          "height": 1200,
+          "bytes": 115662,
+          "altEn": "Print High Waist Maxi Skirt by Novia's Choice",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b01frrq0gi-2.webp",
+          "width": 1200,
+          "height": 1117,
+          "bytes": 79910,
+          "altEn": "Print High Waist Maxi Skirt by Novia's Choice, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 1,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 1,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B016XUCYZO",
+      "slug": "boatneck-sleeveless-vintage-tea-dress-b016xucyzo",
+      "kind": "DRESS",
+      "category": "wear",
+      "titleEn": "Boatneck Sleeveless Vintage Tea Dress",
+      "titleEl": null,
+      "brand": "GRACE KARIN",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Features: Sleeveless, Boatneck, A-Line silhouette, Concealed zipper at back, All kinds of patterns",
+        "Occasions: The sleeveless a-line dress is perfect for daily casual, ball, party, church, wedding guest, homecoming, banquet and other occasions",
+        "Hand Wash COLD, Low Iron if Necessary"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "White",
+      "colors": [
+        "white"
+      ],
+      "materials": [],
+      "attributes": {
+        "department": "women",
+        "care": "Hand Wash Only"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 20900,
+      "compareAtCents": null,
+      "stock": 37,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b016xucyzo.webp",
+          "width": 1007,
+          "height": 1200,
+          "bytes": 95646,
+          "altEn": "Boatneck Sleeveless Vintage Tea Dress by GRACE KARIN",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b016xucyzo-2.webp",
+          "width": 944,
+          "height": 1200,
+          "bytes": 121288,
+          "altEn": "Boatneck Sleeveless Vintage Tea Dress by GRACE KARIN, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 7,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 6,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B01FRX8SI0",
+      "slug": "v-neck-pattern-pocket-maxi-long-dress-b01frx8si0",
+      "kind": "DRESS",
+      "category": "wear",
+      "titleEn": "V-Neck Pattern Pocket Maxi Long Dress",
+      "titleEl": null,
+      "brand": "OUGES",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "The fabric is comfortable and stretchy. Easy to dress up and down.",
+        "Floral patterned V neck design with pockets, side Hidden Zipper.",
+        "You will look gorgeous with this maxi Long dress on.",
+        "Hand wash ,or low temperature for machine washing is recommended.",
+        "This dress perfect for summer,beach,vacation,date,or casual etc"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Blue",
+      "colors": [
+        "blue"
+      ],
+      "materials": [
+        "fabric"
+      ],
+      "attributes": {
+        "department": "women",
+        "fabric": "95% polyester, 5% spandex",
+        "care": "Hand Wash Only"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 13900,
+      "compareAtCents": null,
+      "stock": 12,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b01frx8si0.webp",
+          "width": 390,
+          "height": 1200,
+          "bytes": 54756,
+          "altEn": "V-Neck Pattern Pocket Maxi Long Dress by OUGES",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b01frx8si0-2.webp",
+          "width": 930,
+          "height": 1200,
+          "bytes": 63844,
+          "altEn": "V-Neck Pattern Pocket Maxi Long Dress by OUGES, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 1,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 4,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 1,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B009YDCJ12",
+      "slug": "ridge-coat-b009ydcj12",
+      "kind": "COAT",
+      "category": "wear",
+      "titleEn": "Ridge Coat",
+      "titleEl": null,
+      "brand": "Carhartt",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "Carhartt Company Gear Collection",
+        "Front-zip coat featuring Sherpa-lined body with quilted nylon lining in sleeves",
+        "Contrast fold-over collar",
+        "Zippered side-entry pocket on chest",
+        "Patch pockets at front"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Brown",
+      "colors": [
+        "brown"
+      ],
+      "materials": [
+        "cotton"
+      ],
+      "attributes": {
+        "department": "men",
+        "fabric": "100% cotton",
+        "care": "Machine Wash"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 22900,
+      "compareAtCents": null,
+      "stock": 29,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b009ydcj12.webp",
+          "width": 993,
+          "height": 1200,
+          "bytes": 57636,
+          "altEn": "Ridge Coat by Carhartt",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b009ydcj12-2.webp",
+          "width": 899,
+          "height": 1200,
+          "bytes": 37520,
+          "altEn": "Ridge Coat by Carhartt, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 6,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 9,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 3,
+          "priceCents": null
+        }
+      ]
+    },
+    {
+      "source": "amazon",
+      "sourceId": "B005FOCNKQ",
+      "slug": "full-zip-eco-fleece-hoodie-jacket-b005focnkq",
+      "kind": "JACKET",
+      "category": "wear",
+      "titleEn": "Full-zip Eco Fleece Hoodie Jacket",
+      "titleEl": null,
+      "brand": "Champion",
+      "descriptionEn": null,
+      "descriptionEl": null,
+      "highlightsEn": [
+        "9.3 oz. heavyweight fleece helps block out cold and chill",
+        "Brushed lining for warmth and softness",
+        "Full-zip Hoodie with drawstring for adjustability"
+      ],
+      "highlightsEl": null,
+      "translation": "none",
+      "colorLabel": "Black",
+      "colors": [
+        "black"
+      ],
+      "materials": [],
+      "attributes": {
+        "department": "men",
+        "care": "Machine Wash"
+      },
+      "dimsCm": null,
+      "weightGrams": null,
+      "priceCents": 10900,
+      "compareAtCents": null,
+      "stock": 7,
+      "license": "Amazon Reviews 2023 research release",
+      "attribution": "Product listing and photographs from Amazon.com, via the Amazon Reviews 2023 dataset (Y. Hou, J. Li, Z. He, A. Yan, X. Chen, J. McAuley, McAuley Lab, UC San Diego, 2024), a research release; shown for an academic project. Prices are the shop's own.",
+      "media": [
+        {
+          "kind": "image",
+          "src": "/products/clothes/b005focnkq.webp",
+          "width": 821,
+          "height": 1200,
+          "bytes": 56552,
+          "altEn": "Full-zip Eco Fleece Hoodie Jacket by Champion",
+          "whiteGround": true
+        },
+        {
+          "kind": "image",
+          "src": "/products/clothes/b005focnkq-2.webp",
+          "width": 721,
+          "height": 1200,
+          "bytes": 43902,
+          "altEn": "Full-zip Eco Fleece Hoodie Jacket by Champion, view 2",
+          "whiteGround": false
+        }
+      ],
+      "variants": [
+        {
+          "size": "XS",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "S",
+          "stock": 0,
+          "priceCents": null
+        },
+        {
+          "size": "M",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "L",
+          "stock": 2,
+          "priceCents": null
+        },
+        {
+          "size": "XL",
+          "stock": 1,
+          "priceCents": null
+        }
+      ]
+    }
+  ]
+}

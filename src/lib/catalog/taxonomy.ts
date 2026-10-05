@@ -115,8 +115,8 @@ export const CATEGORIES: readonly Category[] = [
     slug: "wear",
     nameEn: "Clothing",
     nameEl: "Ρούχα",
-    descriptionEn: "A capsule of a few good pieces, in sizes.",
-    descriptionEl: "Μια κάψουλα από λίγα καλά κομμάτια, σε μεγέθη.",
+    descriptionEn: "Tops, shirts, knitwear, trousers, skirts, dresses, coats and jackets for women and men, in sizes XS to XL.",
+    descriptionEl: "Μπλούζες, πουκάμισα, πλεκτά, παντελόνια, φούστες, φορέματα, παλτά και μπουφάν για γυναίκες και άντρες, σε μεγέθη XS έως XL.",
     position: 8,
   },
   {

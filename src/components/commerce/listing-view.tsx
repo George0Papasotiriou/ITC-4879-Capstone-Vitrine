@@ -84,6 +84,7 @@ export async function ListingView({
       href: href(toggle(state, "brands", slug)),
     })),
     ...state.sizes.map((size) => ({ label: t("sizeChip", { size }), href: href(toggle(state, "sizes", size)) })),
+    ...state.departments.map((department) => ({ label: t(`department.${department === "men" ? "men" : "women"}`), href: href(toggle(state, "departments", department)) })),
     ...(state.minCents === null && state.maxCents === null
       ? []
       : [{ label: priceLabel(state.minCents, state.maxCents), href: href(withChanges(state, { minCents: null, maxCents: null })) }]),
@@ -91,7 +92,13 @@ export async function ListingView({
   ];
 
   const facetGroups = [
-    // Size first where there are sizes: it is what a shoe shopper filters by before anything else.
+    // Who it is for, then size, where there are sizes: what a clothes or shoe shopper filters by before anything else (docs/adr/061, 062).
+    {
+      key: "departments" as const,
+      title: t("department.title"),
+      values: listing.facets.departments.map((facet) => ({ ...facet, label: t(`department.${facet.value === "men" ? "men" : "women"}`) })),
+      selected: state.departments,
+    },
     { key: "sizes" as const, title: t("size"), values: listing.facets.sizes, selected: state.sizes },
     { key: "colors" as const, title: t("color"), values: listing.facets.colors, selected: state.colors },
     { key: "materials" as const, title: t("material"), values: listing.facets.materials, selected: state.materials },

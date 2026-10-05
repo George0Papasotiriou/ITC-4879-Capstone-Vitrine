@@ -16,7 +16,8 @@ import { freshPage, signUpAndConfirm } from "./support/accounts";
 
 test.describe.configure({ timeout: 120_000 });
 
-const TEE = "/en/p/heavy-cotton-tee-ecru";
+/** A real tee from the clothes specimen (docs/adr/062): a top, with M in stock. */
+const TEE = "/en/p/short-sleeve-pocket-tee-b00blo0cqq";
 const SOFA = "/en/p/westview-extra-deep-down-filled-leather-sofa-couch-b082vlyqwx";
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 

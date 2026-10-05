@@ -52,7 +52,7 @@ describe("catalogue prices by country", () => {
       products: [card],
       total: 1,
       pageCount: 1,
-      facets: { colors: [], materials: [], brands: [], sizes: [], price: { minCents: 1_240, maxCents: 124_000 } },
+      facets: { colors: [], materials: [], brands: [], sizes: [], departments: [], price: { minCents: 1_240, maxCents: 124_000 } },
     };
     const swedish = localizeListing(listing, "SE");
     expect(swedish.products[0]!.price.cents).toBe(12_500);

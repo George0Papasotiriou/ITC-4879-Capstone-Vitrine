@@ -218,6 +218,13 @@
       "when": 1791154095151,
       "tag": "0030_external_reviews",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1791160032699,
+      "tag": "0031_clothes_from_amazon_listings",
+      "breakpoints": true
     }
   ]
 }

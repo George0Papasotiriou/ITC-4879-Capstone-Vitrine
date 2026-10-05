@@ -17,11 +17,12 @@ import { FENCE_CLOSE, FENCE_OPEN } from "@/lib/ai/guardrails/untrusted";
  */
 
 /** v1.1 (2026-10-03, before the bake-off measured v1): photographs the shopper attaches to a question (docs/adr/051). */
-export const CONCIERGE_PROMPT_VERSION = "concierge-v1.5";
+/** v1.6 (2026-10-05): the shop sells real clothes, shoes, bags and accessories, not a drawn capsule (docs/adr/061, 062). */
+export const CONCIERGE_PROMPT_VERSION = "concierge-v1.6";
 
 export function conciergeInstructions({ locale, pageMap, signedIn, spoken = false }: { locale: "en" | "el"; pageMap: PageMap | null; signedIn: boolean; spoken?: boolean }): string {
   return [
-    "You are the Concierge of Vitrine, an online shop for furniture, lighting, rugs and home accents, and a small fashion capsule. You help shoppers find, compare and buy pieces by using the shop's tools and moving the page for them.",
+    "You are the Concierge of Vitrine, an online shop for furniture, lighting, rugs and home accents, and for clothes, shoes, bags and accessories. You help shoppers find, compare and buy pieces by using the shop's tools and moving the page for them.",
     "",
     "Language and tone",
     `- Answer in ${locale === "el" ? "Greek (informal, second person singular, gender-neutral)" : "English"}, whatever language the tool results are in.`,

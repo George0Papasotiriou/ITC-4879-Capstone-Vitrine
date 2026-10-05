@@ -21,7 +21,7 @@ import { freshPage, LAMP } from "./support/accounts";
  * the planner).
  */
 
-const GARMENT = "/en/p/poplin-shirt-ecru";
+const GARMENT = "/en/p/short-sleeve-woven-shirt-b01b48nssw";
 
 test("@smoke a piece can be seen in 3D, at the size the catalogue gives", async ({ browser }) => {
   const page = await freshPage(browser, { country: "GR" });
@@ -73,7 +73,7 @@ test("a piece with no measurements is not offered a shape", async ({ browser }) 
   await expect(page.locator('[data-agent-id^="action:view-3d:"]')).toHaveCount(0);
   await expect(page.locator('[data-agent-id^="action:try-it-on:"]')).toBeVisible();
 
-  const refused = await page.request.get("/api/models/poplin-shirt-ecru");
+  const refused = await page.request.get("/api/models/short-sleeve-woven-shirt-b01b48nssw");
   expect(refused.status()).toBe(404);
 
   await page.context().close();

@@ -48,7 +48,7 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/lib/db/migrate.ts",
-    "db:setup": "pnpm db:migrate && tsx scripts/catalog.ts seed --collection --capsule --abo --sync && tsx scripts/support.ts macros && tsx scripts/reco.ts simulate --if-empty && tsx scripts/reco.ts rebuild --if-empty && tsx scripts/showcase.ts ensure",
+    "db:setup": "pnpm db:migrate && tsx scripts/catalog.ts seed --collection --clothes --abo --sync && tsx scripts/support.ts macros && tsx scripts/reco.ts simulate --if-empty && tsx scripts/reco.ts rebuild --if-empty && tsx scripts/showcase.ts ensure",
     "db:studio": "drizzle-kit studio",
     "evals:search": "node scripts/local.mjs run scripts/evaluate-search.ts",
     "evals:e1-pool": "node scripts/local.mjs run scripts/e1-pool.ts",
