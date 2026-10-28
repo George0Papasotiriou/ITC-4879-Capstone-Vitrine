@@ -95,6 +95,22 @@ describe.skipIf(url === undefined || url === "")("catalogue queries", () => {
     expect(both.total).toBeLessThanOrEqual(Math.min(first!.count, material.count));
   });
 
+  it("narrows a category to one kind of piece, as the categories menu links it (docs/adr/067)", async () => {
+    const lighting = fixture.filter((product) => product.category === "lighting");
+    const lamps = lighting.filter((product) => product.kind === "LAMP" || product.kind === "HOME_LIGHTING_AND_LAMPS").length;
+    expect(lamps).toBeGreaterThan(0);
+    expect(lamps).toBeLessThan(lighting.length);
+
+    const listing = await list("lighting", { kind: ["LAMP", "HOME_LIGHTING_AND_LAMPS"] });
+    expect(listing.total).toBe(lamps);
+    for (const card of listing.products) expect(["LAMP", "HOME_LIGHTING_AND_LAMPS"]).toContain(card.kind);
+    // The other facets are counted within the kind: no colour can count more pieces than there are lamps.
+    expect(listing.facets.colors.length).toBeGreaterThan(0);
+    for (const facet of listing.facets.colors) expect(facet.count).toBeLessThanOrEqual(lamps);
+    // A kind the category does not have shows nothing, rather than everything.
+    expect((await list("lighting", { kind: "SOFA" })).total).toBe(0);
+  });
+
   it("filters by price range and availability", async () => {
     const cheap = await list(null, { max: "150" });
     for (const card of cheap.products) expect(card.price.cents).toBeLessThanOrEqual(15_000);

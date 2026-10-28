@@ -9,6 +9,7 @@
 
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
+import { cache } from "react";
 import { connection } from "next/server";
 
 import { auth } from "@/lib/auth/server";
@@ -47,6 +48,14 @@ export async function currentUser(): Promise<CurrentUser | null> {
     sessionId: session.session.id,
   };
 }
+
+/**
+ * The same, read once per request for the read-only pieces of the page shell
+ * (the header's sign-in icon, the price-drop badges in the header and the
+ * bar), so three of them cost one session lookup. Not for actions or pages
+ * that change the session: they read it fresh with currentUser().
+ */
+export const shellUser = cache(currentUser);
 
 /** Where to send someone who must sign in first, returning them here afterwards. */
 export function signInPath(locale: string, returnTo: string): string {

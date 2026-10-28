@@ -654,3 +654,13 @@
   background: radial-gradient(120% 90% at 18% 10%, color-mix(in oklab, var(--color-gilt-light) 40%, transparent), transparent 60%);
   mix-blend-mode: soft-light;
 }
+
+/* The Concierge bubble (docs/adr/067) gives way to the user-study panel, which
+   uses the same corner, and rises above a room board's total bar. Unlayered,
+   so it wins over the bubble's own utilities. */
+html:has([data-agent-id="study:panel"]) [data-concierge-bubble] {
+  display: none;
+}
+html:has([data-agent-id="board:total"]) [data-concierge-bubble] {
+  bottom: 6.5rem;
+}

@@ -42,7 +42,7 @@ function Panel({ id, title, lede, children }: { id: string; title: string; lede?
   return (
     <section aria-labelledby={id} className="border-hairline flex flex-col gap-4 border-t pt-6">
       <div className="flex flex-col gap-1">
-        <h3 id={id} className="text-lg font-medium">
+        <h3 id={id} className="scroll-mt-32 text-lg font-medium lg:scroll-mt-24">
           {title}
         </h3>
         {lede !== undefined ? <p className="text-slate max-w-[60ch] text-sm">{lede}</p> : null}

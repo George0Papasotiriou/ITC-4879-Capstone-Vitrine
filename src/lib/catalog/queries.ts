@@ -185,12 +185,14 @@ export function createCatalogQueries(sql: Sql) {
 
   const inStockCondition = sql`EXISTS (SELECT 1 FROM product_variants v WHERE v.product_id = p.id AND v.stock > 0)`;
 
-  type Facet = "colors" | "materials" | "brands" | "sizes" | "departments";
+  type Facet = "kinds" | "colors" | "materials" | "brands" | "sizes" | "departments";
 
   /** WHERE conditions for a listing, optionally leaving one facet out (for that facet's counts). */
   function conditions(category: string | null, state: ListingState, except?: Facet) {
     const parts = [sql`p.status = 'active'`];
     if (category !== null) parts.push(sql`c.slug = ${category}`);
+    // One kind of piece within the category, from the categories menu (docs/adr/067).
+    if (except !== "kinds" && state.kinds.length > 0) parts.push(sql`p.kind = ANY(${state.kinds}::text[])`);
     if (except !== "colors" && state.colors.length > 0) parts.push(sql`p.colors && ${state.colors}::text[]`);
     if (except !== "materials" && state.materials.length > 0) parts.push(sql`p.materials && ${state.materials}::text[]`);
     if (except !== "brands" && state.brands.length > 0) parts.push(sql`b.slug = ANY(${state.brands}::text[])`);

@@ -12,6 +12,7 @@ import Image from "next/image";
 import { headers } from "next/headers";
 import { getFormatter, getTranslations } from "next-intl/server";
 
+import { AccountNav, type AccountNavItem, type AccountNavPage } from "@/components/account/account-nav";
 import { FormMessage } from "@/components/account/auth-forms";
 import { PasskeysPanel, PasswordPanel, SessionsPanel, SignOutButton, TwoFactorPanel, type PasskeyItem, type SessionItem } from "@/components/account/security";
 import { WatchList, type WatchItem } from "@/components/commerce/watch-list";
@@ -56,11 +57,12 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
   const t = await getTranslations("account");
   const p = await getTranslations("personalization");
   const o = await getTranslations("order");
+  const n = await getTranslations("accountNav");
   const personalizationEnabled = (await currentActor()) !== null;
   const user = await currentUser();
 
   const privacy = (
-    <section className="border-hairline mt-16 border-t pt-10" aria-labelledby="privacy-heading">
+    <section id="privacy" className="border-hairline mt-16 scroll-mt-32 border-t pt-10 lg:scroll-mt-24" aria-labelledby="privacy-heading">
       <h2 id="privacy-heading" className="font-display text-2xl">
         {t("privacy")}
       </h2>
@@ -161,106 +163,130 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
     }))
     .sort((a, b) => Number(b.current) - Number(a.current) || b.createdAt.localeCompare(a.createdAt));
 
+  // The quick navigation (docs/adr/067): every section of this page, then the account's other pages.
+  const navItems: AccountNavItem[] = [
+    ...(isStaff(user.roles) ? [{ id: "desks", label: n("desks") }] : []),
+    ...(dropItems.length > 0 ? [{ id: "drops", label: n("drops") }] : []),
+    { id: "orders", label: n("orders") },
+    { id: "watches", label: n("watches") },
+    { id: "security", label: n("security") },
+    { id: "passkeys", label: n("passkeys"), level: 1 },
+    { id: "two-factor", label: n("twoFactor"), level: 1 },
+    { id: "sessions", label: n("sessions"), level: 1 },
+    { id: "password", label: n("password"), level: 1 },
+    { id: "privacy", label: n("privacy") },
+  ];
+  const navPages: AccountNavPage[] = [
+    { href: "/account/preferences", label: n("preferences"), agentId: "account:nav-preferences-page" },
+    { href: "/account/data", label: n("data"), agentId: "account:nav-data-page" },
+    { href: "/account/agents", label: n("agents"), agentId: "account:nav-agents-page" },
+  ];
+
   return (
-    <main className="mx-auto w-full max-w-[1100px] px-6 py-10 md:px-10 md:py-16" data-agent-id="account:signed-in">
-      {verified ? (
-        <div className="mb-8">
-          <FormMessage tone="info">{t("verifiedBanner")}</FormMessage>
+    <main className="mx-auto w-full max-w-[1320px] px-6 pb-10 md:px-10 md:pb-16 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12 lg:pt-16" data-agent-id="account:signed-in">
+      <AccountNav label={n("label")} items={navItems} more={{ label: n("more"), pages: navPages }} />
+      <div className="min-w-0 pt-8 lg:pt-0">
+        {verified ? (
+          <div className="mb-8">
+            <FormMessage tone="info">{t("verifiedBanner")}</FormMessage>
+          </div>
+        ) : null}
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <h1 className="font-display text-3xl">{t("hello", { name: user.name })}</h1>
+            <p className="text-slate mt-2" data-agent-id="account:email">
+              {t("signedInAs", { email: user.email })}
+            </p>
+            {isStaff(user.roles) ? <p className="text-slate mt-1 text-sm">{t("roles", { roles: user.roles.map((role) => t(ROLE_KEYS[role])).join(", ") })}</p> : null}
+          </div>
+          <SignOutButton locale={locale} />
         </div>
-      ) : null}
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <h1 className="font-display text-3xl">{t("hello", { name: user.name })}</h1>
-          <p className="text-slate mt-2" data-agent-id="account:email">
-            {t("signedInAs", { email: user.email })}
-          </p>
-          {isStaff(user.roles) ? <p className="text-slate mt-1 text-sm">{t("roles", { roles: user.roles.map((role) => t(ROLE_KEYS[role])).join(", ") })}</p> : null}
+        {!user.emailVerified ? (
+          <div className="mt-6">
+            <FormMessage tone="info">{t("unverified")}</FormMessage>
+          </div>
+        ) : null}
+        <div id="desks" className="scroll-mt-32 lg:scroll-mt-24">
+          <DeskLinks roles={user.roles} className="mt-8" />
         </div>
-        <SignOutButton locale={locale} />
-      </div>
-      {!user.emailVerified ? (
-        <div className="mt-6">
-          <FormMessage tone="info">{t("unverified")}</FormMessage>
-        </div>
-      ) : null}
-      <DeskLinks roles={user.roles} className="mt-8" />
 
-      {dropItems.length === 0 ? null : (
-        <section className="border-hairline rounded-plinth mt-10 border bg-white p-5" aria-labelledby="drops-heading" data-agent-id="account:drops">
-          <h2 id="drops-heading" className="font-display text-xl">
-            {t("drops.title", { count: dropItems.length })}
-          </h2>
-          <ul className="mt-3 flex flex-col gap-2 text-sm">
-            {dropItems.map((drop) => (
-              <li key={drop.id} data-agent-id={`account:drop:${drop.card.id}`}>
-                <SmartLink href={`/p/${drop.card.slug}`} className="underline-offset-4">
-                  {drop.card.title}
-                </SmartLink>{" "}
-                <span className="text-slate tabular">
-                  {t("drops.line", { price: formatMoney(drop.card.price, locale), target: formatMoney(money(drop.targetCents, drop.card.price.currency), locale) })}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <MarkDropsSeen ids={dropItems.map((drop) => drop.id)} />
-        </section>
-      )}
-
-      <section className="mt-12" aria-labelledby="orders-heading">
-        <h2 id="orders-heading" className="font-display text-2xl">
-          {t("orders")}
-        </h2>
-        {orders.length === 0 ? (
-          <p className="text-slate mt-4 max-w-[60ch]">{t("ordersEmpty", { email: user.email })}</p>
-        ) : (
-          <ul className="border-hairline divide-hairline mt-6 divide-y border-y" data-agent-id="account:orders">
-            {orders.map((order) => (
-              <li key={order.id}>
-                <SmartLink
-                  href={`/orders/${order.id}`}
-                  className="hover:bg-dusk/[0.03] flex items-center gap-4 py-4 no-underline transition-colors"
-                  aria-label={t("viewOrder", { number: order.number })}
-                  data-agent-id={`account:order:${order.number}`}
-                >
-                  <span className="bg-plinth rounded-plinth relative size-16 shrink-0 overflow-hidden">
-                    {order.imageSrc !== null ? <Image src={order.imageSrc} alt="" fill sizes="64px" className="object-contain mix-blend-multiply" /> : null}
+        {dropItems.length === 0 ? null : (
+          <section id="drops" className="border-hairline rounded-plinth mt-10 scroll-mt-32 border bg-white p-5 lg:scroll-mt-24" aria-labelledby="drops-heading" data-agent-id="account:drops">
+            <h2 id="drops-heading" className="font-display text-xl">
+              {t("drops.title", { count: dropItems.length })}
+            </h2>
+            <ul className="mt-3 flex flex-col gap-2 text-sm">
+              {dropItems.map((drop) => (
+                <li key={drop.id} data-agent-id={`account:drop:${drop.card.id}`}>
+                  <SmartLink href={`/p/${drop.card.slug}`} className="underline-offset-4">
+                    {drop.card.title}
+                  </SmartLink>{" "}
+                  <span className="text-slate tabular">
+                    {t("drops.line", { price: formatMoney(drop.card.price, locale), target: formatMoney(money(drop.targetCents, drop.card.price.currency), locale) })}
                   </span>
-                  <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="font-medium">{order.number}</span>
-                    <span className="text-slate text-sm">
-                      {format.dateTime(order.createdAt, { dateStyle: "medium" })} · {t("orderItems", { count: order.itemCount })}
-                    </span>
-                  </span>
-                  <span className="flex shrink-0 flex-col items-end gap-1 text-sm">
-                    <span className="tabular font-medium">{formatMoney(order.total, locale)}</span>
-                    <span className="text-slate">{o(`status.${order.status}`)}</span>
-                  </span>
-                </SmartLink>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+            <MarkDropsSeen ids={dropItems.map((drop) => drop.id)} />
+          </section>
         )}
-      </section>
 
-      <section className="mt-16" aria-labelledby="watches-heading">
-        <h2 id="watches-heading" className="font-display text-2xl">
-          {t("watches.title")}
-        </h2>
-        <p className="text-slate mt-2 max-w-[60ch] text-sm">{t("watches.lede")}</p>
-        <WatchList items={watchItems} />
-      </section>
+        <section id="orders" className="mt-12 scroll-mt-32 lg:scroll-mt-24" aria-labelledby="orders-heading">
+          <h2 id="orders-heading" className="font-display text-2xl">
+            {t("orders")}
+          </h2>
+          {orders.length === 0 ? (
+            <p className="text-slate mt-4 max-w-[60ch]">{t("ordersEmpty", { email: user.email })}</p>
+          ) : (
+            <ul className="border-hairline divide-hairline mt-6 divide-y border-y" data-agent-id="account:orders">
+              {orders.map((order) => (
+                <li key={order.id}>
+                  <SmartLink
+                    href={`/orders/${order.id}`}
+                    className="hover:bg-dusk/[0.03] flex items-center gap-4 py-4 no-underline transition-colors"
+                    aria-label={t("viewOrder", { number: order.number })}
+                    data-agent-id={`account:order:${order.number}`}
+                  >
+                    <span className="bg-plinth rounded-plinth relative size-16 shrink-0 overflow-hidden">
+                      {order.imageSrc !== null ? <Image src={order.imageSrc} alt="" fill sizes="64px" className="object-contain mix-blend-multiply" /> : null}
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="font-medium">{order.number}</span>
+                      <span className="text-slate text-sm">
+                        {format.dateTime(order.createdAt, { dateStyle: "medium" })} · {t("orderItems", { count: order.itemCount })}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 flex-col items-end gap-1 text-sm">
+                      <span className="tabular font-medium">{formatMoney(order.total, locale)}</span>
+                      <span className="text-slate">{o(`status.${order.status}`)}</span>
+                    </span>
+                  </SmartLink>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
-      <section className="mt-16 flex flex-col gap-8" aria-labelledby="security-heading">
-        <h2 id="security-heading" className="font-display text-2xl">
-          {t("security")}
-        </h2>
-        <PasskeysPanel passkeys={passkeyItems} />
-        <TwoFactorPanel enabled={user.twoFactorEnabled} />
-        <SessionsPanel sessions={sessionItems} />
-        <PasswordPanel />
-      </section>
+        <section id="watches" className="mt-16 scroll-mt-32 lg:scroll-mt-24" aria-labelledby="watches-heading">
+          <h2 id="watches-heading" className="font-display text-2xl">
+            {t("watches.title")}
+          </h2>
+          <p className="text-slate mt-2 max-w-[60ch] text-sm">{t("watches.lede")}</p>
+          <WatchList items={watchItems} />
+        </section>
 
-      {privacy}
+        <section id="security" className="mt-16 flex scroll-mt-32 flex-col gap-8 lg:scroll-mt-24" aria-labelledby="security-heading">
+          <h2 id="security-heading" className="font-display text-2xl">
+            {t("security")}
+          </h2>
+          <PasskeysPanel passkeys={passkeyItems} />
+          <TwoFactorPanel enabled={user.twoFactorEnabled} />
+          <SessionsPanel sessions={sessionItems} />
+          <PasswordPanel />
+        </section>
+
+        {privacy}
+      </div>
     </main>
   );
 }

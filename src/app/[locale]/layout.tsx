@@ -25,6 +25,7 @@ import { WebMcp } from "@/components/concierge/webmcp";
 import { Footer } from "@/components/shell/footer";
 import { Header } from "@/components/shell/header";
 import { MobileBar } from "@/components/shell/mobile-bar";
+import { ConciergeBubble } from "@/components/concierge/concierge-bubble";
 import { ServiceWorker } from "@/components/shell/service-worker";
 import { Toaster } from "@/components/ui/toast";
 import { publicOrigin } from "@/env";
@@ -143,6 +144,8 @@ export default async function LocaleLayout({
 
           <Footer />
           <MobileBar />
+          {/* After the header and the bar, so their toggles stay the first in the page (docs/adr/067). */}
+          <ConciergeBubble />
           <ComfortLayer />
           <InstantSearchLayer />
           <ShelfTracker />

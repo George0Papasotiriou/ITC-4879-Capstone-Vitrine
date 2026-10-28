@@ -25,6 +25,7 @@ describe("parseListing", () => {
   it("reads every filter from the query string", () => {
     expect(
       parseListing({
+        kind: ["SOFA", "CHAIR", "NOT_A_KIND"],
         color: ["grey", "black"],
         material: "leather",
         brand: "rivet",
@@ -37,6 +38,8 @@ describe("parseListing", () => {
         page: "2",
       }),
     ).toEqual({
+      // Kinds the catalogue knows, in a stable order; anything else is dropped.
+      kinds: ["CHAIR", "SOFA"],
       colors: ["black", "grey"],
       materials: ["leather"],
       brands: ["rivet"],
@@ -68,6 +71,16 @@ describe("parseListing", () => {
     expect(toggle(state, "departments", "women").departments).toEqual(["women", "men"]);
     expect(toggle(state, "departments", "men").departments).toEqual([]);
     expect(activeFilterCount(state)).toBe(1);
+  });
+
+  it("narrows a listing to kinds of piece, as the categories menu links them (docs/adr/067)", () => {
+    const state = parseListing({ kind: ["LAMP", "HOME_LIGHTING_AND_LAMPS"] });
+    expect(state.kinds).toEqual(["HOME_LIGHTING_AND_LAMPS", "LAMP"]);
+    expect(listingQuery(state)).toBe("?kind=HOME_LIGHTING_AND_LAMPS&kind=LAMP");
+    // Clothing kinds come from the capsule table (productKindOf), and lower case is not a code.
+    expect(parseListing({ kind: "DRESS,sofa" }).kinds).toEqual(["DRESS"]);
+    expect(activeFilterCount(state)).toBe(2);
+    expect(toggle({ ...state, page: 3 }, "kinds", "LAMP")).toMatchObject({ kinds: ["HOME_LIGHTING_AND_LAMPS"], page: 1 });
   });
 
   it("accepts comma-separated lists, as the Concierge may send them", () => {

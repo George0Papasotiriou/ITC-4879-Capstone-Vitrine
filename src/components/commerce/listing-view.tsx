@@ -27,6 +27,7 @@ import {
   type Sort,
 } from "@/lib/catalog/listing";
 import type { Listing } from "@/lib/catalog/queries";
+import { productKindOf } from "@/lib/catalog/taxonomy";
 import { formatMoney, money } from "@/lib/commerce/money";
 
 /**
@@ -70,7 +71,18 @@ export async function ListingView({
   const buckets = listing.facets.price === null ? [] : priceBuckets(listing.facets.price.minCents, listing.facets.price.maxCents);
   const filtersActive = activeFilterCount(state);
 
+  // A kind chip per label: two codes the shop names alike (Lamp, for LAMP and HOME_LIGHTING_AND_LAMPS) are one choice to the shopper.
+  const kindLabel = (code: string) => {
+    const kind = productKindOf(code);
+    return kind === undefined ? code : locale === "el" ? kind.kindEl : kind.kindEn;
+  };
+  const kindChips = [...new Set(state.kinds.map(kindLabel))].map((label) => ({
+    label,
+    href: href(withChanges(state, { kinds: state.kinds.filter((code) => kindLabel(code) !== label) })),
+  }));
+
   const active: { label: string; href: string }[] = [
+    ...kindChips,
     ...state.colors.map((id) => ({
       label: listing.facets.colors.find((facet) => facet.value === id)?.label ?? id,
       href: href(toggle(state, "colors", id)),

@@ -147,10 +147,16 @@ function centreOf(rect: TargetRect): Point {
   return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
 }
 
-/** Where the light sets off from: the dock, or the bottom-right corner. */
+/**
+ * Where the light sets off from: the first source on screen (the Concierge
+ * bubble on tablets and computers, docs/adr/067), or the bottom-right corner.
+ * A source hidden at this width (the bubble on phones) has no size and is passed over.
+ */
 function sourcePoint(): Point {
-  const dock = document.querySelector<HTMLElement>("[data-spotlight-source]");
-  if (dock !== null) return centreOf(rectOf(dock));
+  for (const source of document.querySelectorAll<HTMLElement>("[data-spotlight-source]")) {
+    const rect = rectOf(source);
+    if (rect.width > 0 && rect.height > 0) return centreOf(rect);
+  }
   return { x: window.innerWidth - 64, y: window.innerHeight - 64 };
 }
 

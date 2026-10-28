@@ -4,10 +4,10 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * Site header: wordmark, search, account and cart.
+ * Site header: wordmark, the categories menu, search, account, cart and a quick sign-in or sign-out.
  */
 
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { CartCount } from "@/components/commerce/cart-count";
@@ -17,13 +17,21 @@ import { cn } from "@/lib/ui/cn";
 import { ComfortButton } from "@/components/comfort/comfort-button";
 import { ConciergeToggle } from "@/components/concierge/concierge-toggle";
 import { InstantSearchTrigger } from "@/components/search/instant-search-layer";
+import { CategoriesMenu } from "@/components/shell/categories-menu";
+import { SessionAction, SessionActionPlaceholder } from "@/components/shell/session-action";
+import { shellUser } from "@/lib/auth/session";
+import { MENU, type MenuLabel, type MenuLink, type ResolvedGroup, type ResolvedLink } from "@/lib/catalog/menu";
+import { CATEGORIES, type CategorySlug } from "@/lib/catalog/taxonomy";
 
 /**
- * The header (docs/PLAN.md 4.3)
+ * The header (docs/PLAN.md 4.3, docs/adr/067)
  *
- * Wordmark, search, account, cart — and nothing else. A shop window has one
- * pane of glass, not a mega-menu: category navigation lives in the page, where
- * it can be shown as products rather than as a list of words.
+ * Wordmark and the categories menu on the left; the Concierge, comfort,
+ * search, account, cart and a quick sign-in or sign-out on the right. The
+ * first design kept categories out of the header (one pane of glass); George
+ * asked for the menu large shops have, so every department, kind and brand is
+ * one hover or tap from any page (ADR-067). The menu is fixed data
+ * (src/lib/catalog/menu.ts), so the header still makes no catalogue query.
  *
  * Every control the Concierge can point at carries a `data-agent-id`, which is
  * what makes `highlight` possible without the model knowing anything about the
@@ -31,6 +39,7 @@ import { InstantSearchTrigger } from "@/components/search/instant-search-layer";
  */
 export async function Header({ className }: { className?: string }) {
   const t = await getTranslations("nav");
+  const groups = await menuGroups();
 
   return (
     <header
@@ -39,7 +48,7 @@ export async function Header({ className }: { className?: string }) {
         className,
       )}
     >
-      <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center gap-4 px-6 md:px-10">
+      <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center gap-2 px-4 sm:px-6 md:gap-4 md:px-10">
         <Link
           href="/"
           data-agent-id="nav:home"
@@ -47,15 +56,17 @@ export async function Header({ className }: { className?: string }) {
         >
           {t("wordmark")}
         </Link>
+        <CategoriesMenu groups={groups} />
 
-        <nav aria-label={t("menu")} className="ml-auto flex items-center gap-1">
+        <nav aria-label={t("menu")} className="ml-auto flex items-center md:gap-1">
           {/* On phones the Concierge opens from the bar at the bottom instead. */}
           <ConciergeToggle
             agentId="nav:concierge-panel"
             className="text-dusk rounded-plinth duration-quick ease-standard hover:bg-dusk/[0.05] relative hidden h-11 items-center gap-2 px-3 transition-colors md:inline-flex"
           >
             <span className="bg-lumen size-2.5 rounded-full" aria-hidden="true" />
-            <span className="text-sm">{t("concierge")}</span>
+            {/* From laptop width up; a tablet's row has room for the dot only. The toggle's own label names it either way. */}
+            <span className="hidden text-sm lg:inline">{t("concierge")}</span>
           </ConciergeToggle>
           {/* Text size, contrast, motion and the rest: on every page, found before it is needed (docs/adr/032). */}
           <ComfortButton />
@@ -94,10 +105,42 @@ export async function Header({ className }: { className?: string }) {
           >
             <CartGlyph />
           </HeaderAction>
+
+          {/* Signed in or out is read per request; the placeholder keeps the row from shifting while it is. */}
+          <Suspense fallback={<SessionActionPlaceholder />}>
+            <HeaderSession />
+          </Suspense>
         </nav>
       </div>
     </header>
   );
+}
+
+async function HeaderSession() {
+  return <SessionAction signedIn={(await shellUser()) !== null} />;
+}
+
+/** The menu in the shopper's language: category names from the taxonomy, kinds and pages from messages, brands as they are. */
+async function menuGroups(): Promise<ResolvedGroup[]> {
+  const t = await getTranslations("menu");
+  const locale = await getLocale();
+  const categoryName = (slug: CategorySlug) => {
+    const entry = CATEGORIES.find((category) => category.slug === slug);
+    return entry === undefined ? slug : locale === "el" ? entry.nameEl : entry.nameEn;
+  };
+  const label = (value: MenuLabel): string =>
+    "category" in value ? categoryName(value.category) : "kind" in value ? t(`kinds.${value.kind}`) : "brand" in value ? value.brand : t(`links.${value.message}`);
+  const resolve = (link: MenuLink): ResolvedLink => ({ id: link.id, href: link.href, label: label(link.label) });
+  return MENU.map((group) => ({
+    id: group.id,
+    title: t(`groups.${group.id}`),
+    all: resolve(group.all),
+    columns: group.columns.map((column) => ({
+      heading: column.heading === null ? null : resolve(column.heading),
+      headingLabel: column.headingMessage === undefined ? null : t(`links.${column.headingMessage}`),
+      links: column.links.map(resolve),
+    })),
+  }));
 }
 
 function HeaderAction({
@@ -122,15 +165,16 @@ function HeaderAction({
       aria-label={after === undefined ? label : undefined}
       data-agent-id={agentId}
       className={cn(
-        "text-dusk relative inline-flex h-11 items-center gap-2 rounded-plinth px-3 no-underline",
+        "text-dusk relative inline-flex h-11 items-center gap-2 rounded-plinth px-2.5 no-underline md:px-3",
         "transition-colors duration-quick ease-standard hover:bg-dusk/[0.05]",
       )}
     >
       {children}
-      {/* The label is visible from tablet up and always available to screen
-          readers, so the icons never have to be guessed at. */}
+      {/* The label is visible from laptop width up (a tablet's row also holds the
+          categories menu, docs/adr/067) and always available to screen readers,
+          so the icons never have to be guessed at. */}
       {after === undefined ? null : <span className="sr-only">{label}</span>}
-      <span className="hidden text-sm md:inline" aria-hidden={after === undefined ? undefined : true}>
+      <span className="hidden text-sm lg:inline" aria-hidden={after === undefined ? undefined : true}>
         {short}
       </span>
       {after}

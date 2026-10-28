@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 
+import { productKindOf } from "@/lib/catalog/taxonomy";
 import { COLORS, MATERIALS } from "@/lib/search/vocabulary";
 
 /**
@@ -21,6 +22,10 @@ import { COLORS, MATERIALS } from "@/lib/search/vocabulary";
  * hand-edited or outdated link should still show products.
  *
  *   /c/seating?color=black&color=grey&material=leather&max=300&stock=1&sort=price-asc&page=2
+ *
+ * A kind narrows a category to one kind of piece, as the header's categories
+ * menu links it (docs/adr/067): /c/seating?kind=SOFA. Codes are the catalogue's
+ * own; anything else is dropped.
  */
 
 export const SORTS = ["featured", "price-asc", "price-desc", "newest"] as const;
@@ -30,6 +35,8 @@ export const PAGE_SIZE = 24;
 const MAX_PAGE = 500;
 
 export type ListingState = {
+  /** Catalogue kind codes ("SOFA", "BOOT"), from the categories menu (docs/adr/067). */
+  kinds: string[];
   colors: string[];
   materials: string[];
   brands: string[];
@@ -76,6 +83,7 @@ export function parseListing(params: SearchParams): ListingState {
   const page = Number.parseInt(first(params.page) ?? "1", 10);
 
   return {
+    kinds: unique(all(params.kind).filter((code) => productKindOf(code) !== undefined)).sort(),
     colors: unique(all(params.color).filter((id) => id in COLORS)).sort(),
     materials: unique(all(params.material).filter((id) => id in MATERIALS)).sort(),
     brands: unique(all(params.brand).filter((slug) => brandSlug.safeParse(slug).success)).sort(),
@@ -92,6 +100,7 @@ export function parseListing(params: SearchParams): ListingState {
 /** The canonical query string for a state: stable order, defaults omitted. */
 export function listingQuery(state: ListingState): string {
   const params = new URLSearchParams();
+  for (const kind of state.kinds) params.append("kind", kind);
   for (const color of state.colors) params.append("color", color);
   for (const material of state.materials) params.append("material", material);
   for (const brand of state.brands) params.append("brand", brand);
@@ -106,7 +115,7 @@ export function listingQuery(state: ListingState): string {
   return query === "" ? "" : `?${query}`;
 }
 
-type Facet = "colors" | "materials" | "brands" | "sizes" | "departments";
+type Facet = "kinds" | "colors" | "materials" | "brands" | "sizes" | "departments";
 
 /** The state after toggling one facet value. Any filter change returns to page 1. */
 export function toggle(state: ListingState, facet: Facet, value: string): ListingState {
@@ -134,6 +143,7 @@ export function withChanges(state: ListingState, changes: Partial<ListingState>)
 
 export function activeFilterCount(state: ListingState): number {
   return (
+    state.kinds.length +
     state.colors.length +
     state.materials.length +
     state.brands.length +
