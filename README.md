@@ -346,7 +346,7 @@ drizzle/              database migrations
 - [x] Stripe payments (test mode), Redis store, Showcase mode, review summaries
 - [x] Agent-ready shop (MCP, WebMCP, UCP) and Web Push
 - [x] Security hardening (nonce CSP, HSTS)
-- [x] User study with real shoppers
+- [] User study with real shoppers (This is to be done in the future)
 - [x] Taste Graph evaluation on the OTTO dataset
 - [x] Model bake-off for the Concierge
 
