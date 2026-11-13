@@ -1,5 +1,5 @@
 /**
- * Vitrine — AI-native e-shop (ITC 4949 Capstone)
+ * Vitrine — AI-native e-shop (ITC 4879 Capstone)
  * Copyright (c) 2026 George Papasotiriou. All rights reserved.
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
@@ -270,7 +270,7 @@ export function weeklyReportPdf({ period, generatedAt, overview, ai, support }: 
 
   flow.gap(20);
   const footer = flow.room(14);
-  pdf.text("Vitrine is a student project (ITC 4949, American College of Greece). Figures are read from the shop's database.", MARGIN, footer + 9, {
+  pdf.text("Vitrine is a student project (ITC 4879, American College of Greece). Figures are read from the shop's database.", MARGIN, footer + 9, {
     size: 8,
     color: INK.slate,
   });

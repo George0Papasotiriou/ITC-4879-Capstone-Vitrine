@@ -1,5 +1,5 @@
 /**
- * Vitrine — AI-native e-shop (ITC 4949 Capstone)
+ * Vitrine — AI-native e-shop (ITC 4879 Capstone)
  * Copyright (c) 2026 George Papasotiriou. All rights reserved.
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
@@ -44,7 +44,7 @@ import { z } from "zod";
 export const WILD_MANIFEST = path.join("evals", "snap-wild.json");
 export const WILD_DIR = path.join(".local", "e9-wild");
 const API = "https://commons.wikimedia.org/w/api.php";
-const USER_AGENT = "VitrineCapstoneEval/1.0 (student research project, ITC 4949; colour-reading evaluation)";
+const USER_AGENT = "VitrineCapstoneEval/1.0 (student research project, ITC 4879; colour-reading evaluation)";
 const PAUSE_MS = 4000;
 
 /** Commons category → the shop's colour word. */

@@ -1,5 +1,5 @@
 /**
- * Vitrine — AI-native e-shop (ITC 4949 Capstone)
+ * Vitrine — AI-native e-shop (ITC 4879 Capstone)
  * Copyright (c) 2026 George Papasotiriou. All rights reserved.
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
@@ -181,7 +181,7 @@ export function policyModule(markdown: string): string {
   // Everything that would end or escape a template literal, written so it survives as text.
   const quoted = markdown.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${");
   return `/**
- * Vitrine — AI-native e-shop (ITC 4949 Capstone)
+ * Vitrine — AI-native e-shop (ITC 4879 Capstone)
  * Copyright (c) 2026 George Papasotiriou. All rights reserved.
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12

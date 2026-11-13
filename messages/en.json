@@ -588,7 +588,7 @@
     "english": "English",
     "greek": "Ελληνικά",
     "attribution": "Product photography from the Amazon Berkeley Objects dataset by Amazon.com, CC BY 4.0. Prices are synthetic; this is a student project, not a shop.",
-    "capstone": "ITC 4949 Capstone Project",
+    "capstone": "ITC 4879 Capstone Project",
     "credits": "Credits and data",
     "stylist": "Budget Stylist",
     "prices": "Prices and VAT",
@@ -686,7 +686,7 @@
     "privacyBody": "Photos you show the Concierge are used only for the request you made, need your consent first, are deleted after 24 hours by default, and are never sent to free AI services or written to logs. Search terms are recorded without your name to improve search quality.",
     "contactTitle": "Contact",
     "contactIntro": "Write to us and someone answers within one working day.",
-    "contactBody": "Vitrine is the ITC 4949 capstone project of George Papasotiriou. The shop works from end to end, but the payment is a test payment: nothing is charged and nothing is dispatched. The desk is real, though — ask about an order, a return, a piece, or the project itself.",
+    "contactBody": "Vitrine is the ITC 4879 capstone project of George Papasotiriou. The shop works from end to end, but the payment is a test payment: nothing is charged and nothing is dispatched. The desk is real, though — ask about an order, a return, a piece, or the project itself.",
     "creditsTitle": "Credits and data",
     "creditsIntro": "Where the products, photographs and numbers on this site come from.",
     "creditsDataset": "Product data, photography and 3D models: the Amazon Berkeley Objects dataset by Amazon.com (Collins et al., CVPR 2022), licensed CC BY 4.0. Photographs are resized and re-encoded and 3D models compressed for the shop; prices are the shop's own.",
@@ -1046,7 +1046,7 @@
   },
   "email": {
     "greeting": "Hello {name},",
-    "footer": "Vitrine is a student project (ITC 4949, American College of Greece). You are receiving this email because of something done with this address on Vitrine.",
+    "footer": "Vitrine is a student project (ITC 4879, American College of Greece). You are receiving this email because of something done with this address on Vitrine.",
     "verify": {
       "subject": "Confirm your email for Vitrine",
       "intro": "Thanks for creating an account. Confirm this is your email address and you are signed in.",

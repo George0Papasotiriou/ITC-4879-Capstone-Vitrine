@@ -1,5 +1,5 @@
 /**
- * Vitrine — AI-native e-shop (ITC 4949 Capstone)
+ * Vitrine — AI-native e-shop (ITC 4879 Capstone)
  * Copyright (c) 2026 George Papasotiriou. All rights reserved.
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
@@ -25,7 +25,7 @@ Lines marked **[George decides]** are the ones that are not in the code yet.
 
 ## 1. What Vitrine is
 
-Vitrine is a student project for ITC 4949 at the American College of Greece. The shop works end to
+Vitrine is a student project for ITC 4879 at the American College of Greece. The shop works end to
 end, but:
 
 - product photography comes from the Amazon Berkeley Objects dataset by Amazon.com (CC BY 4.0);

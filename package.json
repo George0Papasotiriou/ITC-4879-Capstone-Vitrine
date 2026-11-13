@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "AI-native e-shop. ITC 4949 Capstone Project.",
+  "description": "AI-native e-shop. ITC 4879 Capstone Project.",
   "packageManager": "pnpm@12.4.1",
   "engines": {
     "node": "24.x"

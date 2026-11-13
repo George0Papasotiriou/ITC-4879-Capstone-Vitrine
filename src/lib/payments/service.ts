@@ -1,5 +1,5 @@
 /**
- * Vitrine — AI-native e-shop (ITC 4949 Capstone)
+ * Vitrine — AI-native e-shop (ITC 4879 Capstone)
  * Copyright (c) 2026 George Papasotiriou. All rights reserved.
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
@@ -29,7 +29,7 @@ function stripeClient(): Promise<StripeLike> {
     const key = serverEnv().STRIPE_SECRET_KEY;
     if (key === undefined) throw new Error("STRIPE_SECRET_KEY is not set.");
     // Typed against StripeLike without a cast, so a changed SDK signature fails the build here.
-    const stripe: StripeLike = new Stripe(key, { maxNetworkRetries: 2, appInfo: { name: "Vitrine (ITC 4949 capstone)" } });
+    const stripe: StripeLike = new Stripe(key, { maxNetworkRetries: 2, appInfo: { name: "Vitrine (ITC 4879 capstone)" } });
     return stripe;
   });
   return client;
