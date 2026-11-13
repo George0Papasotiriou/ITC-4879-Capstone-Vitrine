@@ -447,7 +447,7 @@ drizzle/              database migrations
 ## 🙏 Credits
 
 - Furniture and home data, photography and 3D models: [Amazon Berkeley Objects](https://amazon-berkeley-objects.s3.amazonaws.com/index.html) (Collins et al., CVPR 2022), **CC BY 4.0**
-- Clothing listings, photographs and customer reviews: Amazon Reviews 2023 (Hou et al. 2024), released for research
+- Clothing listings, photographs and customer reviews: [Amazon Reviews 2023](https://amazon-reviews-2023.github.io/) (Hou et al. 2024, McAuley Lab, UC San Diego), a public research dataset; no licence is stated
 - Depth estimation: [Depth Anything V2 Metric (indoor, small)](https://huggingface.co/depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf), **Apache-2.0**
 - Face landmarks: MediaPipe Face Landmarker (Google), **Apache-2.0**
 - Evaluation data: Amazon ESCI (Reddy et al. 2022), OTTO (Kaggle, CC BY 4.0), RentTheRunway and ModCloth (Misra et al. 2018), AFLW2000-3D (Zhu et al. 2016)
