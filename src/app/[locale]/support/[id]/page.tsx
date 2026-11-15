@@ -20,7 +20,7 @@ import { ticketSla } from "@/lib/support/tickets";
 
 /**
  * A ticket is opened by the account it belongs to, or by the private link in
- * its emails (docs/adr/021). Anything else is a 404: guessing an id or a token
+ * its emails. Anything else is a 404: guessing an id or a token
  * teaches nothing.
  */
 

@@ -8,13 +8,11 @@
  */
 
 /**
- * docs/adr/025, docs/adr/035, docs/report/ar-check.md.
- *
  *   pnpm models:check [--base https://…] [--scans 12] [--shapes 6] [--seed 4949]
  *
  * Scene Viewer (Android) is handed /api/models/<slug>: the piece's own scan
  * (a redirect to the stored file) or, without one, the shop's made model
- * (docs/adr/058: built once, stored, then a redirect too). Quick Look (iPhone)
+ * (built once, stored, then a redirect too). Quick Look (iPhone)
  * is handed a USDZ that model-viewer writes
  * in the browser from the same file (checked in tests/e2e/ar.spec.ts). So the
  * file at that address is what every AR view rests on. For a seeded sample of

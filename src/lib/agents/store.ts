@@ -15,7 +15,7 @@ import { expiresAfter, hashAgentKey, keyState, MAX_ACTIVE_KEYS, newAgentKey, typ
 import { parseRoles, type Role } from "@/lib/auth/roles";
 
 /**
- * docs/adr/043. Making and revoking a key are written to the audit log in the
+ * Making and revoking a key are written to the audit log in the
  * same transaction, with the key's name, what it may do and when it ends —
  * never the key. Using a key marks when it was last used, at most once a
  * minute, so a busy assistant does not write on every call.

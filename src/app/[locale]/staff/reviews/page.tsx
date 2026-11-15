@@ -20,7 +20,7 @@ import { reviewsStore } from "@/lib/commerce/server";
 import { externalReviewStore } from "@/lib/reviews/server";
 import { cn } from "@/lib/ui/cn";
 
-/** The shop's own reviews by status, and the Amazon.com reviews shown on the wearables (docs/adr/061). */
+/** The shop's own reviews by status, and the Amazon.com reviews shown on the wearables. */
 const VIEWS = ["published", "hidden", "all", "amazon"] as const;
 /** How many Amazon.com reviews the desk lists at once; finding a product reaches the rest. */
 const AMAZON_PAGE = 100;

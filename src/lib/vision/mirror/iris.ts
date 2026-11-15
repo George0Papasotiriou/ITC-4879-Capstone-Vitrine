@@ -14,7 +14,7 @@ import { CANONICAL_FACE_MM } from "@/lib/vision/mirror/face-model";
 import { add3, scale3, type Vec3 } from "@/lib/vision/linalg";
 
 /**
- * docs/adr/065. The pose is solved against the average face, so it comes out
+ * The pose is solved against the average face, so it comes out
  * in the average face's millimetres: a larger head simply seems a little
  * closer. To draw a 30 mm earring at 30 mm on this face, the mirror needs
  * this face's own scale.

@@ -10,10 +10,10 @@
 import type { ModelMessage, UIMessage } from "ai";
 
 /**
- * docs/adr/051. A shopper can attach a photograph to a question — of their
+ * A shopper can attach a photograph to a question — of their
  * room, or of a piece they like. The photograph goes through the shop's photo
  * route first (consent, re-encoding that drops the camera's metadata, a day to
- * live: docs/adr/023), and the message carries only its id, in the message's
+ * live), and the message carries only its id, in the message's
  * metadata. Here, on the server, each id is checked against the shopper who
  * owns it and read from storage, and the model receives the picture itself.
  *

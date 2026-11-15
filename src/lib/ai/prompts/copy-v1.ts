@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/045. A merchandiser asks for a draft, reads it and chooses whether
+ * A merchandiser asks for a draft, reads it and chooses whether
  * to use it; nothing reaches the shop unless they save the form. The model is
  * told the facts may not change: a draft that loses a number is flagged
  * (src/lib/ai/agents/copy-draft.ts) whatever the model did.

@@ -13,7 +13,7 @@ import { accessibleOrder } from "@/lib/commerce/server";
 import { subscribeOrder } from "@/lib/kv/live";
 
 /**
- * docs/adr/039. Only for someone who may see the order (its link token as
+ * Only for someone who may see the order (its link token as
  * `?token=`, or the signed-in owner). Each message is the new status; the page
  * then refreshes and reads the rest itself. A comment every 25 seconds keeps
  * proxies from closing a quiet stream, and the stream ends after ten minutes —

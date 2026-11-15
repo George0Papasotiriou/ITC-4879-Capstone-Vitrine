@@ -32,7 +32,7 @@ import { COLORS } from "@/lib/search/vocabulary";
  *           ─► three bundles, each with the reason its pieces go together
  *
  * Every price here is read from the database for this request, converted to
- * the shopper's country (docs/adr/013) and multiplied by the slot's quantity in
+ * the shopper's country and multiplied by the slot's quantity in
  * integer cents, so a bundle's total is exactly what the cart will show.
  */
 
@@ -53,7 +53,7 @@ export type StylistRequest = z.infer<typeof stylistRequestSchema>;
 /**
  * Kinds a window display can show truthfully without a 3D scan: they lie on
  * the floor or hang on the wall, so their photograph is their face
- * (docs/adr/048) — provided it is a studio photograph on white, not the piece
+ * — provided it is a studio photograph on white, not the piece
  * in a furnished room (a rug's is rectified flat, src/lib/vision/rectify.ts).
  * Everything else needs its own scan to be "showable".
  */
@@ -227,7 +227,7 @@ export function createStylist(sql: postgres.Sql, retrievers: Retrievers) {
   }
 
   /**
-   * `showable` is for the shop window only (docs/adr/048): candidates are
+   * `showable` is for the shop window only: candidates are
    * limited to pieces it can stand in 3D — those with their own scan, and
    * flat pieces. It is an option of the call, not of the request, so no tool
    * or link can ask for it.

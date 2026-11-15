@@ -13,7 +13,7 @@ import { authorize } from "@/lib/auth/session";
 import { sql } from "@/lib/db/client";
 import { createJudgmentStore } from "@/lib/search/judgments-store";
 
-/** docs/adr/036. For "reports:read": the people who read the dashboards judge the search. */
+/** For "reports:read": the people who read the dashboards judge the search. */
 
 export const runtime = "nodejs";
 

@@ -23,7 +23,7 @@ import * as schema from "@/lib/db/schema";
 import { buildPendingMadeModels } from "@/worker/processors/made-models";
 
 /**
- * docs/adr/058, docs/adr/059. The job compares the key each piece's model
+ * The job compares the key each piece's model
  * should have with the one recorded, builds the next few that differ, stores
  * them and records them; a second run finds nothing to do, and an edit to a
  * piece makes its model again. Photographs are not fetched in tests: the

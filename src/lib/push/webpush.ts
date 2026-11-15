@@ -10,7 +10,7 @@
 import { createCipheriv, createECDH, createHmac, createPrivateKey, generateKeyPairSync, randomBytes, sign } from "node:crypto";
 
 /**
- * docs/adr/044. A push message travels through the browser maker's push
+ * A push message travels through the browser maker's push
  * service (Google's, Mozilla's, Apple's), which must not be able to read it.
  * So, as RFC 8291 prescribes, each message is encrypted for the one browser
  * that subscribed:

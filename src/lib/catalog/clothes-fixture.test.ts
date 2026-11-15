@@ -18,7 +18,7 @@ import { CAPSULE_PRODUCT_KINDS, CAPSULE_SIZES, productKindOf } from "@/lib/catal
 import { amazonReviewsFixtureSchema } from "@/lib/reviews/amazon";
 
 /**
- * docs/adr/062. `scripts/catalog-clothes.ts fixture` writes these from Amazon
+ * `scripts/catalog-clothes.ts fixture` writes these from Amazon
  * Reviews 2023's listings; `pnpm db:setup` syncs them on every deploy, so
  * what this test checks is what production sells.
  */

@@ -11,7 +11,7 @@ import { DURATION, EASE } from "@/lib/ui/motion";
 import { prefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
- * docs/adr/031. Adding to the cart is the shop's most important action, and
+ * Adding to the cart is the shop's most important action, and
  * until now its only answer was a sheet. The flight shows where the piece
  * went: a copy of its photograph lifts off, travels on a shallow arc and lands
  * in the cart, and the count there ticks up as it lands.

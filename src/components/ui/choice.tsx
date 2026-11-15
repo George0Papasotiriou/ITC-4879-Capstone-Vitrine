@@ -15,7 +15,7 @@ import { useId, useRef, type ReactNode } from "react";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Checkbox and radio group (docs/PLAN.md 4.4, 4.7).
+ * Checkbox and radio group.
  *
  * The control is drawn at 20px, but the whole row — control and label — is the
  * hit area, which clears the 44px touch target without drawing an oversized box.

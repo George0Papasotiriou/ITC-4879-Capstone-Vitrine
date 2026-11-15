@@ -16,7 +16,7 @@ import type { Money } from "@/lib/commerce/money";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Product tile (docs/PLAN.md 4.4)
+ * Product tile
  *
  * The plinth is the idea: a display surface the product stands on, not a card
  * it sits inside. So there is no border, no shadow, and no lift on hover —
@@ -56,7 +56,7 @@ export function ProductTile({
   /** At most one mark per tile: "3D", "Try on", "In your room". */
   capability?: string;
   locale?: string;
-  /** Identifier the Concierge can target with `highlight` (docs/PLAN.md 2.5). */
+  /** Identifier the Concierge can target with `highlight`. */
   agentId?: string;
   /**
    * Shared-element name linking this tile to the product page hero, so opening
@@ -124,7 +124,7 @@ export function ProductTile({
               plinth rather than wrapping it, so the heading stays a heading. */}
           <SmartLink
             href={href}
-            // The photograph morphs into the product page; the page itself does not fade (docs/adr/031).
+            // The photograph morphs into the product page; the page itself does not fade.
             transitionTypes={["morph"]}
             className="after:absolute after:inset-0 after:content-[''] line-clamp-2 no-underline hover:underline underline-offset-4"
           >

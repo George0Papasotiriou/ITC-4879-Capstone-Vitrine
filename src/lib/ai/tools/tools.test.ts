@@ -53,7 +53,7 @@ describe("catalogue tools", () => {
     expect(quote!.text.slice(FENCE_OPEN.length, -FENCE_CLOSE.length)).not.toContain(FENCE_CLOSE);
   });
 
-  it("counts what buyers like and mention against, from the reviews themselves (docs/adr/041)", async () => {
+  it("counts what buyers like and mention against, from the reviews themselves", async () => {
     const reviews = [
       { id: "r1", rating: 5, title: null, body: "Very sturdy and well made.", authorName: "Eleni P.", locale: "en", createdAt: new Date(), edited: false },
       { id: "r2", rating: 2, title: null, body: "Solid, but the delivery was late.", authorName: "Nikos K.", locale: "en", createdAt: new Date(), edited: false },
@@ -176,7 +176,7 @@ describe("UI tools", () => {
     await expect(run("place_in_room", { productId: CHAIR, caption: "Placing the chair" }, ctx)).resolves.toMatchObject({ placeable: false, commands: [] });
   });
 
-  it("opens a shop window: a curated theme, or one made from a room, a budget and words (docs/adr/040)", async () => {
+  it("opens a shop window: a curated theme, or one made from a room, a budget and words", async () => {
     const asked: unknown[] = [];
     const bundle = { picks: [{ slotId: "chair", productId: CHAIR, quantity: 1, unitPriceCents: 1, lineTotalCents: 1 }], totalCents: 1, remainingCents: 0, utility: 1, method: "exact" as const, highlight: null };
     const { ctx } = context({
@@ -282,7 +282,7 @@ describe("account and sensitive tools", () => {
   });
 });
 
-describe("the Fitting Room tools (docs/adr/023, 063)", () => {
+describe("the Fitting Room tools", () => {
   const studio = (overrides: Partial<{ photo: () => Promise<{ id: string; minutesLeft: number } | null>; start: (input: { photoId: string; productIds: string[] }) => Promise<{ ok: true; ids: string[]; outfitId: string | null } | { ok: false; reason: string }>; latest: () => Promise<{ id: string } | null>; animate: (input: { tryOnId: string }) => Promise<{ ok: true } | { ok: false; reason: string }> }> = {}) => ({
     photo: async () => ({ id: "photo-1", minutesLeft: 1400 }),
     start: async () => ({ ok: true as const, ids: ["try-1"], outfitId: null }),
@@ -361,7 +361,7 @@ describe("the Fitting Room tools (docs/adr/023, 063)", () => {
   });
 });
 
-describe("shop the look in the Concierge (docs/adr/054)", () => {
+describe("shop the look in the Concierge", () => {
   it("finds the pieces in the photo the shopper attached, and says so when there is none", async () => {
     const asked: string[] = [];
     const { ctx } = context({ look: { find: async (photoId) => (asked.push(photoId), { ok: true, drawn: false, pieces: [{ kind: "sofa", colours: ["grey"], products: [] }] }) } });
@@ -374,7 +374,7 @@ describe("shop the look in the Concierge (docs/adr/054)", () => {
   });
 });
 
-describe("room boards in the Concierge (docs/adr/056)", () => {
+describe("room boards in the Concierge", () => {
   it("puts a piece on the board named, in the shopper's language for a new one", async () => {
     const asked: unknown[] = [];
     const { ctx } = context({ boards: { add: async (input) => (asked.push(input), { ok: true, boardId: "b1", title: "Living room", itemId: "i1", created: true, createdBoard: false, quantity: 1 }) } });
@@ -398,7 +398,7 @@ describe("room boards in the Concierge (docs/adr/056)", () => {
   });
 });
 
-describe("will it get in (docs/adr/055)", () => {
+describe("will it get in", () => {
   it("opens the page to measure the way in when none is saved", async () => {
     const { ctx } = context();
     const result = (await run("check_way_in", { productId: LAMP }, ctx)) as { ok: boolean; reason: string; commands: { href: string }[] };

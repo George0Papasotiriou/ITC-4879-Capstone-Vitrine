@@ -15,7 +15,6 @@ import { FACE_OUTLINE, IRISES, LEFT_EYE_OUTLINE, RIGHT_EYE_OUTLINE } from "../..
 import { irisDiameterPx } from "../../src/lib/vision/mirror/iris";
 import { scriptedLandmarks } from "../../src/lib/vision/mirror/scripted";
 
-/** docs/adr/066. */
 
 test.describe.configure({ timeout: 120_000 });
 

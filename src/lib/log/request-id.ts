@@ -32,6 +32,6 @@ export function resolveRequestId(incoming: string | null | undefined): string {
     return incoming;
   }
   // UUIDv7, not v4: time-ordered, so ids sort in the order requests arrived,
-  // which is also the project's id convention (CLAUDE.md).
+  // which is also the project's id convention.
   return uuidv7();
 }

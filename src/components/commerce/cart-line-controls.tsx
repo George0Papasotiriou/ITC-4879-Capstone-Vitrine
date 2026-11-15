@@ -36,7 +36,7 @@ export function CartLineControls({ variantId, title, quantity, stock, available 
 
   const set = (next: number) =>
     startTransition(async () => {
-      // Removing: the line folds away first (docs/adr/031), and comes back if the shop says no.
+      // Removing: the line folds away first, and comes back if the shop says no.
       const line = next === 0 && !prefersReducedMotion() ? controls.current?.closest<HTMLElement>("[data-flip-key]") : null;
       const fold = line?.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(-12px) scale(0.98)" }], { duration: DURATION.quick, easing: EASE.exit, fill: "forwards" });
       const [result] = await Promise.all([changeCart({ action: "set", variantId, quantity: next, locale }), fold?.finished.catch(() => undefined)]);

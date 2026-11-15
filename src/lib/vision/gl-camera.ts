@@ -11,7 +11,7 @@ import type { Pose, Placement } from "@/lib/vision/camera";
 import type { Mat3, Vec3 } from "@/lib/vision/linalg";
 
 /**
- * docs/adr/052. The room planner recovers the camera of the shopper's
+ * The room planner recovers the camera of the shopper's
  * photograph from a sheet of paper (camera.ts): intrinsics K and a pose (R, t)
  * in the vision convention, where a world point X lands in the camera at
  * x = R·X + t, the camera looks along +z with +y pointing down, and the pixel

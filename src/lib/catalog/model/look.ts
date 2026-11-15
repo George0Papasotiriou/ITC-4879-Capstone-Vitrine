@@ -13,7 +13,7 @@ import { cutoutFromWhite } from "@/lib/vision/cutout";
 import { cluster, type Rgb } from "@/lib/vision/palette";
 
 /**
- * docs/adr/058. A colour word is a poor description of a colour: "blue" is
+ * A colour word is a poor description of a colour: "blue" is
  * navy on one listing and aqua on the next. Every piece has a photograph on a
  * white studio ground, so its colours are measured there instead.
  *

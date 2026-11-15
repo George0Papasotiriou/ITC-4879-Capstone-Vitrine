@@ -8,7 +8,7 @@
  */
 
 /**
- * Four roles (docs/PLAN.md 1.6, docs/adr/016). A person can hold several; Better
+ * Four roles. A person can hold several; Better
  * Auth stores them comma-joined in `users.role` ("support,merchandiser").
  *
  * - customer: shops, sees their own orders and reviews.
@@ -17,7 +17,7 @@
  * - admin: everything, including roles, bans, the email outbox and the audit log.
  *
  * Authorization is always decided on the server from this table; what the
- * interface shows is a convenience, never the check (CLAUDE.md, proxy.ts).
+ * interface shows is a convenience, never the check (see also proxy.ts).
  */
 
 export const ROLES = ["customer", "support", "merchandiser", "admin"] as const;
@@ -30,15 +30,15 @@ export const PERMISSIONS = [
   "catalog:edit",
   "users:manage",
   "outbox:read",
-  /** Dashboards and CSV exports (docs/adr/018). */
+  /** Dashboards and CSV exports. */
   "reports:read",
   /** Who changed what: the audit log. */
   "audit:read",
-  /** The AI's switches: the kill switch and the daily budget (docs/adr/020). */
+  /** The AI's switches: the kill switch and the daily budget. */
   "ai:manage",
   /** Building the weekly report out of turn, which emails every admin a link to it. */
   "reports:generate",
-  /** The support desk: reading other people's tickets and answering them (docs/adr/021). */
+  /** The support desk: reading other people's tickets and answering them. */
   "support:work",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];

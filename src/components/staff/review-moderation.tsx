@@ -17,7 +17,7 @@ import { useToast } from "@/components/ui/toast";
 import { useHydrated } from "@/components/ui/use-hydrated";
 import { useRouter } from "@/i18n/navigation";
 
-/** `endpoint`: where the decision goes; the shop's own reviews by default, or Amazon.com's (docs/adr/061). */
+/** `endpoint`: where the decision goes; the shop's own reviews by default, or Amazon.com's. */
 export function ReviewModeration({ reviewId, status, endpoint = `/api/staff/reviews/${reviewId}` }: { reviewId: string; status: "published" | "hidden"; endpoint?: string }) {
   const t = useTranslations("staff");
   const router = useRouter();

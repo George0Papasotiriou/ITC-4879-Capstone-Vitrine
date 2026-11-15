@@ -29,7 +29,7 @@ import { CONTACT_DRAFT_KEY } from "@/lib/support/tickets";
 /**
  * Mounted once, by the shell in the layout (concierge-shell.tsx), the first
  * time the Concierge is opened or asked something — so the chat engine is not
- * part of every page's download (docs/adr/034) — and then kept, so the
+ * part of every page's download — and then kept, so the
  * conversation survives navigation: when the Concierge opens a page, the dock
  * stays open on the new page with the same conversation. Tool results that carry page commands run through the
  * Spotlight (each shown, validated again and recorded with an undo); cart
@@ -41,8 +41,8 @@ type ConciergeValue = {
   setOpen: (open: boolean) => void;
   chat: UseChatHelpers<UIMessage>;
   /**
-   * `spoken` tells the server the answer will be read aloud, so it keeps it short (docs/adr/026);
-   * `photoId` attaches a photograph already through the photo route (docs/adr/051).
+   * `spoken` tells the server the answer will be read aloud, so it keeps it short;
+   * `photoId` attaches a photograph already through the photo route.
    */
   ask: (text: string, options?: AskOptions) => void;
   /** Opens the dock and asks the voice bar to start listening. */
@@ -57,7 +57,7 @@ type ConciergeValue = {
   /** Answers an approval card, whether a typed turn or a spoken one asked for it. */
   approve: (approvalId: string, approved: boolean) => void;
   /**
-   * Runs one tool a realtime voice model called (docs/adr/030): through
+   * Runs one tool a realtime voice model called: through
    * `/api/concierge/tools`, with the same approval card as a typed turn, and
    * written into the conversation so the dock and the page respond to it as
    * they do to a typed one. Resolves with what the model is told.
@@ -129,7 +129,7 @@ function ConciergeState({ children, open, setOpen, attach }: { children: ReactNo
         const output = part.output as { commands?: unknown; ok?: boolean; undo?: string; title?: string; quantity?: number; reason?: string; summary?: string } | null;
         const name = getToolName(part);
         // A guest handed to a person: the summary they approved waits in the
-        // contact form, written before the page opens (docs/adr/027).
+        // contact form, written before the page opens.
         if (name === "hand_to_person" && output?.reason === "needs_contact" && typeof output.summary === "string") {
           try {
             window.sessionStorage.setItem(CONTACT_DRAFT_KEY, output.summary);
@@ -143,7 +143,7 @@ function ConciergeState({ children, open, setOpen, attach }: { children: ReactNo
           const acting = commands.filter((command) => command.type !== "show_products");
           if (acting.length > 0) void spotlight.run(acting);
         }
-        // A piece put on a board (docs/adr/056): undone through the board's own API, which knows its owner.
+        // A piece put on a board: undone through the board's own API, which knows its owner.
         if (name === "add_to_board" && output?.ok === true) {
           const board = output as unknown as { boardId: string; itemId: string; created: boolean; quantity: number; board: string; title: string };
           const caption = t("board.added", { title: board.title, board: board.board });
@@ -202,7 +202,7 @@ function ConciergeState({ children, open, setOpen, attach }: { children: ReactNo
       setOpen(true);
       // Carried on this message rather than on the transport: one spoken turn
       // does not make the next typed one spoken too. A photograph travels as its
-      // id in the message's metadata; the server reads it (docs/adr/051).
+      // id in the message's metadata; the server reads it.
       void chat.sendMessage({ text: trimmed, ...(photoId === undefined ? {} : { metadata: { photo: { id: photoId } } }) }, { body: { spoken: options?.spoken === true } });
     },
     [chat, setOpen, t],

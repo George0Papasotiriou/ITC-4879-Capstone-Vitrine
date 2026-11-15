@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/039. PostgreSQL keeps what must last; this keeps what is short-lived
+ * PostgreSQL keeps what must last; this keeps what is short-lived
  * and shared between processes: rate-limit windows, cached search rankings,
  * trending counts, and messages from one service to another ("this order was
  * just paid"). Every value can be lost without harm — a lost window only lets a

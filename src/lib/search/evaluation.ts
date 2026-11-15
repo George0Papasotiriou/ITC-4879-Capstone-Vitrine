@@ -10,7 +10,7 @@
 import type { SearchOptions } from "@/lib/search/pipeline";
 
 /**
- * docs/adr/036. The ablations: the shop's search with one stage at a time
+ * The ablations: the shop's search with one stage at a time
  * taken away, so the evaluation says what each stage adds. Semantic retrieval
  * joins the list when an embedding model is configured; until then the page
  * says so rather than scoring a system that cannot run.

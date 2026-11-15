@@ -14,7 +14,7 @@ import { irisDiameterPx } from "@/lib/vision/mirror/iris";
 import { faceLight, pieceGains, scleraPixels } from "@/lib/vision/mirror/light";
 
 /**
- * docs/adr/066. Seasonal colour analysis is a styling convention, not a
+ * Seasonal colour analysis is a styling convention, not a
  * science: it sorts people by the warmth and depth of their colouring and
  * suggests colours of the same character. The shop presents it as that and
  * measures what it can measure honestly:

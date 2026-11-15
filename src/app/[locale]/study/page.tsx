@@ -13,7 +13,7 @@ import { getTranslations } from "next-intl/server";
 import { StudyStart } from "@/components/study/study-start";
 import { requireLocale } from "@/i18n/params";
 
-/** docs/adr/037. The moderator opens this page on the study device and types the participant's code. */
+/** The moderator opens this page on the study device and types the participant's code. */
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/study">): Promise<Metadata> {
   const { locale } = await params;

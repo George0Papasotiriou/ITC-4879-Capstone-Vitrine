@@ -19,7 +19,7 @@ import { supportStore } from "@/lib/support/server";
 import { TICKET_TOPICS } from "@/lib/support/tickets";
 
 /**
- * docs/adr/029. The answers a draft starts from, grouped by the queue they
+ * The answers a draft starts from, grouped by the queue they
  * serve. Each says whether it is still the shop's own words or the desk's
  * edit — an edit the next deploy leaves alone — and the shop's own can always
  * be put back.

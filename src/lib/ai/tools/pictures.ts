@@ -15,7 +15,7 @@ import { roomPlacement } from "@/lib/catalog/taxonomy";
 import { SCENE_STYLE_IDS, type SceneStyle } from "@/lib/pictures/pictures";
 
 /**
- * docs/adr/053. The same pictures as the product page and the room planner,
+ * The same pictures as the product page and the room planner,
  * through the same start (src/lib/pictures/start.ts): the guard, the
  * shopper's allowance (an account 3 a day, a guest 1) and the job. It is
  * "costly", so the shopper approves each one; a showroom scene someone has

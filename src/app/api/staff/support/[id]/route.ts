@@ -24,7 +24,7 @@ import { serverEnv } from "@/env";
  * Everything here needs "support:work" (support and admin). A draft is written
  * by the model and stored as a message nobody outside the desk can see; it
  * becomes a reply only when an agent sends it, and then it is the agent's
- * message (docs/adr/021).
+ * message.
  */
 
 export const runtime = "nodejs";

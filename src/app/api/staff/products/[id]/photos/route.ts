@@ -18,7 +18,7 @@ import { logger } from "@/lib/log";
 import { storage } from "@/lib/storage";
 
 /**
- * For "catalog:edit" (docs/adr/034). A product photograph is the shop's own
+ * For "catalog:edit". A product photograph is the shop's own
  * picture of its own stock, not a shopper's photograph, so it is kept like the
  * imported catalogue's: re-encoded to a WebP master of at most 1100 px on a
  * white ground (which also drops the camera's metadata), served at

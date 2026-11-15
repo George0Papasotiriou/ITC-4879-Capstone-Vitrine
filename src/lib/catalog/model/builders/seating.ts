@@ -14,7 +14,7 @@ import { compose, Mesh, rotationX, rotationZ, translation, type Mat4, type Vec2,
 import { Build, buttons, castor, leg, nailheads, placeLeg, type LegStyle } from "@/lib/catalog/model/parts";
 
 /**
- * docs/adr/058. Upholstered seating is built the way an upholsterer builds it:
+ * Upholstered seating is built the way an upholsterer builds it:
  * a base frame on legs (or a skirt to the floor), a back at the rear, arms at
  * the sides, then the cushions — seat cushions between the arms, back
  * cushions leaning on the back — each a crowned cushion with rounded seams.

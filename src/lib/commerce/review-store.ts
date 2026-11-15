@@ -14,7 +14,7 @@ import { diffFields, recordAudit } from "@/lib/admin/audit";
 import { authorDisplayName, summarizeRatings, type RatingSummary, type ReviewInput } from "@/lib/commerce/reviews";
 
 /**
- * Reviews (docs/adr/017). Each write keeps the product's `rating_sum` and
+ * Reviews. Each write keeps the product's `rating_sum` and
  * `rating_count` exact in the same transaction — adding a review, changing its
  * stars, hiding or restoring it — because search ranks by them (the Bayesian
  * average in src/lib/search/rerank.ts) and the product page shows them.
@@ -152,7 +152,7 @@ export function createReviewStore(sql: Sql) {
     };
   }
 
-  /** Hides or restores a review, keeping the product's totals exact; audited (docs/adr/018). */
+  /** Hides or restores a review, keeping the product's totals exact; audited. */
   async function moderate(reviewId: string, { status, reason, actor }: { status: ReviewStatus; reason: string | null; actor: { userId: string; email: string } }) {
     return sql.begin(async (tx) => {
       const [review] = await tx<{ product_id: string; rating: number; status: ReviewStatus; moderation_reason: string | null }[]>`

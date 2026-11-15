@@ -15,7 +15,7 @@ import { createRedisKv } from "@/lib/kv/redis";
 import { namespaceOf, type KeyValue } from "@/lib/kv/types";
 
 /**
- * docs/adr/039. The same expectations for both drivers, so the laptop's
+ * The same expectations for both drivers, so the laptop's
  * stand-in cannot drift from what production does. The Redis half runs where
  * `REDIS_URL` is set (CI, or `railway run pnpm test`); every key it writes is
  * under a prefix of its own and removed afterwards.

@@ -18,7 +18,7 @@ import { logger } from "@/lib/log";
 
 /**
  * For "ai:manage" (admins). The kill switch pauses the Concierge and every
- * other AI feature at once; the shop keeps working without them (docs/adr/019).
+ * other AI feature at once; the shop keeps working without them.
  */
 
 export const runtime = "nodejs";

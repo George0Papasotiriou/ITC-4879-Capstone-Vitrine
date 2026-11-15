@@ -20,7 +20,7 @@ import { formatMoney, money } from "@/lib/commerce/money";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/034. An ARIA 1.2 combobox inside a dialog: focus stays in the
+ * An ARIA 1.2 combobox inside a dialog: focus stays in the
  * field, the arrow keys move through the options (announced through
  * `aria-activedescendant`), Enter opens the chosen one or the full results,
  * and Escape closes and returns focus to what opened it. The header's search
@@ -68,7 +68,7 @@ export function InstantSearch({ initialQuery = "", onClose }: { initialQuery?: s
   const [chosen, setChosen] = useState<{ list: string; index: number }>({ list: "", index: -1 });
   // The pop-up only ever renders in the browser (it is loaded on demand), so the device's list is there to read.
   const [recent, setRecent] = useState<string[]>(() => readRecent());
-  // "Trending now" (docs/adr/039): what several people searched for lately, the same list for everyone.
+  // "Trending now": what several people searched for lately, the same list for everyone.
   const [trending, setTrending] = useState<string[]>([]);
   const input = useRef<HTMLInputElement>(null);
 

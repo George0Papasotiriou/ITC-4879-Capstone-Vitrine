@@ -23,7 +23,7 @@ import { photoExpiry } from "@/lib/photos/photos";
 import { photoStore } from "@/lib/photos/server";
 
 /**
- * docs/adr/063. The routes and the Concierge's tools both come here, so the
+ * The routes and the Concierge's tools both come here, so the
  * rules are said once: a photograph the shopper gave, pieces that can be worn,
  * an outfit in dressing order, credits reserved before anything is made, and
  * the work done as a job the page can ask about.

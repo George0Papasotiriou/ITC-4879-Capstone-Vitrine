@@ -19,7 +19,7 @@ import { applyPatch, EMPTY_PREFERENCES, isEmpty, mergePreferences, preferencesSc
 import { createPreferenceStore, type PreferenceStore } from "@/lib/prefs/store";
 
 /**
- * docs/adr/033. A guest's preferences live in a cookie on their device: no
+ * A guest's preferences live in a cookie on their device: no
  * account, no server-side row, gone when they clear the browser. Signed in,
  * they live on the account, and whatever the device held is merged in and the
  * cookie removed, so the next person on a shared computer does not inherit a
@@ -106,7 +106,7 @@ export async function syncDevice(deviceComfort: string, { changed = false }: { c
     await preferenceStore().save(user.id, mergePreferences(device, saved.preferences));
     jar.delete(PREFS_COOKIE);
   }
-  // The room boards this browser made as a guest become the account's (docs/adr/056), as its cart does.
+  // The room boards this browser made as a guest become the account's, as its cart does.
   const guest = await knownActor(null);
   if (guest !== null) await (await boardStore()).adopt(guest.key, `user:${user.id}`);
   const local = serializeComfort(parseComfort(deviceComfort));

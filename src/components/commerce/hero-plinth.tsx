@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * The hero plinth and the window light (docs/PLAN.md 4.5, moment 1).
+ * The hero plinth and the window light (moment 1).
  *
  * The most characteristic thing in a shop window is one lit object. On load,
  * Lumen sweeps once across the plinth and settles within 1.2 seconds — the

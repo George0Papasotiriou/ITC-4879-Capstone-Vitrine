@@ -15,7 +15,7 @@ import type { RatingSummary } from "@/lib/commerce/reviews";
 import type { InsightPoint, ReviewInsights } from "@/lib/reviews/insights";
 
 /**
- * Every review here comes from a delivered order (docs/adr/017), so each is
+ * Every review here comes from a delivered order, so each is
  * marked as a verified purchase. The text is shown as text — React escapes it
  * — and a review written in the other language says so, instead of being
  * machine-translated behind the reader's back.
@@ -94,7 +94,7 @@ export function ProductReviews({ summary, reviews, locale, insights }: { summary
 }
 
 /**
- * docs/adr/041. What buyers like and what they mention against, each point
+ * What buyers like and what they mention against, each point
  * with how many reviews make it and the sentences that say it — quoted as
  * written, with a way to the whole review when it is on the page.
  */

@@ -14,8 +14,8 @@ import { logger } from "@/lib/log";
 import { externalReviewStore } from "@/lib/reviews/server";
 
 /**
- * docs/adr/061. The same permission and the same rule as the shop's own reviews
- * (docs/adr/017): "reviews:moderate", and a reason to hide, kept for other
+ * The same permission and the same rule as the shop's own reviews:
+ * "reviews:moderate", and a reason to hide, kept for other
  * staff and written to the audit log. A hidden review stays hidden through
  * every deploy's sync (external-store.ts keys reviews by their content).
  */

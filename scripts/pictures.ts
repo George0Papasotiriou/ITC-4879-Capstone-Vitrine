@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/060.
- *
  *   pnpm pictures list
  *   pnpm pictures sheet [--run <name>]     (the pilot's pictures side by side, as .local/e11/<run>/index.html)
  *   pnpm pictures showrooms --dry-run | --yes [--only scandinavian-bedroom,dark-moody-living]

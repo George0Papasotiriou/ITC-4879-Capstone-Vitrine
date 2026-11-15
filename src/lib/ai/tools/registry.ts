@@ -21,7 +21,7 @@ import { highlight, navigate, adjustComfort, openViewer, setFilters, showProduct
 import { buildCapsuleTool, completeTheLook, readMyColours } from "@/lib/ai/tools/wardrobe";
 
 /**
- * Every surface reads this list (CLAUDE.md rule 4). Adding a capability means
+ * Every surface reads this list. Adding a capability means
  * adding one tool here; chat, voice and support pick it up with the same
  * authorization, approvals and cost accounting.
  */

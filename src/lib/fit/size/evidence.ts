@@ -11,9 +11,9 @@ import { stretchAllowance } from "@/lib/fit/size/body";
 import { itemFromCounts, updateFit, type FitCounts, type FitOutcome, type FitParams, type ItemBelief } from "@/lib/fit/size/ordinal";
 
 /**
- * docs/adr/064. Two kinds of evidence, oldest first:
+ * Two kinds of evidence, oldest first:
  *
- * 1. REVIEWERS' REMARKS (Amazon.com, ADR-061): how many reviews say the piece
+ * 1. REVIEWERS' REMARKS (Amazon.com): how many reviews say the piece
  *    runs small, true to size or large. They are found by phrases in review
  *    text, and reviewers mention fit far more often when it went wrong (the
  *    clothes' remarks are 58% "true to size" on average, against 74% "fit"

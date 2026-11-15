@@ -10,7 +10,7 @@
 import { conciergeInstructions } from "@/lib/ai/prompts/concierge-v1";
 
 /**
- * docs/adr/030. A realtime model hears and speaks by itself, so it gets the
+ * A realtime model hears and speaks by itself, so it gets the
  * Concierge's instructions — the same rules for money and truth, the same
  * tools — with the spoken section on, and a few lines about what is different
  * live: the instructions are fixed when the session starts, so it cannot see

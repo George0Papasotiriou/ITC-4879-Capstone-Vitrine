@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "The Wear capsule: 24 pieces the shop designed and drew itself, in five sizes each (docs/adr/022).",
+  "description": "The Wear capsule: 24 pieces the shop designed and drew itself, in five sizes each.",
   "products": [
     {
       "source": "capsule",

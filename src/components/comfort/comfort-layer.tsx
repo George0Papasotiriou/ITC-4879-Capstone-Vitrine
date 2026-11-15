@@ -21,7 +21,7 @@ import { Shortcuts } from "@/components/comfort/shortcuts";
 const ComfortPanel = dynamic(() => import("@/components/comfort/comfort-panel").then((module) => module.ComfortPanel), { ssr: false });
 
 /**
- * docs/adr/032. The panel, the reading guide, the numbers and the shortcuts.
+ * The panel, the reading guide, the numbers and the shortcuts.
  * The attributes are applied once more after hydration, in case the page was
  * restored from the browser's back-forward cache with older ones.
  */
@@ -38,7 +38,7 @@ export function ComfortLayer() {
 
   useEffect(() => {
     applyComfort(currentComfort());
-    // Once per browser session: a signed-in shopper's device and account meet (docs/adr/033).
+    // Once per browser session: a signed-in shopper's device and account meet.
     try {
       if (window.sessionStorage.getItem(SYNCED_KEY) === null) {
         window.sessionStorage.setItem(SYNCED_KEY, "1");

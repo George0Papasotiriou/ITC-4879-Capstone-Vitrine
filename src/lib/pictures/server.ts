@@ -15,7 +15,7 @@ import { createPictureStore, type PictureStore } from "@/lib/pictures/store";
 
 let store: PictureStore | undefined;
 
-/** The picture store, at request time (docs/adr/053). */
+/** The picture store, at request time. */
 export async function pictureStore(): Promise<PictureStore> {
   await connection();
   return (store ??= createPictureStore(sql, { fixtures: serverEnv().PICTURES_PROVIDER === "fixture" }));

@@ -8,7 +8,7 @@
  */
 
 /**
- * Rank fusion — step 4 of the A1 pipeline (docs/PLAN.md 2.6).
+ * Rank fusion — step 4 of the A1 pipeline.
  *
  * Three retrievers look at a query in different ways. Lexical search finds the
  * words ("oak table"), fuzzy search forgives typos ("oak tabel"), and semantic

@@ -25,8 +25,8 @@ import { SCENE_STYLE_IDS, type SceneStyle } from "@/lib/pictures/pictures";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/053, docs/adr/060 (George, 2026-10-04: "hyper realistic pictures
- * ONLY … and I want this to make furniture selection seamless").
+ * The "Picture it" studio: photoreal pictures of a piece in a room, made to
+ * make choosing furniture easier.
  *
  * The picture is where the shopper decides, so everything to decide with is
  * under it: the piece's price and stock (from the database, as everywhere),

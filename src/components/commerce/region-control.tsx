@@ -21,7 +21,7 @@ import { EXPORT_COUNTRY_CODES, isDeliveryCountry, isExportCountry } from "@/lib/
 import { EU_COUNTRIES, formatVatRate, isEuCountry, vatRatePerMille } from "@/lib/commerce/vat";
 
 /**
- * Where prices are shown for, and a way to change it (docs/adr/013).
+ * Where prices are shown for, and a way to change it.
  *
  * The country is detected from the request, which is often wrong (VPNs,
  * travel, office networks), so the shopper can always correct it. Changing it

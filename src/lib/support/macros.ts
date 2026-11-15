@@ -10,7 +10,7 @@
 import type { Macro } from "@/lib/support/store";
 
 /**
- * Macros (docs/adr/021) are the answers an agent sends often, written once and
+ * Macros are the answers an agent sends often, written once and
  * in both languages. Each one says what happens next, as docs/policies.md
  * requires, and none of them promises anything that file does not.
  *

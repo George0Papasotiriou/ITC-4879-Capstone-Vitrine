@@ -10,7 +10,7 @@
 import { z } from "zod";
 
 /**
- * Reviews (docs/PLAN.md Phase 5 step 6, docs/adr/017). A review is written by
+ * Reviews. A review is written by
  * someone who received the piece; this module holds the rules that do not need
  * the database, so they can be tested exactly.
  */
@@ -22,8 +22,8 @@ export const REVIEW_BODY_MAX = 2000;
 /**
  * Review text is kept as plain text: control characters (other than line
  * breaks) are removed, runs of blank lines are shortened, and nothing is ever
- * interpreted as markup. It is also untrusted input for the Concierge
- * (CLAUDE.md conventions), which only ever sees it as quoted data.
+ * interpreted as markup. It is also untrusted input for the Concierge,
+ * which only ever sees it as quoted data.
  */
 export function cleanReviewText(text: string): string {
   return text

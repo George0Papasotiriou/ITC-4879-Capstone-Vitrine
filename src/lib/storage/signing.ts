@@ -10,7 +10,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 /**
- * Signed storage URLs for the local driver (ADR-008).
+ * Signed storage URLs for the local driver.
  *
  * The production bucket is only ever reached through presigned URLs: the server
  * decides who may upload or read which object, for how long, and signs that

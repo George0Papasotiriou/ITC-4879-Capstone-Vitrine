@@ -18,7 +18,7 @@ import { pushedIntoCorner, stepSchema, wayIn, MAX_STEPS, type Box, type Step, ty
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/055. The shopper measures their way in once — the front door, the
+ * The shopper measures their way in once — the front door, the
  * hall's corner, the stairs, the room's door — and every piece then answers
  * whether its box gets through, worked out on the page itself
  * (src/lib/fit/path.ts) from the catalogue's measurements. Where it does not,

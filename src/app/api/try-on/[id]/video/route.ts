@@ -14,7 +14,7 @@ import { currentUser } from "@/lib/auth/session";
 import { startTryOnVideo } from "@/lib/fitting/server";
 
 /**
- * docs/adr/063. Accounts only, once per try-on, and never with the keyless
+ * Accounts only, once per try-on, and never with the keyless
  * stand-in. The video is made as a job; the Fitting Room's own polling picks
  * it up (`GET /api/try-on`).
  */

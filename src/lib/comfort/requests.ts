@@ -10,7 +10,7 @@
 import { DEFAULT_COMFORT, type Comfort } from "@/lib/comfort/settings";
 
 /**
- * docs/adr/032. "The text is too small", "stop the animations", «μεγαλύτερα
+ * "The text is too small", "stop the animations", «μεγαλύτερα
  * γράμματα»: people say what bothers them, not the name of a setting. A
  * language model understands such sentences by itself; this is the rule-based
  * reading the keyless Concierge uses, and the evaluation's reference for what

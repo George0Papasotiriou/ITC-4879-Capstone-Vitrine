@@ -300,7 +300,7 @@ describe.skipIf(url === undefined || url === "")("commerce", () => {
       expect(await store.itemCount(cartId)).toBe(1);
     });
 
-    it("exports to Switzerland without VAT, leaving the import VAT to be paid on delivery (docs/adr/015)", async () => {
+    it("exports to Switzerland without VAT, leaving the import VAT to be paid on delivery", async () => {
       const a = pick(12);
       await setStock(a.id, 5);
       const result = await checkout(await cartWith([[a.id, 1]]), {
@@ -420,7 +420,7 @@ describe.skipIf(url === undefined || url === "")("commerce", () => {
     });
   });
 
-  describe("accounts (docs/adr/016)", () => {
+  describe("accounts", () => {
     const newUser = async (email: string) => {
       const id = uuidv7();
       await connection`INSERT INTO users (id, name, email, email_verified) VALUES (${id}, 'Test Shopper', ${email}, true)`;
@@ -511,7 +511,7 @@ describe.skipIf(url === undefined || url === "")("commerce", () => {
     });
   });
 
-  describe("order desk and order emails (docs/adr/016)", () => {
+  describe("order desk and order emails", () => {
     const SECRET = "c".repeat(40);
 
     it("derives each order's link from its id, so it can be rebuilt without being stored", async () => {

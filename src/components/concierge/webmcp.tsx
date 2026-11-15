@@ -17,7 +17,7 @@ import { useRouter } from "@/i18n/navigation";
 import { modelContext } from "@/lib/ai/surfaces/webmcp";
 
 /**
- * docs/adr/043. Feature-detected and otherwise inert: nothing is fetched on a
+ * Feature-detected and otherwise inert: nothing is fetched on a
  * browser without `document.modelContext`. Each tool runs through
  * /api/concierge/tools as this shopper, exactly as a voice tool call does; a
  * page to open is opened with the shop's router, and a cart change updates

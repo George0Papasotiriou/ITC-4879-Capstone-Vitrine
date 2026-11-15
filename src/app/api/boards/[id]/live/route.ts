@@ -16,7 +16,7 @@ import { boardAccess } from "@/lib/boards/server";
 import { publishBoard, subscribeBoard } from "@/lib/kv/live";
 
 /**
- * docs/adr/056, after the live order (docs/adr/039). Anyone with a link may
+ * Live updates for a room board, built like the live order page. Anyone with a link may
  * follow along. "changed" tells the page to read the board again with its own
  * rights; "presence" is how many people have it open. Each stream says "here"
  * on the board's channel when it opens and every twenty seconds, and "left"

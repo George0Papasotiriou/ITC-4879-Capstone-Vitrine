@@ -13,7 +13,7 @@ import type { KeyValue } from "@/lib/kv/types";
 import { logger } from "@/lib/log";
 
 /**
- * docs/adr/039. The per-process limiter (src/lib/ai/guardrails/rate-limit.ts)
+ * The per-process limiter (src/lib/ai/guardrails/rate-limit.ts)
  * counted each web server separately, so two servers let twice the limit
  * through. This one keeps one sliding window per person and limit in the
  * shared store. The person is an address or account id, stored only as a keyed

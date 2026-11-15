@@ -19,9 +19,9 @@ import { colorLabel } from "@/lib/search/vocabulary";
 import { colourSwatch } from "@/lib/vision/palette";
 
 /**
- * docs/adr/066. The picture — a frame from the front camera, or a
+ * The picture — a frame from the front camera, or a
  * photograph chosen from the device — is read in this tab by the same face
- * landmarker as the AR Mirror (docs/adr/065) and the colour reading
+ * landmarker as the AR Mirror and the colour reading
  * (colour-season.ts); nothing is sent or kept. Keeping the colours in Your
  * shop is a separate, explicit step, and keeps only colour words.
  */

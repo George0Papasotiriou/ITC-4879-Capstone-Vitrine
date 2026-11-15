@@ -12,7 +12,6 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { fillAndSubmit, freshPage, PASSWORD, signUpAndConfirm, uniqueEmail } from "./support/accounts";
 
-/** docs/adr/067. */
 
 test.describe.configure({ timeout: 90_000 });
 

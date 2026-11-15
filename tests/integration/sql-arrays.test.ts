@@ -12,7 +12,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 /**
  * Array parameters behave the same on PGlite and PostgreSQL — for the forms the
- * codebase allows (ADR-008).
+ * codebase allows.
  *
  * This suite runs locally against PGlite and in CI against PostgreSQL. Search
  * (A1) and recommendations (A2) pass arrays of ids into SQL constantly; if one

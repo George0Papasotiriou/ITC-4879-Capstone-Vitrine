@@ -12,7 +12,7 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 
 import { clientAddress, freshPage, signUpAndConfirm, uniqueEmail } from "./support/accounts";
 
-/** docs/adr/043, against the production build, with no real agent: the test plays the agent. */
+/** Outside AI agents, against the production build, with no real agent: the test plays the agent. */
 
 const META = { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientInfo": { name: "vitrine-e2e", version: "1" }, "io.modelcontextprotocol/clientCapabilities": {} };
 

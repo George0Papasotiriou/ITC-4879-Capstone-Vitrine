@@ -24,12 +24,12 @@ import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES } from "@/lib/photos/photos";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * The privacy promise is the feature (docs/adr/023): the photograph is given
+ * The privacy promise is the feature: the photograph is given
  * for one purpose, kept for a day, deletable at any moment, and never shown to
  * anyone else. So the page says all of that before it asks for anything, the
  * consent box is unticked, and the count-down is on screen the whole time.
  *
- * docs/adr/063: clothes, shoes, bags and accessories can all be tried on, one
+ * Clothes, shoes, bags and accessories can all be tried on, one
  * at a time or as an outfit of up to four put on in dressing order; a
  * finished try-on can be made to move for five seconds. Without the service's
  * key the result is the photograph beside the piece, and says so.

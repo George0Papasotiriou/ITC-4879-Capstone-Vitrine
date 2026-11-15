@@ -21,7 +21,7 @@ import type { ModelShotView } from "@/lib/fitting/server";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/063. Four models to pick from — build and skin tone, no face of
+ * Four models to pick from — build and skin tone, no face of
  * the shopper's — and FASHN's Product to Model puts the piece on the one
  * picked. A shot someone already had made shows at once, for nothing; the
  * first shopper to ask pays once. Every shot is labelled an AI picture.

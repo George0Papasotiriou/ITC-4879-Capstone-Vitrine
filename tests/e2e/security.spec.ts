@@ -12,7 +12,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/046. The policy is enforced on the production build these tests
+ * The policy is enforced on the production build these tests
  * run against, so a script, frame or connection it wrongly blocks shows up
  * here as a violation the browser reported, before a shopper meets it.
  */

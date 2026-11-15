@@ -32,7 +32,7 @@ import { createPgliteServer } from "./pglite-server.mjs";
 
 /**
  * Shared by scripts/evaluate-search-esci.ts (E1) and
- * scripts/esci-ranker-data.ts (the learned ranker's training data, docs/adr/057).
+ * scripts/esci-ranker-data.ts (the learned ranker's training data).
  * The labels file is downloaded once (51 MB); products are read from the
  * products file by byte range, only the columns and rows needed. Every corpus
  * is indexed into its own in-memory PostgreSQL by the shop's catalogue writer,

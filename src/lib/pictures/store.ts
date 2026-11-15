@@ -148,8 +148,8 @@ export function createPictureStore(sql: Sql, { fixtures = false }: { fixtures?: 
 
   /**
    * The scene of a piece in a style that is made or being made, if any: anyone
-   * may see it. The shop's old drawn previews (docs/adr/053) are never shown
-   * again: only a picture a model made counts (docs/adr/060).
+   * may see it. The shop's old drawn previews are never shown
+   * again: only a picture a model made counts.
    */
   async function sceneFor(productId: string, style: SceneStyle): Promise<Picture | null> {
     const rows = await sql<Row[]>`
@@ -249,7 +249,7 @@ export function createPictureStore(sql: Sql, { fixtures = false }: { fixtures?: 
 
   /**
    * The room photograph this shopper last gave the shop, while it lives
-   * (docs/adr/060, "your room, remembered"): one tap pictures any other piece
+   * ("your room, remembered"): one tap pictures any other piece
    * in it. The planner's pictures are left out — they already hold a placed
    * piece — and so is anything deleted or past its day.
    */

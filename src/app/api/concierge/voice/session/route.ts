@@ -15,7 +15,7 @@ import { MAX_SESSION_MS, MAX_TURNS, voiceLocale } from "@/lib/ai/surfaces/voice/
 import { currentUser } from "@/lib/auth/session";
 
 /**
- * The gate for voice (docs/adr/026, docs/adr/030). A spoken session asks the
+ * The gate for voice. A spoken session asks the
  * same questions as any other AI surface before it starts — is AI on, is the
  * day's budget spent, has this shopper any turns left — so a shopper is told
  * *before* they start speaking, not after.

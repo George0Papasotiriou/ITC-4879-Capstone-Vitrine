@@ -231,7 +231,7 @@
       "id": "g20-size-greek",
       "locale": "el",
       "message": "Τι νούμερο πουκάμισο να πάρω; Στήθος 92, μέση 76",
-      "note": "Chest 92 and waist 76 are both at S's limit: the Fit Engine advises M, since with a tape's ±1.5 cm S is too small on one zone three times in four (docs/adr/064).",
+      "note": "Chest 92 and waist 76 are both at S's limit: the Fit Engine advises M, since with a tape's ±1.5 cm S is too small on one zone three times in four.",
       "expect": {
         "tools": [
           "suggest_size"

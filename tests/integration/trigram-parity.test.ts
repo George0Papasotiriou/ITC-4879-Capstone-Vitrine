@@ -14,7 +14,7 @@ import { trigramSimilarity } from "@/lib/search/trigram";
 
 /**
  * The application's trigram similarity and the database's must be the same
- * function (docs/PLAN.md 2.6, A1).
+ * function.
  *
  * Fuzzy retrieval runs in PostgreSQL with pg_trgm; choosing between Greeklish
  * candidates runs in TypeScript. If the two disagreed, a candidate the app

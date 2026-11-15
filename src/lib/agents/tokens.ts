@@ -12,7 +12,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 
 /**
- * docs/adr/043. A shopper's own AI assistant reaches their cart and orders
+ * A shopper's own AI assistant reaches their cart and orders
  * through /api/mcp with a key they made at /account/agents. The key is 32
  * random bytes (256 bits) behind a recognisable prefix, so secret scanners and
  * people can tell what it is. With that much randomness a plain SHA-256 is the

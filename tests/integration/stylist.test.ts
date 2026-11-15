@@ -153,7 +153,7 @@ describe.skipIf(url === undefined || url === "")("budget stylist", () => {
     await expect(stylist.build({ template: "reading-corner", budgetCents: 50_000, avoidColors: ["neon"] })).rejects.toThrow();
   });
 
-  it("for the shop window, chooses only pieces it can stand in 3D: those with their own scan, and rugs (docs/adr/048)", async () => {
+  it("for the shop window, chooses only pieces it can stand in 3D: those with their own scan, and rugs", async () => {
     // The specimen pieces have no scans: no reading corner can be shown in 3D yet, and the shop window falls back.
     const without = await stylist.build({ template: "reading-corner", budgetCents: 150_000 }, { showable: true });
     expect(without.bundles).toEqual([]);

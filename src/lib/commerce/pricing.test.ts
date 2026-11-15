@@ -145,7 +145,7 @@ describe("pricing a cart", () => {
     expect(nowhere.vat.cents).toBe(0);
   });
 
-  describe("exports (docs/adr/015)", () => {
+  describe("exports", () => {
     it("charges no VAT on an export whose tax is paid on delivery, and says so", () => {
       // €124.00 in Greece is €100.00 before VAT; Switzerland taxes it at the border.
       const swiss = priceCart([{ unitCents: 12_400, quantity: 1 }], { country: "CH" });

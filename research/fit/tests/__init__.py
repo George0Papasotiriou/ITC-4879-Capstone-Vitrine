@@ -3,4 +3,4 @@
 # Author: George Papasotiriou <g.papasotiriou@acg.edu>
 # Project started: 2026-09-12
 #
-# Tests for E12's Fit Engine (docs/adr/064).
+# Tests for E12's Fit Engine.

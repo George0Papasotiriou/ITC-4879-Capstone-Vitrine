@@ -5,7 +5,7 @@
 #
 # E2: the Taste Graph (the shop's recommender, src/lib/reco) evaluated offline on OTTO's sessions.
 
-"""Evaluation E2 (docs/PLAN.md 2.6, docs/adr/050).
+"""Evaluation E2.
 
 OTTO's public dataset (otto-de/recsys-dataset, CC BY 4.0) holds 12.9 million
 real shopping sessions of a large online shop: clicks, carts and orders over

@@ -13,7 +13,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 /**
- * docs/adr/034. A dot on the account icon, said to screen readers as part of
+ * A dot on the account icon, said to screen readers as part of
  * the link's name ("Account, 1 price drop"), never a pop-up: the email has
  * already told them, and the shop only reminds. The header lives in the
  * layout, which stays mounted between pages, so the dot listens for the

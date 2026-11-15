@@ -15,10 +15,10 @@ import { expect, test, type Page } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/051. The home page's prompt said "Describe it, show a photo, or just
+ * The home page's prompt said "Describe it, show a photo, or just
  * say it", and only typing worked. Now the microphone opens the Concierge
- * already listening (the scripted voice driver stands in for a microphone,
- * docs/adr/026), and a photograph goes with a question — but only once the
+ * already listening (the scripted voice driver stands in for a microphone),
+ * and a photograph goes with a question — but only once the
  * shopper ticks its consent line: before that nothing is uploaded at all.
  * The Concierge runs on its rules here (no key), which read the photograph's
  * colours (find_by_photo) and say so.

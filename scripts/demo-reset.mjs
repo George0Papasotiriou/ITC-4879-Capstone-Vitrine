@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/046.
- *
  *   pnpm demo:reset --dry-run   what would be set aside
  *   pnpm demo:reset             set it aside; then `pnpm local` seeds a fresh shop
  *
@@ -20,7 +18,7 @@
  * and `pnpm orders demo` adds the dashboard orders.
  *
  * Production is never reset by a script: its showcase history is written once
- * and `pnpm showcase lock` ends it (docs/adr/028). Deleting orders there would
+ * and `pnpm showcase lock` ends it. Deleting orders there would
  * also leave stock counts that no longer add up.
  */
 

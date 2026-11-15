@@ -12,7 +12,7 @@ import { agentKeys } from "@/lib/ai/surfaces/mcp/server";
 import { currentUser } from "@/lib/auth/session";
 
 /**
- * docs/adr/043. Only a signed-in person with a confirmed address makes keys,
+ * Only a signed-in person with a confirmed address makes keys,
  * for themselves; the answer carries the key this one time and never again.
  * Five active keys at most.
  */

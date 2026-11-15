@@ -25,7 +25,7 @@ import { amazonReviewsFixtureSchema } from "@/lib/reviews/amazon";
 import { createExternalReviewStore } from "@/lib/reviews/external-store";
 
 /**
- * docs/adr/064. The engine reads a garment's remarks from the synced Amazon
+ * The engine reads a garment's remarks from the synced Amazon
  * summaries and its outcomes from the shop's own delivered orders: a return
  * asked for as "too small" teaches at once, a size kept teaches only once
  * the 14-day window has closed, and a return for another reason teaches

@@ -13,7 +13,7 @@ import { LOCAL_MAX_UPLOAD_BYTES, localConfig, readObject, writeObject } from "@/
 import { verify } from "@/lib/storage/signing";
 
 /**
- * Serves the local storage driver's signed URLs (ADR-008).
+ * Serves the local storage driver's signed URLs.
  *
  * This route exists only for the local stack. With the s3 driver it answers
  * 404, so a production deployment has no second, weaker path to its files.

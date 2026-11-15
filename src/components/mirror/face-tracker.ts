@@ -14,7 +14,7 @@ import type { Point2 } from "@/lib/vision/camera";
 import { scriptedLandmarks, type ScriptedFace } from "@/lib/vision/mirror/scripted";
 
 /**
- * docs/adr/065. Privacy by design (CLAUDE.md rule 9): the camera's frames
+ * Privacy by design: the camera's frames
  * are given to a model running in this tab and nowhere else. The model and
  * its WebAssembly runtime are this shop's own files (public/models/face,
  * scripts/face-model.ts); the model is checked against its SHA-256 before

@@ -10,7 +10,7 @@
 import { ViewTransition, type ReactNode } from "react";
 
 /**
- * docs/adr/031. A template, not the layout: Next.js mounts a template afresh
+ * A template, not the layout: Next.js mounts a template afresh
  * on every navigation, which is what lets the page leave and arrive, while the
  * layout — the header, the Concierge, the mobile bar — stays where it is, the
  * one fixed point the eye keeps.
@@ -18,8 +18,7 @@ import { ViewTransition, type ReactNode } from "react";
  * Two kinds of navigation move differently and are left alone here: opening a
  * product from a tile ("morph", the photograph carries the move) and changing
  * a listing's filters, sort or page ("listing", the grid rearranges itself),
- * and choosing another shop window ("window", the 3D room re-dresses itself,
- * docs/adr/048).
+ * and choosing another shop window ("window", the 3D room re-dresses itself).
  * Everything else — a link, the back button, the Concierge opening a page —
  * is a short step: out in 90ms, in over 280ms after it.
  */

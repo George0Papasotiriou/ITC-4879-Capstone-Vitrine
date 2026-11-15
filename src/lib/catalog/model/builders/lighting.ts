@@ -16,7 +16,7 @@ import { metalTone, woodTone } from "@/lib/catalog/model/words";
 import type { Rgb } from "@/lib/vision/palette";
 
 /**
- * docs/adr/058. A lamp is drawn as a lamp-maker turns one: the base is a
+ * A lamp is drawn as a lamp-maker turns one: the base is a
  * profile spun on a lathe (a gourd, a ginger jar, a column, stacked orbs, a
  * candlestick), the shade another profile (drum, empire, bell, pagoda, cone,
  * dome), open at both ends and lit from inside — its cloth glows a little,

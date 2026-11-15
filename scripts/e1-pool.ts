@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/049.
- *
  *   pnpm evals:e1-pool [--dry-run]
  *
  * Runs each of E1's 39 queries through every version of the search (the same

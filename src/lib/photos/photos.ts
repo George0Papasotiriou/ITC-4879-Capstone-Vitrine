@@ -8,7 +8,7 @@
  */
 
 /**
- * Photographs (docs/adr/023, docs/PLAN.md 2.9).
+ * Photographs.
  *
  * A shopper's photograph is the most personal thing this shop ever holds, so
  * the rules are few and strict, and they live here rather than in a route:
@@ -81,7 +81,7 @@ export const photoKey = (id: string) => `photos/${id}.webp`;
 
 /** Where the result of a try-on lives. It expires with the photograph it was made from. */
 export const tryOnKey = (id: string) => `photos/try-on/${id}.webp`;
-/** A try-on's video ("See it move", docs/adr/063), beside its picture and gone with it. */
+/** A try-on's video ("See it move"), beside its picture and gone with it. */
 export const tryOnVideoKey = (id: string, contentType: string) => `photos/try-on/${id}-move.${contentType === "video/webm" ? "webm" : "mp4"}`;
 
 /** Minutes left before a photograph goes, for the interface to say so. */

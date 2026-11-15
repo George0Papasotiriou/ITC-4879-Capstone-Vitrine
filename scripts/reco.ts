@@ -8,7 +8,7 @@
  */
 
 /**
- * Taste Graph commands (docs/PLAN.md Phase 8).
+ * Taste Graph commands.
  *
  *   pnpm reco simulate [--sessions 1500] [--seed N] [--dry-run] [--if-empty]
  *       Generate SYNTHETIC shopper sessions from personas (src/lib/reco/simulate.ts),

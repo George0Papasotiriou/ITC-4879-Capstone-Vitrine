@@ -3,4 +3,4 @@
 # Author: George Papasotiriou <g.papasotiriou@acg.edu>
 # Project started: 2026-09-12
 #
-# Tests for the learned ranker (docs/adr/057).
+# Tests for the learned ranker.

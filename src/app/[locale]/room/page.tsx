@@ -25,7 +25,7 @@ import { currentPreferences } from "@/lib/prefs/server";
 import { picturesOpen } from "@/lib/pictures/start";
 
 /**
- * See it in your room (docs/PLAN.md Phase 10, graded algorithm A4).
+ * See it in your room (graded algorithm A4).
  *
  * The server only decides which product is being placed and reads its measured
  * dimensions from the database; everything with the photo happens in the
@@ -51,7 +51,7 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/[lo
   const tp = await getTranslations("product");
   const search = await searchParams;
   const slug = typeof search.product === "string" ? search.product : null;
-  // A saved room to point at, when the Concierge opens the page for one (docs/adr/034).
+  // A saved room to point at, when the Concierge opens the page for one.
   const roomName = typeof search.room === "string" ? search.room.slice(0, 40) : undefined;
 
   const product = slug === null ? null : await getProduct(slug, locale);
@@ -131,7 +131,7 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/[lo
       <div className="mt-10">
         <RoomPlanner
           locale={locale}
-          // A photograph of the placed piece is offered only when an AI picture can really be made (docs/adr/060).
+          // A photograph of the placed piece is offered only when an AI picture can really be made.
           pictures={await picturesOpen()}
           product={{
             slug: product.slug,
@@ -139,9 +139,9 @@ export default async function RoomPage({ params, searchParams }: PageProps<"/[lo
             dims: product.dimsCm,
             mode,
             imageSrc: product.image === null ? null : sameOriginImage(product.image.src, 1080),
-            // Its own 3D scan, only when the file is really in storage: then the piece is drawn in 3D and turns (docs/adr/052).
+            // Its own 3D scan, only when the file is really in storage: then the piece is drawn in 3D and turns.
             model: product.model?.src ?? null,
-            // Without a scan, the shop's own model, offered beside the photograph so the piece can turn (docs/adr/058).
+            // Without a scan, the shop's own model, offered beside the photograph so the piece can turn.
             madeModel: product.model == null && (product.aiModel != null || canMakeModel(product.kind, product.dimsCm)) ? `/api/models/${product.slug}` : null,
             preferModel: product.model == null && product.aiModel != null,
             kind: product.kind,

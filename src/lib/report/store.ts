@@ -13,7 +13,7 @@ import { uuidv7 } from "uuidv7";
 import type { WeeklyReportSummary } from "@/lib/report/weekly";
 
 /**
- * A report is a file in the shop's storage and a row here (docs/adr/020). The
+ * A report is a file in the shop's storage and a row here. The
  * row carries the week it covers and the figures on its first page, so the
  * admin page can list reports without opening any of them, and the file is
  * only fetched when someone asks for it.

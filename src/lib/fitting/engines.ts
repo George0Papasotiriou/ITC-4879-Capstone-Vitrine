@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/063. Everything here is pure: the routes, the jobs and the
+ * Everything here is pure: the routes, the jobs and the
  * Concierge's tools all ask it the same questions.
  *
  * FASHN's tables were read from its API reference on 2026-10-05
@@ -16,9 +16,9 @@
  * Video pages). A credit is $0.075 on demand.
  */
 
-/** The clothes' kinds (docs/adr/022, 062): what Try-On v1.6 was made for. */
+/** The clothes' kinds: what Try-On v1.6 was made for. */
 export const GARMENT_KINDS = ["TOP", "SHIRT", "KNIT", "TROUSERS", "SKIRT", "DRESS", "COAT", "JACKET"] as const;
-/** The wearables' kinds (docs/adr/061): only Try-On Max puts these on a person. */
+/** The wearables' kinds: only Try-On Max puts these on a person. */
 export const WEARABLE_KINDS = ["SHOES", "BOOT", "SANDAL", "HANDBAG", "TOTE_BAG", "WALLET", "BACKPACK", "HAT", "SCARF", "SUNGLASSES", "EARRING", "NECKLACE", "BRACELET", "WATCH"] as const;
 
 export type TryOnEngine = "v1.6" | "max";

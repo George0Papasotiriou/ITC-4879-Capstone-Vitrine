@@ -11,7 +11,7 @@ import { paletteHarmony } from "@/lib/optimize/color";
 import { dot } from "@/lib/reco/content-vector";
 
 /**
- * The two scores the Budget Stylist optimises (A3, docs/PLAN.md 2.6).
+ * The two scores the Budget Stylist optimises.
  *
  *   a(x) = w_rel · relevance + w_taste · taste + w_rating · rating
  *

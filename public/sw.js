@@ -10,7 +10,7 @@
 /**
  * Vitrine service worker.
  *
- * Hand-written rather than generated (ADR-006). Serwist injects through a
+ * Hand-written rather than generated. Serwist injects through a
  * webpack plugin and Next.js 16 builds with Turbopack, so the plan's documented
  * fallback applies — and sixty lines that George can explain in a viva are
  * worth more here than a dependency that generates a thousand he cannot.
@@ -18,7 +18,7 @@
  * The strategy is deliberately conservative for a shop:
  *
  * - Navigations are network-first. Prices and stock must never be served stale
- *   from a cache (CLAUDE.md golden rule 5: truth comes from the database).
+ *   from a cache: they always come from the database.
  *   The offline page is shown only when the network genuinely fails.
  * - Static build output is cache-first. It is content-hashed, so a cached copy
  *   is either current or unreachable.
@@ -120,7 +120,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 /**
- * Web Push (docs/adr/044). The shop sends only what a signed-in shopper turned
+ * Web Push. The shop sends only what a signed-in shopper turned
  * on at /account/preferences: an order moving, a watched price reached, a reply
  * from the desk. The message arrives already decrypted by the browser; it is
  * shown as it is, and tapping it opens the page it names — a page of this

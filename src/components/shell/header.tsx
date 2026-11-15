@@ -24,13 +24,13 @@ import { MENU, type MenuLabel, type MenuLink, type ResolvedGroup, type ResolvedL
 import { CATEGORIES, type CategorySlug } from "@/lib/catalog/taxonomy";
 
 /**
- * The header (docs/PLAN.md 4.3, docs/adr/067)
+ * The header
  *
  * Wordmark and the categories menu on the left; the Concierge, comfort,
  * search, account, cart and a quick sign-in or sign-out on the right. The
  * first design kept categories out of the header (one pane of glass); George
  * asked for the menu large shops have, so every department, kind and brand is
- * one hover or tap from any page (ADR-067). The menu is fixed data
+ * one hover or tap from any page. The menu is fixed data
  * (src/lib/catalog/menu.ts), so the header still makes no catalogue query.
  *
  * Every control the Concierge can point at carries a `data-agent-id`, which is
@@ -68,9 +68,9 @@ export async function Header({ className }: { className?: string }) {
             {/* From laptop width up; a tablet's row has room for the dot only. The toggle's own label names it either way. */}
             <span className="hidden text-sm lg:inline">{t("concierge")}</span>
           </ConciergeToggle>
-          {/* Text size, contrast, motion and the rest: on every page, found before it is needed (docs/adr/032). */}
+          {/* Text size, contrast, motion and the rest: on every page, found before it is needed. */}
           <ComfortButton />
-          {/* A link to /search that opens the instant search pop-up when JavaScript is there (docs/adr/034). */}
+          {/* A link to /search that opens the instant search pop-up when JavaScript is there. */}
           <InstantSearchTrigger>
             <HeaderAction
               href="/search"
@@ -171,7 +171,7 @@ function HeaderAction({
     >
       {children}
       {/* The label is visible from laptop width up (a tablet's row also holds the
-          categories menu, docs/adr/067) and always available to screen readers,
+          categories menu) and always available to screen readers,
           so the icons never have to be guessed at. */}
       {after === undefined ? null : <span className="sr-only">{label}</span>}
       <span className="hidden text-sm lg:inline" aria-hidden={after === undefined ? undefined : true}>

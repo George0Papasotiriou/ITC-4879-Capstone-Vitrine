@@ -11,7 +11,7 @@ import { RETURN_WINDOW_DAYS, type Actor, type OrderEventType } from "@/lib/comme
 import { RETURN_REASONS, type ReturnReason } from "@/lib/commerce/returns";
 
 /**
- * Demo orders (docs/PLAN.md Phase 5 step 7; `pnpm orders demo`). Each order
+ * Demo orders (`pnpm orders demo`). Each order
  * is placed at a moment in the past and then lives the life a real one would:
  * paid within minutes, packed within a day, delivered a few days later, now
  * and then reviewed, returned, cancelled or never paid. Steps that would fall

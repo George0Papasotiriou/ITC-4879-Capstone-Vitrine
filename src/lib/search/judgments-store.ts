@@ -13,7 +13,7 @@ import { uuidv7 } from "uuidv7";
 import type { Grade } from "@/lib/search/metrics";
 import { normalize } from "@/lib/search/normalize";
 
-/** docs/adr/036. Queries are kept folded, so the page, the script and the tests agree on what "the same query" is. */
+/** Queries are kept folded, so the page, the script and the tests agree on what "the same query" is. */
 export const judgmentKey = (query: string) => normalize(query).slice(0, 200);
 
 export function createJudgmentStore(sql: postgres.Sql) {

@@ -33,7 +33,7 @@ import { storage } from "@/lib/storage";
  * a database. `cache` deduplicates within one request, so a product page that
  * reads the product for its metadata and again for its body queries once.
  *
- * Prices come back in the shopper's country (docs/adr/013): stored prices are
+ * Prices come back in the shopper's country: stored prices are
  * Greek, and every read here converts them before a page sees them.
  */
 
@@ -104,7 +104,7 @@ export async function getProductSlugs() {
 }
 
 /**
- * The learned ranking stage the shop runs (docs/adr/057), unless SEARCH_RANKER
+ * The learned ranking stage the shop runs, unless SEARCH_RANKER
  * is "off" or the model was trained on other features than the code computes
  * (then search simply runs without it).
  */
@@ -121,7 +121,7 @@ export async function runSearch(query: string, options?: SearchOptions) {
   // "Under €200" means €200 in the shopper's prices.
   const run = () => searchProducts(retrievers(), query, { ...options, ranker, priceToBase: (cents, bound) => toBaseBound(cents, bound, country) });
   // A query with its own embedding is personal to that request; everything else is the same for
-  // everyone in a country, so its ranking is kept for two minutes (docs/adr/039). Cards, prices and
+  // everyone in a country, so its ranking is kept for two minutes. Cards, prices and
   // stock are read fresh by the caller either way. The ranker's version is part of the key, so a
   // new model is never served an old model's order.
   if (options?.embedding != null) return run();
@@ -132,7 +132,7 @@ export async function runSearch(query: string, options?: SearchOptions) {
 const SEARCH_CACHE_SECONDS = 120;
 
 /**
- * One E1 system's ranking for a query (docs/adr/036): the shop's search with
+ * One E1 system's ranking for a query: the shop's search with
  * stages switched off, prices read as stored (the Greek prices), so the
  * evaluation does not depend on where the person judging is.
  */

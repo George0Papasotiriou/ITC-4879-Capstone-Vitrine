@@ -23,7 +23,7 @@ describe("costMicros", () => {
     expect(costMicros(MODELS.image.pricing, { units: 1 })).toBe(101_000);
   });
 
-  it("prices an AI picture by the image and by the tokens around it (docs/adr/060)", () => {
+  it("prices an AI picture by the image and by the tokens around it", () => {
     // Nano Banana Pro at 2K: $0.134, plus five photographs in (6,000 tokens at $2/M) and 1,500 thinking tokens at $12/M.
     expect(costMicros(MODELS.imagePro.pricing, { units: 1, inputTokens: 6_000, outputTokens: 1_500 })).toBe(134_000 + 12_000 + 18_000);
     expect(costMicros(MODELS.imagePro4k.pricing, { units: 1 })).toBe(240_000);

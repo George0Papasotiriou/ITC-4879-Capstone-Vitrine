@@ -17,7 +17,7 @@ import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 import { loggerForRequest } from "@/lib/log";
 
 /**
- * docs/adr/043. Streamable HTTP, revision 2026-07-28, and the earlier
+ * Streamable HTTP, revision 2026-07-28, and the earlier
  * `initialize` revisions (src/lib/ai/surfaces/mcp/protocol.ts): one POST, one
  * JSON answer. The admin's kill switch stops it with the rest of the AI.
  * Limited per key, or per address without one, through Redis in production.

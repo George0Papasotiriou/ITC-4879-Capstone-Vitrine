@@ -13,7 +13,7 @@ import { fillAndSubmit, freshPage, linkFromOutbox, signUpAndConfirm, uniqueEmail
 import { paidGuestOrder, signInAdmin } from "./support/orders";
 
 /**
- * The order desk (docs/adr/016). The admin is the address ADMIN_EMAILS names
+ * The order desk. The admin is the address ADMIN_EMAILS names
  * for this device project: signing up and confirming it is all it takes, as
  * for the first admin in production. A guest orders and pays with the local
  * test payment; the admin packs and ships; the guest's outbox gets the email.

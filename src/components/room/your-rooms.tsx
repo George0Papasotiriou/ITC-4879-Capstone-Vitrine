@@ -21,9 +21,9 @@ import { MAX_ROOMS, withRoom } from "@/lib/prefs/rooms";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/034. The planner answers "how does it look"; this answers "does it
+ * The planner answers "how does it look"; this answers "does it
  * fit", from the wall widths the shopper typed, never from the photograph —
- * the photograph stays in the browser and is never kept (docs/adr/014). A
+ * the photograph stays in the browser and is never kept. A
  * room saved here is the same room as on Your shop, so the home page's
  * "Fits your space" and every product page use it too.
  */

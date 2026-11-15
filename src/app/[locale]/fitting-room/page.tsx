@@ -22,7 +22,7 @@ import { canAnimate } from "@/lib/fitting/driver";
 import { currentStudioMode } from "@/lib/fitting/server";
 
 /**
- * docs/adr/023, docs/adr/063. The page is rendered for the shopper because
+ * The page is rendered for the shopper because
  * the Fitting Room is about their own photograph; the pieces it offers come
  * from the catalogue, so a piece that sells out or is withdrawn leaves it by
  * itself. A piece the shopper came from (`?piece=<slug>`) comes first.
@@ -60,7 +60,7 @@ export default async function FittingRoomPage({ params, searchParams }: PageProp
     const pieces: TryOnPiece[] = featured.map((product) => ({
       slug: product.slug,
       title: product.title,
-      // Through the shop's own image server: the page's policy allows no other host (docs/adr/046).
+      // Through the shop's own image server: the page's policy allows no other host.
       image: product.image === null ? null : sameOriginImage(product.image.src, 640),
       kind: product.kind,
     }));
@@ -87,7 +87,7 @@ export default async function FittingRoomPage({ params, searchParams }: PageProp
           </SmartLink>
         </li>
       </ul>
-      {/* Hats, earrings and necklaces can also be worn live, through the camera, on the shopper's own device (docs/adr/065). */}
+      {/* Hats, earrings and necklaces can also be worn live, through the camera, on the shopper's own device. */}
       <p className="text-slate mt-4 max-w-[70ch] text-sm">
         {t("mirrorNote")}{" "}
         <SmartLink href="/mirror" className="underline underline-offset-4" data-agent-id="fitting:mirror-link">

@@ -15,7 +15,7 @@ import { serverEnv } from "@/env";
 import { requireLocale } from "@/i18n/params";
 
 /**
- * The bench for evaluation E4 (docs/PLAN.md Phase 10). It is an instrument, not
+ * The bench for evaluation E4. It is an instrument, not
  * a shop page: it exists on this machine and on the local stack, and a deployed
  * shop answers 404 for it. English only, and never linked from the storefront.
  */

@@ -12,7 +12,7 @@ import type { Redis } from "ioredis";
 import { KEY_PREFIX, namespaceOf, STATS_KEY_CAP, type KeyValue, type KvStats } from "@/lib/kv/types";
 
 /**
- * docs/adr/039. Two operations need more than one Redis command to be right,
+ * Two operations need more than one Redis command to be right,
  * and a Lua script makes each atomic, so two web servers asking at the same
  * moment cannot both slip under a limit:
  *

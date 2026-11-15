@@ -32,7 +32,7 @@ import { getCardsByIds } from "@/lib/catalog/server";
 import { currentActor } from "@/lib/reco/server";
 
 /**
- * The account (docs/adr/016). Signed out, it invites a sign-in and keeps the
+ * The account. Signed out, it invites a sign-in and keeps the
  * privacy controls that work without an account. Signed in, it shows the
  * person's orders — those placed signed in, and guest orders under the address
  * once it is confirmed — and everything that secures the account. Lists come
@@ -70,7 +70,7 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
       <div className="mt-3">
         <PersonalizationControl enabled={personalizationEnabled} />
       </div>
-      {/* What the shopper tells the shop, and everything it keeps, each on its own page (docs/adr/033). */}
+      {/* What the shopper tells the shop, and everything it keeps, each on its own page. */}
       <ul className="mt-8 flex flex-col gap-3">
         <li>
           <SmartLink href="/account/preferences" className="font-medium underline-offset-4 hover:underline" data-agent-id="account:preferences-link">
@@ -84,7 +84,7 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
           </SmartLink>
           <p className="text-slate text-sm">{t("dataHint")}</p>
         </li>
-        {/* Keys for the shopper's own AI assistants act for an account, so the link shows only once signed in (docs/adr/043). */}
+        {/* Keys for the shopper's own AI assistants act for an account, so the link shows only once signed in. */}
         {user !== null ? (
           <li>
             <SmartLink href="/account/agents" className="font-medium underline-offset-4 hover:underline" data-agent-id="account:agents-link">
@@ -142,7 +142,7 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
       reached: card.price.cents <= watch.targetCents,
     }];
   });
-  // Watched prices that dropped since the last visit (docs/adr/034), shown once and then marked seen.
+  // Watched prices that dropped since the last visit, shown once and then marked seen.
   const dropItems = drops.flatMap((drop) => {
     const card = cardsById.get(drop.productId);
     return card === undefined ? [] : [{ id: drop.id, card, targetCents: drop.targetCents }];
@@ -163,7 +163,7 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
     }))
     .sort((a, b) => Number(b.current) - Number(a.current) || b.createdAt.localeCompare(a.createdAt));
 
-  // The quick navigation (docs/adr/067): every section of this page, then the account's other pages.
+  // The quick navigation: every section of this page, then the account's other pages.
   const navItems: AccountNavItem[] = [
     ...(isStaff(user.roles) ? [{ id: "desks", label: n("desks") }] : []),
     ...(dropItems.length > 0 ? [{ id: "drops", label: n("drops") }] : []),

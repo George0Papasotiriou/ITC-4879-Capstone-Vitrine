@@ -10,7 +10,7 @@
 import { slotOf } from "@/lib/fitting/engines";
 
 /**
- * docs/adr/063. A shopper picks the model closest to them instead of uploading
+ * A shopper picks the model closest to them instead of uploading
  * a face: nothing personal is sent, and a picture once made is the same for
  * everyone who picks that model, so it is kept and shown again for free.
  *

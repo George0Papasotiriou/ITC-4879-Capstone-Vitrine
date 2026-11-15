@@ -106,7 +106,7 @@ describe("personal preferences", () => {
   });
 });
 
-describe("the way in (docs/adr/055)", () => {
+describe("the way in", () => {
   const door = { kind: "door" as const, width: 82, height: 205 };
   const corner = { kind: "turn" as const, from: 100, to: 95, ceiling: 250 };
 

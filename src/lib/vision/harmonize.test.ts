@@ -71,7 +71,7 @@ describe("estimateLight", () => {
   });
 
   it("is not fooled by a brown wooden floor under white light", () => {
-    // Gray world, the first version, read this room as warm (docs/adr/042): the floor is two thirds of it.
+    // Gray world, the first version, read this room as warm: the floor is two thirds of it.
     const light = estimateLight(wallAndFloor([240, 240, 240], [150, 95, 55]), 80, 60, [40, 45], 15);
     for (const gain of light.tint) expect(gain).toBeCloseTo(1, 2);
   });

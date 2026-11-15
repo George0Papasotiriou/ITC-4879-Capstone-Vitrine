@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/024 (addendum).
- *
  *   pnpm snap:wild choose [--per-colour 3]   builds evals/snap-wild.json from Commons
  *   pnpm snap:wild fetch                     downloads the listed photographs to .local/e9-wild
  *

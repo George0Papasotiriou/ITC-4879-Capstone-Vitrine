@@ -14,7 +14,7 @@ import { freshPage, LAMP, signUpAndConfirm, uniqueEmail } from "./support/accoun
 import { signInAdmin } from "./support/orders";
 
 /**
- * docs/adr/020. The watch is set on the product page and read back on the
+ * The watch is set on the product page and read back on the
  * account page; the nightly pass that emails it is covered by the integration
  * tests, which can move a price and run the job.
  *

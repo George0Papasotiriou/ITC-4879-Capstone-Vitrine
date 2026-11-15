@@ -17,7 +17,7 @@ import { pushStore } from "@/lib/push/server";
 import { currentActor, tasteGraph } from "@/lib/reco/server";
 
 /**
- * docs/adr/033. "What we know about you" is not a policy page: it is the data
+ * "What we know about you" is not a policy page: it is the data
  * itself, read from where it is kept, so the page cannot drift from the truth.
  * The same object is the download (GDPR data portability, Article 20): what
  * the shopper sees is exactly what they take away.
@@ -37,7 +37,7 @@ export type Ledger = {
   comfort: Comfort;
   personalization: boolean;
   history: LedgerEntry[];
-  /** Browsers that may show this account's notifications (docs/adr/044). */
+  /** Browsers that may show this account's notifications. */
   devices: { id: string; device: string | null; topics: string[]; createdAt: string }[];
 };
 

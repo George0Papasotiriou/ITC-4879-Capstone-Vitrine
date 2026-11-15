@@ -10,7 +10,7 @@
 import { divideRounded } from "@/lib/commerce/pricing-math";
 
 /**
- * VAT by country (docs/adr/013).
+ * VAT by country.
  *
  * THE RULE. For goods sold online to consumers in another EU country, VAT is
  * charged at the rate of the country the goods are delivered to (EU Directive

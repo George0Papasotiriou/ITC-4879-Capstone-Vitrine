@@ -22,7 +22,7 @@ import { createModelShotStore, modelShotKey } from "@/lib/fitting/shots-store";
 import { photoKey, tryOnVideoKey } from "@/lib/photos/photos";
 import { createPhotoStore } from "@/lib/photos/store";
 
-/** docs/adr/063. The clothes specimen supplies real garments to try on. */
+/** The clothes specimen supplies real garments to try on. */
 
 const url = process.env.DATABASE_URL;
 const shopper = "user:01a0-studio-shopper";

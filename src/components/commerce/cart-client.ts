@@ -23,7 +23,7 @@ export type { CartSummary };
 
 export const CART_EVENT = "vitrine:cart";
 
-/** A piece put in the cart from its page, for the shelves that suggested it (docs/adr/034). */
+/** A piece put in the cart from its page, for the shelves that suggested it. */
 export const ADDED_EVENT = "vitrine:added";
 
 export type CartChangeResponse =
@@ -38,7 +38,7 @@ export function announceCart(cart: CartSummary): void {
 /**
  * Changes the cart. The new cart is announced at once, unless `announce` is
  * false: then the caller announces it when its own motion lands (the flight to
- * the cart, docs/adr/031), so the count ticks as the piece arrives.
+ * the cart), so the count ticks as the piece arrives.
  */
 export async function changeCart(body: Record<string, unknown>, { announce = true }: { announce?: boolean } = {}): Promise<CartChangeResponse> {
   try {

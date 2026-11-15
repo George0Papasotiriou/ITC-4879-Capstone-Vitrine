@@ -1,4 +1,4 @@
-# Not a monorepo definition (ADR-001: single package, no workspaces).
+# Not a monorepo definition: the project is a single package, with no workspaces.
 # pnpm 12 uses this file to record which dependencies may run install scripts.
 #
 # There is deliberately no `minimumReleaseAgeExclude` here. pnpm offers to add

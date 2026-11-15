@@ -11,7 +11,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 /**
- * Accessibility floor (docs/PLAN.md 4.7): WCAG 2.2 AA.
+ * Accessibility floor: WCAG 2.2 AA.
  *
  * Visible focus everywhere, targets of at least 24px (44px on touch), full
  * keyboard support, reviewed alt text, `lang` per locale, reduced motion

@@ -8,7 +8,7 @@
  */
 
 /**
- * Voice, as a state machine (docs/PLAN.md Phase 7, docs/adr/026).
+ * Voice, as a state machine.
  *
  * Everything here is pure, so the awkward parts of talking — being interrupted
  * mid-sentence, a session that has run long enough, text that must be spoken

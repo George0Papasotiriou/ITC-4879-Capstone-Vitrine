@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
 
 import { lookQuery, overlap, piecesOf, regionOf } from "@/lib/look/look";
 
-describe("shop the look (docs/adr/054)", () => {
+describe("shop the look", () => {
   it("reads Gemini's [ymin, xmin, ymax, xmax] on 0–1000 as a region, refusing what cannot be a piece", () => {
     expect(regionOf([100, 200, 600, 700])).toEqual({ x: 0.2, y: 0.1, width: 0.5, height: 0.5 });
     expect(regionOf([600, 700, 100, 200])).toBeNull();

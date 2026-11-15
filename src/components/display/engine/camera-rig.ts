@@ -12,7 +12,7 @@ import { Spherical, Vector3, type PerspectiveCamera } from "three";
 import type { CameraShot } from "@/lib/display/scene";
 
 /**
- * docs/adr/048. Every move of the camera is a spring, never a timed tween. A
+ * Every move of the camera is a spring, never a timed tween. A
  * critically damped spring
  *
  *   x'' = −ω² (x − goal) − 2ω x'

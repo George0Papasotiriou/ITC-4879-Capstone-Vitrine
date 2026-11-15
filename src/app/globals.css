@@ -10,7 +10,7 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Vitrine design tokens — docs/PLAN.md Part 4.2
+   Vitrine design tokens
 
    A shop window at dusk: the interface is quiet glass, products stand on
    plinths, and the Concierge is the light. Lumen is semantic, not decorative:
@@ -42,7 +42,7 @@
   --color-mist: #a7aebb; /* secondary text on Dusk (7:1)                     */
   --color-danger: #b3261e; /* 5.9:1 on Glass                                 */
   --color-success: #1e7b4f; /* 4.7:1 on Glass                                */
-  /* Gilt: the shop window's small accents only — the chosen window and hour (docs/adr/048), on Dusk. */
+  /* Gilt: the shop window's small accents only — the chosen window and hour, on Dusk. */
   --color-gilt: #d3ae67; /* gold leaf on Dusk (7.5:1)                        */
   --color-gilt-light: #f2deaa; /* the leaf's highlight                        */
   --color-gilt-deep: #8f6c32; /* the leaf's shade, inside letters only         */
@@ -74,7 +74,7 @@
   /* Motion. Two moments carry the motion (window light, Spotlight); everything
      else is quick feedback at 160ms or less. */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  /* Leaving accelerates away; arriving settles (docs/adr/031). */
+  /* Leaving accelerates away; arriving settles. */
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
   /* A spring as a curve: a critically damped settle with a 2% overshoot, for
      things that arrive in answer to a touch (a count, a toast, a sheet). */
@@ -131,7 +131,7 @@
 }
 
 /* Reduced motion, asked for by the system or chosen in the shop's comfort
-   settings (`data-motion="reduce"` on <html>, docs/adr/032): the same rule
+   settings (`data-motion="reduce"` on <html>): the same rule
    either way, so one switch covers every animation in the stylesheet. */
 @media (prefers-reduced-motion: reduce) {
   :root:not([data-motion="full"]) *,
@@ -154,7 +154,7 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Type roles (docs/PLAN.md 4.2)
+   Type roles
 
    Display and Text are the same family. The difference is the flare axis and
    weight, so the display role is a utility rather than a second font file.
@@ -175,7 +175,7 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Overlay motion (docs/PLAN.md 4.5)
+   Overlay motion
 
    Quick feedback only: sheets, dialogs, menus and toasts enter and leave
    within the calm and quick durations. Radix keeps an element mounted until its
@@ -253,7 +253,7 @@
   display: none;
 }
 
-/* The shop window (docs/adr/048): a sheen on the glass that moves with the
+/* The shop window: a sheen on the glass that moves with the
    camera, and the room's resting light while the scene loads. */
 /* The glass: a faint diagonal sheen that slides as the camera looks around,
    over a soft vignette, as a lens darkens a photograph's corners. */
@@ -286,7 +286,7 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Shared-element morph, tile to product hero (docs/PLAN.md 4.5)
+   Shared-element morph, tile to product hero
 
    One object moving rather than two swapping: the photograph travels from its
    place in the grid to the hero plinth. The blur hides interpolation artefacts
@@ -338,7 +338,7 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Motion for every action (docs/adr/031)
+   Motion for every action
 
    The rule from 4.5, kept: motion shows what changed, and nothing moves only
    to decorate. What George asked for on top of it is that *every* action
@@ -506,7 +506,7 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Comfort settings (docs/adr/032)
+   Comfort settings
 
    Each setting is an attribute on <html>, written before the first paint by
    the script in the layout's head (src/lib/comfort/settings.ts). Everything
@@ -609,7 +609,7 @@
   color: var(--color-dusk);
 }
 
-/* AI pictures (docs/adr/053): the picture develops, as a print does in a darkroom.
+/* AI pictures: the picture develops, as a print does in a darkroom.
    While it is made, the source rests dim and soft under a slow sheen of gilt light;
    when it is ready, it comes up from soft and pale to sharp and true. Reduced motion
    (the rule near the top) keeps the soft state still and shows the picture at once. */
@@ -641,8 +641,8 @@
   animation: vitrine-develop 1.2s var(--ease-standard) both;
 }
 
-/* The showroom styles' swatches (docs/adr/053): each style's wall, floor and light, as its tile shows them
-   until its room is photographed (docs/adr/060, src/lib/pictures/showrooms.ts). */
+/* The showroom styles' swatches: each style's wall, floor and light, as its tile shows them
+   until its room is photographed (src/lib/pictures/showrooms.ts). */
 .scene-swatch[data-style="warm-minimal"] { background: linear-gradient(180deg, #efe8dc 0 64%, #c9b293 64% 100%) }
 .scene-swatch[data-style="scandinavian"] { background: linear-gradient(180deg, #f3f4f2 0 64%, #d6c9b2 64% 100%) }
 .scene-swatch[data-style="dark-moody"] { background: linear-gradient(180deg, #2c3732 0 64%, #43352a 64% 100%) }
@@ -655,7 +655,7 @@
   mix-blend-mode: soft-light;
 }
 
-/* The Concierge bubble (docs/adr/067) gives way to the user-study panel, which
+/* The Concierge bubble gives way to the user-study panel, which
    uses the same corner, and rises above a room board's total bar. Unlayered,
    so it wins over the bubble's own utilities. */
 html:has([data-agent-id="study:panel"]) [data-concierge-bubble] {

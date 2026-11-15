@@ -11,7 +11,7 @@ import type { DashboardOverview } from "@/lib/admin/dashboard-store";
 import { A4, INK, PdfDocument } from "@/lib/report/pdf";
 
 /**
- * The weekly report (docs/adr/020).
+ * The weekly report.
  *
  * Every figure comes from the same store the dashboards read, so the PDF and
  * the screen cannot disagree; nothing is recomputed here. The layout flows

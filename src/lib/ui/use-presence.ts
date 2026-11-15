@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { prefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
- * docs/adr/031. A surface that unmounts the moment it closes cannot animate
+ * A surface that unmounts the moment it closes cannot animate
  * out: it just vanishes. This keeps it mounted, marked `data-state="closed"`,
  * for `exitMs`, which the stylesheet uses to play the exit — and not at all
  * under reduced motion. Opening again mid-exit simply reopens it.

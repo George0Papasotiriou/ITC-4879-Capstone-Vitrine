@@ -13,7 +13,7 @@ import { uuidv7 } from "uuidv7";
 import { MAX_BOARDS, MAX_ITEMS } from "@/lib/boards/boards";
 
 /**
- * docs/adr/056. Who may call what is decided before the store is reached
+ * Who may call what is decided before the store is reached
  * (src/lib/boards/boards.ts roleFor); the store keeps the board's own rules:
  * at most MAX_BOARDS a shopper and MAX_ITEMS pieces a board, one line per
  * piece (adding it again adds to its quantity), positions without gaps, and

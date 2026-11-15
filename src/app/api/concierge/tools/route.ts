@@ -22,13 +22,13 @@ import { loggerForRequest } from "@/lib/log";
 
 /**
  * In a voice session the audio goes between the browser and the provider, so
- * the model's tool calls arrive here from the browser (docs/PLAN.md 2.5). They
+ * the model's tool calls arrive here from the browser. They
  * run through the same registry as chat, as the same person, under the same
  * kill switch and budget. A tool that asks first is refused until the page
  * sends `approved: true`, which it does only after the shopper taps the
  * on-screen approval button that mirrors the spoken confirmation.
  *
- * WebMCP (docs/adr/043): an assistant built into the shopper's browser calls
+ * WebMCP: an assistant built into the shopper's browser calls
  * the tools the page registered for it. Only those tools, none that asks
  * first, and no AI budget is spent (the assistant's model is the browser's);
  * the kill switch still stops it.
@@ -69,7 +69,7 @@ export async function POST(request: Request): Promise<Response> {
   return result.ok ? Response.json({ ok: true, output: result.output }) : Response.json({ ok: false, reason: result.reason, issues: result.issues.slice(0, 5) }, { status: 422 });
 }
 
-/** The tools a WebMCP page registers, described once for every page (docs/adr/043). */
+/** The tools a WebMCP page registers, described once for every page. */
 export function GET(request: Request): Response {
   if (new URL(request.url).searchParams.get("surface") !== "webmcp") return Response.json({ ok: false, reason: "unknown_surface" }, { status: 404 });
   const tools = WEBMCP_TOOLS.map((name) => findTool(name, "webmcp"))

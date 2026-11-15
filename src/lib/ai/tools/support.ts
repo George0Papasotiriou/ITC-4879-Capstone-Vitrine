@@ -14,9 +14,9 @@ import { uiCommandSchema } from "@/lib/ai/ui-commands";
 import { FIRST_REPLY_HOURS, TICKET_TOPICS } from "@/lib/support/tickets";
 
 /**
- * The Concierge knows where it stops (docs/adr/027). A damaged delivery, an
+ * The Concierge knows where it stops. A damaged delivery, an
  * address to change, a refund that has not arrived: those need a person, and
- * the support desk already has one (ADR-021). This tool is the door between
+ * the support desk already has one. This tool is the door between
  * them.
  *
  * It is `sensitive`, so it asks first: the shopper sees the summary that will

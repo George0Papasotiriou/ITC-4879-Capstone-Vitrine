@@ -11,11 +11,11 @@ import { discountPercent, formatMoney, type Money } from "@/lib/commerce/money";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Price (docs/PLAN.md 4.2, 4.4)
+ * Price
  *
  * Tabular numerals, so prices in a grid align down the column instead of
  * shimmying. The value always comes from the database as integer cents — a
- * price is never a string the Concierge produced (CLAUDE.md golden rule 5).
+ * price is never a string the Concierge produced.
  */
 export function Price({
   amount,

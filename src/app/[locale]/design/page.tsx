@@ -33,11 +33,10 @@ const SHOWCASE = [
 ].filter((product) => product !== undefined);
 
 /**
- * The design specimen (docs/PLAN.md Phase 2, step 1).
+ * The design specimen.
  *
  * Built before any real page, so the identity can be judged as a system rather
- * than argued about one screen at a time. George approves the direction here;
- * ADR-005 records what was approved.
+ * than argued about one screen at a time. George approves the direction here.
  *
  * Not linked from navigation, and excluded from search engines.
  */
@@ -328,7 +327,7 @@ function Swatch({
   /**
    * Captions use full-strength Glass or Dusk rather than Mist, Slate or an
    * opacity. Those secondary tones are specified against Glass and Dusk
-   * (docs/PLAN.md 4.2) and drop below 4.5:1 when placed on Slate, Lumen,
+   * and drop below 4.5:1 when placed on Slate, Lumen,
    * Danger or Success — axe caught exactly that. Hierarchy here comes from
    * size, which costs no contrast.
    */

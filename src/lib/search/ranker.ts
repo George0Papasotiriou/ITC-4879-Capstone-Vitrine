@@ -12,7 +12,7 @@ import { trigramSimilarity } from "@/lib/search/trigram";
 import { STOPWORDS } from "@/lib/search/vocabulary";
 
 /**
- * docs/adr/057. After the retrievers and their fusion have chosen the
+ * After the retrievers and their fusion have chosen the
  * candidates, a learned model orders them. It was trained on Amazon's
  * human-labelled shopping queries (ESCI, train split — never the test queries
  * E1 reports on) by LambdaMART written for this project (research/ranker/):
@@ -25,8 +25,8 @@ import { STOPWORDS } from "@/lib/search/vocabulary";
  * test checks it to 1e-9).
  *
  * The features, per (query, product):
- * - the retrievers' own evidence: the lexical score (rarity-weighted,
- *   ADR-009 addendum) and its reciprocal rank, the fuzzy (trigram) score and
+ * - the retrievers' own evidence: the lexical score (rarity-weighted)
+ *   and its reciprocal rank, the fuzzy (trigram) score and
  *   its reciprocal rank, the fused RRF score and rank, and whether both
  *   retrievers found it;
  * - how much of the query the title holds: the share of the query's words,

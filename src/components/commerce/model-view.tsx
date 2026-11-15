@@ -19,8 +19,6 @@ import { cn } from "@/lib/ui/cn";
 import { usePrefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
- * docs/adr/025, docs/adr/035, docs/adr/058.
- *
  * Every placeable piece has a model: its own 3D scan (ABO), or the model the
  * shop makes of it from its measurements, words and photograph — and, once
  * bought, a model an AI made from its photograph. The dialog says which,

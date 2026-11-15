@@ -15,7 +15,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig: NextConfig = {
   // Fail the production build on type errors. Linting runs as its own CI step
   // (Next 16 removed the `eslint` config key). A broken build must never
-  // reach Railway (CLAUDE.md golden rule 1: deployed or it didn't happen).
+  // reach the production deployment.
   typescript: { ignoreBuildErrors: false },
 
   // Product media is served from the S3-compatible bucket through presigned or
@@ -23,12 +23,11 @@ const nextConfig: NextConfig = {
   // Specimen photography currently lives in `public/`, which needs no pattern.
   images: {
     // The large ABO catalogue's photographs and turntable frames, fetched and
-    // resized by this server — shoppers' browsers never contact the bucket
-    // (docs/adr/035 addendum).
+    // resized by this server — shoppers' browsers never contact the bucket.
     remotePatterns: [
       { protocol: "https", hostname: "amazon-berkeley-objects.s3.amazonaws.com", pathname: "/images/original/**" },
       { protocol: "https", hostname: "amazon-berkeley-objects.s3.amazonaws.com", pathname: "/spins/original/**" },
-      // The clothes' listing photographs on Amazon's image CDN (docs/adr/062), the same way.
+      // The clothes' listing photographs on Amazon's image CDN, the same way.
       { protocol: "https", hostname: "m.media-amazon.com", pathname: "/images/I/**" },
     ],
     formats: ["image/avif", "image/webp"],
@@ -41,7 +40,7 @@ const nextConfig: NextConfig = {
   },
 
   /**
-   * Cross-origin isolation for the pages that run the depth model (ADR-014).
+   * Cross-origin isolation for the pages that run the depth model.
    * It lets WebAssembly share memory between threads, so the model runs on
    * several cores instead of one. Only these pages: isolation refuses any
    * cross-origin resource that has not opted in, which the payment form's

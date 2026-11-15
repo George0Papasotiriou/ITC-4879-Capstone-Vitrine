@@ -17,7 +17,7 @@ import { AddToCart } from "@/components/commerce/add-to-cart";
 import { SmartLink } from "@/components/ui/smart-link";
 
 /**
- * docs/adr/048. A museum's label, for a shop: maker and kind, the piece's
+ * A museum's label, for a shop: maker and kind, the piece's
  * name, its measured size and materials, then the price — every word and
  * figure from the database, formatted on the server. The small photograph is
  * the piece as the studio shot it, beside the scan the window shows; it is

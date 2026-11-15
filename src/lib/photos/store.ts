@@ -13,7 +13,7 @@ import { uuidv7 } from "uuidv7";
 import { photoExpiry, type PhotoKind } from "@/lib/photos/photos";
 
 /**
- * The rows behind the Fitting Room (docs/adr/023). A photograph is recorded
+ * The rows behind the Fitting Room. A photograph is recorded
  * when it arrives and marked deleted when it goes; the file itself is removed
  * by whoever calls `deleted()`, because only the caller has the storage.
  *
@@ -53,7 +53,7 @@ export type TryOnRow = {
   costMicros: number | null;
   expiresAt: Date;
   createdAt: Date;
-  /** An outfit's pieces share an id and are put on in position order (docs/adr/063). */
+  /** An outfit's pieces share an id and are put on in position order. */
   outfitId: string | null;
   outfitPosition: number | null;
   /** "See it move": null until asked for. */
@@ -180,8 +180,8 @@ export function createPhotoStore(sql: Sql) {
     `;
     const photos = rows.map((row) => toPhoto(row));
     if (photos.length === 0) return { photos, results: [] };
-    // What was made from them goes with them: try-ons, and AI pictures of a piece in their room (docs/adr/053).
-    // A picture is three files: as shown, its small copy and the download (docs/adr/060).
+    // What was made from them goes with them: try-ons, and AI pictures of a piece in their room.
+    // A picture is three files: as shown, its small copy and the download.
     const resultRows = await sql<{ result_key: string | null }[]>`
       SELECT unnest(ARRAY[result_key, video_key]) AS result_key FROM try_ons WHERE upload_id = ANY(${photos.map((photo) => photo.id)}::uuid[]) AND result_key IS NOT NULL
       UNION ALL

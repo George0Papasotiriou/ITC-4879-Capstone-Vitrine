@@ -26,7 +26,7 @@ import {
   wearStock,
 } from "@/lib/catalog/wear";
 
-describe("wearKindFor (docs/adr/061)", () => {
+describe("wearKindFor", () => {
   it("takes ABO's wearable types as the shop's kinds", () => {
     expect(wearKindFor("SHOES", "Women's Block Heel Pump")).toBe("SHOES");
     expect(wearKindFor("TECHNICAL_SPORT_SHOE", "Women's Flora Sneaker")).toBe("SHOES");

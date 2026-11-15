@@ -51,14 +51,14 @@ export type SceneInput = {
     cutout: Cutout | null;
     outline: boolean;
     light?: LightEstimate | null;
-    /** The piece's own 3D scan, already drawn with this camera over a transparent canvas the photograph's size (docs/adr/052). */
+    /** The piece's own 3D scan, already drawn with this camera over a transparent canvas the photograph's size. */
     scan?: CanvasImageSource | null;
     /** The cut-out flipped left to right: a photograph cannot turn, but it can be seen the other way round. */
     mirror?: boolean;
   } | null;
   /**
    * The photograph and the piece only, without the guides — the floor grid and the outline: the picture the
-   * AI makes a photograph of (docs/adr/053), which must not take the grid for part of the room.
+   * AI makes a photograph of, which must not take the grid for part of the room.
    */
   clean?: boolean;
 };
@@ -250,7 +250,7 @@ function drawProduct(
   ctx.fill();
   ctx.restore();
 
-  // Cast shadow (docs/adr/042): the footprint again, pushed away from the room's light and softer.
+  // Cast shadow: the footprint again, pushed away from the room's light and softer.
   if (product.light != null && product.light.towardsLight !== null) {
     const { x, y, height } = product.placement;
     const base = projectPoint(K, pose, [x, y, 0]);

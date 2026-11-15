@@ -4,7 +4,7 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * Integration tests for the shop features of docs/adr/034: staff products, the dashboards' events, "Complete the set" and "Fits your space".
+ * Integration tests for the shop features: staff products, the dashboards' events, "Complete the set" and "Fits your space".
  */
 
 import { readFile } from "node:fs/promises";
@@ -31,7 +31,7 @@ import { createTasteGraph } from "@/lib/reco/store";
 
 const url = process.env.DATABASE_URL;
 
-describe.skipIf(url === undefined || url === "")("shop features (docs/adr/034)", () => {
+describe.skipIf(url === undefined || url === "")("shop features", () => {
   let connection: ReturnType<typeof postgres>;
   let staff: { userId: string; email: string };
 
@@ -169,7 +169,7 @@ describe.skipIf(url === undefined || url === "")("shop features (docs/adr/034)",
   });
 });
 
-describe.skipIf(url === undefined || url === "")("E1 judgements (docs/adr/036)", () => {
+describe.skipIf(url === undefined || url === "")("E1 judgements", () => {
   let connection: ReturnType<typeof postgres>;
 
   beforeAll(async () => {

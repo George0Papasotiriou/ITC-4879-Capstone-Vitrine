@@ -5,7 +5,7 @@
 #
 # E12: the Fit Engine against its baselines on RentTheRunway and ModCloth, and the parameters the shop uses.
 
-"""E12 (docs/adr/064).
+"""E12.
 
     python -m fit.evaluate --data ../.local/fit \\
         --report ../docs/report/evaluations/e12-fit \\

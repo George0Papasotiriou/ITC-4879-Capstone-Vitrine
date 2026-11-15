@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/066 — a student-designed optimiser.
+ * Capsule wardrobes — a student-designed optimiser.
  *
  * THE PROBLEM. A capsule is a small wardrobe whose pieces all go together:
  * with 3 tops, 2 bottoms and 2 pairs of shoes, up to 3 × 2 × 2 = 12

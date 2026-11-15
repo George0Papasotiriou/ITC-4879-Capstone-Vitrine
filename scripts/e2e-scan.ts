@@ -8,12 +8,12 @@
  */
 
 /**
- * docs/adr/052. The throwaway test database holds the 25 specimen products,
+ * The throwaway test database holds the 25 specimen products,
  * none of which has an ABO scan, and its storage is empty, so nothing in an
  * end-to-end run would ever be drawn in 3D. scripts/local.mjs runs this for
  * `--ephemeral` starts only: the Angela coffee table, which no other test
- * uses, is given the model the shop makes of it (src/lib/catalog/model,
- * docs/adr/058), stored and recorded exactly as the catalogue-models job
+ * uses, is given the model the shop makes of it (src/lib/catalog/model),
+ * stored and recorded exactly as the catalogue-models job
  * stores a real scan. So the storage check, the loading, the drawing and the
  * turning are all the real ones; only the model is the shop's, not a scan.
  */

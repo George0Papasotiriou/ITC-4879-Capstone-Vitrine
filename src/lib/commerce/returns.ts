@@ -10,13 +10,13 @@
 import { RETURN_WINDOW_DAYS } from "@/lib/commerce/order-state";
 
 /**
- * Returns (docs/adr/017). The EU right of withdrawal gives 14 days from
+ * Returns. The EU right of withdrawal gives 14 days from
  * delivery (order-state.ts enforces it for customers; staff may accept a late
  * one). The reason is a short fixed list, so the order desk can see patterns —
  * many "damaged" returns of one piece point at its packaging — plus a note.
  * "Too small" and "too big" come first: a size that did not fit is the
  * commonest reason a garment comes back, and the Fit Engine learns from them
- * how the piece fits (docs/adr/064).
+ * how the piece fits.
  */
 export const RETURN_REASONS = ["too_small", "too_big", "changed_mind", "damaged", "not_as_described", "wrong_item", "other"] as const;
 export type ReturnReason = (typeof RETURN_REASONS)[number];

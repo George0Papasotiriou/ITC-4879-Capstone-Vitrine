@@ -12,8 +12,8 @@ import { z } from "zod";
 import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
 
 /**
- * Cart changes by the Concierge run at once and are always undoable (docs/PLAN.md
- * 2.5). The tool returns a token saying "this cart's line for this variant was
+ * Cart changes by the Concierge run at once and are always undoable.
+ * The tool returns a token saying "this cart's line for this variant was
  * N before"; the timeline's Undo sends it back. It is signed with the server
  * secret, names the cart it belongs to, and expires after an hour, so a token
  * cannot be forged, replayed on another cart, or kept forever.
@@ -22,7 +22,7 @@ import { signValue, verifySignedValue } from "@/lib/commerce/tokens";
 export const UNDO_LIFETIME_MS = 60 * 60 * 1000;
 
 const payloadSchema = z.object({ c: z.uuid(), v: z.uuid(), q: z.number().int().min(0).max(99), e: z.number().int(), t: z.string().max(40).optional() });
-/** `tool`: which cart tool made the change, so the dashboard can say what was undone (docs/adr/034). */
+/** `tool`: which cart tool made the change, so the dashboard can say what was undone. */
 export type UndoPayload = { cartId: string; variantId: string; quantity: number; tool?: string };
 
 export function createUndoToken({ cartId, variantId, quantity, tool }: UndoPayload, secret: string, now = Date.now()): string {

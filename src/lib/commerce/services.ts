@@ -44,7 +44,7 @@ export async function notifyOrder(orderId: string, effects: readonly SideEffect[
     log: (message) => logger.error({ orderEmail: true }, message),
   });
   const kinds = await notifier.notify(orderId, effects);
-  // The same moments, on the devices of an account holder who asked for them (docs/adr/044).
+  // The same moments, on the devices of an account holder who asked for them.
   const pushKinds = kinds.filter((kind) => ORDER_PUSH_KINDS.includes(kind));
   if (pushKinds.length > 0) await queuePush({ type: "order", orderId, kinds: pushKinds });
 }

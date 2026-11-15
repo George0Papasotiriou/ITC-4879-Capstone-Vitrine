@@ -20,7 +20,7 @@ import { useRouter } from "@/i18n/navigation";
 import { MAX_PRODUCT_PHOTO_BYTES, MIN_PRODUCT_PHOTO_EDGE, PRODUCT_PHOTO_TYPES } from "@/lib/admin/catalog";
 
 /**
- * docs/adr/034. A plain file input (keyboard, screen readers and phones'
+ * A plain file input (keyboard, screen readers and phones'
  * cameras all work with it), sent as soon as it is chosen. What comes back is
  * said in words: kept, or why not and what to do. A photograph without a
  * white studio ground is kept too, and the note says it will not blend into

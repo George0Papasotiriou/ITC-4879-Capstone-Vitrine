@@ -13,7 +13,7 @@ import { freshPage, signUpAndConfirm, uniqueEmail } from "./support/accounts";
 import { signInAdmin } from "./support/orders";
 
 /**
- * docs/adr/027. The demo Concierge recognises a request for a person and
+ * The demo Concierge recognises a request for a person and
  * proposes the hand-over with the shopper's own words; the shopper reads it
  * on the approval card and nothing is sent before they say yes.
  */

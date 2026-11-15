@@ -21,7 +21,7 @@ jobs:
 
     services:
       postgres:
-        # pgvector on PostgreSQL 18, matching the Railway template (ADR-002).
+        # pgvector on PostgreSQL 18, matching the Railway template.
         image: pgvector/pgvector:pg18
         env:
           POSTGRES_USER: vitrine

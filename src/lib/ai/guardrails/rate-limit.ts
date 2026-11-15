@@ -12,8 +12,8 @@
  * day; this bounds how fast any single address can ask, so a script cannot burn
  * a guest's allowance, or many fresh guest cookies, in seconds. It counts per
  * server process in a sliding window of timestamps; with several web servers it
- * becomes the per-server limit, which is still an upper bound (docs/adr/019
- * notes Redis for a shared limit once Railway's Redis is in use).
+ * becomes the per-server limit, which is still an upper bound (Redis
+ * gives a shared limit when it is configured).
  */
 
 export function createRateLimiter({ limit, windowMs, maxKeys = 10_000 }: { limit: number; windowMs: number; maxKeys?: number }) {

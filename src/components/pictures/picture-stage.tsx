@@ -17,7 +17,7 @@ import type { PicturePhase } from "@/components/pictures/use-picture";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/053, docs/adr/060. The wait is part of the experience, so it is
+ * The wait is part of the experience, so it is
  * designed and honest: the source — the room, or the piece's photograph for
  * a showroom picture — rests dim and soft in the frame while a slow sheen of
  * gilt light crosses it, and a line says what is really happening, in the

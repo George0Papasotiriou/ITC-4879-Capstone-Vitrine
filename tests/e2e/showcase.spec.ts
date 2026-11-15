@@ -13,11 +13,11 @@ import { expect, test, type Page } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/040. The test database holds the 25 specimen pieces and the
+ * The test database holds the 25 specimen pieces and the
  * capsule, so a window may be a full Stylist set (with its total) or the
  * search fallback (without one); both are what the page promises.
  *
- * docs/adr/048. The specimen pieces have no 3D scans, so here the room shows
+ * The specimen pieces have no 3D scans, so here the room shows
  * them from their photographs — the same engine, lights and arrangement as a
  * scanned set. Headless Chromium draws WebGL in software (SwiftShader).
  */

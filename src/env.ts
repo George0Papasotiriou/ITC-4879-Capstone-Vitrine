@@ -23,7 +23,7 @@ import { isLocalStack, servesHttps } from "@/lib/local-stack";
  * reads a `.env` file: locally, `pnpm local` passes the environment to the
  * processes it starts; in production, the host provides it.
  *
- * Drivers (ADR-008). Jobs and file storage each have a production driver and a
+ * Drivers. Jobs and file storage each have a production driver and a
  * local stand-in:
  *
  * | Concern | Production        | Local stand-in                         |
@@ -91,7 +91,7 @@ const rawSchema = z.object({
   COOKIE_SECRET: optionalString.pipe(z.string().min(32).optional()),
 
   /**
-   * Accounts (docs/adr/016). BETTER_AUTH_SECRET signs and encrypts sessions,
+   * Accounts. BETTER_AUTH_SECRET signs and encrypts sessions,
    * two-factor secrets and verification tokens: required in production, and
    * `pnpm local` generates one. Rotating it signs everyone out.
    * GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET turn on "Continue with Google";
@@ -102,22 +102,22 @@ const rawSchema = z.object({
   GOOGLE_CLIENT_SECRET: optionalString,
 
   /**
-   * Stripe in test mode (docs/adr/038): all three or none. Without them the
+   * Stripe in test mode: all three or none. Without them the
    * local test payment stands in. Live keys are refused: this shop must never
    * take real money.
    */
   STRIPE_SECRET_KEY: optionalString.pipe(z.string().startsWith("sk_test_", "Only a Stripe test key (sk_test_…) is accepted.").optional()),
   STRIPE_PUBLISHABLE_KEY: optionalString.pipe(z.string().startsWith("pk_test_", "Only a Stripe test key (pk_test_…) is accepted.").optional()),
   STRIPE_WEBHOOK_SECRET: optionalString.pipe(z.string().startsWith("whsec_", "The webhook's signing secret starts with whsec_.").optional()),
-  /** The Content Security Policy (docs/adr/046): enforced by default; "report" only reports, "off" sends none. */
+  /** The Content Security Policy: enforced by default; "report" only reports, "off" sends none. */
   CSP_MODE: optionalString.pipe(z.enum(["enforce", "report", "off"]).optional()),
-  /** Web Push (docs/adr/044): the shop's VAPID key pair, from `pnpm push keys`, and a contact for the push services. All three or none. */
+  /** Web Push: the shop's VAPID key pair, from `pnpm push keys`, and a contact for the push services. All three or none. */
   VAPID_PUBLIC_KEY: optionalString.pipe(z.string().regex(/^[A-Za-z0-9_-]{87}$/, "The VAPID public key is 87 base64url characters (a P-256 point); make one with pnpm push keys.").optional()),
   VAPID_PRIVATE_KEY: optionalString.pipe(z.string().regex(/^[A-Za-z0-9_-]{43}$/, "The VAPID private key is 43 base64url characters; make one with pnpm push keys.").optional()),
   VAPID_SUBJECT: optionalString.pipe(z.string().regex(/^(mailto:[^\s@]+@[^\s@]+|https:\/\/\S+)$/, "A mailto: address or an https: page where the push services can reach the shop.").optional()),
   /**
    * Comma-separated addresses that become admins once they sign in with the
-   * address confirmed (docs/adr/016): how the first admin exists in production.
+   * address confirmed: how the first admin exists in production.
    * Not a secret.
    */
   ADMIN_EMAILS: optionalString.transform((value) =>
@@ -128,7 +128,7 @@ const rawSchema = z.object({
   ),
 
   /**
-   * Email (docs/adr/016). With RESEND_API_KEY, emails go out through Resend as
+   * Email. With RESEND_API_KEY, emails go out through Resend as
    * well as into the outbox; without it they are only kept in the outbox, which
    * the local stack shows. EMAIL_FROM must be an address on a domain verified in
    * Resend.
@@ -137,7 +137,7 @@ const rawSchema = z.object({
   EMAIL_FROM: z.string().min(3).default("Vitrine <onboarding@resend.dev>"),
 
   /**
-   * Prices by country (docs/adr/013). GEOIP_DATABASE: path to an IP-to-country
+   * Prices by country. GEOIP_DATABASE: path to an IP-to-country
    * database, preferably the compiled `.bin` that `pnpm geoip update` writes next
    * to the DB-IP Lite CSV (loads in milliseconds; the CSV takes seconds and is
    * still accepted). GEO_COUNTRY_HEADER: a request
@@ -149,7 +149,7 @@ const rawSchema = z.object({
   GEO_COUNTRY_HEADER: optionalString.pipe(z.string().regex(/^[a-z0-9-]+$/).optional()),
 
   /**
-   * AI (docs/PLAN.md Part 3, docs/adr/019). AI_PROVIDER picks where the models
+   * AI. AI_PROVIDER picks where the models
    * come from: "google" (Gemini, the backbone), or "demo", a scripted stand-in
    * that answers without any key, labelled as a demo in the interface. Unset, it
    * is "google" when a Gemini key is present, "demo" on the local stack, and
@@ -159,7 +159,7 @@ const rawSchema = z.object({
   AI_PROVIDER: z.enum(["google", "demo", "off"]).optional(),
   GOOGLE_GENERATIVE_AI_API_KEY: optionalString,
   /**
-   * Realtime voice (docs/adr/030). VOICE_PROVIDER picks who carries a spoken
+   * Realtime voice. VOICE_PROVIDER picks who carries a spoken
    * session: "openai" (with OPENAI_API_KEY), "google" (with the Gemini key
    * above), or "browser", the browser's own speech, which needs no key. A
    * provider without its key falls back to the browser, so voice never breaks.
@@ -167,7 +167,7 @@ const rawSchema = z.object({
   OPENAI_API_KEY: optionalString,
   VOICE_PROVIDER: z.enum(["browser", "google", "openai"]).default("google"),
   /**
-   * AI pictures of a piece in a room (docs/adr/053, docs/adr/060). "off" (the
+   * AI pictures of a piece in a room. "off" (the
    * default): no picture is made, and "Picture it" shows only showroom pictures
    * the AI has already made, or nothing. "google": the image model makes them,
    * through the cost guard and the shopper's allowance — turned on by George
@@ -183,7 +183,7 @@ const rawSchema = z.object({
   /** Which image model: "pro" (Nano Banana Pro, the default, the most faithful) or "flash" (Nano Banana 2, about a quarter cheaper). */
   PICTURES_MODEL: z.enum(["pro", "flash"]).default("pro"),
   /**
-   * The learned ranking stage of search (docs/adr/057): LambdaMART trees the
+   * The learned ranking stage of search: LambdaMART trees the
    * project trained on ESCI, run in the shop after fusion. "off" goes back to
    * fusion and business re-ranking alone, without a deploy of code.
    */
@@ -191,7 +191,7 @@ const rawSchema = z.object({
   /** Virtual try-on (Phase 9). Without it try-on runs in demo mode or not at all. */
   FASHN_API_KEY: optionalString,
   /**
-   * Which FASHN (docs/adr/063): "auto" (the default) uses the service when
+   * Which FASHN: "auto" (the default) uses the service when
    * FASHN_API_KEY is set and the side-by-side stand-in when it is not;
    * "fixture" is the tests' stand-in, which answers as the service would
    * (try-on, video, model shot) with no key and no bill — refused in production.
@@ -200,7 +200,7 @@ const rawSchema = z.object({
   /** Which try-on engine clothes use: "v1.6" (1 credit, the default) or "max" (2). Shoes, bags and jewellery always use Try-On Max. */
   FASHN_TRYON_MODEL: z.enum(["v1.6", "max"]).default("v1.6"),
   /**
-   * fal.ai, for AI 3D models made from a piece's photograph (docs/adr/059). Only
+   * fal.ai, for AI 3D models made from a piece's photograph. Only
    * the hand-run batch (scripts/models.ts ai) uses it, after George's yes; without
    * it every piece keeps the shop's own made model.
    */

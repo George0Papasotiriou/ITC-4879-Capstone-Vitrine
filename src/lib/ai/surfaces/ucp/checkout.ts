@@ -13,7 +13,7 @@ import type { McpCallResult, McpToolDefinition } from "@/lib/ai/surfaces/mcp/pro
 import type { ToolRun } from "@/lib/ai/tools/registry";
 
 /**
- * docs/adr/043. The Universal Commerce Protocol's checkout capability
+ * The Universal Commerce Protocol's checkout capability
  * (dev.ucp.shopping.checkout, version 2026-08-25), MCP binding: five tools,
  * `create_checkout`, `get_checkout`, `update_checkout`, `complete_checkout`
  * and `cancel_checkout`.
@@ -23,10 +23,10 @@ import type { ToolRun } from "@/lib/ai/tools/registry";
  * not. So a session with pieces in it is always `requires_escalation`, and its
  * `continue_url` opens the shop's own cart with those pieces, in the buyer's
  * browser; the buyer chooses delivery, sees the price and pays there
- * (CLAUDE.md rule 5). `complete_checkout` never places an order.
+ * themselves. `complete_checkout` never places an order.
  *
  * A session is a cart of its own, changed only through the registry's cart
- * tools (rule 4), so stock limits and prices are the shop's. Its id is the
+ * tools, so stock limits and prices are the shop's. Its id is the
  * cart's id signed with the shop's secret: it cannot be guessed or forged,
  * and it is all a session needs — nothing is stored beside the cart. Buyer
  * details an agent sends are not kept: the buyer gives them at checkout.

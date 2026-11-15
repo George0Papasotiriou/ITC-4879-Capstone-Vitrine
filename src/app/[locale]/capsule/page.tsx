@@ -23,7 +23,7 @@ import { capsuleFor, type CapsuleSize } from "@/lib/stylist/server";
 import { CAPSULE_BUDGETS as BUDGETS } from "@/lib/stylist/wardrobe";
 
 /**
- * docs/adr/066. A GET form, as the Budget Stylist's: the request is the URL,
+ * A GET form, as the Budget Stylist's: the request is the URL,
  * so a capsule can be shared and the Concierge can open one. The page shows
  * the pieces, how many outfits they make out of how many possible, and some
  * of those outfits.

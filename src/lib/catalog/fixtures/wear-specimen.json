@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Wear specimen: twelve ABO wearables with photographs in public/products/wear, for the tests (docs/adr/061).",
+  "description": "Wear specimen: twelve ABO wearables with photographs in public/products/wear, for the tests.",
   "products": [
     {
       "source": "abo",

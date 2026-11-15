@@ -20,7 +20,7 @@ import { cn } from "@/lib/ui/cn";
 /**
  * For "support:work" (support, admin). The queue is ordered by the promise in
  * docs/policies.md: whatever nobody has answered comes first, oldest promise
- * first (docs/adr/021).
+ * first.
  */
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/staff/support">): Promise<Metadata> {

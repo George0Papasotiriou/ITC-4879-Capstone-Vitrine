@@ -16,8 +16,7 @@ import * as schema from "@/lib/db/schema";
 /**
  * PostgreSQL is the single source of truth: relational data, full-text, fuzzy
  * and vector search live in the same database, so hybrid search is one round
- * trip and embeddings can never drift from the products they describe
- * (docs/PLAN.md 2.1).
+ * trip and embeddings can never drift from the products they describe.
  *
  * One pool per process, reused across requests. In development Next.js reloads
  * modules on every change, so the pool is cached on `globalThis` to avoid

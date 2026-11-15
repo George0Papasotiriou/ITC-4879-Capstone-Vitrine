@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 import { can, isStaff, parseRoles, PERMISSIONS, ROLES, withoutRole, withRole, type Permission, type Role } from "@/lib/auth/roles";
 
 /**
- * docs/PLAN.md Phase 5 asks for a role-matrix test. The expected table is
+ * A role-matrix test. The expected table is
  * written out in full here rather than derived from GRANTS, so a change to who
  * may do what has to be made twice, deliberately.
  */

@@ -11,7 +11,7 @@ import { BufferGeometry, Group, Mesh, PMREMGenerator, type Camera, type Material
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 /**
- * docs/adr/048 (addendum 2), docs/adr/052. The shop window and the room
+ * The shop window and the room
  * planner both light their scans with three's RoomEnvironment, captured by its
  * PMREM generator. three.js offers no asynchronous capture, and its shaders are
  * the heaviest either page has (the GGX convolution alone held a phone-speed

@@ -18,7 +18,7 @@ import { requireLocale } from "@/i18n/params";
 import { agentKeys } from "@/lib/ai/surfaces/mcp/server";
 import { requireUser } from "@/lib/auth/session";
 
-/** docs/adr/043. Signed-in only: keys act for an account. */
+/** Signed-in only: keys act for an account. */
 
 /** The person's keys as the page shows them, with the moment they were read, so "last used" is measured from the same instant on server and client. */
 async function keysOf(userId: string): Promise<{ keys: AgentKeyItem[]; at: string }> {

@@ -18,7 +18,7 @@ import { useHydrated } from "@/components/ui/use-hydrated";
 import { PUSH_TOPICS, type PushTopic } from "@/lib/push/notices";
 
 /**
- * docs/adr/044. The browser's permission prompt appears only after the
+ * The browser's permission prompt appears only after the
  * shopper presses the button, never on arrival. Which topics a device hears
  * about is kept with the subscription; turning off removes it from the shop.
  */

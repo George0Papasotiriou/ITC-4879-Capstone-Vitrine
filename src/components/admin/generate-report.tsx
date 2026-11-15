@@ -19,7 +19,7 @@ import { useRouter } from "@/i18n/navigation";
 
 /**
  * The report is built by a job, so the answer here is "asked for", not
- * "ready" (docs/adr/020). The page refreshes a few seconds later, by which
+ * "ready". The page refreshes a few seconds later, by which
  * time a week's figures are normally written; if it is not there yet, the
  * admin refreshes again rather than the button pretending to wait.
  */

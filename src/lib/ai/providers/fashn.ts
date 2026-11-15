@@ -11,7 +11,7 @@ import type { CapsuleKind } from "@/lib/catalog/capsule";
 import { fashnCredits, SHOP_MODEL_SHOT, SHOP_TRY_ON_MAX, SHOP_VIDEO, type TryOnEngine } from "@/lib/fitting/engines";
 
 /**
- * Try-on (docs/adr/023) and the studio around it (docs/adr/063). One
+ * Try-on and the studio around it. One
  * interface, three drivers:
  *
  * - **FASHN**, the paid API. Checked against its reference on 2026-10-05:
@@ -30,7 +30,7 @@ import { fashnCredits, SHOP_MODEL_SHOT, SHOP_TRY_ON_MAX, SHOP_VIDEO, type TryOnE
  *
  * The shopper's photograph goes to FASHN as a data URI, so it never has a
  * public URL of its own, and only after the shopper approved that call
- * (docs/PLAN.md 2.9, CLAUDE.md rule 9). Pictures come back as base64
+ * (privacy by design). Pictures come back as base64
  * (`return_base64`), which FASHN keeps for 60 minutes instead of three days;
  * Image to Video has no such option, so a video stays on FASHN's servers for
  * up to three days, and the shopper is told so before asking for one.
@@ -232,8 +232,8 @@ async function sideBySide(left: Uint8Array, right: Uint8Array): Promise<Uint8Arr
 /**
  * The stand-in with no key: the shopper's photograph and the garment's own
  * photograph side by side at one height. The capsule's drawings could be laid
- * over the person (docs/adr/023); a real product photograph, often on a model,
- * cannot (docs/adr/062). It is not a fitting, and the interface says so in as
+ * over the person; a real product photograph, often on a model,
+ * cannot. It is not a fitting, and the interface says so in as
  * many words. It makes no video and no model shot: those need the service.
  */
 export function createDrawnTryOnDriver(): TryOnDriver {

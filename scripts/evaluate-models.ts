@@ -8,21 +8,19 @@
  */
 
 /**
- * docs/adr/058, docs/adr/059.
- *
  *   pnpm evals:models [--limit 400] [--no-photo] [--seed 4949]
  *
  * The answer key is ABO's own 3D scans of the pieces that have one (stored by
  * the catalog-models job; locally `pnpm catalog models`). For each such piece
  * the script builds, without looking at the scan:
  *
- *   before   the stand-in of docs/adr/025 — a few boxes, coloured by the
+ *   before   the earlier stand-in — a few boxes, coloured by the
  *            first colour word (rebuilt here from that code, to measure
  *            against);
- *   made     the shop's made model (docs/adr/058), coloured from words and
+ *   made     the shop's made model, coloured from words and
  *            from the studio photograph;
- *   ai       the AI model from the photograph, where the pilot made one
- *            (docs/adr/059), read from storage.
+ *   ai       the AI model from the photograph, where the pilot made one,
+ *            read from storage.
  *
  * Shape: each model and the scan become the set of cells of a 24³ grid their
  * surfaces pass through, each stretched to fill the grid (so only shape counts,
@@ -75,7 +73,7 @@ function shapeScore(model: readonly Vec3[], scan: Uint8Array): number {
 }
 
 /**
- * The stand-in of docs/adr/025, as it was before docs/adr/058 replaced it:
+ * The earlier stand-in, as it was before the made models replaced it:
  * boxes per kind at the listed size, in the first colour word. Kept here only
  * to measure the "before".
  */
@@ -244,9 +242,9 @@ const lines = [
   "",
   "| | Pieces | Mean IoU |",
   "|---|---|---|",
-  `| Before: boxes (docs/adr/025) | ${rows.length} | ${f(mean(rows.map((r) => r.before)))} |`,
-  `| Made model (docs/adr/058) | ${rows.length} | ${f(mean(rows.map((r) => r.made)))} |`,
-  ...(withAi.length === 0 ? [] : [`| AI model from the photograph (docs/adr/059) | ${withAi.length} | ${f(mean(withAi.map((r) => r.ai!)))} |`]),
+  `| Before: boxes | ${rows.length} | ${f(mean(rows.map((r) => r.before)))} |`,
+  `| Made model | ${rows.length} | ${f(mean(rows.map((r) => r.made)))} |`,
+  ...(withAi.length === 0 ? [] : [`| AI model from the photograph | ${withAi.length} | ${f(mean(withAi.map((r) => r.ai!)))} |`]),
   "",
   `Made − before: ${shape.mean >= 0 ? "+" : ""}${f(shape.mean)} (95% ${f(shape.low)} to ${f(shape.high)}, n = ${shape.n}).` +
     (aiVsMade === null ? " No AI models yet: the pilot waits for George's yes." : ` AI − made on the same pieces: ${aiVsMade.mean >= 0 ? "+" : ""}${f(aiVsMade.mean)} (95% ${f(aiVsMade.low)} to ${f(aiVsMade.high)}, n = ${aiVsMade.n}).`),

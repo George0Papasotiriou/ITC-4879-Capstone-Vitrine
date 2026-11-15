@@ -14,7 +14,7 @@ import { unknownItem, type ItemBelief } from "@/lib/fit/size/ordinal";
 import { adviseFit, isFitAdvice, type FitAdvice } from "@/lib/fit/size/recommend";
 
 /**
- * docs/adr/034. The questionnaire on a garment's page and the Concierge's
+ * The questionnaire on a garment's page and the Concierge's
  * `suggest_size` both come here, so they cannot disagree.
  *
  * Only the chart's first two rows are asked: they are the body's girths
@@ -101,8 +101,8 @@ export function isAdvice(result: SizeAdvice | AdviceProblem): result is SizeAdvi
 }
 
 /**
- * The Fit Engine's advice from the same chart rows and measurements
- * (docs/adr/064): every size's chance of fitting, allowing for how this piece
+ * The Fit Engine's advice from the same chart rows and measurements:
+ * every size's chance of fitting, allowing for how this piece
  * runs and how forgiving it is (`item`, from its reviews and the shop's
  * returns). With nothing known about the piece it agrees with the chart rule
  * above; what it adds is how sure the advice is, the size next most likely,

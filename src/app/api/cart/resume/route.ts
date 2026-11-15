@@ -16,7 +16,7 @@ import { verifySignedValue } from "@/lib/commerce/tokens";
 import { sql } from "@/lib/db/client";
 
 /**
- * docs/adr/043. The link carries the session's cart id signed for UCP, so
+ * The link carries the session's cart id signed for UCP, so
  * only a session the shop made opens here. A cart already taken into an
  * account is not handed out again. The buyer lands on the cart page, sees
  * what the agent chose with the shop's prices, and goes to checkout from

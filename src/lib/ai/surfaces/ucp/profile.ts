@@ -10,7 +10,7 @@
 import { UCP_CHECKOUT, UCP_VERSION } from "@/lib/ai/surfaces/ucp/checkout";
 
 /**
- * docs/adr/043. Only what the shop really does is declared: the shopping
+ * Only what the shop really does is declared: the shopping
  * service over MCP, and the checkout capability, which always hands the buyer
  * to the shop's own page. No payment handlers, because no agent ever pays
  * here, and no signing keys, because this shop does not sign its messages

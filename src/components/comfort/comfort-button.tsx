@@ -14,7 +14,7 @@ import { useTranslations } from "next-intl";
 import { openComfortPanel } from "@/components/comfort/comfort-store";
 import { cn } from "@/lib/ui/cn";
 
-/** docs/adr/032. In the header on every page, so it is found before it is needed. */
+/** In the header on every page, so it is found before it is needed. */
 export function ComfortButton({ className }: { className?: string }) {
   const t = useTranslations("comfort");
   return (

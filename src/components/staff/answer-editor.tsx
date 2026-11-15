@@ -23,7 +23,7 @@ import { TICKET_TOPICS } from "@/lib/support/tickets";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/029. An answer is written in both languages at once, because the
+ * An answer is written in both languages at once, because the
  * desk replies in the customer's; the blanks a draft fills are listed next to
  * the text, and an unknown one is refused before it can reach a customer.
  */

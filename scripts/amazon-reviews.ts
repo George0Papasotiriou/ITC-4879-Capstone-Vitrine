@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/061 (George, 2026-10-04: real reviews, labelled with their source).
+ * Real customer reviews, always labelled with their source.
  *
  *   pnpm exec tsx scripts/amazon-reviews.ts --dry-run
  *   pnpm exec tsx scripts/amazon-reviews.ts --run
@@ -82,7 +82,7 @@ async function main() {
   const { values } = parseArgs({
     options: { "dry-run": { type: "boolean", default: false }, run: { type: "boolean", default: false }, file: { type: "string" }, asins: { type: "string" }, out: { type: "string" } },
   });
-  // --asins reads a list written by another step (the clothes shortlist, docs/adr/062); without it, the ABO wearables.
+  // --asins reads a list written by another step (the clothes shortlist); without it, the ABO wearables.
   const asins = values.asins === undefined ? await wearAsins() : new Set((JSON.parse(await readFile(values.asins, "utf8")) as { asins: string[] }).asins);
   const target = values.out ?? REVIEWS_CACHE;
   out(`${asins.size} products (by ASIN) to look for${values.asins === undefined ? " among the ABO wearables" : ` from ${values.asins}`}.`);

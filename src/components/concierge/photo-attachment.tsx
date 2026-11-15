@@ -15,11 +15,11 @@ import { useCallback, useEffect, useId, useRef, useState, type ClipboardEvent, t
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/051. The same attachment in the home page's prompt and in the dock:
+ * The same attachment in the home page's prompt and in the dock:
  * paste (Ctrl/Cmd+V), drop, or choose a file — on a phone the chooser offers
  * the camera too. Nothing leaves the device until the shopper ticks the consent
  * line and sends: the photograph then goes through `/api/photos` (re-encoded,
- * the camera's metadata dropped, kept a day: docs/adr/023) as a Snap
+ * the camera's metadata dropped, kept a day) as a Snap
  * photograph, and the question carries only its id.
  */
 

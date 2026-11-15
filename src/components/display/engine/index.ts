@@ -41,8 +41,6 @@ import { cement, mote, plaster } from "./textures";
 export type { EnginePiece } from "./pieces";
 
 /**
- * docs/adr/048.
- *
  * ONE ROOM, RE-DRESSED. The room stays put from theme to theme — the same
  * plaster, the same window — as a real shop window does; only the set and the
  * light change. A new set is arranged by the room grammar

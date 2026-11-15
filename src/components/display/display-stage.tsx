@@ -16,7 +16,7 @@ import { layoutStage, type StagePiece } from "@/lib/display/stage";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/040. The pieces are laid out by layoutStage for this window's own
+ * The pieces are laid out by layoutStage for this window's own
  * shape, measured as it is drawn and again when it changes, so a phone and a
  * wide screen both show the set at true relative size. The light is a soft
  * patch of the lumen token that drifts towards the pointer; with reduced

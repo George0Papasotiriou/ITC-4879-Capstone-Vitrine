@@ -13,7 +13,7 @@ import { expect, test } from "@playwright/test";
 import { addLampToCart, fillAndSubmit, freshPage, linkFromOutbox, PASSWORD, signIn, signOut, signUpAndConfirm, totp, uniqueEmail } from "./support/accounts";
 
 /**
- * Accounts (docs/adr/016) as a shopper meets them, on the production build.
+ * Accounts as a shopper meets them, on the production build.
  * Helpers, and why each test gets its own browser, are in ./support/accounts.ts.
  */
 

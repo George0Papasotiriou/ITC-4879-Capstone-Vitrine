@@ -14,7 +14,7 @@ import { freshPage } from "./support/accounts";
 
 /**
  * The test server runs without an AI key, so the Concierge answers from the
- * demo rules (docs/adr/019): the tools, the cart, approvals and the page's
+ * demo rules: the tools, the cart, approvals and the page's
  * commands are all real; only the choice of the next step is scripted.
  */
 

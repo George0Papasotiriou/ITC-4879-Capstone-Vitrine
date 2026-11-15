@@ -10,7 +10,7 @@
 import type { TemplateId } from "@/lib/optimize/templates";
 
 /**
- * docs/adr/048. The shop window is a real room drawn in 3D, and every piece in
+ * The shop window is a real room drawn in 3D, and every piece in
  * it is drawn at its true size: nothing here ever scales a piece. What this
  * module decides is WHERE each one goes, the way a stylist dresses a window —
  * by the part the piece plays in the set (its Budget Stylist slot):

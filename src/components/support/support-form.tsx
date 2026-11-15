@@ -20,11 +20,11 @@ import { useRouter } from "@/i18n/navigation";
 import { CONTACT_DRAFT_KEY, MAX_MESSAGE_LENGTH } from "@/lib/support/tickets";
 
 /**
- * One form for everyone (docs/adr/021). A signed-in customer writes as
+ * One form for everyone. A signed-in customer writes as
  * themselves and the shop fills in their name and address; a guest gives both,
  * and the answer arrives by email with a private link to the conversation.
  */
-/** What the Concierge left for this form, if anything (docs/adr/027). */
+/** What the Concierge left for this form, if anything. */
 function conciergeDraft(): string | null {
   try {
     const draft = window.sessionStorage.getItem(CONTACT_DRAFT_KEY)?.trim() ?? "";

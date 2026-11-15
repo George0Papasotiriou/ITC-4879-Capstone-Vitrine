@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { freshPage, signUpAndConfirm, uniqueEmail } from "./support/accounts";
 
 /**
- * docs/adr/044. A test browser cannot subscribe to a real push service, so
+ * A test browser cannot subscribe to a real push service, so
  * the browser's side is a stand-in: a push manager that hands back a
  * subscription with an FCM address and RFC 8291's example keys. Everything
  * after that — the shop's routes, the database, the pages — is real. The

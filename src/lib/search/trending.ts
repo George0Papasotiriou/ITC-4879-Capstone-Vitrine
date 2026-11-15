@@ -10,7 +10,7 @@
 import type { KeyValue } from "@/lib/kv/types";
 
 /**
- * docs/adr/039. Shown to every visitor, so the rules are strict.
+ * Shown to every visitor, so the rules are strict.
  *
  * WHAT MAY BE SHOWN. A search becomes a candidate only if it found something,
  * and only in a plain shape: letters (any script), spaces, hyphens and

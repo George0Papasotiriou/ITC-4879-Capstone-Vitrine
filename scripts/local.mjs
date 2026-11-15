@@ -8,7 +8,7 @@
  */
 
 /**
- * The local stack (ADR-008): a real PostgreSQL and the app, with nothing to
+ * The local stack: a real PostgreSQL and the app, with nothing to
  * install and no Docker.
  *
  *   pnpm local                     database + `next dev`   on http://localhost:3000
@@ -226,7 +226,7 @@ async function main() {
       (await run(TSX, ["scripts/reco.ts", "rebuild", "--if-empty"], env)) ||
       // The support desk's ready answers, as a deploy writes them.
       (await run(TSX, ["scripts/support.ts", "macros"], env)) ||
-      // Test runs only: one specimen piece with a 3D model, for the room planner's 3D tests (docs/adr/052).
+      // Test runs only: one specimen piece with a 3D model, for the room planner's 3D tests.
       (ephemeral ? await run(TSX, ["scripts/e2e-scan.ts"], env) : 0);
     if (code !== 0) {
       await stopDatabase();

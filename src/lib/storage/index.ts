@@ -11,7 +11,7 @@ import { serverEnv } from "@/env";
 import type { StorageDriver } from "@/lib/storage/types";
 
 /**
- * Storage, independent of the driver (ADR-008).
+ * Storage, independent of the driver.
  *
  * The driver is created once per process. The S3 SDK is only loaded when the
  * s3 driver is selected, so the local stack never pulls it in.

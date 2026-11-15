@@ -28,7 +28,7 @@ import {
 } from "@/lib/vision/linalg";
 
 /**
- * Placing a piece WITHOUT the sheet of paper (docs/PLAN.md 2.6 A4, "automatic
+ * Placing a piece WITHOUT the sheet of paper ("automatic
  * mode"). The sheet exists to give the photograph a known size; without it the
  * size has to come from somewhere else, and that somewhere is a depth map: a
  * distance for every pixel, estimated on the shopper's own device.

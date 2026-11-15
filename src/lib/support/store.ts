@@ -27,7 +27,7 @@ import {
 } from "@/lib/support/tickets";
 
 /**
- * Support tickets (docs/adr/021). Every write goes through one of these
+ * Support tickets. Every write goes through one of these
  * functions, because a message and what it does to the ticket — its status,
  * the reply clock, when the customer last wrote — have to happen together or
  * not at all.
@@ -100,7 +100,7 @@ export type Macro = {
   bodyEn: string;
   bodyEl: string;
   sort: number;
-  /** When someone at the desk last changed it; null while it is the shop's own words (docs/adr/029). */
+  /** When someone at the desk last changed it; null while it is the shop's own words. */
   staffEditedAt?: Date | null;
 };
 
@@ -224,7 +224,7 @@ export function createSupportStore(sql: Sql) {
 
       if (fromCustomer) {
         if (status === "closed") {
-          // A closed ticket takes another message only while it is recent (docs/adr/021).
+          // A closed ticket takes another message only while it is recent.
           if (!canReopen({ status, closedAt: current.closed_at === null ? null : new Date(current.closed_at) }, at)) return { ok: false, reason: "closed" } as const;
           next = "open";
           reopened = true;
@@ -499,7 +499,7 @@ export function createSupportStore(sql: Sql) {
   }
 
   /**
-   * Saves a ready answer someone at the desk wrote or changed (docs/adr/029):
+   * Saves a ready answer someone at the desk wrote or changed:
    * a new one when `id` is null, filed under a key made from its title. An
    * edit that changes nothing writes nothing, not even the audit entry; one
    * that does is marked, so the next deploy leaves it as they wrote it.
@@ -583,7 +583,7 @@ export function createSupportStore(sql: Sql) {
    * Writes the ready answers the desk ships with (src/lib/support/macros.ts).
    * They are part of the code, so a deploy keeps them in step with it — except
    * an answer someone at the desk has edited, which stays as they wrote it
-   * until they restore the shop's version (docs/adr/029). Returns how many
+   * until they restore the shop's version. Returns how many
    * rows were new and how many were left as the desk wrote them.
    */
   async function seedMacros(entries: readonly Omit<Macro, "id">[], at = new Date()): Promise<{ added: number; kept: number }> {

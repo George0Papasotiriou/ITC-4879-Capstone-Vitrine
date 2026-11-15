@@ -20,7 +20,7 @@ import { DialogContent, DialogRoot } from "@/components/ui/dialog";
 import { COMFORT_OPTIONS, DEFAULT_COMFORT, type ComfortKey } from "@/lib/comfort/settings";
 
 /**
- * docs/adr/032. Every change applies the moment it is made, behind the panel,
+ * Every change applies the moment it is made, behind the panel,
  * so the shopper sees the result rather than imagining it; nothing needs
  * saving, and "Back to the shop's settings" undoes everything at once. The
  * panel is a dialog: focus stays inside it, Escape closes it, and focus goes

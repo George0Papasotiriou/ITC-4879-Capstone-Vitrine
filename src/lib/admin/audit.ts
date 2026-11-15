@@ -11,7 +11,7 @@ import type postgres from "postgres";
 import { uuidv7 } from "uuidv7";
 
 /**
- * Audit log (docs/adr/018). An entry names who acted, what they did to which
+ * Audit log. An entry names who acted, what they did to which
  * record, and only the fields that changed, before and after. It is written by
  * the same transaction as the change, so there is never a change without its
  * entry, or an entry for a change that was rolled back.

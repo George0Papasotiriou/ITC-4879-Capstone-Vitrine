@@ -52,7 +52,7 @@ export function newAccessToken(): string {
  * server secret (HMAC-SHA256, 256 bits, URL-safe) instead of drawn at random.
  * Just as unguessable without the secret, and it means an email written days
  * later ("your order has shipped") can include the guest's link without the
- * shop ever storing it: only its hash is kept, as before (docs/adr/016).
+ * shop ever storing it: only its hash is kept, as before.
  * Rotating the secret retires every guest link, as it already empties carts.
  */
 export function orderLinkToken(orderId: string, secret: string): string {
@@ -60,7 +60,7 @@ export function orderLinkToken(orderId: string, secret: string): string {
 }
 
 /**
- * The same, for a support ticket's private link (docs/adr/021): a guest who
+ * The same, for a support ticket's private link: a guest who
  * wrote to the desk can open the conversation from the email, and only the
  * hash is stored.
  */

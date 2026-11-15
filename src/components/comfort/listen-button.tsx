@@ -18,7 +18,7 @@ import { sentenceRanges } from "@/lib/comfort/sentences";
 import { voiceLocale } from "@/lib/ai/surfaces/voice/session";
 
 /**
- * docs/adr/032. For someone who reads slowly, or not at all, and for anyone
+ * For someone who reads slowly, or not at all, and for anyone
  * whose eyes are tired: the browser reads the passage in the page's language,
  * a sentence at a time, and the sentence being read is highlighted in place
  * (the CSS Custom Highlight API, so the page itself is not changed). Free: the

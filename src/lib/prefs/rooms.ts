@@ -13,7 +13,7 @@ import type { Room } from "@/lib/prefs/preferences";
 export const MAX_ROOMS = 5;
 
 /**
- * The list after saving `room` (docs/adr/034): a room of the same name
+ * The list after saving `room`: a room of the same name
  * (ignoring case and spaces at the ends) is replaced where it stands, so
  * measuring the living room again corrects it rather than adding a second
  * one; a new name is added at the end. Null when the list is full.

@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 import { amazonReviewsFixtureSchema, decodeEntities, fitLean, meanRating } from "@/lib/reviews/amazon";
 import { externalReviewId } from "@/lib/reviews/external-store";
 
-describe("the committed reviews fixture (docs/adr/061)", () => {
+describe("the committed reviews fixture", () => {
   const fixture = amazonReviewsFixtureSchema.parse(JSON.parse(readFileSync("src/lib/catalog/fixtures/amazon-reviews.json", "utf8")));
   const wear = (JSON.parse(readFileSync("src/lib/catalog/fixtures/abo-wear.json", "utf8")) as { products: { sourceId: string }[] }).products;
 

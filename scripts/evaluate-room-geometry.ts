@@ -8,7 +8,7 @@
  */
 
 /**
- * Evaluation E4, synthetic part: the room geometry (docs/PLAN.md 2.6 A4, Phase 10).
+ * Evaluation E4, synthetic part: the room geometry.
  *
  *   pnpm evals:room
  *
@@ -211,7 +211,7 @@ function latency() {
 
 
 /**
- * The paper-free method (ADR-014) over the same kind of scenes: what the floor
+ * The paper-free method over the same kind of scenes: what the floor
  * from a depth map costs in drawn size, as the depth model's error grows, and
  * how often the shop refuses the photo rather than guess.
  */
@@ -348,7 +348,7 @@ wall cut at the edge of the allowed tilt (E4, web photos). It fits the room's pl
 freely instead and chooses the floor among the ones parallel to the most level
 (section 7).
 
-## 7. Placing without the sheet of paper (ADR-014)
+## 7. Placing without the sheet of paper
 
 The same question, measured the same way, with the floor coming from a depth map
 instead of four taps: 320 × 240 depth, the model's error proportional to distance,

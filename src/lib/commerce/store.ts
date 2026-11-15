@@ -25,10 +25,10 @@ import { hashToken, newAccessToken, newOrderNumber, tokenMatches } from "@/lib/c
 import type { ShippingAddress } from "@/lib/db/schema";
 
 /**
- * Carts and orders in the database (docs/PLAN.md Phase 5).
+ * Carts and orders in the database.
  *
  * Every price and stock figure is read inside the operation that uses it, and
- * totals come from `priceCart` on the server (CLAUDE.md golden rule 5). Placing
+ * totals come from `priceCart` on the server. Placing
  * an order and applying an order event are single transactions: stock is taken
  * with `UPDATE … WHERE stock >= quantity`, so two shoppers racing for the last
  * lamp cannot both get it, and a state change, its history row and its stock
@@ -38,7 +38,7 @@ import type { ShippingAddress } from "@/lib/db/schema";
  * string with `::text::jsonb`: the shared postgres.js client has Drizzle's
  * serialisers installed, which break `sql.json()` and Date parameters, and which
  * JSON-encode a parameter the server types as jsonb a second time, storing a
- * string instead of an object; typing it as text first avoids that (ADR-010).
+ * string instead of an object; typing it as text first avoids that.
  */
 
 type Sql = postgres.Sql;
@@ -75,7 +75,7 @@ export type CartChange =
 
 export type PlaceOrderInput = {
   cartId: string;
-  /** The signed-in account placing it, if any (docs/adr/016). */
+  /** The signed-in account placing it, if any. */
   userId?: string | null;
   locale: string;
   email: string;
@@ -201,7 +201,7 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
     slug: row.slug,
     sku: row.sku,
     // A garment's size belongs to the line: two sizes of one shirt are two lines
-    // and must read as two lines, in the cart and in the order (docs/adr/022).
+    // and must read as two lines, in the cart and in the order.
     title: withSize(locale === "el" ? (row.title_el ?? row.title_en) : row.title_en, row.size),
     kindLabelKey: row.kind,
     image:
@@ -248,7 +248,7 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
    * The cart to write to. An id that does not exist gets a new cart, never the
    * id it asked for: ids never come from the shopper.
    *
-   * `adopt` is the one exception, for the Concierge (docs/adr/019): a chat
+   * `adopt` is the one exception, for the Concierge: a chat
    * answer is a stream, so the guest's cart cookie must be written before the
    * first tool runs. That id is minted by the server in the same request and
    * signed into the cookie, so the cart is created under it.
@@ -276,7 +276,7 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
 
   /**
    * An account's cart, taking in the guest cart the browser held before
-   * signing in (docs/PLAN.md Phase 5 step 2). With no account cart yet, the
+   * signing in. With no account cart yet, the
    * guest cart simply becomes it. Otherwise its lines are added to the
    * account's, each capped at the per-line maximum, and the guest cart is
    * deleted. Locked, so two tabs signing in at once cannot merge twice.
@@ -367,7 +367,7 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
 
   async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
     const now = input.now ?? new Date();
-    // VAT and delivery follow the delivery address (docs/adr/013).
+    // VAT and delivery follow the delivery address.
     const country = input.address.country;
     const excluded = outsideVatArea(country, input.address.postcode);
     if (excluded !== null) return { ok: false, reason: "outside_vat_area", place: excluded };
@@ -501,7 +501,7 @@ export function createCommerceStore(sql: Sql, { orderToken }: CommerceStoreOptio
   /**
    * Every unpaid order whose payment window has passed, oldest first, expired
    * through the state machine — with the side effects returned, so the caller
-   * can void a payment that could otherwise still be made (docs/adr/038). The
+   * can void a payment that could otherwise still be made. The
    * scheduled sweep; expireIfDue stays for the one order a page is showing.
    */
   async function expireDue(now = new Date(), limit = 50): Promise<{ orderId: string; effects: SideEffect[] }[]> {

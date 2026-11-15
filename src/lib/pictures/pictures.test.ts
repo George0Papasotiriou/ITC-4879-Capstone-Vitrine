@@ -45,7 +45,7 @@ describe("the rules George set (2026-10-03)", () => {
     expect(sceneUrl("abc")).toBe("/media/catalog/scenes/abc.webp");
   });
 
-  it("stores three files for a picture, beside its owner's other files (docs/adr/060)", () => {
+  it("stores three files for a picture, beside its owner's other files", () => {
     expect(pictureFiles("abc", "quick")).toEqual({ result: "photos/pictures/abc.webp", preview: "photos/pictures/abc-1024.webp", download: "photos/pictures/abc.jpg" });
     expect(pictureFiles("abc", "scene")).toEqual({ result: "catalog/scenes/abc.webp", preview: "catalog/scenes/abc-1024.webp", download: "catalog/scenes/abc.jpg" });
     // The picture as shown keeps the address the first version gave it.

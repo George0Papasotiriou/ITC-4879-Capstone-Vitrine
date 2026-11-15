@@ -19,12 +19,12 @@ import type { BoardCard, BoardsResponse } from "@/app/api/boards/route";
 import type { BoardItemResponse } from "@/app/api/boards/[id]/items/route";
 
 /**
- * docs/adr/056. The boards are read when the list opens, not with the page:
+ * The boards are read when the list opens, not with the page:
  * most visits never open it. A new board is named in place and the piece goes
  * straight onto it. Escape closes the list and gives focus back to its button.
  */
 /**
- * `place` names a second copy on the same page (the picture studio's, docs/adr/060), so its agent ids
+ * `place` names a second copy on the same page (the picture studio's), so its agent ids
  * stay unique; the buy box's copy has none.
  */
 export function AddToBoard({ productId, title, place, tone = "light" }: { productId: string; title: string; place?: string; tone?: "light" | "dark" }) {

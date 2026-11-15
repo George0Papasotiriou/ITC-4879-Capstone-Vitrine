@@ -14,8 +14,8 @@ import { fitLean, meanRating } from "@/lib/reviews/amazon";
 import type { ExternalReview, ExternalSummary } from "@/lib/reviews/external-store";
 
 /**
- * docs/adr/061 (George, 2026-10-04: "Real Amazon reviews, labelled"). The
- * shop's own reviews come only from its buyers (docs/adr/017); these were
+ * Real Amazon reviews, always labelled as such. The
+ * shop's own reviews come only from its buyers; these were
  * written on Amazon.com about the same product, and the block says so in its
  * heading and its source line. Their stars are not the shop's stars: nothing
  * here feeds the product's rating, search or structured data.

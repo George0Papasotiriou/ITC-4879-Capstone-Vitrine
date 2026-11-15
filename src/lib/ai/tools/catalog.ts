@@ -21,7 +21,7 @@ import { COLORS } from "@/lib/search/vocabulary";
 /**
  * These tools only read. Every price and stock figure in their output comes
  * from the database for the shopper's country; the Concierge is told to let
- * the product cards show them rather than restate them (golden rule 5).
+ * the product cards show them rather than restate them.
  */
 
 const define = <I, O>(tool: VitrineTool<I, O>) => tool;
@@ -195,7 +195,7 @@ export const summarizeReviews = define({
         text: untrusted([review.title, review.body].filter(Boolean).join(". "), 280),
         author: review.authorName,
       })),
-      // docs/adr/041: counted from the reviews themselves, so the model reports them rather than guessing.
+      // Counted from the reviews themselves, so the model reports them rather than guessing.
       points: (() => {
         const insights = reviewInsights(reviews);
         return [...insights.pros, ...insights.cons].map((point) => ({ aspect: point.aspect, polarity: point.polarity, reviews: point.reviews }));

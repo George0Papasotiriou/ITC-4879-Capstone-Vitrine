@@ -24,7 +24,7 @@ import { createExternalReviewStore } from "@/lib/reviews/external-store";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
- * docs/adr/061. The wear specimen (12 real ABO wearables) and the reviews the
+ * The wear specimen (12 real ABO wearables) and the reviews the
  * committed fixture holds for them. The promise under test: Amazon.com
  * reviews are shown beside the shop's verified ones and never become them.
  */

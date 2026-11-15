@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/042.
- *
  *   pnpm e4:render                                        the test rooms (seed 4949)
  *   pnpm e4:render --seed 7100 --out .local/e4-render-dev the development rooms
  *   pnpm evals:room-harmonize [--set test|dev]             this evaluation
@@ -144,7 +142,7 @@ async function main(): Promise<void> {
     "",
     SET === "dev"
       ? "These are the DEVELOPMENT rooms: the method was chosen and changed while looking at them, so this table flatters it. Report the test rooms' table (e4-harmonize.md)."
-      : "These are the TEST rooms: the method was chosen on separate development rooms (seed 7100, `--set dev`) and measured here as it stood. The first version (gray world) scored 7.9 here against 8.2 plain, better in 12 of 24; docs/adr/042 explains the change.",
+      : "These are the TEST rooms: the method was chosen on separate development rooms (seed 7100, `--set dev`) and measured here as it stood. The first version (gray world) scored 7.9 here against 8.2 plain, better in 12 of 24, so it was replaced by the white patch.",
     "",
     "Each room was rendered four ways from one camera: the piece truly lit in the room (the truth), the room without it, the piece under neutral studio light (the product photograph) and its outline. The shop's harmonisation (src/lib/vision/harmonize.ts) reads only the room without the piece. The table gives the mean CIEDE2000 difference to the truth over the piece's pixels: about 1 is just noticeable, 2–3 visible side by side, 10 a different colour.",
     "",

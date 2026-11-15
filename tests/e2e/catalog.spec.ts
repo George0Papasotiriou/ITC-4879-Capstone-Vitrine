@@ -10,7 +10,7 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * Catalogue and search flows against the database (docs/PLAN.md Phases 3–4).
+ * Catalogue and search flows against the database.
  *
  * The test server seeds the specimen fixture: 25 products, 12 of them lighting,
  * two sold out. Every assertion here goes through the rendered page or the
@@ -83,7 +83,7 @@ test("the whole collection paginates", async ({ page }) => {
   await page.goto("/en/c", { waitUntil: "domcontentloaded" });
 
   // Counted from what the shop holds rather than written down here: the
-  // catalogue grows (the Wear capsule of docs/adr/022 added two dozen pieces),
+  // catalogue grows (the Wear capsule added two dozen pieces),
   // and a number in a test would only record when it was last edited.
   const tiles = page.locator('article[data-agent-id^="product:"]');
   const total = Number(/^(\d+) products?$/.exec((await resultCount(page).textContent()) ?? "")?.[1]);
@@ -168,7 +168,7 @@ test("Greeklish and misspellings are read, and the page says how", async ({ page
   await expect(page.getByText("Also searched for “chair”")).toBeVisible();
 });
 
-test("a Greek piece name finds the pieces titled in English, and the page says so (docs/adr/047)", async ({ page }) => {
+test("a Greek piece name finds the pieces titled in English, and the page says so", async ({ page }) => {
   // «λάμπα» (lamp) is in no product's text: production found nothing for it before.
   await page.goto("/el/search?q=%CE%BB%CE%AC%CE%BC%CF%80%CE%B1", { waitUntil: "domcontentloaded" });
   await expect(page.getByText("Αναζητήθηκε επίσης στα αγγλικά το «lamp»")).toBeVisible();

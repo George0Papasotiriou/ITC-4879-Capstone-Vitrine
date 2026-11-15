@@ -24,7 +24,7 @@ import { ADDRESS_REGIONS, needsRegion } from "@/lib/commerce/regions";
 import { EU_COUNTRIES, formatVatRate, type OutsideVatAreaPlace } from "@/lib/commerce/vat";
 
 /**
- * The checkout form (Phase 5 step 3, docs/adr/013).
+ * The checkout form.
  *
  * The server sends the cart already priced for every delivery country and
  * both delivery methods, so changing either updates the summary instantly with
@@ -53,7 +53,7 @@ export function CheckoutForm({
   startCountry: DeliveryCountry;
   /** The country prices were shown for while browsing; a different delivery country is pointed out. */
   browsingCountry: string;
-  /** A signed-in shopper's email and name, to start from (docs/adr/016); still editable. */
+  /** A signed-in shopper's email and name, to start from; still editable. */
   contact?: { email: string; name: string };
 }) {
   const t = useTranslations("checkout");

@@ -27,7 +27,7 @@ import { recordTrending } from "@/lib/search/trending";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
- * Search results (docs/PLAN.md Phase 4, graded algorithm A1).
+ * Search results (graded algorithm A1).
  *
  * A plain GET form, so a search is a URL: it can be shared, reloaded, opened by
  * the Concierge, and works before JavaScript. The page shows what the search
@@ -48,7 +48,7 @@ export async function generateMetadata({ searchParams }: PageProps<"/[locale]/se
 
 const MAX_QUERY_LENGTH = 200;
 
-/** Runs a search and says how long it took, for the search dashboard (docs/adr/018). */
+/** Runs a search and says how long it took, for the search dashboard. */
 async function timedSearch(...args: Parameters<typeof runSearch>) {
   const started = performance.now();
   const result = await runSearch(...args);
@@ -142,7 +142,7 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/[
         </button>
       </form>
 
-      {/* The other way to search: a photograph, read for its colours (docs/adr/024). */}
+      {/* The other way to search: a photograph, read for its colours. */}
       <p className="text-slate mt-3 text-sm">
         <SmartLink href="/snap" className="underline underline-offset-4" data-agent-id="action:open-snap">
           {t("bePhoto")}
@@ -180,7 +180,7 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/[
             {result.corrections.map((entry) => (
               <p key={entry.term}>{t("correctionNote", { word: entry.words[0]! })}</p>
             ))}
-            {/* A Greek piece name also searched in English (docs/adr/047); a result cached before that change has none. */}
+            {/* A Greek piece name also searched in English; a result cached before that change has none. */}
             {(result.translations ?? []).map((entry) => (
               <p key={`translation-${entry.term}`}>{t("translationNote", { word: entry.words[0]! })}</p>
             ))}

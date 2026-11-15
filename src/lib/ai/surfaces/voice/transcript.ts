@@ -10,7 +10,7 @@
 import type { UIMessage } from "ai";
 
 /**
- * docs/adr/030. A realtime session keeps its own record of the conversation,
+ * A realtime session keeps its own record of the conversation,
  * but the dock shows one: the Concierge's. So what the shopper says, what the
  * Concierge answers and every tool it uses are written into that conversation
  * as ordinary messages and tool parts. The dock then shows spoken turns

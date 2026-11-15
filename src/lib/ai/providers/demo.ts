@@ -13,7 +13,7 @@ import { MockLanguageModelV4 } from "ai/test";
 import { demoStep, type DemoPrompt, type DemoStep, type DemoToolResult } from "@/lib/ai/providers/demo-brain";
 
 /**
- * Demo mode (docs/adr/019). The model below implements the same interface as
+ * Demo mode. The model below implements the same interface as
  * Gemini's, so `streamText`, tool calls, approvals and usage recording run
  * exactly as they will with a real key; only the choice of the next step comes
  * from src/lib/ai/providers/demo-brain.ts. `MockLanguageModelV4` is the AI
@@ -38,7 +38,7 @@ export function readPrompt(prompt: Prompt, tools: readonly string[], locale: "en
           .map((part) => (part as { text: string }).text)
           .join(" ")
       : "";
-  // A photograph attached to the question (docs/adr/051) arrives as an image file on the user's message.
+  // A photograph attached to the question arrives as an image file on the user's message.
   const photo = userMessage?.role === "user" && userMessage.content.some((part) => part.type === "file" && part.mediaType.startsWith("image/"));
   const results: DemoToolResult[] = [];
   for (const message of prompt.slice(lastUser + 1)) {

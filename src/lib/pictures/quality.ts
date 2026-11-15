@@ -12,7 +12,7 @@ import { z } from "zod";
 import type { PictureKind } from "@/lib/pictures/pictures";
 
 /**
- * docs/adr/060. Before anyone sees an AI picture, a second model looks at it
+ * Before anyone sees an AI picture, a second model looks at it
  * beside the piece's own photographs (and the shopper's room, when it is
  * theirs) and scores it out of 10 on four questions:
  *

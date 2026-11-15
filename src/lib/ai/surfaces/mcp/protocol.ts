@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/043. Written from the specification (revision 2026-07-28,
+ * Written from the specification (revision 2026-07-28,
  * modelcontextprotocol.io/specification/2026-07-28), not from the SDK, whose
  * server pulls in a web framework the shop does not need. The protocol part is
  * small and is all here, with no Next.js and no database, so it is tested

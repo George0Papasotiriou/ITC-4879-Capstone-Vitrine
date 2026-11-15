@@ -89,7 +89,7 @@ export type Correction = { word: string; distance: number };
  * prior of a noisy-channel corrector (Norvig, "How to Write a Spelling
  * Corrector"): "chiar" is one edit from both "char" and "chair", and a shopper
  * in a furniture shop almost certainly meant the word in hundreds of titles,
- * not the one in a few (found on production, docs/adr/047). Then to the word
+ * not the one in a few (found on production). Then to the word
  * sharing more trigrams, then to the shorter word. A term already in the
  * vocabulary needs no correction and gets none.
  */

@@ -16,7 +16,7 @@ import { logger } from "@/lib/log";
 /**
  * For "reviews:moderate" (support, merchandiser, admin). Hiding needs a reason,
  * kept with the review for other staff; the product's rating changes in the
- * same transaction (docs/adr/017).
+ * same transaction.
  */
 
 export const runtime = "nodejs";

@@ -21,13 +21,13 @@ import { pictureStore } from "@/lib/pictures/server";
 import type { Picture } from "@/lib/pictures/store";
 
 /**
- * docs/adr/053. One function for every way in (CLAUDE.md rule 4): the product
+ * One function for every way in: the product
  * page and the planner post to /api/pictures, the Concierge calls
  * `picture_in_room`, and both arrive here. In order:
  *
  * 1. A showroom scene someone already made, or is making, is returned at once:
  *    no cost, no allowance.
- * 2. Whether pictures are made at all (PICTURES_PROVIDER, a key: docs/adr/060
+ * 2. Whether pictures are made at all (PICTURES_PROVIDER and a key
  *    — there is no drawn stand-in any more), then the shop's guard before
  *    anything is spent: the kill switch and the day's budget.
  * 3. The shopper's own allowance (an account 3 a day, a guest 1).

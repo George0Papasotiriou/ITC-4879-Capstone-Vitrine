@@ -15,7 +15,7 @@ import type { Macro } from "@/lib/support/store";
 import { renderMacro } from "@/lib/support/tickets";
 
 /**
- * A draft is a suggestion (docs/adr/021): it is stored as a message marked
+ * A draft is a suggestion: it is stored as a message marked
  * `draft`, shown only to staff, and becomes a reply when an agent sends it.
  *
  * With no AI key the draft comes from the desk's own ready answers, chosen by

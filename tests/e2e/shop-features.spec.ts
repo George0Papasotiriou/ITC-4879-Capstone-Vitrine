@@ -4,7 +4,7 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * End-to-end tests for the shop features of docs/adr/034: instant search, size advice, complete the set, rooms, price drops, staff products and the dashboards.
+ * End-to-end tests for the shop features: instant search, size advice, complete the set, rooms, price drops, staff products and the dashboards.
  */
 
 import AxeBuilder from "@axe-core/playwright";
@@ -15,11 +15,10 @@ import { TEST_DB_PORT } from "../../playwright.config";
 import { addLampToCart, freshPage, LAMP, signUpAndConfirm, uniqueEmail } from "./support/accounts";
 import { signInAdmin } from "./support/orders";
 
-/** docs/adr/034. */
 
 test.describe.configure({ timeout: 120_000 });
 
-/** A real tee from the clothes specimen (docs/adr/062): a top, with M in stock. */
+/** A real tee from the clothes specimen: a top, with M in stock. */
 const TEE = "/en/p/short-sleeve-pocket-tee-b00blo0cqq";
 const SOFA = "canova-3-seater-maxi-b07g2h3l4l";
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
@@ -106,7 +105,7 @@ test("find your size: two measurements give a size with the reason, which can be
   await expect(dialog.locator('[data-agent-id="sizes:advised"]')).toHaveText("L");
   await expect(dialog.locator('[data-agent-id="sizes:advice"]')).toContainText("Waist 88 cm fits L (up to 90 cm).");
   await expect(dialog.locator('[data-agent-id="sizes:advice"]')).toContainText("closes around your waist");
-  // The Fit Engine (docs/adr/064): how likely it is to fit, the next size, and how each zone sits.
+  // The Fit Engine: how likely it is to fit, the next size, and how each zone sits.
   await expect(dialog.locator('[data-agent-id="sizes:chance"]')).toContainText(/\d+% likely to fit you; next most likely XL/);
   await expect(dialog.locator('[data-agent-id="sizes:zones"]')).toContainText("Waist: a close fit in L.");
   await expect(dialog.locator('[data-agent-id="sizes:evidence"]')).toContainText("fit remarks in Amazon.com reviews");

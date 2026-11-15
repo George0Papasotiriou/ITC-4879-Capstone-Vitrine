@@ -20,7 +20,7 @@ import { publishBoard } from "@/lib/kv/live";
 
 let store: BoardStore | undefined;
 
-/** The board store, at request time (docs/adr/056). */
+/** The board store, at request time. */
 export async function boardStore(): Promise<BoardStore> {
   await connection();
   return (store ??= createBoardStore(sql));

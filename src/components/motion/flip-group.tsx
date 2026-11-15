@@ -15,7 +15,7 @@ import { DURATION, EASE } from "@/lib/ui/motion";
 import { prefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
- * docs/adr/031. FLIP — First, Last, Invert, Play. After every change to the
+ * FLIP — First, Last, Invert, Play. After every change to the
  * items inside (children marked `data-flip-key`), each item that was there
  * before is measured where it now is, moved back by transform to where it
  * was, and let go: it glides to its new place. Items that are new rise in.

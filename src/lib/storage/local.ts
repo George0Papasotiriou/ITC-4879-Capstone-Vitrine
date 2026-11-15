@@ -16,7 +16,7 @@ import type { StorageDriver } from "@/lib/storage/types";
 
 /**
  * The local storage driver: files in a folder, reached through signed URLs
- * served by `/api/storage/[...key]` (ADR-008).
+ * served by `/api/storage/[...key]`.
  *
  * It mirrors the bucket's contract rather than taking a shortcut. Uploads and
  * reads need a signature that expires, and the content type is fixed when the

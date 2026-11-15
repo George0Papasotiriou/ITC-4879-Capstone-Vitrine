@@ -11,7 +11,7 @@ import type { TextureKind } from "@/lib/catalog/model/textures";
 import type { Rgb } from "@/lib/vision/palette";
 
 /**
- * docs/adr/058. glTF's materials are physically based: a base colour, how
+ * glTF's materials are physically based: a base colour, how
  * rough the surface is, whether it is metal — and, through Khronos's
  * extensions, the things furniture needs beyond that:
  *

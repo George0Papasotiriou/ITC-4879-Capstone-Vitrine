@@ -2,7 +2,7 @@
 --
 -- PostgreSQL is the single source of truth for Vitrine: relational data,
 -- full-text search, fuzzy matching and vector similarity all live here, so
--- hybrid search (docs/PLAN.md 2.6 A1) is one query rather than a fan-out to a
+-- hybrid search is one query rather than a fan-out to a
 -- separate search service.
 --
 -- vector    - pgvector, HNSW indexes over product text and image embeddings

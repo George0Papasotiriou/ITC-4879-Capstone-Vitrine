@@ -15,7 +15,7 @@ import type { ToolContext, VitrineTool } from "@/lib/ai/tools/types";
  * The Concierge changes the cart the shopper already has, through the same
  * store as the Add to cart button, so stock limits and prices are the shop's.
  * Checkout is never started from here: that is `start_checkout`, which asks
- * first and only opens the page where the shopper pays (golden rule 5).
+ * first and only opens the page where the shopper pays.
  */
 
 const define = <I, O>(tool: VitrineTool<I, O>) => tool;
@@ -78,7 +78,7 @@ export const updateCartItem = define({
 });
 
 /**
- * What is in the cart, as the shop prices it (docs/adr/043). Added for agents
+ * What is in the cart, as the shop prices it. Added for agents
  * outside the page, which cannot see the cart drawer; the Concierge uses it
  * too when the shopper asks what they have. The figures are the database's.
  */

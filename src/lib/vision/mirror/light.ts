@@ -11,9 +11,9 @@ import type { Point2 } from "@/lib/vision/camera";
 import { toLinear } from "@/lib/vision/harmonize";
 
 /**
- * docs/adr/065, after ADR-042. A piece's photograph was taken under white
+ * Light for the AR Mirror, after the room's light harmonisation. A piece's photograph was taken under white
  * studio light; the face in the camera is under whatever light the room
- * has. Drawn as it is, the piece looks pasted on. ADR-042 matched a cut-out
+ * has. Drawn as it is, the piece looks pasted on. The room planner matched a cut-out
  * to a room by its brightest surfaces, assumed white (the "white patch").
  * On a face there is a better white patch: the sclera, the white of the eye,
  * which is close to neutral on every person and always in the picture.

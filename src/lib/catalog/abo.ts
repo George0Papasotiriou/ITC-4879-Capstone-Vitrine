@@ -20,7 +20,7 @@ import type { DimensionsCm } from "@/lib/db/schema";
 import { COLORS, extractTerms, MATERIALS, type ColorId, type MaterialId } from "@/lib/search/vocabulary";
 
 /**
- * Amazon Berkeley Objects listings → Vitrine products (docs/PLAN.md Phase 3).
+ * Amazon Berkeley Objects listings → Vitrine products.
  *
  * ABO is a research dataset of real Amazon listings (CC BY 4.0, credit to Amazon.com): 147,702
  * listings, most with studio photography on white, some with 360° spins and 3D

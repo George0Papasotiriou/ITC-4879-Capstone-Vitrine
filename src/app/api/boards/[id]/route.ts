@@ -18,7 +18,7 @@ import { currentPreferences } from "@/lib/prefs/server";
 import { routing } from "@/i18n/routing";
 
 /**
- * docs/adr/056. Every request says which board (`[id]`) and, unless it is the
+ * Every request says which board (`[id]`) and, unless it is the
  * owner's, which link (`?k=`). Anyone with a link may read; editors may
  * rename; only the owner chooses the room (from their own saved rooms, whose
  * wall is copied onto the board), makes new links, or deletes the board.

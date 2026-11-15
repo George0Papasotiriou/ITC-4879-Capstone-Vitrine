@@ -16,7 +16,7 @@ import { fillAndSubmit, freshPage, signUpAndConfirm, uniqueEmail } from "./suppo
 import { signInAdmin } from "./support/orders";
 
 /**
- * docs/adr/018. Each device project edits its own product, found by SKU, and
+ * Each device project edits its own product, found by SKU, and
  * puts it back afterwards, so the two projects and the other specs never see
  * each other's edits.
  */
@@ -124,7 +124,7 @@ test("a customer gets 404 on staff pages and cannot export or edit", async ({ br
   }
   expect((await page.request.get("/api/admin/export/orders")).status()).toBe(403);
   const origin = new URL(page.url()).origin;
-  // The AI switches and the weekly report are an admin's alone (docs/adr/020).
+  // The AI switches and the weekly report are an admin's alone.
   expect((await page.request.post("/api/admin/reports", { headers: { origin }, data: {} })).status()).toBe(403);
   expect((await page.request.post("/api/admin/ai", { headers: { origin }, data: { killSwitch: true } })).status()).toBe(403);
   expect((await page.goto("/en/admin/ai"))?.status()).toBe(404);
@@ -157,7 +157,7 @@ test("the staff pages pass the accessibility checks", async ({ browser }, info) 
   await staff.context().close();
 });
 
-test("the store page says where the shop's shared state lives and what it holds (docs/adr/039)", async ({ browser }, info) => {
+test("the store page says where the shop's shared state lives and what it holds", async ({ browser }, info) => {
   const staff = await freshPage(browser);
   await signInAdmin(staff, info);
   // A search, so the cache and the store have something to show.
@@ -174,7 +174,7 @@ test("the store page says where the shop's shared state lives and what it holds 
 });
 
 
-test("copy help offers a draft only with the shop's AI key, and says so without one (docs/adr/045)", async ({ browser }, info) => {
+test("copy help offers a draft only with the shop's AI key, and says so without one", async ({ browser }, info) => {
   const product = PRODUCTS[info.project.name as keyof typeof PRODUCTS];
   const staff = await freshPage(browser);
   await signInAdmin(staff, info);

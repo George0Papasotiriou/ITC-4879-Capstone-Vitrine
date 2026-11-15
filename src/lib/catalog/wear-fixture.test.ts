@@ -16,7 +16,7 @@ import { ABO_PRODUCT_KINDS, WEAR_CATEGORIES } from "@/lib/catalog/taxonomy";
 import { HAT_SIZES, ONE_SIZE, SHOE_SIZES } from "@/lib/catalog/wear";
 
 /**
- * docs/adr/061. `pnpm catalog wear-fixture` writes these from ABO; this test
+ * `pnpm catalog wear-fixture` writes these from ABO; this test
  * is what any later run of it has to keep true, since `pnpm db:setup` syncs
  * the file into production on every deploy.
  */

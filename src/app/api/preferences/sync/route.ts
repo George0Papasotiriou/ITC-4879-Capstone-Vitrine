@@ -12,7 +12,7 @@ import { z } from "zod";
 import { syncDevice } from "@/lib/prefs/server";
 
 /**
- * docs/adr/032, docs/adr/033. Called after signing in, and when the comfort
+ * Called after signing in, and when the comfort
  * settings change on a signed-in device. For a guest it does nothing.
  */
 

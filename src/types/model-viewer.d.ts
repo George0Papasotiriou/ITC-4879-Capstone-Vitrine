@@ -4,7 +4,7 @@
  * Author: George Papasotiriou <g.papasotiriou@acg.edu>
  * Project started: 2026-09-12
  *
- * JSX types for the <model-viewer> custom element (docs/adr/025).
+ * JSX types for the <model-viewer> custom element.
  */
 
 import type { DetailedHTMLProps, HTMLAttributes } from "react";

@@ -16,7 +16,7 @@ import {
 } from "@/lib/ai/ui-commands";
 
 /**
- * These tests are the client half of evaluation E8 (docs/PLAN.md 7.4): can the
+ * These tests are the client half of evaluation E8: can the
  * Concierge be manipulated into doing something the user did not ask for? The
  * command layer is where a poisoned product description or review would have to
  * land to steer the interface, so every rejection below is a real attack shape.

@@ -19,8 +19,8 @@ import { REQUEST_ID_HEADER } from "@/lib/log/request-id";
  * pino-pretty is easier to read. Every line carries the service name, and every
  * line written while handling a request carries its request id.
  *
- * Privacy: user photos, message contents and secrets never reach the logger
- * (docs/PLAN.md 2.8). Log identifiers, not payloads — and the paths below are
+ * Privacy: user photos, message contents and secrets never reach the logger.
+ * Log identifiers, not payloads — and the paths below are
  * redacted as a backstop in case one slips through.
  */
 

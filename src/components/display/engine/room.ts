@@ -26,7 +26,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import type { Plinth, Room } from "@/lib/display/scene";
 
 /**
- * docs/adr/048. The room is built around the set (src/lib/display/scene.ts
+ * The room is built around the set (src/lib/display/scene.ts
  * gives its walls), so a sofa and a vase both stand in a room that suits them.
  *
  * THE WINDOW is the light's way in. It is a real opening in a 22 cm thick wall

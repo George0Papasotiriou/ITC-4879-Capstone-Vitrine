@@ -13,7 +13,7 @@ import { expect, test, type Browser, type Page } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/056. Two browsers are two people: the owner shares the edit link,
+ * Two browsers are two people: the owner shares the edit link,
  * the friend changes the board, and the owner's page — never reloaded — shows
  * the change and says two people are here. A view link sees the board but not
  * its controls; new links retire the old ones.

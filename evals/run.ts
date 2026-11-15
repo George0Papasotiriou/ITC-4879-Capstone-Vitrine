@@ -12,7 +12,7 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 
 /**
- * Evaluations (docs/PLAN.md Phase 6 step 8, docs/adr/019).
+ * Evaluations.
  *
  *   pnpm evals:smoke            the first ten golden tasks
  *   pnpm evals:full             every golden and adversarial task
@@ -44,7 +44,7 @@ type Expectation = {
  * `modelOnly`: a task the demo rules are not built to do (reading a review, a
  * photograph, a price in words). Run against the demo it is reported as not
  * run rather than counted, so the demo's score says what the rules do; run
- * against a model it counts like any other (docs/adr/036).
+ * against a model it counts like any other.
  */
 type Task = { id: string; locale: "en" | "el"; message: string; expect: Expectation; modelOnly?: boolean };
 type Tasks = { golden: Task[]; adversarial: Task[] };

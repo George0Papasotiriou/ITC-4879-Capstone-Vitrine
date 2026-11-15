@@ -10,7 +10,7 @@
 import type { Grade } from "@/lib/search/metrics";
 
 /**
- * docs/adr/036 (addendum). The shop's own graded queries (E1) are few and
+ * The shop's own graded queries (E1) are few and
  * judged by one person; ESCI (Reddy et al., 2022, Apache-2.0) gives thousands
  * of real Amazon queries, each with about twenty products that paid
  * annotators labelled:

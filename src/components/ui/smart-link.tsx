@@ -45,7 +45,7 @@ export function SmartLink({
   document?: boolean;
   /**
    * Routes only: what kind of move this navigation is, for the view
-   * transitions (docs/adr/031) — "listing" rearranges a grid, "morph" carries a
+   * transitions — "listing" rearranges a grid, "morph" carries a
    * photograph into a product page. Untagged navigations fade between pages.
    */
   transitionTypes?: string[];

@@ -109,7 +109,7 @@ describe("postcodes in every EU country", () => {
   });
 });
 
-describe("postcodes and regions beyond the EU (docs/adr/015)", () => {
+describe("postcodes and regions beyond the EU", () => {
   it.each([
     ["GB", "sw1a1aa", "SW1A 1AA"],
     ["GB", "M1 1AE", "M1 1AE"],

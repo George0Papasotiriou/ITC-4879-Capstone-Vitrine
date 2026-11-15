@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/046. Written from Next.js 16's own guide (node_modules/next/dist/
+ * Written from Next.js 16's own guide (node_modules/next/dist/
  * docs/01-app/02-guides/content-security-policy.md) and Stripe's CSP list
  * (docs.stripe.com/security/guide, read 2026-09-29).
  *
@@ -26,7 +26,7 @@
  * WHO ELSE the browser may talk to, and only these:
  * - Stripe: its script, frames (card fields, 3-D Secure, Link) and API.
  * - Realtime voice: OpenAI's and Google's sockets, opened by the browser with
- *   a one-minute token (docs/adr/030).
+ *   a one-minute token.
  * - The shop's bucket, for images only: a shopper's photograph and a try-on
  *   result are shown through short-lived signed links to it (bucketOrigins).
  * Product photographs come through the shop's own image optimizer, 3D scans
@@ -77,7 +77,7 @@ export function contentSecurityPolicy({ nonce, dev, https, bucket = [] }: { nonc
     ["connect-src", ["'self'", "blob:", "data:", ...STRIPE.connect, ...VOICE, ...(dev ? ["ws:"] : [])]],
     ["frame-src", STRIPE.frame],
     ["worker-src", ["'self'", "blob:"]],
-    // The bucket too: a try-on video ("See it move", docs/adr/063) plays from a link to the shopper's own file there.
+    // The bucket too: a try-on video ("See it move") plays from a link to the shopper's own file there.
     ["media-src", ["'self'", "blob:", "data:", ...bucket]],
     ["manifest-src", ["'self'"]],
     ["object-src", ["'none'"]],
@@ -117,7 +117,7 @@ export function baseSecurityHeaders({ https }: { https: boolean }): [string, str
     [
       "Permissions-Policy",
       [
-        // The Concierge listens on every page (voice, docs/adr/026). The camera API serves the AR Mirror (docs/adr/065),
+        // The Concierge listens on every page (voice). The camera API serves the AR Mirror,
         // on this shop's own pages only: no frame embedded in a page may ask for it. Photographs still come from file inputs.
         "microphone=(self)",
         "camera=(self)",

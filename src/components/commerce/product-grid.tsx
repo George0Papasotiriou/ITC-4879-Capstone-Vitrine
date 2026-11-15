@@ -13,7 +13,7 @@ import type { ProductCard } from "@/lib/catalog/queries";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * The editorial grid (docs/PLAN.md 4.3).
+ * The editorial grid.
  *
  * Two columns on mobile, four on desktop, with a 2 × 2 hero plinth every ninth
  * position. The rhythm is the whole point: an unbroken grid of equal tiles
@@ -26,7 +26,7 @@ import { cn } from "@/lib/ui/cn";
  *
  * Each tile carries `data-flip-key`: inside a FlipGroup (the listing), a
  * filter, the sort or the page changing makes the pieces that stay glide to
- * their new places and the new ones rise in (docs/adr/031).
+ * their new places and the new ones rise in.
  */
 
 const HERO_EVERY = 9;

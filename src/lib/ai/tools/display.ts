@@ -19,10 +19,10 @@ const caption = z.string().trim().min(3).max(80).describe("What the shopper sees
 const THEME_IDS = THEMES.map((theme) => theme.id) as [string, ...string[]];
 
 /**
- * docs/adr/040. One of the curated windows, or one made from a room, a budget
+ * One of the curated windows, or one made from a room, a budget
  * and a few words. The pieces come from the Budget Stylist, like build_bundle,
  * and the answer is only their ids and the window's link: the page shows the
- * prices and the total from the database (CLAUDE.md rule 5).
+ * prices and the total from the database.
  */
 export const composeShowcase = define({
   name: "compose_showcase",

@@ -27,7 +27,7 @@ import type { UiCommand } from "@/lib/ai/ui-commands";
 import { usePrefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
- * The Spotlight (docs/PLAN.md 4.5, 2.5)
+ * The Spotlight
  *
  * The signature interaction. When the Concierge acts, a warm light travels from
  * the dock to whatever it is about to touch, names what it is doing in plain
@@ -105,7 +105,7 @@ export function useSpotlight(): SpotlightValue {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Timing (docs/PLAN.md 4.5)                                                  */
+/* Timing                                                  */
 /* -------------------------------------------------------------------------- */
 
 const TIMING = {
@@ -149,7 +149,7 @@ function centreOf(rect: TargetRect): Point {
 
 /**
  * Where the light sets off from: the first source on screen (the Concierge
- * bubble on tablets and computers, docs/adr/067), or the bottom-right corner.
+ * bubble on tablets and computers), or the bottom-right corner.
  * A source hidden at this width (the bubble on phones) has no size and is passed over.
  */
 function sourcePoint(): Point {
@@ -203,7 +203,7 @@ export function SpotlightProvider({
     skipped.current = true;
   }, []);
 
-  /** Marks the document once the engine and its command bus are live (docs/adr/034): `html[data-concierge-engine]`. */
+  /** Marks the document once the engine and its command bus are live: `html[data-concierge-engine]`. */
   useEffect(() => {
     document.documentElement.dataset["conciergeEngine"] = "true";
     return () => {
@@ -221,7 +221,7 @@ export function SpotlightProvider({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [skip]);
 
-  /** Manual interaction pauses the Concierge (docs/PLAN.md 2.5). */
+  /** Manual interaction pauses the Concierge. */
   useEffect(() => {
     function onPointerDown() {
       if (busy.current) stop();

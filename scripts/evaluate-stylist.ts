@@ -8,7 +8,7 @@
  */
 
 /**
- * Evaluation E3: the Budget Stylist optimiser (docs/PLAN.md 2.6 A3, Phase 8).
+ * Evaluation E3: the Budget Stylist optimiser.
  *
  *   pnpm evals:stylist            (starts the local database around the run)
  *

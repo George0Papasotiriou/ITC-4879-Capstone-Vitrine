@@ -10,7 +10,7 @@
 import { fold } from "@/lib/search/normalize";
 
 /**
- * docs/adr/041. Extractive and explainable, with no language model: every
+ * Extractive and explainable, with no language model: every
  * point on the product page can be traced to the exact sentences that made
  * it, and nothing is said that a buyer did not write.
  *

@@ -19,7 +19,7 @@ import { useHydrated } from "@/components/ui/use-hydrated";
 import { sameOriginImage } from "@/lib/catalog/media-url";
 
 /**
- * docs/adr/035. Real photographs taken all the way round the piece (the ABO
+ * Real photographs taken all the way round the piece (the ABO
  * turntable sequences, 24 kept of 72), so what turns is the piece itself, not
  * a model of it. It never turns on its own: a drag turns it by as much as the
  * finger moves, and the arrow keys a step at a time, so it works by keyboard

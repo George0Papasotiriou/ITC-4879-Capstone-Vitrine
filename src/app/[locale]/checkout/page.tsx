@@ -23,11 +23,11 @@ import { DELIVERY_COUNTRIES, isDeliveryCountry, type DeliveryCountry } from "@/l
 import { BASE_COUNTRY } from "@/lib/commerce/vat";
 
 /**
- * Checkout (Phase 5 step 3, docs/adr/013).
+ * Checkout.
  *
  * VAT and delivery follow the delivery address, so the server prices the cart
  * for every country the shop delivers to and both delivery methods: 74 small
- * quotes (27 EU countries and 10 exports, docs/adr/015), computed
+ * quotes (27 EU countries and 10 exports), computed
  * here from database prices, which let the form update the summary the moment
  * the country or method changes, with no arithmetic in the browser. The order
  * itself is priced again inside the order transaction. The delivery country

@@ -8,7 +8,7 @@
  */
 
 /**
- * Evaluation E1 (docs/PLAN.md Part 2, docs/adr/036). A person grades how well
+ * Evaluation E1. A person grades how well
  * a product answers a query, on the four-point scale the ESCI shopping-queries
  * benchmark uses:
  *

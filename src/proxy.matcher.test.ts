@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 /**
- * Guards the proxy matcher against the bug that shipped once (ADR-006).
+ * Guards the proxy matcher against the bug that shipped once.
  *
  * `config.matcher` must be a static literal — Next reads it at build time and
  * rejects imported constants — so it cannot be shared with a test by import.

@@ -12,11 +12,11 @@ import { z } from "zod";
 import { ABO_PRODUCT_KINDS } from "@/lib/catalog/taxonomy";
 
 /**
- * Staff edit a product's words, prices and whether it is on sale
- * (docs/adr/018). Prices are typed as euros the way people write them, in
+ * Staff edit a product's words, prices and whether it is on sale.
+ * Prices are typed as euros the way people write them, in
  * either convention ("1.299,00" or "1,299.00"), and stored as integer cents
- * (CLAUDE.md: money is never a float). The price is the Greek price with VAT,
- * from which every other country's price is derived (docs/adr/013).
+ * (money is never a float). The price is the Greek price with VAT,
+ * from which every other country's price is derived.
  */
 
 export const MAX_PRICE_CENTS = 10_000_000; // €100,000
@@ -154,7 +154,7 @@ const centimetres = z.string().transform((value, context) => {
 });
 
 /**
- * A new product, as the form sends it (docs/adr/034). It starts as a draft:
+ * A new product, as the form sends it. It starts as a draft:
  * the words, the kind (which decides the category), the price and the stock
  * counted. Measurements are optional, all three or none — with them the piece
  * can be placed in a room and judged against a wall. It goes on sale only

@@ -19,7 +19,7 @@ import { flatRug } from "@/lib/pictures/studio";
 import type { StorageDriver } from "@/lib/storage/types";
 
 /**
- * docs/adr/058. A made model costs a second or two to build (its textures,
+ * A made model costs a second or two to build (its textures,
  * and the photograph it reads its colours from), so it is built when it is
  * first asked for and stored in the bucket; every later request is a redirect
  * to the stored file, which /media serves as immutable.

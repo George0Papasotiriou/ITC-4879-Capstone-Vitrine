@@ -44,8 +44,7 @@ import { colorLabel, type ColorId } from "@/lib/search/vocabulary";
 import { pixelsFrom } from "@/lib/vision/palette";
 
 /**
- * docs/adr/062 (George, 2026-10-05: "fix the 24 clothes also, and add about
- * 100 more"). ABO, the CC BY dataset the furniture and wearables come from,
+ * Real clothes for the Clothing category. ABO, the CC BY dataset the furniture and wearables come from,
  * holds almost no garments, so the clothes come from the product listings of
  * Amazon Reviews 2023 (Hou et al., McAuley Lab, UCSD): the same research
  * release whose reviews the shop already shows, keyed by the same ASINs, so
@@ -391,7 +390,7 @@ async function fixture(options: { dryRun: boolean }) {
   }
 
   products.sort((a, b) => CLOTHES_KINDS.indexOf(a.kind as CapsuleKind) - CLOTHES_KINDS.indexOf(b.kind as CapsuleKind) || a.sourceId.localeCompare(b.sourceId));
-  const description = `Clothing: ${products.length} garments from Amazon.com's listings in Amazon Reviews 2023 (a research release), in sizes XS–XL. Photographs are served from Amazon's image CDN through the shop's image optimizer. Rebuilt by \`pnpm exec tsx scripts/catalog-clothes.ts fixture\` (docs/adr/062).`;
+  const description = `Clothing: ${products.length} garments from Amazon.com's listings in Amazon Reviews 2023 (a research release), in sizes XS–XL. Photographs are served from Amazon's image CDN through the shop's image optimizer. Rebuilt by \`pnpm exec tsx scripts/catalog-clothes.ts fixture\`.`;
   catalogFixtureSchema.parse({ version: 1, description, products });
   await writeFile(CLOTHES_FIXTURE, `{"version":1,"description":${JSON.stringify(description)},"products":[\n${products.map((product) => JSON.stringify(product)).join(",\n")}\n]}\n`);
 
@@ -431,7 +430,7 @@ async function clothesSpecimen(products: ProductInput[]): Promise<void> {
   }
   const fixture = catalogFixtureSchema.parse({
     version: 1,
-    description: "Clothes specimen: twelve garments from Amazon Reviews 2023's listings, photographs in public/products/clothes, for the tests (docs/adr/062).",
+    description: "Clothes specimen: twelve garments from Amazon Reviews 2023's listings, photographs in public/products/clothes, for the tests.",
     products: specimen,
   });
   await writeFile(CLOTHES_SPECIMEN_FIXTURE, `${JSON.stringify(fixture, null, 2)}\n`);

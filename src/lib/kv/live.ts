@@ -11,7 +11,7 @@ import { kv } from "@/lib/kv";
 import type { KeyValue } from "@/lib/kv/types";
 
 /**
- * docs/adr/039. An order moves in the web server (the Stripe webhook, the
+ * An order moves in the web server (the Stripe webhook, the
  * desk) or in the worker (payments expired after their hold). The page a
  * shopper is looking at learns of it through Redis publish/subscribe and a
  * Server-Sent Events stream (`/api/orders/[id]/live`), and refreshes — so
@@ -41,7 +41,7 @@ export function subscribeOrder(orderId: string, listener: (change: { status: str
 }
 
 /**
- * Room boards (docs/adr/056): every change to a board, and who has it open.
+ * Room boards: every change to a board, and who has it open.
  * A change carries nothing of the board: each page reads the board again with
  * its own link's rights. Presence is said on the same channel — "here" every
  * twenty seconds while a page is open, "left" when it closes — so every

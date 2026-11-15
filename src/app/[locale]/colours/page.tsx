@@ -14,7 +14,6 @@ import { ColourReadingPanel } from "@/components/colours/colour-reading";
 import { requireLocale } from "@/i18n/params";
 import { routing } from "@/i18n/routing";
 
-/** docs/adr/066. */
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/colours">): Promise<Metadata> {
   const { locale } = await params;

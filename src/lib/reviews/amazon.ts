@@ -10,21 +10,21 @@
 import { z } from "zod";
 
 /**
- * docs/adr/061 (George, 2026-10-04: "Real Amazon reviews, labelled").
+ * Real Amazon reviews, always labelled as such.
  *
  * The ABO wearables are real Amazon products, and Amazon Reviews 2023 holds
  * the reviews Amazon.com customers wrote of those very products (same ASIN).
  * The shop shows a few of them, and the totals, in their own block on the
  * product page — labelled with where they come from, apart from Vitrine's own
- * reviews, which only buyers of the shop write (docs/adr/017).
+ * reviews, which only buyers of the shop write.
  *
  * They are never mixed into the shop's own rating: not the stars on a tile,
- * not search's Bayesian ranking (docs/adr/009), not the page's structured
+ * not search's Bayesian ranking, not the page's structured
  * data. Nothing about the reviewer is kept — no id, no name, no photograph.
  *
  * What they say about fit is counted over every review of the piece ("runs
  * small", "true to size", "runs large"), and is one of the Fit Engine's
- * signals for how a brand's sizes run (docs/adr/061, slice W3).
+ * signals for how a brand's sizes run (slice W3).
  */
 
 export const AMAZON_REVIEWS_CITATION =

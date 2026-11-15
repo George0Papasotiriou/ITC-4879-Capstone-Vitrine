@@ -79,7 +79,7 @@ describe.skipIf(url === undefined || url === "")("hybrid search", () => {
     expect(cards.every((card) => card.category === "lighting")).toBe(true);
   });
 
-  it("finds lamps for «λάμπα» too, a Greek name no product carries, through its English name (docs/adr/047)", async () => {
+  it("finds lamps for «λάμπα» too, a Greek name no product carries, through its English name", async () => {
     const english = await search("lamp");
     const { cards, result } = await search("λάμπα");
     expect(result.translations).toEqual([{ term: "λαμπα", words: ["lamp"] }]);

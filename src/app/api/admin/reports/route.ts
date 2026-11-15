@@ -15,7 +15,7 @@ import { logger } from "@/lib/log";
 
 /**
  * For "reports:generate" (admins): the same job the schedule runs on Monday
- * mornings (docs/adr/020). It is enqueued rather than run here, because it
+ * mornings. It is enqueued rather than run here, because it
  * writes a file and sends emails, which no request should wait for.
  */
 

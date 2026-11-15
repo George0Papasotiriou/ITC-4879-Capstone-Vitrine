@@ -10,7 +10,7 @@
 import { CanvasTexture, LinearSRGBColorSpace, RepeatWrapping, SRGBColorSpace } from "three";
 
 /**
- * docs/adr/048. No image files: the walls and the floor are drawn when the
+ * No image files: the walls and the floor are drawn when the
  * window opens, from seeded noise, the way the shop already draws its capsule
  * photographs and writes its own 3D files. The same seed always draws the same
  * wall.

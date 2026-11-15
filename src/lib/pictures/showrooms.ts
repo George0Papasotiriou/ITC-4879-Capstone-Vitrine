@@ -14,7 +14,7 @@ import { ROOM_TYPES, SCENE_STYLE_IDS, SCENE_ASPECT, showroomFiles, type RoomType
 import type { StorageDriver } from "@/lib/storage/types";
 
 /**
- * docs/adr/060. A showroom picture used to be a whole room invented around
+ * A showroom picture used to be a whole room invented around
  * each piece. Now each style has one photograph of each room — living room,
  * bedroom, dining room, study — made once at 4K (sixteen in all, about €4
  * once) and kept as catalogue media, and every piece is placed into the room

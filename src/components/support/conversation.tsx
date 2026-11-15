@@ -22,7 +22,7 @@ import { cn } from "@/lib/ui/cn";
 
 /**
  * Messages are shown as they were written, and never as HTML: whatever a
- * customer or an agent typed is text (docs/adr/021). Drafts and internal notes
+ * customer or an agent typed is text. Drafts and internal notes
  * never reach this component; the server does not send them.
  */
 

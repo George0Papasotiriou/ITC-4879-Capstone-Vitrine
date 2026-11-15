@@ -15,7 +15,7 @@ import { DEFAULT_MACROS } from "@/lib/support/macros";
 import { supportStore } from "@/lib/support/server";
 
 /**
- * docs/adr/029. The people who work the desk own its words, so the same
+ * The people who work the desk own its words, so the same
  * permission that answers tickets edits the answers; every change is on the
  * audit log under the person who made it.
  */

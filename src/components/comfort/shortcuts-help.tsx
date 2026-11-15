@@ -14,7 +14,6 @@ import { useTranslations } from "next-intl";
 import { SHORTCUTS } from "@/components/comfort/shortcuts";
 import { DialogContent, DialogRoot } from "@/components/ui/dialog";
 
-/** docs/adr/032. */
 export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
   const t = useTranslations("comfort.shortcuts");
   return (

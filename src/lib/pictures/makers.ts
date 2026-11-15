@@ -16,7 +16,7 @@ import { verdictSchema, type Verdict } from "@/lib/pictures/quality";
 import type { PictureImage } from "@/lib/pictures/studio";
 
 /**
- * docs/adr/060. Two small seams, so the pipeline in render.ts is the same
+ * Two small seams, so the pipeline in render.ts is the same
  * code whoever does the work:
  *
  * - an ImageMaker turns a prompt and images into one image: Nano Banana Pro

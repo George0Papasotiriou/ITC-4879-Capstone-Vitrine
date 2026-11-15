@@ -18,7 +18,7 @@ import { loggerFor } from "@/lib/log";
 import { queuePush } from "@/lib/push/queue";
 
 /**
- * The nightly price-watch pass (docs/adr/020).
+ * The nightly price-watch pass.
  *
  * The store decides who to email and arms the watches whose price went back
  * up; this writes the emails and marks the ones that were written. A watch is
@@ -48,7 +48,7 @@ export async function processPriceWatches(payload: JobPayloads["price-watches"],
     try {
       await mailer.sendEmail({ to: watch.email, kind: "price_drop", locale, content });
       sent.push(watch.id);
-      // And on the watcher's devices, if they asked for price news there (docs/adr/044); queued, so a slow push service cannot hold up the emails.
+      // And on the watcher's devices, if they asked for price news there; queued, so a slow push service cannot hold up the emails.
       await queuePush({ type: "price", userId: watch.userId, slug: watch.slug, title: watch.title, price: formatMoney(money(watch.priceCents), locale) });
     } catch (error) {
       // The next pass tries again: the watch is not marked.

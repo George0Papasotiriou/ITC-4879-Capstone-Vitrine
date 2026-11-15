@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/032, placement revised in docs/adr/034. A badge laid over a
+ * Where the point-by-number badges go. A badge laid over a
  * control's top-left corner hid its first letters ("Add to cart" read as
  * "d to cart"). Each badge now tries, in order, four places *outside* its
  * control — above its left end, then to its left, then below its left end,

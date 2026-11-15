@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/036 (addendum).
- *
  *   pnpm build && pnpm local:start          (in one terminal)
  *   pnpm load:search                        (in another; BASE_URL=… for another address)
  *   PEAK=10 pnpm load:search                a smaller peak

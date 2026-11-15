@@ -10,7 +10,7 @@
 import { cdf, truncatedMoments } from "@/lib/fit/size/gaussian";
 
 /**
- * docs/adr/064 — a student-designed algorithm (rubric row 16).
+ * The Fit Engine — a student-designed algorithm (rubric row 16).
  *
  * THE MODEL. A shopper has a true size t, on the size scale (one step per
  * size). An item runs large or small by an offset b: buying it in size s is
@@ -205,8 +205,8 @@ function goldenMax(f: (x: number) => number, lo: number, hi: number, steps = 60)
 }
 
 /**
- * An item from what reviewers said about its fit — the Amazon.com counts of
- * ADR-061 — when nobody's size is known.
+ * An item from what reviewers said about its fit — the Amazon.com review
+ * counts — when nobody's size is known.
  *
  * Reviewers mostly buy their usual size, so for them s − t ≈ 0 and z ≈ b + ε',
  * with ε' wider than ε by the spread of how well "their usual size" matches

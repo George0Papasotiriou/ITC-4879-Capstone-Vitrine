@@ -13,8 +13,8 @@
  *
  *   node scripts/fetch-specimen-images.mjs [--limit 16] [--dry-run]
  *
- * Why ABO rather than a stock-photo site: the plinth treatment in
- * docs/PLAN.md 4.4 depends on `mix-blend-mode: multiply` dissolving a white
+ * Why ABO rather than a stock-photo site: the plinth treatment
+ * depends on `mix-blend-mode: multiply` dissolving a white
  * studio background into the plinth. Lifestyle photography — which is what
  * Unsplash and Pexels mostly offer — has its own backgrounds and would sit on
  * the plinth as a visible rectangle, which is precisely the "card" look the
@@ -465,7 +465,7 @@ async function main() {
  *
  * Prices are synthetic: ABO carries no prices, so each is derived
  * deterministically from the item id within a documented per-category band
- * (docs/PLAN.md Phase 3, step 2). They are plausible, not real.
+ * They are plausible, not real.
  *
  * This stands in until Phase 3 imports the full catalogue into PostgreSQL.
  */
@@ -478,10 +478,10 @@ export type SpecimenProduct = {
   category: string;
   categoryLabel: string;
   colour: string | null;
-  /** Integer cents, EUR. Money is never a float (CLAUDE.md). */
+  /** Integer cents, EUR. Money is never a float. */
   priceCents: number;
   image: { src: string; width: number; height: number };
-  /** A second angle, revealed on hover (docs/PLAN.md 4.4). */
+  /** A second angle, revealed on hover. */
   hoverImage: { src: string; width: number; height: number } | null;
 };
 

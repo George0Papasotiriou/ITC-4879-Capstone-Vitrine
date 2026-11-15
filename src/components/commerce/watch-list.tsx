@@ -22,7 +22,7 @@ import type { CatalogImage } from "@/lib/catalog/queries";
 import { formatMoney, money } from "@/lib/commerce/money";
 
 /**
- * One row per watch (docs/adr/020): the piece, today's price, and the price
+ * One row per watch: the piece, today's price, and the price
  * the shopper is waiting for. Removing one takes the row away at once; if the
  * request fails the row comes back with a message, so the list never claims
  * something the database does not say.

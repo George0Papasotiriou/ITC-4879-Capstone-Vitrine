@@ -10,7 +10,7 @@
 import { availableEvents, type OrderEventType, type OrderSnapshot, type OrderStatus } from "@/lib/commerce/order-state";
 
 /**
- * The order desk (docs/PLAN.md Phase 5, docs/adr/016) is organised as queues of
+ * The order desk is organised as queues of
  * work rather than one long table: each view is the orders waiting for the same
  * next step. Queues are worked oldest first, so nobody's parcel waits behind
  * newer ones; the "all" view is a lookup and shows the newest first.

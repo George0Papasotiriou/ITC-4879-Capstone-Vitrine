@@ -13,7 +13,7 @@ import { canAnimate, studioMode } from "@/lib/fitting/driver";
 import { fashnCredits, isWearable, planOutfit, slotOf, tryOnCall, tryOnEngine } from "@/lib/fitting/engines";
 import { isModelPreset, MODEL_PRESETS, modelShotPrompt } from "@/lib/fitting/presets";
 
-describe("which engine tries a piece on (docs/adr/063)", () => {
+describe("which engine tries a piece on", () => {
   it("sends clothes to the shop's chosen engine and everything else to Try-On Max", () => {
     expect(tryOnEngine("SHIRT")).toBe("v1.6");
     expect(tryOnEngine("DRESS", "max")).toBe("max");

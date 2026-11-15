@@ -17,7 +17,6 @@ import { openInstantSearch, SEARCH_OPEN_EVENT, type SearchOpenDetail } from "@/c
 // Not in every page's first download: fetched on the first request to search.
 const InstantSearch = dynamic(() => import("@/components/search/instant-search").then((module) => module.InstantSearch), { ssr: false });
 
-/** docs/adr/034. */
 export function InstantSearchLayer() {
   const [open, setOpen] = useState<{ query: string } | null>(null);
   // Where focus was when the pop-up opened: the header link, or wherever "/" was pressed.

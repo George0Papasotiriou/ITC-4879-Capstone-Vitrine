@@ -20,14 +20,14 @@ import { pictureView, startPicture, type PictureView, type StartRefusal } from "
 import { storage } from "@/lib/storage";
 
 /**
- * docs/adr/053. Each picture costs money with a key, so it passes the same
+ * Each picture costs money with a key, so it passes the same
  * guard as every AI call — the kill switch and the shop's daily budget — and
  * the shopper's own allowance for pictures (an account 3 a day, a guest 1:
  * George, 2026-10-03). A showroom scene someone has already made is returned
  * at once and costs nothing. The work itself is a job; this answers with an id.
  *
  * A picture of the shopper's own room needs their photograph, so it comes
- * through the same rules as every photograph (docs/adr/023): consent first,
+ * through the same rules as every photograph: consent first,
  * re-encoded on arrival (the camera's metadata dropped), a day to live, and
  * the picture made from it goes with it.
  */
@@ -61,7 +61,7 @@ const STATUS: Record<StartRefusal, number> = {
 const perAddress = sharedRateLimiter({ name: "pictures", limit: 12, windowMs: 60_000 });
 
 const slugSchema = z.string().trim().min(1).max(200);
-/** A showroom scene, or the shopper's own room again from a photograph they already gave (docs/adr/060). */
+/** A showroom scene, or the shopper's own room again from a photograph they already gave. */
 const jsonSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("scene"), productSlug: slugSchema, style: z.enum(SCENE_STYLE_IDS as [SceneStyle, ...SceneStyle[]]) }),
   z.object({ kind: z.literal("quick"), productSlug: slugSchema, uploadId: z.uuid() }),

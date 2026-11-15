@@ -9,7 +9,7 @@
 
 /**
  * Country from an IP address, looked up in a local copy of an IP-to-country
- * database (docs/adr/013).
+ * database.
  *
  * Local on purpose: an IP address is personal data (GDPR), and sending every
  * visitor's address to a free geolocation web service would share it with a

@@ -11,13 +11,13 @@ import { describePageMap, type PageMap } from "@/lib/ai/guardrails/page-map";
 import { FENCE_CLOSE, FENCE_OPEN } from "@/lib/ai/guardrails/untrusted";
 
 /**
- * Prompts are versioned modules (CLAUDE.md conventions): evals and usage
+ * Prompts are versioned modules: evals and usage
  * records name the version that produced an answer, and a change is a new
  * version, not an edit in place, once the bake-off has measured this one.
  */
 
-/** v1.1 (2026-10-03, before the bake-off measured v1): photographs the shopper attaches to a question (docs/adr/051). */
-/** v1.6 (2026-10-05): the shop sells real clothes, shoes, bags and accessories, not a drawn capsule (docs/adr/061, 062). */
+/** v1.1 (2026-10-03, before the bake-off measured v1): photographs the shopper attaches to a question. */
+/** v1.6 (2026-10-05): the shop sells real clothes, shoes, bags and accessories, not a drawn capsule. */
 export const CONCIERGE_PROMPT_VERSION = "concierge-v1.6";
 
 export function conciergeInstructions({ locale, pageMap, signedIn, spoken = false }: { locale: "en" | "el"; pageMap: PageMap | null; signedIn: boolean; spoken?: boolean }): string {
@@ -56,7 +56,7 @@ export function conciergeInstructions({ locale, pageMap, signedIn, spoken = fals
     "",
     ...(spoken
       ? [
-          "Being heard, not read (docs/adr/026)",
+          "Being heard, not read",
           "- The shopper is speaking, and your answer is read aloud while the screen shows the pieces. One or two short sentences, no lists, no headings, no links.",
           "- Do not read out prices, measurements or names one by one: point at what is on screen (\"the first one\", \"the darker one\") and let the cards carry the detail.",
           "- Ask at most one question, and keep it short enough to answer out loud.",

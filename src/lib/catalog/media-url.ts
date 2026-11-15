@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/035 addendum. The large catalogue's photographs stay in the ABO
+ * The large catalogue's photographs stay in the ABO
  * bucket and reach pages through Next.js's image optimizer. `next/image` does
  * that by itself; this is for the places that load a photograph by address —
  * the room planner draws it on a canvas (which a cross-origin image would

@@ -18,7 +18,7 @@ import { systemFigures } from "@/lib/kv/system";
 import { STATS_KEY_CAP } from "@/lib/kv/types";
 
 /**
- * docs/adr/039. For "reports:read". Everything is read live from the store;
+ * For "reports:read". Everything is read live from the store;
  * nothing here names a person (limits and trending keep only keyed hashes).
  */
 

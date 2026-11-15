@@ -17,17 +17,17 @@ import { CameraGlyph, DropVeil, MicrophoneGlyph, PhotoButton, PhotoChip, usePhot
 import { cx as cn } from "@/lib/ui/cx";
 
 /**
- * The Concierge prompt (docs/PLAN.md 4.3).
+ * The Concierge prompt.
  *
  * On the home page this is the hero's call to action, not a search box tucked
  * into a header: the whole argument of the product is that describing what you
  * want should be the primary way in. Three ways in, as the placeholder says:
  *
- * - type, and Enter or Send opens the Concierge with the question (docs/adr/019);
- * - the microphone opens the Concierge already listening (docs/adr/026, 051);
+ * - type, and Enter or Send opens the Concierge with the question;
+ * - the microphone opens the Concierge already listening;
  * - the camera, a paste or a drop attaches a photograph of a room or a piece,
- *   which goes with the question once the shopper ticks its consent line
- *   (docs/adr/051). On a phone the chooser offers the camera itself.
+ *   which goes with the question once the shopper ticks its consent line.
+ *   On a phone the chooser offers the camera itself.
  */
 export function ConciergePrompt({ className }: { className?: string }) {
   const t = useTranslations("home");
@@ -56,7 +56,7 @@ export function ConciergePrompt({ className }: { className?: string }) {
         className,
       )}
       onSubmit={(event) => void submit(event)}
-      // Typing here is the moment to fetch the Concierge, before the question is sent (docs/adr/034).
+      // Typing here is the moment to fetch the Concierge, before the question is sent.
       onFocus={warm}
       onPointerEnter={warm}
       {...photo.bind}

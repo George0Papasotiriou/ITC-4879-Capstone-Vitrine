@@ -95,7 +95,7 @@ test("the language switch lands on the same page in the other language", async (
 test("an unprefixed path redirects to the default locale rather than failing", async ({
   request,
 }) => {
-  // Regression guard for ADR-006: before the proxy fix, /cart returned a 500.
+  // Regression guard: before the proxy fix, /cart returned a 500.
   for (const path of ["/cart", "/c/lighting", "/search"]) {
     const response = await request.get(path, { maxRedirects: 0 });
     expect(response.status(), path).toBe(307);

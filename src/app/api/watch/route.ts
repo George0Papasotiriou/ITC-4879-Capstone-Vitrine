@@ -16,7 +16,7 @@ import { MIN_TARGET_CENTS } from "@/lib/commerce/price-watch";
 import { priceWatches } from "@/lib/commerce/server";
 
 /**
- * Watches belong to an account, because the answer is an email (docs/adr/020).
+ * Watches belong to an account, because the answer is an email.
  * The target arrives in cents, already read from what the shopper typed, and
  * is checked again here against the price in the database: a page left open
  * through a price change cannot set a target above today's price.
@@ -32,7 +32,7 @@ const bodySchema = z.discriminatedUnion("action", [
     locale: z.enum(routing.locales).catch(routing.defaultLocale),
   }),
   z.object({ action: z.literal("remove"), productId: z.uuid() }),
-  // The account page showed these drops (docs/adr/034).
+  // The account page showed these drops.
   z.object({ action: z.literal("seen"), ids: z.array(z.uuid()).min(1).max(20) }),
 ]);
 

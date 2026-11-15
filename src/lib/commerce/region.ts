@@ -16,7 +16,7 @@ import { BASE_COUNTRY, isCountryCode, isEuCountry, vatRatePerMille } from "@/lib
 import { countryFromRequest } from "@/lib/geo/server";
 
 /**
- * Which country's prices this request shows (docs/adr/013), in order:
+ * Which country's prices this request shows, in order:
  *
  *   1. the shopper's own choice, remembered in a cookie;
  *   2. where the request comes from (CDN header or local IP database);

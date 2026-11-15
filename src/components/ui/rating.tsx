@@ -12,13 +12,12 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Rating (docs/PLAN.md 4.4, 2.6)
+ * Rating
  *
  * Displays an average and the number of verified reviews behind it. Product
  * pages give it the plain mean, which is what shoppers expect to see; ranking
  * in search uses the Bayesian average instead (src/lib/search/rerank.ts), so a
- * single five-star review cannot outrank a well-reviewed product
- * (docs/adr/017).
+ * single five-star review cannot outrank a well-reviewed product.
  *
  * The stars are decorative; the accessible name carries the number, because a
  * screen reader should hear "4.6 out of 5, 38 reviews", not "star star star".

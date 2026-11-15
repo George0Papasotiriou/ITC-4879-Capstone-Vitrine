@@ -5,7 +5,7 @@
 #
 # Parity: the Python Taste Graph gives the shop's numbers on the shared fixture (scripts/reco-parity.ts wrote them).
 
-"""The plan's promise (docs/PLAN.md 2.6): research in Python, production in
+"""The plan's promise: research in Python, production in
 TypeScript, and "a shared fixture proves both implement the same algorithm".
 
 fixtures/parity-events.json holds a few dozen sessions in OTTO's format.

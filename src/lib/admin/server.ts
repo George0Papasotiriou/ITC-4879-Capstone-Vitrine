@@ -28,7 +28,7 @@ export async function catalogAdmin(): Promise<CatalogAdminStore> {
 }
 
 /**
- * Every staff change to the catalogue moves its version on (docs/adr/039), so
+ * Every staff change to the catalogue moves its version on, so
  * no cached search ranking made before the change is read after it.
  */
 function withCatalogVersion(store: CatalogAdminStore): CatalogAdminStore {
@@ -74,19 +74,19 @@ function afterOrNow(write: () => Promise<void>): void {
   }
 }
 
-/** Concierge turns and tool runs, for its dashboard (docs/adr/034). */
+/** Concierge turns and tool runs, for its dashboard. */
 export function logConciergeEvents(events: ConciergeEventInput[]): void {
   if (events.length === 0) return;
   afterOrNow(() => recordConciergeEvents(sql, events, { onError: (error) => logger.warn({ err: error }, "Concierge event not recorded") }));
 }
 
-/** Shelves seen, opened and bought from, for the recommendations dashboard (docs/adr/034). */
+/** Shelves seen, opened and bought from, for the recommendations dashboard. */
 export function logRecoEvents(events: RecoEventInput[]): void {
   if (events.length === 0) return;
   afterOrNow(() => recordRecoEvents(sql, events, { onError: (error) => logger.warn({ err: error }, "Recommendation event not recorded") }));
 }
 
-/** Records a search after the response is sent, so it never slows a search down (docs/adr/018). */
+/** Records a search after the response is sent, so it never slows a search down. */
 export function logSearch(event: SearchEventInput): void {
   after(() => recordSearch(sql, event, { onError: (error) => logger.warn({ err: error }, "Search event not recorded") }));
 }

@@ -15,7 +15,7 @@ import { fillAndSubmit, freshPage, LAMP, linkFromOutbox } from "./support/accoun
 import { moveAtDesk, paidGuestOrder, signInAdmin } from "./support/orders";
 
 /**
- * Reviews and returns (docs/adr/017). A guest orders and pays; the admin packs,
+ * Reviews and returns. A guest orders and pays; the admin packs,
  * ships and delivers at the desk; the guest then reviews from the order's own
  * page, or sends it back. Review text carries a random word so each test finds
  * its own review among those the other device project wrote.
@@ -57,7 +57,7 @@ test("@smoke a delivered order's piece is reviewed, and the review appears on th
   await expect(mine).toContainText("Verified purchase");
   await expect(mine).toContainText("Maria G.");
   await expect(mine.getByRole("img", { name: "5 stars" })).toBeVisible();
-  // What buyers say (docs/adr/041): the shade's praise counts for colour and look, quoted as written.
+  // What buyers say: the shade's praise counts for colour and look, quoted as written.
   const insights = guest.locator('[data-agent-id="product:insights"]');
   await expect(insights).toContainText("Buyers like");
   await insights.locator('[data-agent-id="insight:colour-pro"] summary').click();

@@ -11,7 +11,7 @@ import { floorPointAt, projectedHeight, type Point2, type Pose } from "@/lib/vis
 import type { Mat3 } from "@/lib/vision/linalg";
 
 /**
- * Evaluation E4, the real-photo half (docs/PLAN.md Phase 10; the synthetic half
+ * Evaluation E4, the real-photo half (the synthetic half
  * is `pnpm evals:room`). The plan's acceptance test is a mean size error of at
  * most 10% on at least twelve real rooms, each containing an object whose height
  * was measured with a tape.
@@ -30,7 +30,7 @@ import type { Mat3 } from "@/lib/vision/linalg";
  *
  * PRIVACY. Only these numbers leave the browser, and only when George exports
  * them: no photograph, and no pixel of one, is written to the repository or sent
- * anywhere (CLAUDE.md rule 9).
+ * anywhere.
  */
 
 export type E4Marks = {

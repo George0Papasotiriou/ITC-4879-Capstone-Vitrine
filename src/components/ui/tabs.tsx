@@ -15,7 +15,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Tabs (docs/PLAN.md 4.3, 4.4).
+ * Tabs.
  *
  * The product page's media stage is the main user: Photos, 360°, 3D and In my
  * room are views of one object, which is what tabs are for. They are not a way
@@ -58,7 +58,7 @@ export function Tabs({
             className={cn(
               "text-slate relative h-11 shrink-0 cursor-pointer px-3 text-sm whitespace-nowrap",
               "transition-colors duration-quick ease-standard hover:text-dusk",
-              // The underline draws out from the middle of the chosen tab (docs/adr/031).
+              // The underline draws out from the middle of the chosen tab.
               "after:bg-dusk after:absolute after:inset-x-3 after:bottom-[-1px] after:h-0.5 after:scale-x-0 after:transition-transform after:duration-calm after:ease-standard",
               "data-[state=active]:text-dusk data-[state=active]:font-medium data-[state=active]:after:scale-x-100",
               "disabled:cursor-not-allowed disabled:opacity-40",

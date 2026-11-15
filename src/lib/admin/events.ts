@@ -13,7 +13,7 @@ import { uuidv7 } from "uuidv7";
 import { dayKey, fillDays, inPeriod, share, type Period } from "@/lib/admin/metrics";
 
 /**
- * docs/adr/034. Two small logs, like the search log (docs/adr/018): no
+ * Two small logs, like the search log: no
  * shopper, no words, no tool inputs, kept 90 days. The Concierge log answers
  * "is it used, is it quick, do people accept what it proposes and keep what it
  * does"; the shelf log answers "are the recommendations looked at and bought
@@ -123,7 +123,7 @@ export type ConciergeSummary = {
   undoRate: number | null;
 };
 
-/** Tools whose effect has an undo in the dock (docs/adr/019, 032, 033). */
+/** Tools whose effect has an undo in the dock. */
 export const UNDOABLE_TOOLS = new Set(["add_to_cart", "update_cart_item", "remove_from_cart", "adjust_comfort", "remember_preference"]);
 
 export function conciergeSummary(rows: readonly ConciergeRow[], period: Period): ConciergeSummary {

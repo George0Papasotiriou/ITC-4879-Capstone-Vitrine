@@ -24,8 +24,8 @@ import { cn } from "@/lib/ui/cn";
 
 /**
  * Reading the figures needs "reports:read" (merchandiser, admin); changing a
- * switch needs "ai:manage" (admin), and is recorded in the audit log
- * (docs/adr/020). Costs are kept in millionths of a euro because a single
+ * switch needs "ai:manage" (admin), and is recorded in the audit log.
+ * Costs are kept in millionths of a euro because a single
  * Concierge answer costs a fraction of a cent (src/lib/ai/models.ts).
  */
 

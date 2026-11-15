@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { PARTICIPANT_CODE, STUDY_COOKIE } from "@/lib/study/tasks";
 
-/** docs/adr/037. The code lives in a cookie on this device for three hours at most, and nowhere else. */
+/** The code lives in a cookie on this device for three hours at most, and nowhere else. */
 export function StudyStart() {
   const t = useTranslations("study");
   const locale = useLocale();

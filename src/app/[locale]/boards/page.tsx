@@ -19,7 +19,7 @@ import { currentUser } from "@/lib/auth/session";
 import { boardStore } from "@/lib/boards/server";
 import { getCardsByIds } from "@/lib/catalog/server";
 
-/** docs/adr/056. A guest's boards are this browser's until they sign in; reading the page never mints a guest id. */
+/** A guest's boards are this browser's until they sign in; reading the page never mints a guest id. */
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/boards">): Promise<Metadata> {
   const { locale } = await params;

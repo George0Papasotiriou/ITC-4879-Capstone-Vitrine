@@ -22,7 +22,7 @@ import { syncOnNextPage } from "@/components/comfort/comfort-store";
 import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "@/lib/auth/policy";
 
 /**
- * The account forms (docs/adr/016). Each talks to Better Auth through
+ * The account forms. Each talks to Better Auth through
  * authClient and shows what went wrong in the shopper's words, next to the
  * field it concerns where there is one. After signing in the page is loaded
  * afresh rather than navigated in place, so everything the server renders for
@@ -84,7 +84,7 @@ export function SignInForm({ locale, next, googleEnabled }: { locale: string; ne
 
   // A full load, not a client navigation: signing in changes whose page this is, so
   // every client-side cache (the cart count, personalisation) must start again.
-  // The next page brings the device and the account into step (docs/adr/033). Not awaited here:
+  // The next page brings the device and the account into step. Not awaited here:
   // the sign-in client starts its own redirect, and this navigation must go first.
   const finish = () => {
     syncOnNextPage();
@@ -214,7 +214,7 @@ export function SignUpForm({ locale, outboxOpen }: { locale: string; outboxOpen:
 
     setPending(true);
     setFormError(null);
-    // The confirmed account's first page brings this device's preferences over (docs/adr/033).
+    // The confirmed account's first page brings this device's preferences over.
     syncOnNextPage();
     const { error: failure } = await authClient.signUp.email({ name, email, password, callbackURL });
     setPending(false);
@@ -435,7 +435,7 @@ export function TwoFactorForm({ next }: { next: string }) {
       setPending(false);
       return;
     }
-    // Signed in: the next page brings the device and the account into step (docs/adr/033).
+    // Signed in: the next page brings the device and the account into step.
     syncOnNextPage();
     window.location.assign(next);
   };

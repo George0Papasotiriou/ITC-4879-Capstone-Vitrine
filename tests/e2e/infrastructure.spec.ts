@@ -15,7 +15,7 @@ import { E2E_PING_TOKEN } from "../../playwright.config";
 import { sign } from "../../src/lib/storage/signing";
 
 /**
- * The paths through the infrastructure, exercised over HTTP (ADR-008).
+ * The paths through the infrastructure, exercised over HTTP.
  *
  * A green health check proves the components answer. These prove work actually
  * flows through them: a request enqueues a job and the job runs; a signed URL

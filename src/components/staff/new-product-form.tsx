@@ -19,7 +19,7 @@ import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/034. Only what a product needs to exist: the rest (selling points,
+ * Only what a product needs to exist: the rest (selling points,
  * a "was" price) is on the edit page, where the photographs are added and the
  * draft is published. The server checks everything again; the form only
  * shows its answer beside each field.

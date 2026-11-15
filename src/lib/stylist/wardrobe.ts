@@ -18,9 +18,9 @@ import { contentVector, STYLE_WEIGHTS } from "@/lib/reco/content-vector";
 import { bayesianRating, catalogRatingPrior } from "@/lib/search/rerank";
 
 /**
- * docs/adr/066. Candidates are the shop's own in-stock pieces for the right
+ * Candidates are the shop's own in-stock pieces for the right
  * department (a garment's label, or a shoe's or bag's title: "Women's",
- * "Men's"; unisex pieces go either way), in the shopper's prices (ADR-013).
+ * "Men's"; unisex pieces go either way), in the shopper's prices.
  * Each one's own merit is its rating, read by the same Bayesian rule as
  * search (rerank.ts); how two go together is outfitCompatibility.
  */

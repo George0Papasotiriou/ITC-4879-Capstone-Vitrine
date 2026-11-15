@@ -15,7 +15,7 @@ import { generateVapidKeys } from "./src/lib/push/webpush";
  * End-to-end tests.
  *
  * With BASE_URL set they run against that deployment. Without it they run
- * against the local stack (ADR-008): Playwright starts `scripts/local.mjs` on a
+ * against the local stack: Playwright starts `scripts/local.mjs` on a
  * production build, with an in-memory PostgreSQL that is created for the run
  * and thrown away afterwards, and waits until the health check answers. So
  * `pnpm build && pnpm test:e2e` exercises the real database, jobs and storage
@@ -31,10 +31,10 @@ export const TEST_DB_PORT = 5434;
 /** Shared with tests that exercise the job queue through /api/dev/ping. */
 export const E2E_PING_TOKEN = "local-e2e-ping-token-0001";
 
-/** Lets tests act as visitors from another country, as a CDN header would (docs/adr/013). */
+/** Lets tests act as visitors from another country, as a CDN header would. */
 export const E2E_COUNTRY_HEADER = "x-vitrine-test-country";
 
-/** One admin per device project, made admin by ADMIN_EMAILS as production's first admin is (docs/adr/016). */
+/** One admin per device project, made admin by ADMIN_EMAILS as production's first admin is. */
 export const E2E_ADMIN_EMAILS = { desktop: "desk-admin-desktop@vitrine.test", mobile: "desk-admin-mobile@vitrine.test" } as const;
 
 const baseURL = process.env.BASE_URL ?? `http://localhost:${LOCAL_PORT}`;
@@ -68,12 +68,12 @@ export default defineConfig({
             DEV_PING_TOKEN: E2E_PING_TOKEN,
             LOG_LEVEL: "warn",
             GEO_COUNTRY_HEADER: E2E_COUNTRY_HEADER,
-            // AI pictures through the tests' stand-in for the image model (docs/adr/060): the whole flow, nothing paid.
+            // AI pictures through the tests' stand-in for the image model: the whole flow, nothing paid.
             PICTURES_PROVIDER: "fixture",
-            // The tests' FASHN (docs/adr/063): try-on, video and model shots answered without a key.
+            // The tests' FASHN: try-on, video and model shots answered without a key.
             FASHN_PROVIDER: "fixture",
             ADMIN_EMAILS: Object.values(E2E_ADMIN_EMAILS).join(","),
-            // Web Push on, with a key pair made for this run only (docs/adr/044); the local stack logs pushes instead of sending them.
+            // Web Push on, with a key pair made for this run only; the local stack logs pushes instead of sending them.
             ...(() => {
               const keys = generateVapidKeys();
               return { VAPID_PUBLIC_KEY: keys.publicKey, VAPID_PRIVATE_KEY: keys.privateKey, VAPID_SUBJECT: "mailto:e2e@vitrine.test" };

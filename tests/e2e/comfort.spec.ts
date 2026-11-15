@@ -12,7 +12,6 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { freshPage } from "./support/accounts";
 
-/** docs/adr/032. */
 
 test.describe.configure({ timeout: 90_000 });
 
@@ -76,7 +75,7 @@ test("point by number: every control gets a number, and typing the number presse
   expect(await badges.count()).toBeGreaterThan(3);
   await expect(page.locator('[data-agent-id="numbers:status"]')).toContainText("numbered");
 
-  // Badges sit beside their controls, not over their words (docs/adr/034): number 1 leaves the shop's
+  // Badges sit beside their controls, not over their words: number 1 leaves the shop's
   // name readable, and hardly any badge covers the start of a control, where its words begin.
   const overlap = await page.evaluate(() => {
     const hits = (a: DOMRect, b: DOMRect) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));

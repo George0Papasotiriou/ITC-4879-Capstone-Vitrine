@@ -45,7 +45,7 @@ export function mcpInstructions(appUrl: string): string {
 }
 
 /**
- * Builds the server for one request (docs/adr/043). With a key, the tools act
+ * Builds the server for one request. With a key, the tools act
  * as its owner, on their own cart (made on the first thing added) and orders;
  * without one, only the catalogue is offered.
  */

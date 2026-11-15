@@ -21,7 +21,7 @@ import { readCameraExif } from "@/lib/vision/exif";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * The bench for the real-photo half of evaluation E4 (docs/PLAN.md Phase 10).
+ * The bench for the real-photo half of evaluation E4.
  * It is not part of the shop: it is the instrument George uses to produce the
  * report's numbers, so it is deliberately plain, English-only and never
  * deployed (the page around it exists only on the local build).

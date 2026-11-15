@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 import { cx as cn } from "@/lib/ui/cx";
 
 /**
- * Filter chip (docs/PLAN.md 4.2, 4.4)
+ * Filter chip
  *
  * One of only two fully round shapes in the system — the other is the Lumen
  * presence dot. Everything else is 2px or 8px.

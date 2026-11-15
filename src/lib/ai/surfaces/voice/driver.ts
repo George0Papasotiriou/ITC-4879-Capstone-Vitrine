@@ -8,7 +8,7 @@
  */
 
 /**
- * One interface, three ways of filling it (docs/adr/026):
+ * One interface, three ways of filling it:
  *
  * - **browser**: the speech recognition and speech synthesis built into the
  *   browser. No key, no cost, no audio leaving the device except to the

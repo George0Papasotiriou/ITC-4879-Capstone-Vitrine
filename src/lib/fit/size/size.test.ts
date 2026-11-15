@@ -19,7 +19,7 @@ import { adviseFit, isFitAdvice } from "@/lib/fit/size/recommend";
 const PARAMS: FitParams = { margin: 0.5, noise: 0.35, itemPrior: 0.5, tolerancePrior: 0.2, customerPrior: 0.6, drift: 0 };
 const UNKNOWN = unknownItem(PARAMS);
 
-describe("the normal functions (docs/adr/064)", () => {
+describe("the normal functions", () => {
   it("match known values to the approximation's 1.2·10⁻⁷", () => {
     expect(erfc(0)).toBeCloseTo(1, 7);
     expect(erfc(1)).toBeCloseTo(0.157299207050285, 7);

@@ -21,7 +21,7 @@ import type { SizeGroup } from "@/lib/prefs/preferences";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Sizes are variants, each with its own stock (docs/adr/022). A size that has
+ * Sizes are variants, each with its own stock. A size that has
  * sold out stays on the page, disabled and said so: it tells the shopper the
  * piece is cut in that size, and that this one is gone rather than never made.
  *
@@ -45,11 +45,11 @@ export function SizePicker({
   sizes: readonly SizeOption[];
   agentId: string;
   preferred?: string;
-  /** The piece's size chart, for "Find your size" (docs/adr/034), and how it fits (docs/adr/064). */
+  /** The piece's size chart, for "Find your size", and how it fits. */
   finder?: { chart: readonly SizeChart[]; group: SizeGroup; fit?: ProductFit };
 }) {
   const t = useTranslations("product.sizes");
-  // The shopper's own size, from their preferences (docs/adr/033): chosen to start with when it is in stock.
+  // The shopper's own size, from their preferences: chosen to start with when it is in stock.
   const [chosen, setChosen] = useState<SizeOption | null>(() => sizes.find((size) => size.size === preferred && size.stock > 0) ?? null);
   // Until the page is hydrated a size button would swallow the tap and do
   // nothing, which reads as a broken shop; it waits instead.

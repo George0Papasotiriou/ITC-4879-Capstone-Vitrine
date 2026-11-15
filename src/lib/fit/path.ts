@@ -10,7 +10,7 @@
 import { z } from "zod";
 
 /**
- * docs/adr/055. The question a furniture shop gets most after "when will it
+ * The question a furniture shop gets most after "when will it
  * arrive": will it get *into* the room — through the front door, round the
  * corridor's corner, up the stairs. The piece is its catalogue box, W × D × H
  * centimetres, a rigid block. The way in is a list of steps, in order:

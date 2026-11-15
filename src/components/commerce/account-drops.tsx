@@ -11,7 +11,7 @@ import { DropsBadge } from "@/components/commerce/drops-badge";
 import { shellUser } from "@/lib/auth/session";
 import { priceWatches } from "@/lib/commerce/server";
 
-/** docs/adr/034. Rendered inside a Suspense boundary, so the header never waits for it. */
+/** Rendered inside a Suspense boundary, so the header never waits for it. */
 export async function AccountDrops({ variant }: { variant: "header" | "bar" }) {
   const user = await shellUser();
   if (user === null) return null;

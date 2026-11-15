@@ -13,7 +13,7 @@ import { refusalsOn } from "@/lib/kv/rate-limit";
 import type { KeyValue } from "@/lib/kv/types";
 import { readTrending } from "@/lib/search/trending";
 
-/** docs/adr/039. Today and yesterday are UTC days, as the counters are kept. */
+/** Today and yesterday are UTC days, as the counters are kept. */
 export async function systemFigures(store: KeyValue = kv(), now = Date.now()) {
   const today = dayKey(new Date(now));
   const yesterday = dayKey(new Date(now - 24 * 60 * 60 * 1000));

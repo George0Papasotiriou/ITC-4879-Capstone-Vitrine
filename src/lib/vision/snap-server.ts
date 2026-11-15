@@ -14,7 +14,7 @@ import { backdropOf, palette, pixelsFrom, searchableColours, withoutColour, type
 
 /**
  * The photograph is read where it lives, in the shop's own storage: nothing is
- * sent anywhere (docs/adr/024). The colours it finds become a filter and a
+ * sent anywhere. The colours it finds become a filter and a
  * query, so the answer comes from the same hybrid search a typed query uses.
  */
 

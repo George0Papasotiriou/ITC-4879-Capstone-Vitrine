@@ -17,10 +17,10 @@ import type { LightEstimate } from "@/lib/vision/harmonize";
 import type { Mat3 } from "@/lib/vision/linalg";
 
 /**
- * docs/adr/052. Before this, "See it in your room" stood the piece's studio
+ * Before this, "See it in your room" stood the piece's studio
  * photograph up in the room as a flat cut-out: turning it turned the footprint
  * and the shadow, never the piece (George, 2026-10-03). A piece with its own
- * scan (docs/adr/035) is now drawn as the scan itself:
+ * scan is now drawn as the scan itself:
  *
  * - with the camera the sheet of paper gave (src/lib/vision/gl-camera.ts: the
  *   view and projection matrices that put every point on the pixel the vision
@@ -34,7 +34,7 @@ import type { Mat3 } from "@/lib/vision/linalg";
  *   picture" keeps it.
  *
  * Its shaders are compiled in parallel before its first draw, as the window's
- * are (docs/adr/048, addendum 2). A pendant, which hangs from a ceiling the
+ * are. A pendant, which hangs from a ceiling the
  * photograph does not measure, is not drawn here.
  */
 

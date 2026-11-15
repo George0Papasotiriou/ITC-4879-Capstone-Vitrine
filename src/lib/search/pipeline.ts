@@ -19,7 +19,7 @@ import { TrigramIndex, trigramSimilarity } from "@/lib/search/trigram";
 import { englishPieceNames } from "@/lib/search/vocabulary";
 
 /**
- * The A1 search pipeline, end to end (docs/PLAN.md 2.6):
+ * The A1 search pipeline, end to end:
  *
  *   parse → expand (Greeklish, spelling) → retrieve (lexical, fuzzy, semantic) → fuse (RRF)
  *         → learned order (LambdaMART, when given) → re-rank (stock, rating, popularity) → diversify (MMR)
@@ -40,7 +40,7 @@ export type SearchOptions = {
   filters?: Partial<RetrievalFilters>;
   /**
    * Converts a price bound from the shopper's prices to stored prices, when they
-   * differ (prices by country, docs/adr/013). Identity when absent.
+   * differ (prices by country). Identity when absent.
    */
   priceToBase?: (cents: number, bound: "min" | "max") => number;
   /** A query embedding, when an embedding model is available. */
@@ -48,7 +48,7 @@ export type SearchOptions = {
   limit?: number;
   /** How the lexical retriever weighs words: by rarity (the shop) or not at all (E1's ablation). */
   lexicalWeighting?: "idf" | "plain";
-  /** The learned ranking stage (docs/adr/057): orders the fused candidates before business re-ranking. */
+  /** The learned ranking stage: orders the fused candidates before business re-ranking. */
   ranker?: RankerModel | null;
   /** Return each retriever's scored list and the fused list, for training and evaluating the ranker. */
   evidence?: boolean;
@@ -65,7 +65,7 @@ export type SearchResult = {
   readings: { term: string; readings: GreeklishReading[] }[];
   /** Spelling corrections from the catalogue vocabulary ("chiar" → chair). */
   corrections: { term: string; words: string[] }[];
-  /** English names searched for a Greek piece name ("πολυθρονα" → armchair), docs/adr/047. */
+  /** English names searched for a Greek piece name ("πολυθρονα" → armchair). */
   translations: { term: string; words: string[] }[];
   filters: RetrievalFilters;
   /** Constraints dropped because they left nothing, so the page can say so. */
@@ -111,7 +111,7 @@ export function resetSearchVocabulary(): void {
  * add candidates, never lose the literal match.
  *
  * A Greek word that names a piece is also searched by its English names
- * ("πολυθρονα" → armchair, docs/adr/047): most titles are English, and the
+ * ("πολυθρονα" → armchair): most titles are English, and the
  * lexical retriever joins terms with OR, so this only adds the products
  * described in English. Such a word is not spelling-corrected as well: it is
  * known, just in the other language.
@@ -347,7 +347,7 @@ export async function searchProducts(retrievers: Retrievers, raw: string, option
 }
 
 /**
- * The learned ranking stage (docs/adr/057). The first RANKER_DEPTH fused
+ * The learned ranking stage. The first RANKER_DEPTH fused
  * candidates are ordered by the model's score for their features
  * (src/lib/search/ranker.ts); the rest keep their fused order below them. The
  * new order is given back on the fused scale — 1 / (k + rank), as reciprocal

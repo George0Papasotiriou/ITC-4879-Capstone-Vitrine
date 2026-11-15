@@ -13,7 +13,7 @@ import { comfortPatchSchema } from "@/lib/comfort/schema";
 import { preferencesPatchSchema } from "@/lib/prefs/preferences";
 
 /**
- * The UI control protocol (docs/PLAN.md 2.5)
+ * The UI control protocol
  *
  * The Concierge never sends code to the browser. It sends *commands*: small,
  * declarative, validated objects describing an intent ("filter this listing to
@@ -42,22 +42,22 @@ const ROUTE_ALLOWLIST: readonly RegExp[] = [
   /^\/search$/,
   /^\/cart$/,
   /^\/account(?:\/[a-z0-9-]{1,32})?$/,
-  // Checkout only opens the page: the shopper reviews and pays there themselves (CLAUDE.md rule 5).
+  // Checkout only opens the page: the shopper reviews and pays there themselves.
   /^\/checkout$/,
   /^\/room$/,
-  // The Fitting Room, where a shopper's own photograph lives (docs/adr/023).
+  // The Fitting Room, where a shopper's own photograph lives.
   /^\/fitting-room$/,
-  // The AR Mirror (docs/adr/065), the capsule wardrobe and the colour reading (docs/adr/066).
+  // The AR Mirror, the capsule wardrobe and the colour reading.
   /^\/mirror$/,
   /^\/capsule$/,
   /^\/colours$/,
-  // Search by photo (docs/adr/024).
+  // Search by photo.
   /^\/snap$/,
   /^\/stylist$/,
   /^\/taste$/,
-  // Shop windows (docs/adr/040).
+  // Shop windows.
   /^\/showcase$/,
-  // Room boards (docs/adr/056): the shopper's list, and a board of theirs (its owner needs no link).
+  // Room boards: the shopper's list, and a board of theirs (its owner needs no link).
   /^\/boards$/,
   /^\/b\/[0-9a-f-]{36}$/,
   /^\/(?:shipping|privacy|contact|credits)$/,
@@ -136,7 +136,7 @@ const openViewerCommand = z.object({
 });
 
 /**
- * Changes how the shop is shown to this shopper (docs/adr/032): text size,
+ * Changes how the shop is shown to this shopper: text size,
  * contrast, motion and the rest. The light travels to the comfort button in
  * the header, where the shopper can change it back; the change is undoable.
  */
@@ -148,7 +148,7 @@ const comfortCommand = z.object({
 });
 
 /**
- * Keeps something the shopper said about themselves (docs/adr/033), after
+ * Keeps something the shopper said about themselves, after
  * they approved it: the page saves it where their preferences live — the
  * device or the account — and records an undo.
  */

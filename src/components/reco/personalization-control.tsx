@@ -17,7 +17,8 @@ import { useToast } from "@/components/ui/toast";
 import { useRouter } from "@/i18n/navigation";
 
 /**
- * The opt-in for personal recommendations (docs/PLAN.md 2.8, CLAUDE.md rule 9).
+ * The opt-in for personal recommendations: nothing is learned about a shopper
+ * until they turn it on.
  *
  * Off by default. Turning it on creates an anonymous id; turning it off stops
  * recording; "Forget my history" deletes what was recorded. Each action

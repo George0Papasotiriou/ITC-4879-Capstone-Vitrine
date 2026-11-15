@@ -10,7 +10,7 @@
 import type { TemplateId } from "@/lib/optimize/templates";
 
 /**
- * docs/adr/048. A window display is lit like a room at a certain hour. A mood
+ * A window display is lit like a room at a certain hour. A mood
  * says where the sun is (its height above the horizon and its bearing through
  * the window on the left), how warm its light is, how much the sky fills the
  * room, whether lamps are lit, and how strongly the beam through the window

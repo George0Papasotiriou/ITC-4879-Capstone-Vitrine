@@ -21,7 +21,7 @@ const env = (patch: Partial<Parameters<typeof picturesProvider>[0]> = {}): Param
   ...patch,
 });
 
-describe("picturesProvider (docs/adr/060)", () => {
+describe("picturesProvider", () => {
   it("makes pictures with the image model only when turned on, on Gemini, with a key", () => {
     expect(picturesProvider(env())).toBe("google");
     expect(picturesProvider(env({ PICTURES_PROVIDER: "off" }))).toBe("off");

@@ -12,7 +12,7 @@ import { enqueue } from "@/lib/jobs/queue";
 import { logger } from "@/lib/log";
 import type { PushNotice } from "@/lib/push/notices";
 
-/** docs/adr/044. Nothing happens without the VAPID keys; a notification that cannot be queued is logged, never thrown. */
+/** Nothing happens without the VAPID keys; a notification that cannot be queued is logged, never thrown. */
 export async function queuePush(notice: PushNotice): Promise<void> {
   if (serverEnv().vapid === null) return;
   try {

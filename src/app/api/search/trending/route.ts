@@ -11,7 +11,7 @@ import { kv } from "@/lib/kv";
 import { readTrending } from "@/lib/search/trending";
 
 /**
- * docs/adr/039. The same list for everyone, so browsers and any cache in
+ * The same list for everyone, so browsers and any cache in
  * front may keep it for a minute. Only terms and a rounded score: never who,
  * never how many people exactly.
  */

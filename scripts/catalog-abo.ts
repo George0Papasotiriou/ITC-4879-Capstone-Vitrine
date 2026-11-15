@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/035 and its addendum.
- *
  *   pnpm catalog abo-fixture [--dry-run] [--per-category 750] [--images 2] [--spins 300] [--frames 24] [--models 300]
  *
  * Builds src/lib/catalog/fixtures/abo.json from the ABO listings downloaded to
@@ -141,7 +139,7 @@ export async function aboFixture(options: { dryRun: boolean; files: string[]; pe
       const result = parseAboListing(raw);
       if (!result.ok) continue;
       const draft = result.product;
-      // Wearables have their own fixture, with sizes and reviews (scripts/catalog-wear.ts, docs/adr/061).
+      // Wearables have their own fixture, with sizes and reviews (scripts/catalog-wear.ts).
       if (WEAR_CATEGORIES.has(draft.category)) continue;
       if (taken.has(draft.sourceId) || EXCLUDED_ABO_ITEMS.has(draft.sourceId)) continue;
       const main = index.get(draft.mainImageId);

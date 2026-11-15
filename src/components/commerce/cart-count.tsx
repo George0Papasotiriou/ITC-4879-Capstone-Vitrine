@@ -25,7 +25,7 @@ export function CartCount({ variant }: { variant: "header" | "bar" }) {
   const count = summary?.itemCount ?? 0;
 
   // A count that changed after the page loaded answers with a bump, and the
-  // number rolls to its new value (docs/adr/031). The first value, read after
+  // number rolls to its new value. The first value, read after
   // load, just appears: nothing happened for it to answer.
   const previous = useRef<number | null>(null);
   const [changes, setChanges] = useState(0);
@@ -40,7 +40,7 @@ export function CartCount({ variant }: { variant: "header" | "bar" }) {
   return (
     <>
       <span className="sr-only">{`, ${t("cartCount", { count })}`}</span>
-      {/* What the bump shows is also said, once, by the header's count (docs/adr/032). */}
+      {/* What the bump shows is also said, once, by the header's count. */}
       {variant === "header" ? (
         <span role="status" className="sr-only" data-agent-id="nav:cart-status">
           {changes > 0 ? t("cartCount", { count }) : ""}

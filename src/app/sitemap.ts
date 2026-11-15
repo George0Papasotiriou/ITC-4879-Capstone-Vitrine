@@ -15,7 +15,7 @@ import { getProductSlugs } from "@/lib/catalog/server";
 import { CATEGORIES } from "@/lib/catalog/taxonomy";
 
 /**
- * sitemap.xml (docs/PLAN.md Phase 3, step 8): home, the collection, every
+ * sitemap.xml: home, the collection, every
  * category and every active product, each in both languages with hreflang
  * alternates, so search engines index the Greek and English pages as
  * translations of each other rather than as duplicates.

@@ -10,7 +10,7 @@
 import type { Mat3, Vec3 } from "@/lib/vision/linalg";
 
 /**
- * docs/adr/065. Landmarks found afresh in every frame shake by a pixel or
+ * Landmarks found afresh in every frame shake by a pixel or
  * two, and a piece drawn from them shakes with them. Smoothing hides the
  * shaking but makes the piece lag when the head moves. The One-Euro filter
  * (Casiez, Roussel and Vogel, CHI 2012) does both: a low-pass filter whose

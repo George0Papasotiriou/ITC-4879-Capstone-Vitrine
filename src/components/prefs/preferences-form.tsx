@@ -23,7 +23,7 @@ import { MAX_ROOMS, SIZE_GROUPS, type Preferences, type PreferencesPatch } from 
 import { withRoom } from "@/lib/prefs/rooms";
 
 /**
- * docs/adr/033. Every choice is kept as it is made, like the comfort settings:
+ * Every choice is kept as it is made, like the comfort settings:
  * nothing to forget to save. A size is a row of buttons, pressed or not; a
  * room is a name and a wall; likes are the same words the shop's filters use.
  */
@@ -70,7 +70,7 @@ export function PreferencesForm({ initial, colors, materials }: { initial: Prefe
       setRoomError(t("rooms.invalid"));
       return;
     }
-    // Saving a room under a name already there corrects it rather than adding a second one (docs/adr/034).
+    // Saving a room under a name already there corrects it rather than adding a second one.
     const rooms = withRoom(prefs.rooms, { name, wallCm, ...(depthCm === undefined ? {} : { depthCm }) });
     if (rooms === null) {
       setRoomError(t("rooms.invalid"));

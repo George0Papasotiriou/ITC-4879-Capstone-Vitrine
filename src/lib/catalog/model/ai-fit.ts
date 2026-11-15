@@ -14,10 +14,10 @@ import { dedup, prune, textureCompress } from "@gltf-transform/functions";
 import type { Mesh, Vec3 } from "@/lib/catalog/model/mesh";
 
 /**
- * docs/adr/059. An image-to-3D model returns a mesh in its own frame: some
+ * An image-to-3D model returns a mesh in its own frame: some
  * size, some way up, facing some way. The shop knows two things it does not —
  * the piece's real measurements, and what kind of thing it is — and the made
- * model of the same piece (docs/adr/058) carries both: right way up, front
+ * model of the same piece carries both: right way up, front
  * towards +z, at the listed size.
  *
  * So the AI mesh is tried in each of the 24 orientations a box can take (6

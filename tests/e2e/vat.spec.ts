@@ -12,7 +12,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { E2E_COUNTRY_HEADER } from "../../playwright.config";
 
 /**
- * Prices and VAT by country (docs/adr/013). The test server trusts a header in
+ * Prices and VAT by country. The test server trusts a header in
  * place of a CDN's country header, so these tests can arrive "from" Germany.
  *
  * The faux-wood lamp costs €94.00 in Greece: €75.81 before VAT, so €90.21 with
@@ -143,7 +143,7 @@ test("a visitor from a country the shop does not deliver to is told so", async (
   await context.close();
 });
 
-test.describe("delivery beyond the EU (docs/adr/015)", () => {
+test.describe("delivery beyond the EU", () => {
   test.use({ extraHTTPHeaders: { [E2E_COUNTRY_HEADER]: "CH" } });
 
   test("checks out to Switzerland without VAT, and to the United States with a state", async ({ page }) => {

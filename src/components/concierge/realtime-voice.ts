@@ -21,7 +21,7 @@ import type { VoiceState } from "@/lib/ai/surfaces/voice/session";
 import { withSpeech, withoutEmptySpeech } from "@/lib/ai/surfaces/voice/transcript";
 
 /**
- * docs/adr/030. Loaded only when the session route says a realtime session is
+ * Loaded only when the session route says a realtime session is
  * reserved, so the provider packages never weigh on a page where nobody
  * speaks. The AI SDK's session does the hard parts — the socket, the audio in
  * and out, stopping playback the moment the shopper starts talking over it,

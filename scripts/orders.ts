@@ -8,7 +8,7 @@
  */
 
 /**
- * Demo orders (docs/PLAN.md Phase 5 step 7).
+ * Demo orders.
  *
  *   pnpm orders demo [--count 40] [--days 30] [--seed N] [--dry-run]
  *

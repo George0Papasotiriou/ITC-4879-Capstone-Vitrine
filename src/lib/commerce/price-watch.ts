@@ -10,13 +10,13 @@
 import { parseEuros } from "@/lib/admin/catalog";
 
 /**
- * A price watch is a standing question: "tell me when this falls to X"
- * (docs/adr/020). The rules live here, away from the database and the
+ * A price watch is a standing question: "tell me when this falls to X".
+ * The rules live here, away from the database and the
  * request, so they can be read and tested on their own.
  *
  * The prices compared are the ones on the product page: the shop shows one
- * price everywhere and states the VAT of the shopper's country beside it
- * (ADR-013), so a watch means the same thing in every country.
+ * price everywhere and states the VAT of the shopper's country beside it,
+ * so a watch means the same thing in every country.
  */
 
 /** Enough for a wish list, few enough that the nightly pass stays small and nobody can fill the table. */
@@ -71,7 +71,7 @@ export function watchDecisions(rows: readonly WatchState[]): { notify: string[];
 }
 
 /**
- * Whether the shop shows an in-shop notice for a watch (docs/adr/034): the
+ * Whether the shop shows an in-shop notice for a watch: the
  * nightly pass has answered it (the email went), the shopper has not seen the
  * notice since, and the price is still at or below their target — a price
  * that has already gone back up is no longer news worth interrupting for.

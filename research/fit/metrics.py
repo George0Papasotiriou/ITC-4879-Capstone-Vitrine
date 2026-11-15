@@ -5,7 +5,7 @@
 #
 # E12's measures: each class's AUC and their mean, log-loss, macro-F1 with thresholds chosen on validation, and paired bootstrap intervals.
 
-"""E12's measures (docs/adr/064).
+"""E12's measures.
 
 AUC is the measure Misra et al. (2018) report for fit prediction: for each of
 small, fit and large, the probability that a transaction of that class is

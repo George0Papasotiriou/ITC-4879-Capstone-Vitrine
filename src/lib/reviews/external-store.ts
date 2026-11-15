@@ -17,7 +17,7 @@ import type { AmazonProductReviews } from "@/lib/reviews/amazon";
 
 type Sql = postgres.Sql;
 
-/** The only outside source so far (docs/adr/061). */
+/** The only outside source so far. */
 export const AMAZON_SOURCE = "amazon_reviews_2023";
 
 export type ExternalReview = { id: string; rating: number; title: string | null; body: string; reviewedOn: string; helpful: number; verified: boolean; hidden: boolean };
@@ -99,7 +99,7 @@ export function createExternalReviewStore(sql: Sql) {
   /**
    * Hides one (with the reason staff give) or shows it again, and writes the
    * audit log in the same transaction, as the shop's own reviews are
-   * moderated (docs/adr/017). False when there is no such review.
+   * moderated. False when there is no such review.
    */
   async function setHidden(id: string, change: { hidden: boolean; reason: string | null; actor: AuditActor }): Promise<boolean> {
     return sql.begin(async (tx) => {

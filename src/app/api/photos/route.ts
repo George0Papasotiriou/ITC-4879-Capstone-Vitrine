@@ -15,7 +15,7 @@ import { checkUpload, MAX_UPLOAD_BYTES, minutesLeft, type PhotoKind } from "@/li
 import { acceptPhoto, photoStore, photoUrl } from "@/lib/photos/server";
 
 /**
- * One route, one photograph (docs/adr/023). The file is sent here rather than
+ * One route, one photograph. The file is sent here rather than
  * straight to storage, because the shop re-encodes it on arrival: that is what
  * removes the camera's metadata before anything is kept.
  *

@@ -8,7 +8,7 @@
  *
  *   pnpm ranker:data [--train 2000] [--seed 11]
  *
- * docs/adr/057. Three files in .local/esci/ranker/, one row per (query,
+ * Three files in .local/esci/ranker/, one row per (query,
  * candidate): the query's id, the human grade (3 exact, 2 substitute,
  * 1 complement, 0 irrelevant or unlabelled), the product's ESCI id and the
  * features of src/lib/search/ranker.ts, in its order.

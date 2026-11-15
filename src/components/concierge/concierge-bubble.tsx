@@ -18,7 +18,7 @@ import { usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/067. The same toggle as the header's Concierge button, with its
+ * The same toggle as the header's Concierge button, with its
  * own id (nav:concierge-bubble), mounted after the header and the phone bar so
  * the tests' "first visible toggle" still finds those. Phones keep the
  * Concierge in the middle of their bottom bar, so the bubble shows from
@@ -94,7 +94,7 @@ export function ConciergeBubble() {
             <CloseGlyph />
           ) : (
             <span aria-hidden="true" className="relative grid size-6 place-items-center">
-              {/* A still glow: breathing is kept for the listening light, the one loop in the shop (docs/PLAN.md 4.5). */}
+              {/* A still glow: breathing is kept for the listening light, the one loop in the shop. */}
               <span className="bg-lumen/30 absolute inset-0 rounded-full" />
               <span className="bg-lumen relative size-3 rounded-full" />
             </span>

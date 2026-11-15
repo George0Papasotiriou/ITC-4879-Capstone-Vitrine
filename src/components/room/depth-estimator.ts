@@ -15,9 +15,9 @@ import { depthToPhoto, letterbox } from "@/lib/vision/depth-image";
 import type { DepthMap } from "@/lib/vision/depth";
 
 /**
- * Where the depth for the paper-free mode comes from (docs/adr/014).
+ * Where the depth for the paper-free mode comes from.
  *
- * The photo never leaves the device (CLAUDE.md rule 9), so the model runs in the
+ * The photo never leaves the device, for privacy, so the model runs in the
  * browser, on files this application serves itself. Nothing is fetched from a
  * model hub at run time and no third party sees a room.
  *

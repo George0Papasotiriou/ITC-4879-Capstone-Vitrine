@@ -33,8 +33,8 @@ import { cn } from "@/lib/ui/cn";
 
 /**
  * An order (Phase 5 step 4), reached one of two ways: a guest's link with its
- * secret token, or, without a token, by the signed-in account it belongs to
- * (docs/adr/016). A wrong id or token is a plain 404; with no token and no
+ * secret token, or, without a token, by the signed-in account it belongs to.
+ * A wrong id or token is a plain 404; with no token and no
  * session the page asks to sign in first, without saying whether the order
  * exists. The page never leaks the token: no referrer is sent from it, and
  * search engines are told to stay away.
@@ -73,12 +73,12 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/[l
   const customerEvents = availableEvents(snapshot, "customer", now);
   const canCancel = customerEvents.includes("cancel");
   const canReturn = customerEvents.includes("request_return") && order.deliveredAt !== null;
-  // Reviews open once the order was delivered, returned or not (docs/adr/017).
+  // Reviews open once the order was delivered, returned or not.
   const ownReviews = order.deliveredAt === null ? null : await (await reviewsStore()).orderReviews(order.id);
   const tr = await getTranslations("reviews");
   const dateOnly = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
   const canTestPay = order.status === "pending_payment" && order.paymentProvider === LOCAL_TEST_PROVIDER;
-  // Stripe (docs/adr/038): the order keeps the provider it was placed with.
+  // Stripe: the order keeps the provider it was placed with.
   const canPayWithStripe = order.status === "pending_payment" && order.paymentProvider === STRIPE_PROVIDER;
   const released = order.events.some((event) => event.event === "payment_expired");
   const finished = order.status === "cancelled" || order.status === "refunded";

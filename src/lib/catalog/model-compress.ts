@@ -13,7 +13,7 @@ import { dedup, getBounds, prune, textureCompress, weld } from "@gltf-transform/
 import sharp from "sharp";
 
 /**
- * docs/adr/035. ABO's models carry 2K–4K textures and average 19.5 MB; a phone
+ * ABO's models carry 2K–4K textures and average 19.5 MB; a phone
  * on a product page should not download that. Every step here keeps the file a
  * plain glTF 2.0 binary that three.js, model-viewer, Android's Scene Viewer
  * and iOS Quick Look all open without extra decoders:

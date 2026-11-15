@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/062. The local stack seeds the clothes specimen: twelve garments
+ * The local stack seeds the clothes specimen: twelve garments
  * from Amazon Reviews 2023's listings with their photographs in public/, and
  * no drawn capsule.
  */

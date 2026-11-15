@@ -15,7 +15,7 @@ import type { PictureResponse, PictureView } from "@/app/api/pictures/route";
 import type { SceneStyle } from "@/lib/pictures/pictures";
 
 /**
- * docs/adr/053, docs/adr/060. One picture at a time per studio: ask (`scene`,
+ * One picture at a time per studio: ask (`scene`,
  * `own` with a photograph, or `again` in a room the shopper already gave),
  * then follow it every two seconds until it is done or failed. A scene
  * someone already made comes back done at once.

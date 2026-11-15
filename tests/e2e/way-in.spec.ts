@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/055. The Canova 3 Seater Maxi is 233 × 102 × 93 cm: its smallest
+ * The Canova 3 Seater Maxi is 233 × 102 × 93 cm: its smallest
  * side is 93 × 102, so an 80 cm door stops it by 13 cm and a 110 cm door lets
  * it through. The shop works this out on the page from the catalogue's box.
  */

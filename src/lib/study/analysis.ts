@@ -10,7 +10,7 @@
 import { seededRandom } from "@/lib/reco/simulate";
 
 /**
- * docs/adr/037. With 8 to 12 participants, a single average hides how little
+ * With 8 to 12 participants, a single average hides how little
  * it can be trusted, so every figure the study reports carries an interval:
  *
  *   Completion rate  Wilson score interval (95%). Unlike the textbook

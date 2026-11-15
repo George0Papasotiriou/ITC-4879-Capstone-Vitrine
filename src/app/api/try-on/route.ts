@@ -20,8 +20,8 @@ import type { TryOnRow } from "@/lib/photos/store";
 
 /**
  * A try-on costs credits and, with a key, money — so it goes through the same
- * guard as every other AI call (docs/adr/023). One piece, or an outfit of two
- * to four put on in dressing order (docs/adr/063). The work runs as a job;
+ * guard as every other AI call. One piece, or an outfit of two
+ * to four put on in dressing order. The work runs as a job;
  * this answers at once with ids the page can ask about.
  */
 

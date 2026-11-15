@@ -31,7 +31,7 @@ import {
 } from "@/lib/vision/linalg";
 
 /**
- * Place in my room, geometry first (A4, docs/PLAN.md 2.6).
+ * Place in my room, geometry first.
  *
  * From one photograph and four taps on a sheet of A4 paper lying on the floor,
  * recover where the camera was, so a product can be drawn into the photograph

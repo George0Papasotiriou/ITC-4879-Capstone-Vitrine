@@ -31,7 +31,7 @@ import { productKindOf } from "@/lib/catalog/taxonomy";
 import { formatMoney, money } from "@/lib/commerce/money";
 
 /**
- * A filterable, sortable, paginated product listing (docs/PLAN.md Phase 3).
+ * A filterable, sortable, paginated product listing.
  *
  * Server-rendered from the URL: every filter is a link to the listing with
  * that filter toggled, so the page works before any JavaScript loads and the
@@ -104,7 +104,7 @@ export async function ListingView({
   ];
 
   const facetGroups = [
-    // Who it is for, then size, where there are sizes: what a clothes or shoe shopper filters by before anything else (docs/adr/061, 062).
+    // Who it is for, then size, where there are sizes: what a clothes or shoe shopper filters by before anything else.
     {
       key: "departments" as const,
       title: t("department.title"),
@@ -181,7 +181,7 @@ export async function ListingView({
       <div className="border-hairline flex flex-col gap-4 border-y py-4 sm:flex-row sm:items-end sm:justify-between">
         {/* A heading, so the tiles' h3 titles sit under an h2 rather than straight under the page h1. */}
         <h2 className="text-slate text-sm font-normal" aria-live="polite">
-          {/* The count rolls to its new value when a filter changes it (docs/adr/031). */}
+          {/* The count rolls to its new value when a filter changes it. */}
           <Ticker value={listing.total}>{t("results", { count: listing.total })}</Ticker>
         </h2>
         <ListingSort
@@ -242,7 +242,7 @@ export async function ListingView({
               }
             />
           ) : (
-            // The grid rearranges itself when a filter, the sort or the page changes (docs/adr/031).
+            // The grid rearranges itself when a filter, the sort or the page changes.
             <FlipGroup agentId="listing:grid">
               <ProductGrid products={listing.products} locale={locale} />
             </FlipGroup>

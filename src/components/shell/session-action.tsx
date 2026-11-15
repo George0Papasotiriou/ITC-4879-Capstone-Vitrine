@@ -18,7 +18,7 @@ import { authClient } from "@/lib/auth/client";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/067. Signed out, a link to sign in that brings the shopper back to
+ * Signed out, a link to sign in that brings the shopper back to
  * the page they were on (the sign-in page cleans the return address with
  * safeNext, src/lib/auth/paths.ts). Signed in, a button that signs out at once
  * and loads the home page in full, as the account page's button does, so no

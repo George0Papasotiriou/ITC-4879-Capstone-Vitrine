@@ -14,7 +14,7 @@ import type { ReturnReason } from "@/lib/commerce/returns";
 import type { TicketTopic } from "@/lib/support/tickets";
 
 /**
- * A shop that is shown to people has to have a past (docs/adr/028). Signing in
+ * A shop that is shown to people has to have a past. Signing in
  * as an admin to empty dashboards, or as a customer with no orders, shows the
  * pages but not what they are for. So the deploy can create eight accounts —
  * two for each role — and give each of them a history: orders at every step,

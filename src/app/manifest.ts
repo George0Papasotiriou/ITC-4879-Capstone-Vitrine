@@ -10,7 +10,7 @@
 import type { MetadataRoute } from "next";
 
 /**
- * Web app manifest (docs/PLAN.md Phase 2, step 7).
+ * Web app manifest.
  *
  * Served at /manifest.webmanifest by Next's metadata route. The store installs
  * as a PWA rather than shipping native apps (1.8, non-goals), because the

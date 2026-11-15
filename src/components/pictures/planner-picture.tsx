@@ -17,8 +17,8 @@ import { usePicture } from "@/components/pictures/use-picture";
 import { Button } from "@/components/ui/button";
 
 /**
- * docs/adr/053. The planner already knows where the piece stands and how big
- * it is (the sheet of paper, docs/adr/052); what it cannot do is make the
+ * The planner already knows where the piece stands and how big
+ * it is (the sheet of paper); what it cannot do is make the
  * piece look as if it were really in the photograph. This sends the planner's
  * own picture — the photograph with the piece placed, without the grid — to
  * the AI as the guide, and the piece's studio photograph for its looks. The

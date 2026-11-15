@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/054. The model only finds and names: a box around each piece and
+ * The model only finds and names: a box around each piece and
  * a few plain words for what it is. The shop measures the colours inside each
  * box itself (src/lib/vision/palette.ts) and searches its own catalogue, so a
  * colour the model imagines never reaches a search. The shopper writes nothing

@@ -12,7 +12,7 @@ import { z } from "zod";
 import { currentUser } from "@/lib/auth/session";
 import { pushStore } from "@/lib/push/server";
 
-/** docs/adr/044. A POST, so the browser's endpoint never sits in a URL or a log line. */
+/** A POST, so the browser's endpoint never sits in a URL or a log line. */
 
 export const runtime = "nodejs";
 

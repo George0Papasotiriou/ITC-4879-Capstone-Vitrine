@@ -13,7 +13,7 @@ import { uuidv7 } from "uuidv7";
 import type { EmailContent, EmailLocale } from "@/lib/email/templates";
 
 /**
- * One way to send, whatever the setup (docs/adr/016):
+ * One way to send, whatever the setup:
  *
  * - **Outbox, always.** Every email is written to `email_outbox` first. Until
  *   an email provider is connected that is the whole delivery: the local stack
@@ -42,7 +42,7 @@ export type MailerOptions = {
   /**
    * Addresses the shop must never deliver to, whatever the transport: they are
    * kept in the outbox, where staff can read them, and not handed to Resend
-   * (the showcase accounts, docs/adr/028).
+   * (the showcase accounts).
    */
   keepInOutbox?: (address: string) => boolean;
 };

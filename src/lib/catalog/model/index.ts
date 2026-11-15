@@ -21,7 +21,7 @@ import { paletteFromWords, type Palette, type PieceFacts } from "@/lib/catalog/m
 import { writeModel, type ModelInput, type ModelPart } from "@/lib/catalog/model/write";
 
 /**
- * docs/adr/058. Bump when a change to the modeler should replace the models
+ * Bump when a change to the modeler should replace the models
  * already stored: the storage key carries it, so old files are simply no
  * longer asked for (nothing is deleted).
  */

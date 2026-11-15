@@ -29,7 +29,7 @@ import { money } from "@/lib/commerce/money";
 import { SPECIMEN_CATALOG } from "@/lib/specimen/catalog";
 
 /**
- * Spotlight prototype (docs/PLAN.md Phase 2, step 6)
+ * Spotlight prototype
  *
  * A real listing wired to the real command bus. The point is to prove the
  * interaction before any of it depends on a model: the same `UiCommand` objects

@@ -17,7 +17,7 @@ const WORDS = ["armchair", "chair", "lamp", "bookcase", "sofa", "leather", "blac
 const vocabulary = { index: new TrigramIndex(WORDS), words: new Set(WORDS) };
 
 describe("expandTerms", () => {
-  it("searches a Greek piece name by its English names too, and says so (docs/adr/047)", () => {
+  it("searches a Greek piece name by its English names too, and says so", () => {
     const expanded = expandTerms(["πολυθρονα"], vocabulary);
     expect(expanded.terms).toEqual(["πολυθρονα", "armchair"]);
     expect(expanded.translations).toEqual([{ term: "πολυθρονα", words: ["armchair"] }]);

@@ -24,12 +24,12 @@ const cents = z.number().int().nonnegative();
 /**
  * Photographs and turntable frames of the large ABO catalogue are served from
  * the dataset's own public bucket, through the shop's image optimizer — never
- * straight to a shopper's browser (docs/adr/035 addendum). Only those two
+ * straight to a shopper's browser. Only those two
  * folders of that one bucket are accepted.
  */
 export const ABO_MEDIA_URL = /^https:\/\/amazon-berkeley-objects\.s3\.amazonaws\.com\/(images|spins)\/original\/(?!.*\.\.)[A-Za-z0-9/_.+-]+\.(jpg|jpeg|png)$/;
 
-/** A clothes listing's photograph on Amazon's image CDN (docs/adr/062): one image name and its size suffix, nothing else. */
+/** A clothes listing's photograph on Amazon's image CDN: one image name and its size suffix, nothing else. */
 export const AMAZON_MEDIA_URL = /^https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9+%-]+(\._[A-Za-z0-9_,]+_)?\.(jpg|jpeg|png)$/;
 
 export const mediaInputSchema = z.object({
@@ -49,7 +49,7 @@ export const mediaInputSchema = z.object({
 });
 
 /**
- * A size a garment is cut in (docs/adr/022). Furniture has one variant and no
+ * A size a garment is cut in. Furniture has one variant and no
  * size; the capsule has one per size, each with its own stock.
  */
 export const variantInputSchema = z.object({
@@ -87,7 +87,7 @@ export const productInputSchema = z
     media: z.array(mediaInputSchema).min(1),
     /** Sizes, for products sold in them. Without it the product has one variant, as furniture does. */
     variants: z.array(variantInputSchema).min(1).max(12).optional(),
-    /** The piece's ABO 3D scan ("9/B075QFCHM9.glb"), for the worker to compress into storage (docs/adr/035). */
+    /** The piece's ABO 3D scan ("9/B075QFCHM9.glb"), for the worker to compress into storage. */
     modelSource: z.string().regex(/^[0-9A-Za-z]\/[0-9A-Za-z]+\.glb$/).optional(),
   })
   .refine((product) => product.variants === undefined || new Set(product.variants.map((variant) => variant.size)).size === product.variants.length, {

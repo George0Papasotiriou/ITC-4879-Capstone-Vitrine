@@ -20,7 +20,7 @@ import { preferencesPatchSchema, SIZE_GROUPS } from "@/lib/prefs/preferences";
 import { formatMoney, money } from "@/lib/commerce/money";
 
 /**
- * Generative UI bound to the shop's data (docs/PLAN.md 2.5): prices, stock and
+ * Generative UI bound to the shop's data: prices, stock and
  * totals are shown from the tool's output, which the server read from the
  * database, never from the model's words. Text the model writes is shown as
  * plain text, never as markup.
@@ -111,7 +111,7 @@ function Bundles({ bundles }: { bundles: { totalCents: number; remainingCents: n
   );
 }
 
-/** "Will it get in?" from check_way_in: the verdict, then each step as the shop worked it out (docs/adr/055). */
+/** "Will it get in?" from check_way_in: the verdict, then each step as the shop worked it out. */
 function WayInCard({ output }: { output: { title: string; fits: boolean; firstFailure: number | null; steps: { kind: "door" | "turn" | "stairs"; fits: boolean; marginCm: number; up: "w" | "d" | "h" | null; tiltDegrees: number }[] } }) {
   const t = useTranslations("concierge.wayIn");
   const f = useTranslations("fit");
@@ -207,7 +207,7 @@ export function AssistantPart({ part, onApprove }: { part: Part; onApprove: (id:
         <p className="font-medium">{copy.title}</p>
         <p className="text-slate text-sm">{copy.body}</p>
         {/* The exact words that will be sent: nothing reaches a person that the shopper has not read. */}
-        {/* Exactly what will be kept about them (docs/adr/033). */}
+        {/* Exactly what will be kept about them. */}
         {name === "remember_preference" ? <RememberSummary patch={input.patch} /> : null}
         {name === "hand_to_person" && typeof input.summary === "string" ? (
           <blockquote className="border-hairline bg-plinth rounded-plinth border px-3 py-2 text-sm whitespace-pre-line" data-agent-id="concierge:handover-summary">

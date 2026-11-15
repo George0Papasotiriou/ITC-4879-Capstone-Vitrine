@@ -15,7 +15,7 @@ import { authorize } from "@/lib/auth/session";
 import { logger } from "@/lib/log";
 
 /**
- * For "catalog:edit" (docs/adr/034). A refused field comes back as a 422 with
+ * For "catalog:edit". A refused field comes back as a 422 with
  * a message key per field, like the edit form. The product starts as a draft
  * that nobody outside the staff can see; photographs and publishing follow on
  * its edit page.

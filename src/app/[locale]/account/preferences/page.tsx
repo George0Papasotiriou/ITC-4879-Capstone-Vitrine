@@ -21,7 +21,7 @@ import { currentPreferences } from "@/lib/prefs/server";
 import { COLORS, colorLabel, MATERIALS, materialLabel } from "@/lib/search/vocabulary";
 
 /**
- * docs/adr/033. Open to guests as well as accounts: telling the shop your size
+ * Open to guests as well as accounts: telling the shop your size
  * should not need an account. A guest's choices stay on their device; signed
  * in, they are kept on the account and follow the shopper everywhere.
  */
@@ -64,7 +64,7 @@ export default async function PreferencesPage({ params }: PageProps<"/[locale]/a
         <PreferencesForm initial={preferences} colors={colors} materials={materials} />
       </div>
 
-      {/* The way into their home, for "will it get in?" on every piece (docs/adr/055). */}
+      {/* The way into their home, for "will it get in?" on every piece. */}
       <section id="way-in" aria-labelledby="way-in-heading" className="border-hairline mt-12 flex scroll-mt-24 flex-col gap-3 border-t pt-8" data-agent-id="prefs:way-in">
         <h2 id="way-in-heading" className="font-display text-2xl">
           {tf("preferencesTitle")}
@@ -73,7 +73,7 @@ export default async function PreferencesPage({ params }: PageProps<"/[locale]/a
         <WayIn box={null} saved={preferences.wayIn} agentScope="prefs-fit" />
       </section>
 
-      {/* Notifications on this device (docs/adr/044): offered only when the shop has its VAPID keys. */}
+      {/* Notifications on this device: offered only when the shop has its VAPID keys. */}
       <section aria-labelledby="push-heading" className="border-hairline mt-12 flex flex-col gap-3 border-t pt-8">
         <h2 id="push-heading" className="font-display text-2xl">
           {t("push.title")}

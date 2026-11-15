@@ -8,7 +8,7 @@
  */
 
 /**
- * The Budget Stylist optimiser (A3, docs/PLAN.md 2.6).
+ * The Budget Stylist optimiser.
  *
  * THE PROBLEM. A template has slots — a reading corner needs a chair, a lamp,
  * a side table and perhaps a rug — and each slot has a short list of candidate

@@ -15,7 +15,7 @@ import { requireLocale } from "@/i18n/params";
 import { myData } from "@/lib/prefs/ledger";
 import { COLORS, colorLabel, MATERIALS, materialLabel } from "@/lib/search/vocabulary";
 
-/** docs/adr/033. Open to guests too: a guest's device holds data about them as well. */
+/** Open to guests too: a guest's device holds data about them as well. */
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/account/data">): Promise<Metadata> {
   const { locale } = await params;

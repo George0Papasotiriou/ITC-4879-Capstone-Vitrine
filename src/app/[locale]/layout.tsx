@@ -36,7 +36,7 @@ import { prepaintScript } from "@/lib/comfort/settings";
  * Commissioner — a variable humanist sans with full Greek support, by Kostas
  * Bartsokas. One family carries both roles in the design system: the FLAR
  * (flare) axis gives display type its flared terminals, while text and UI stay
- * flat. See docs/PLAN.md 4.2.
+ * flat.
  *
  * The Greek subset is loaded because Greek is a first-class locale here, not a
  * translation bolted on; a missing subset would fall back to a system font and
@@ -50,7 +50,7 @@ const commissioner = Commissioner({
 });
 
 /**
- * The readable face of the comfort settings (docs/adr/032). Declared for every
+ * The readable face of the comfort settings. Declared for every
  * page but never preloaded: the browser fetches it only when a shopper has
  * chosen it and the stylesheet asks for it.
  */
@@ -63,8 +63,8 @@ const readable = Atkinson_Hyperlegible_Next({
 
 /**
  * The two locales the shop has. Pages are still rendered per request: the
- * layout reads the request's nonce for the Content Security Policy
- * (docs/adr/046), which a page built ahead of time could not carry.
+ * layout reads the request's nonce for the Content Security Policy,
+ * which a page built ahead of time could not carry.
  */
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -119,7 +119,7 @@ export default async function LocaleLayout({
     // hydrates, so <html> is allowed to differ from the server's markup.
     <html lang={locale} className={`${commissioner.variable} ${readable.variable} h-full`} suppressHydrationWarning>
       <head>
-        {/* Comfort settings, applied before the first paint (docs/adr/032). */}
+        {/* Comfort settings, applied before the first paint. */}
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: prepaintScript() }} />
       </head>
       <body className="flex min-h-full flex-col">
@@ -144,14 +144,14 @@ export default async function LocaleLayout({
 
           <Footer />
           <MobileBar />
-          {/* After the header and the bar, so their toggles stay the first in the page (docs/adr/067). */}
+          {/* After the header and the bar, so their toggles stay the first in the page. */}
           <ConciergeBubble />
           <ComfortLayer />
           <InstantSearchLayer />
           <ShelfTracker />
           <StudyPanel />
           <ServiceWorker />
-          {/* The shop's tools for an assistant built into the browser, when there is one (docs/adr/043). */}
+          {/* The shop's tools for an assistant built into the browser, when there is one. */}
           <WebMcp />
           </ConciergeShell>
           </Toaster>

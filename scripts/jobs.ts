@@ -8,7 +8,7 @@
  */
 
 /**
- * Jobs (docs/adr/020).
+ * Jobs.
  *
  *   pnpm jobs list                  the recurring jobs, when they run, and how often locally
  *   pnpm jobs run <name>            run one now, in this process, and print what it did

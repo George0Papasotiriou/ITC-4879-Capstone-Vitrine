@@ -14,7 +14,7 @@ import type { VitrineTool } from "@/lib/ai/tools/types";
 import { uiCommandSchema } from "@/lib/ai/ui-commands";
 
 /**
- * docs/adr/054. The same pipeline as the Snap page's "Shop the look": the
+ * The same pipeline as the Snap page's "Shop the look": the
  * model finds and names the pieces, the shop measures each one's colours and
  * searches its own catalogue. One model call per photograph, inside the
  * shop's guard; without a model it says it read the whole photograph's

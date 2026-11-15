@@ -12,11 +12,10 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { freshPage, signUpAndConfirm } from "./support/accounts";
 
-/** docs/adr/033. */
 
 test.describe.configure({ timeout: 120_000 });
 
-/** A real tee from the clothes specimen (docs/adr/062): a top, with M in stock. */
+/** A real tee from the clothes specimen: a top, with M in stock. */
 const TEE = "/en/p/short-sleeve-pocket-tee-b00blo0cqq";
 const SOFA = "/en/p/westview-extra-deep-down-filled-leather-sofa-couch-b082vlyqwx";
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];

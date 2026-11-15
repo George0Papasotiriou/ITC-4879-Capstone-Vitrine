@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/037, docs/report/user-study/protocol.md.
- *
  *   pnpm study analyse
  *
  * Reads the study events the shop recorded and docs/report/user-study/sus.csv

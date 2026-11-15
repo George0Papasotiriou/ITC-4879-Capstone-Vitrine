@@ -14,7 +14,7 @@ import { insidePolygon } from "@/lib/vision/mirror/light";
 import { add3, mulMat3, mulMat3Vec, rotationFromEuler, scale3, sub3, type Mat3, type Vec3 } from "@/lib/vision/linalg";
 
 /**
- * docs/adr/065. The face mesh covers the face, not the ears, the crown or
+ * The face mesh covers the face, not the ears, the crown or
  * the neck, so where pieces hang is set relative to it, in the average
  * face's millimetres (x to the face's left, y up, z out of the face), from
  * adult head proportions:

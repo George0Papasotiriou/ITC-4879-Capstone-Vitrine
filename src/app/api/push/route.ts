@@ -16,7 +16,7 @@ import { subscribeSchema } from "@/lib/push/notices";
 import { pushStore } from "@/lib/push/server";
 
 /**
- * docs/adr/044. Only accounts: a notification says something about the
+ * Only accounts: a notification says something about the
  * person's own orders or watches, and a guest has none to say it about. The
  * endpoint must be a browser push service (notices.ts), never anything else
  * the worker could be made to post to.

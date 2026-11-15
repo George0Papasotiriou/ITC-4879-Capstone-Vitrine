@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { freshPage, signUpAndConfirm, uniqueEmail } from "./support/accounts";
 
 /**
- * docs/adr/023, docs/adr/062 and docs/adr/063. The test server talks to the
+ * The test server talks to the
  * tests' FASHN (FASHN_PROVIDER=fixture): it answers try-ons, videos and model
  * shots as the service would, from what it was given, with no key and no bill —
  * the same jobs, storage and day to live as the real thing.
@@ -25,7 +25,7 @@ import { freshPage, signUpAndConfirm, uniqueEmail } from "./support/accounts";
 test.describe.configure({ timeout: 90_000 });
 
 const PERSON = "tests/e2e/fixtures/person.webp";
-/** A real men's shirt from the clothes specimen (docs/adr/062), every size in stock. */
+/** A real men's shirt from the clothes specimen, every size in stock. */
 const PIECE = "/en/p/short-sleeve-woven-shirt-b01b48nssw";
 
 async function giveAPhotograph(page: Page): Promise<void> {
@@ -165,7 +165,7 @@ test("the clothes and the Fitting Room pass the accessibility checks", async ({ 
   await page.context().close();
 });
 
-/* ---------------------------- the studio (docs/adr/063) ---------------------------- */
+/* ---------------------------- the studio ---------------------------- */
 
 const TEE = "short-sleeve-pocket-tee-b00blo0cqq";
 const JEAN = "relaxed-fit-straight-leg-jean-b0041g5sec";

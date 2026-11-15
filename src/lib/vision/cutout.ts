@@ -20,8 +20,7 @@
  * The white seen *through* a piece — between a table's legs, inside a stool's
  * frame — is enclosed too, but it is the studio's own white: exactly the
  * border's level and flat, where a white part of a product is lit and shaded.
- * Enclosed patches like that, below the top of the piece, are background
- * (docs/adr/053 addendum).
+ * Enclosed patches like that, below the top of the piece, are background.
  *
  * Edges are softened: pixels next to the background get partial transparency in
  * proportion to how white they are, so the cutout does not show a hard halo.
@@ -83,7 +82,7 @@ export function cutoutFromWhite(
     standing?: boolean;
     /**
      * The piece has openings anywhere (a hoop earring, an open heart, a chain's loop): enclosed studio white
-     * is background wherever it lies, not only below the top of the piece (the AR Mirror, docs/adr/065).
+     * is background wherever it lies, not only below the top of the piece (the AR Mirror).
      */
     openings?: boolean;
   } = {},

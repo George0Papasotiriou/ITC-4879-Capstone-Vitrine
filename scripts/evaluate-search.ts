@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/036, docs/adr/049.
- *
  *   pnpm evals:search                 scores from the grades people gave at /admin/labeling
  *   pnpm evals:search --judge ai      scores from the AI judge's grades (docs/report/e1/ai-judgments.json)
  *   pnpm evals:search --check-set     draws the blind sample a person grades at /admin/labeling?view=check
@@ -165,7 +163,7 @@ async function writeAgreement(sql: postgres.Sql): Promise<void> {
     "",
     `Written by \`pnpm evals:search --agreement\` on ${at.slice(0, 10)}. Judge: ${ai.judge}.`,
     "",
-    `A person graded ${result.n} of the ${check.pairs.length} pairs in the blind sample (balanced across the judge's grades, docs/adr/049), without seeing the judge's grades.`,
+    `A person graded ${result.n} of the ${check.pairs.length} pairs in the blind sample (balanced across the judge's grades), without seeing the judge's grades.`,
     "",
   ];
   if (result.n === 0) {

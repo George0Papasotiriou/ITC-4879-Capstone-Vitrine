@@ -5,7 +5,7 @@
 #
 # The normal distribution's functions the Fit Engine needs — the same code as src/lib/fit/size/gaussian.ts, line for line.
 
-"""The normal functions of the Fit Engine (docs/adr/064).
+"""The normal functions of the Fit Engine.
 
 erfc is Numerical Recipes' Chebyshev fit ("erfcc", fractional error below
 1.2e-7) rather than math.erfc, so that the shop's TypeScript and this

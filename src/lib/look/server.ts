@@ -20,13 +20,13 @@ import { searchableColours } from "@/lib/vision/palette";
 import { paletteOfImage, snapSearch } from "@/lib/vision/snap-server";
 
 /**
- * docs/adr/054. One model call per photograph (Gemini Flash, MODELS.snap,
+ * One model call per photograph (Gemini Flash, MODELS.snap,
  * about a fifth of a cent), through the shop's guard — the kill switch and the
  * day's budget — and recorded as `shop_the_look`. The model returns boxes
  * and plain names only (look-v1); for each box the shop crops the photograph,
- * measures its colours with its own palette (k-means, ADR-024) and searches
+ * measures its colours with its own palette (k-means) and searches
  * with that colour and the name. The photograph is the shopper's, given with
- * consent for this (ADR-023 rules) and never logged.
+ * consent for this and never logged.
  *
  * Without a model (no key, or demo mode) nothing pretends to find pieces:
  * the whole photograph is one pin and the shop searches with its colours, as

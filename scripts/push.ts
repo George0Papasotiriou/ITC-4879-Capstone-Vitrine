@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/044.
- *
  *   pnpm push keys     a new VAPID key pair, printed here only, to paste into Railway
  *   pnpm push list     how many devices get notifications, by topic (no addresses)
  *

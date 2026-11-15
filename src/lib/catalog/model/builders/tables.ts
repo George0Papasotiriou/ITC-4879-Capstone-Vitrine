@@ -15,7 +15,7 @@ import { compose, translation, type Vec2, type Vec3 } from "@/lib/catalog/model/
 import { Build, castor, drawerFronts, leg, placeLeg, type HandleStyle, type LegStyle } from "@/lib/catalog/model/parts";
 
 /**
- * docs/adr/058. A table is its top and what holds the top up. The top's
+ * A table is its top and what holds the top up. The top's
  * outline comes from the listing's shape (round, oval, square, rectangular, a
  * soft-cornered racetrack) and its material from the words and the
  * photograph's top band — oak, walnut, marble, glass, a painted finish. The

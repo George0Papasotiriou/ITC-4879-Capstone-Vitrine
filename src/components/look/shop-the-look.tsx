@@ -20,7 +20,7 @@ import { useHydrated } from "@/components/ui/use-hydrated";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/054. The pins sit where the model found each piece; the words
+ * The pins sit where the model found each piece; the words
  * under each are what the shop measured there (its colours) and what the
  * model called it. "Add the look" puts the first match of every pin in the
  * cart — one click by the shopper, nothing chosen for them without it.

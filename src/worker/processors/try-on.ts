@@ -22,7 +22,7 @@ import { createPhotoStore } from "@/lib/photos/store";
 import { storage } from "@/lib/storage";
 
 /**
- * One try-on (docs/adr/023, docs/adr/063).
+ * One try-on.
  *
  * The shopper's photograph never leaves the shop's storage except as a data
  * URI to the paid API they approved, and the result is stored beside it, with

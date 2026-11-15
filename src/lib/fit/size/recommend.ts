@@ -11,7 +11,7 @@ import { maxOfBeliefs, sizeIndexOf, SELF_MEASURED_SD_CM, stepAt, zoneWord, type 
 import { predictFit, type Belief, type FitParams, type FitProbabilities, type ItemBelief } from "@/lib/fit/size/ordinal";
 
 /**
- * docs/adr/064. The pieces together:
+ * The pieces together:
  *
  * 1. Each measured zone becomes a belief about the shopper's size
  *    (`sizeIndexOf`); the garment must fit all of them, so their maximum is

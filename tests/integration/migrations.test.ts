@@ -59,7 +59,7 @@ describe.skipIf(url === undefined || url === "")("foundation migration", () => {
 
     expect(columns["key"]).toBe("text");
     expect(columns["value"]).toBe("jsonb");
-    // Times are stored as timestamptz in UTC everywhere (docs/PLAN.md 2.4).
+    // Times are stored as timestamptz in UTC everywhere.
     expect(columns["updated_at"]).toBe("timestamp with time zone");
   });
 

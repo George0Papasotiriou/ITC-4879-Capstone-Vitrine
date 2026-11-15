@@ -14,7 +14,7 @@ import { serverEnv } from "@/env";
 import { COUNTRY_COOKIE, currentRegion, regionFor } from "@/lib/commerce/region";
 
 /**
- * The country prices are shown for (docs/adr/013).
+ * The country prices are shown for.
  *
  * GET says which country this request is priced for and why (the shopper's
  * choice, their location, or the shop's default), for components on cached

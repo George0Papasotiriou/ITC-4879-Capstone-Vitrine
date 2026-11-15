@@ -11,7 +11,7 @@ import type { Point2 } from "@/lib/vision/camera";
 import { add3, cross3, mulMat3, mulMat3Vec, norm3, normalize3, rotationFromVector, scale3, solveLinear, sub3, type Mat3, type Vec3 } from "@/lib/vision/linalg";
 
 /**
- * docs/adr/065 — a student-designed algorithm (rubric row 31).
+ * The AR Mirror's head pose — a student-designed algorithm (rubric row 31).
  *
  * THE PROBLEM (perspective-n-point). The landmarker finds where n points of
  * a face are in the picture, u_i. The average face (face-model.ts) says
@@ -68,7 +68,7 @@ export const FRONTAL: Mat3 = [1, 0, 0, 0, -1, 0, 0, 0, -1];
  * Most webcams and phones' front cameras see about 60–70° across their long
  * side. A wrong guess changes how far away the face seems, not where it is
  * in the picture, and every piece is drawn through the same camera, so they
- * stay on the face either way (ADR-065).
+ * stay on the face either way.
  */
 export const DEFAULT_FIELD_OF_VIEW = 63;
 

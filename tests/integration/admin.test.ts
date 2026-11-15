@@ -258,7 +258,7 @@ describe.skipIf(url === undefined || url === "")("running the shop", () => {
       });
     });
 
-    it("records that the words came from an AI draft the editor accepted (docs/adr/045)", async () => {
+    it("records that the words came from an AI draft the editor accepted", async () => {
       const id = await productId(fixture[4]!.sourceId);
       const before = await detailsOf(id);
       const reason = "Words drafted by AI (gemini-3.8-flash) and accepted by the editor";

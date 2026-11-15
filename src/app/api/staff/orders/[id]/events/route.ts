@@ -17,7 +17,7 @@ import { logger } from "@/lib/log";
 import { afterOrderEvent } from "@/lib/payments/service";
 
 /**
- * The order desk's one write (docs/adr/016). The server decides everything:
+ * The order desk's one write. The server decides everything:
  * the session must hold "orders:manage" (support or admin), the event must be
  * one the state machine allows staff to take from the order's current status,
  * and cancelling or refunding must say why — the reason is kept in the order's

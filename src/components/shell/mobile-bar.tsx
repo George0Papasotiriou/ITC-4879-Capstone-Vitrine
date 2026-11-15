@@ -18,7 +18,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Mobile bottom bar (docs/PLAN.md 4.3).
+ * Mobile bottom bar.
  *
  * Thumb-reachable navigation, with the Concierge in the middle where the most
  * important control belongs on a phone. It is the only item marked in Lumen,
@@ -87,7 +87,7 @@ function BarItem({
   children: React.ReactNode;
   after?: React.ReactNode;
   accent?: boolean;
-  /** Opens the instant search pop-up on a plain click (docs/adr/034). */
+  /** Opens the instant search pop-up on a plain click. */
   instant?: boolean;
 }) {
   const link = (

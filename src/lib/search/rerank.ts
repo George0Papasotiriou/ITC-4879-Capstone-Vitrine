@@ -10,7 +10,7 @@
 import type { FusedResult } from "@/lib/search/fusion";
 
 /**
- * Re-ranking and diversity — steps 5 and 6 of the A1 pipeline (docs/PLAN.md 2.6).
+ * Re-ranking and diversity — steps 5 and 6 of the A1 pipeline.
  *
  * Fusion answers "which products match the query best". A shop also has to ask
  * "which of these should a person see first": a product that is out of stock,

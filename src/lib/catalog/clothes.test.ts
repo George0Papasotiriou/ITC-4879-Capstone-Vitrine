@@ -29,7 +29,7 @@ import {
 
 const path = (...rest: string[]) => ["Clothing, Shoes & Jewelry", ...rest];
 
-describe("clothesKindFor (docs/adr/062)", () => {
+describe("clothesKindFor", () => {
   it("reads the kind from the category path, then the title where the path is broad", () => {
     expect(clothesKindFor(path("Women", "Clothing", "Dresses", "Casual"), "Amazon Essentials Women's Surplice Dress (Available in Plus Size)")).toBe("DRESS");
     expect(clothesKindFor(path("Men", "Clothing", "Jeans"), "Amazon Essentials Women's Mid-Rise Slim Bootcut Jean")).toBe("TROUSERS");

@@ -21,7 +21,7 @@ import { FRONTAL, frameIntrinsics, headAngles, project, refinePose, solveHeadPos
 import { OneEuroFilter, PoseSmoother } from "@/lib/vision/mirror/smoothing";
 
 /**
- * docs/adr/065, docs/report/evaluations/e13-mirror.md.
+ * Writes docs/report/evaluations/e13-mirror.md.
  *
  *   pnpm evals:mirror [--data .local/headpose/AFLW2000] [--limit N] [--reuse]
  *

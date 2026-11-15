@@ -22,7 +22,7 @@ import { formatMoney, money } from "@/lib/commerce/money";
 import { parseTargetCents, suggestedTargetCents } from "@/lib/commerce/price-watch";
 
 /**
- * A watch is a promise to email, so it needs an account (docs/adr/020). A
+ * A watch is a promise to email, so it needs an account. A
  * visitor who is not signed in sees what it does and a link that brings them
  * back to this product afterwards.
  *

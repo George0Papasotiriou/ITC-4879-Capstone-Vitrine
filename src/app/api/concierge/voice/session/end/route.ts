@@ -13,7 +13,7 @@ import { knownActor, voiceSessionStore } from "@/lib/ai/server";
 import { currentUser } from "@/lib/auth/session";
 
 /**
- * docs/adr/030. The browser calls this when the shopper stops, when the
+ * The browser calls this when the shopper stops, when the
  * reserved minutes run out, and — as a beacon — when the page is closed. It
  * sends only which session; how long it lasted is the server's own
  * measurement, from the token to this request, so a browser cannot report

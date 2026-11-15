@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/026. Chromium has no speech recognition, so the tests drive the
+ * Chromium has no speech recognition, so the tests drive the
  * scripted driver: `window.vitrineVoice.hear("…")` plays a sentence into the
  * session, and what the Concierge would say out loud is recorded instead of
  * spoken. Everything between those two points — the state machine, the turn at

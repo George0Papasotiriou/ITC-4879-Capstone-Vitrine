@@ -26,13 +26,13 @@ import { usePresence } from "@/lib/ui/use-presence";
 import { prefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
- * docs/PLAN.md Phase 6 step 3. The dock stays open across pages because its
+ * The dock stays open across pages because its
  * state lives in the layout. It is a complementary region, not a modal: the
  * shopper can keep using the page beside it on a wide screen. Escape closes it
  * and returns focus to where it was; the conversation is a live log for screen
  * readers; the input is always one tab away.
  *
- * Motion (docs/adr/031): it rises from the bottom on a phone and slides in
+ * Motion: it rises from the bottom on a phone and slides in
  * from the side above it, and leaves faster than it came. On a phone it can be
  * pulled down by its handle, and a pull let go past a quarter of its height
  * (or flicked) closes it from where the finger left it; the close button does
@@ -59,7 +59,7 @@ export function ConciergeDock() {
   const pathname = usePathname();
   const { open, setOpen, chat, ask, refusal, reset, approve } = useConcierge();
   const [text, setText] = useState("");
-  // A photograph for the next question: pasted, dropped or chosen (docs/adr/051).
+  // A photograph for the next question: pasted, dropped or chosen.
   const photo = usePhotoAttachment();
   const tp = useTranslations("concierge.photo");
   const input = useRef<HTMLTextAreaElement>(null);
@@ -196,7 +196,7 @@ export function ConciergeDock() {
           </Button>
         </header>
 
-        {/* Speaking sits between the title and the conversation: it is a way in, not another Concierge (docs/adr/026). */}
+        {/* Speaking sits between the title and the conversation: it is a way in, not another Concierge. */}
         <VoiceBar />
 
         <div ref={log} role="log" aria-live="polite" aria-relevant="additions" className="flex-1 overflow-y-auto px-5 py-4" data-agent-id="concierge:log">

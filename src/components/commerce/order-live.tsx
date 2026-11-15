@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 
 /**
- * docs/adr/039. Listens to `/api/orders/[id]/live` and refreshes the page on
+ * Listens to `/api/orders/[id]/live` and refreshes the page on
  * each change — the bank confirming a payment, the desk packing the parcel —
  * and says so once in a polite live region, for screen readers. Nothing is
  * shown otherwise; if the browser has no EventSource the page is simply as

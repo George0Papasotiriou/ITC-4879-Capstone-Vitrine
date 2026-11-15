@@ -19,10 +19,10 @@ import { guessTopic, MAX_MESSAGE_LENGTH, TICKET_TOPICS } from "@/lib/support/tic
 import { uuidv7 } from "uuidv7";
 
 /**
- * Anyone can write to the desk, with or without an account (docs/adr/021).
+ * Anyone can write to the desk, with or without an account.
  * A guest gets a private link by email, derived from the ticket id and the
  * server's secret, and only its hash is stored — the same shape as a guest
- * order's link (ADR-016).
+ * order's link.
  *
  * The desk is a place people can write anything, so: a rate limit per address,
  * a length limit, and nothing from the message is ever used as an instruction.

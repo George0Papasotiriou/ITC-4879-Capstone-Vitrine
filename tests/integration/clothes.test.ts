@@ -25,7 +25,7 @@ import { createExternalReviewStore } from "@/lib/reviews/external-store";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
- * docs/adr/062. The deploy's seed puts the clothes on sale and archives the
+ * The deploy's seed puts the clothes on sale and archives the
  * drawn capsule in the same run; this does the same with the full clothes
  * fixture, whose photographs live on Amazon's image CDN.
  */

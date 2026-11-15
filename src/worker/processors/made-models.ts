@@ -21,7 +21,7 @@ import { loggerFor } from "@/lib/log";
 import { storage } from "@/lib/storage";
 
 /**
- * docs/adr/058. /api/models makes a model the first time a shopper asks for
+ * /api/models makes a model the first time a shopper asks for
  * it, which takes a second or two. This job makes them ahead, most popular
  * first, so that wait is rare. Each run compares the key every piece's model
  * should have now (serve.ts: a hash of what it is made from) with the key

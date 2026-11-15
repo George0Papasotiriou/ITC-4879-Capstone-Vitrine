@@ -8,7 +8,7 @@
  */
 
 /**
- * Money (docs/PLAN.md conventions, CLAUDE.md)
+ * Money
  *
  * Money is an integer number of minor units plus an ISO 4217 currency code.
  * Never a float: `0.1 + 0.2 !== 0.3`, and a cart that is one cent wrong is a

@@ -38,7 +38,7 @@ import {
 import { createSupportStore } from "@/lib/support/store";
 
 /**
- * docs/adr/028. Everything goes through the stores the shop itself uses —
+ * Everything goes through the stores the shop itself uses —
  * the cart, the order state machine, the review rules, the desk — dated when
  * it happened, so stock, totals, VAT, histories and the dashboards are what
  * real use would leave. No email is sent, and none ever could be: every
@@ -88,7 +88,7 @@ export async function ensureAccounts(sql: Sql, password: string, log: Log): Prom
       ON CONFLICT (provider_id, account_id) DO UPDATE SET password = excluded.password, updated_at = now()
     `;
     if (existing === undefined) {
-      // Audited with no person as the actor: the deploy made it, not an account (docs/adr/018).
+      // Audited with no person as the actor: the deploy made it, not an account.
       await recordAudit(sql, {
         actor: null,
         action: "role.grant",
@@ -360,7 +360,7 @@ export async function ensureHistory(sql: Sql, people: Map<ShowcaseKey, Person>, 
 
   await sql`
     INSERT INTO app_settings (key, value, description, updated_at)
-    VALUES (${SHOWCASE_MARKER}, ${JSON.stringify({ version: SHOWCASE_DATA_VERSION, seededAt: now.toISOString() })}::text::jsonb, 'The showcase history was written (docs/adr/028).', now())
+    VALUES (${SHOWCASE_MARKER}, ${JSON.stringify({ version: SHOWCASE_DATA_VERSION, seededAt: now.toISOString() })}::text::jsonb, 'The showcase history was written.', now())
     ON CONFLICT (key) DO UPDATE SET value = excluded.value, updated_at = now()
   `;
   log("History: written.");

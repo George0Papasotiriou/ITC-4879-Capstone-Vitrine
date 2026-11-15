@@ -13,7 +13,7 @@ import { expect, test } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/054. The test shop has no AI key, so the model that finds the
+ * The test shop has no AI key, so the model that finds the
  * pieces is not there: the shop must say it read the whole photograph's
  * colours, show what it found that way, and never draw pins it did not
  * find. (With a key, the pins come from the model's boxes; the pure parts

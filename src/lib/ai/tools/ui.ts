@@ -121,7 +121,7 @@ export const adjustComfort = define({
 });
 
 /**
- * The AR Mirror (docs/adr/065): free, and nothing leaves the shopper's
+ * The AR Mirror: free, and nothing leaves the shopper's
  * device, so it needs no approval; the camera itself asks the shopper.
  */
 export const tryInMirror = define({

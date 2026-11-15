@@ -14,7 +14,7 @@ import { MODELS, type ModelEntry } from "@/lib/ai/models";
 import { utcDay, type Actor, type GateRefusal, type UsageStore } from "@/lib/ai/usage";
 
 /**
- * docs/adr/030. In a realtime session the audio goes from the browser straight
+ * In a realtime session the audio goes from the browser straight
  * to the provider with a short-lived token, so the shop never sees the minutes
  * go by. It pays for them all the same, so:
  *

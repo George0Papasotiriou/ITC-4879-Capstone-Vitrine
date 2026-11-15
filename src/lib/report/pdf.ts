@@ -8,7 +8,7 @@
  */
 
 /**
- * The weekly report is a PDF (docs/adr/020), and this writes it.
+ * The weekly report is a PDF, and this writes it.
  *
  * Why by hand rather than with a PDF library: the report needs text, rules and
  * filled rectangles and nothing else. The three fonts it uses — Helvetica,

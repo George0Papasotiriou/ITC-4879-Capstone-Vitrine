@@ -17,7 +17,7 @@ import { routing } from "@/i18n/routing";
 import { COLORS, colorLabel } from "@/lib/search/vocabulary";
 
 /**
- * docs/adr/024. The photograph is measured, not sent anywhere, and the words
+ * The photograph is measured, not sent anywhere, and the words
  * it becomes are shown before the results, so a shopper can correct them by
  * typing rather than wondering what happened.
  */

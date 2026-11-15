@@ -16,7 +16,7 @@ import type { OrderStatus } from "@/lib/commerce/order-state";
 import type { ReturnReason } from "@/lib/commerce/returns";
 
 /**
- * One query per panel, each following a definition in metrics.ts (docs/adr/018).
+ * One query per panel, each following a definition in metrics.ts.
  * Sums come back from PostgreSQL as bigint strings and are turned into numbers
  * here; cents stay whole numbers throughout.
  */
@@ -186,7 +186,7 @@ export function createDashboardStore(sql: Sql) {
   }
 
   /**
-   * What AI cost, by feature and by day (docs/adr/020). Demo-mode calls are
+   * What AI cost, by feature and by day. Demo-mode calls are
    * counted separately: they are free, and counting them as spend would hide
    * the real figure.
    */
@@ -197,7 +197,7 @@ export function createDashboardStore(sql: Sql) {
     calls: number;
     demoCalls: number;
     unpriced: number;
-    /** Realtime voice sessions per provider (docs/adr/030): minutes used, or reserved while still open. */
+    /** Realtime voice sessions per provider: minutes used, or reserved while still open. */
     voice: { provider: string; sessions: number; seconds: number; costMicros: number }[];
   }> {
     const from = period.from.toISOString();
@@ -243,7 +243,7 @@ export function createDashboardStore(sql: Sql) {
   }
 
   /**
-   * The Concierge dashboard (docs/adr/034): turns one by one (their latency
+   * The Concierge dashboard: turns one by one (their latency
    * matters), tool runs and refusals counted per day by the database, and the
    * Concierge's spend from the usage log, for a cost per turn.
    */
@@ -275,7 +275,7 @@ export function createDashboardStore(sql: Sql) {
     return { ...summary, costMicros, costPerTurnMicros: summary.turns === 0 ? null : Math.round(costMicros / summary.turns) };
   }
 
-  /** The recommendations dashboard (docs/adr/034): shelves counted per day, and the pieces most opened from them. */
+  /** The recommendations dashboard: shelves counted per day, and the pieces most opened from them. */
   async function recoFigures(period: Period, locale = "en"): Promise<{ shelves: ShelfFigures[]; clicksByDay: { day: string; value: number }[]; topPieces: { id: string; title: string; clicks: number; adds: number }[] }> {
     const from = period.from.toISOString();
     const to = period.to.toISOString();

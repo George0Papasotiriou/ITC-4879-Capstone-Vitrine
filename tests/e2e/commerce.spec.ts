@@ -200,7 +200,7 @@ test("the mini cart, cart, checkout and order pages have no accessibility violat
   await audit("order page");
 });
 
-test("an open order page shows a payment made elsewhere, without being reloaded (docs/adr/039)", async ({ page, request }) => {
+test("an open order page shows a payment made elsewhere, without being reloaded", async ({ page, request }) => {
   await addToCart(page, LAMP);
   await placeOrder(page);
   const url = new URL(page.url());

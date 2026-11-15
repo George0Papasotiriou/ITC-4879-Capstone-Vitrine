@@ -9,7 +9,7 @@
 
 /**
  * The catalogue taxonomy: the categories shoppers browse, and how the Amazon
- * Berkeley Objects product types map into them (docs/PLAN.md Phase 3).
+ * Berkeley Objects product types map into them.
  *
  * ABO has hundreds of product types, from CHAIR to NUTRITIONAL_SUPPLEMENT. A
  * shop window shows a curated few, so each accepted type is listed here with
@@ -145,7 +145,7 @@ export const CATEGORIES: readonly Category[] = [
   },
 ];
 
-/** The categories of things worn: the capsule's clothing and the ABO wearables (docs/adr/061). */
+/** The categories of things worn: the capsule's clothing and the ABO wearables. */
 export const WEAR_CATEGORIES: ReadonlySet<CategorySlug> = new Set<CategorySlug>(["wear", "shoes", "bags", "accessories"]);
 
 export const CATEGORY_SLUGS = CATEGORIES.map((category) => category.slug);
@@ -182,7 +182,7 @@ const band = (minEuros: number, maxEuros: number, maxStock = 40, soldOutShare = 
 });
 
 /**
- * The Wear capsule's kinds (docs/adr/022). They are not ABO product types:
+ * The Wear capsule's kinds. They are not ABO product types:
  * the capsule is the shop's own small clothing collection, drawn here rather
  * than imported, so the Fitting Room has something to try on.
  */
@@ -241,7 +241,7 @@ export const ABO_PRODUCT_KINDS: Readonly<Record<string, ProductKind>> = {
   PLANTER: { category: "accents", kindEn: "Planter", kindEl: "Γλάστρα", bands: band(20, 160, 50) },
   CANDLE: { category: "accents", kindEn: "Candle", kindEl: "Κερί", bands: band(10, 55, 90) },
 
-  // Wearables (docs/adr/061, src/lib/catalog/wear.ts): ABO's types, and the shop's own names where ABO lumps
+  // Wearables (src/lib/catalog/wear.ts): ABO's types, and the shop's own names where ABO lumps
   // several together (SCARF out of ACCESSORY; NECKLACE and BRACELET out of the jewellery types).
   SHOES: { category: "shoes", kindEn: "Shoes", kindEl: "Παπούτσια", bands: band(39, 159, 14) },
   BOOT: { category: "shoes", kindEn: "Boots", kindEl: "Μπότες", bands: band(59, 219, 12) },
@@ -259,7 +259,7 @@ export const ABO_PRODUCT_KINDS: Readonly<Record<string, ProductKind>> = {
   WATCH: { category: "accessories", kindEn: "Watch", kindEl: "Ρολόι χειρός", bands: band(49, 249, 20) },
 };
 
-/** Any product's kind, whichever table it comes from: ABO's types, or the clothing kinds (the real garments of ADR-062 use the capsule's). */
+/** Any product's kind, whichever table it comes from: ABO's types, or the clothing kinds (the real garments use the capsule's). */
 export function productKindOf(code: string): ProductKind | undefined {
   return ABO_PRODUCT_KINDS[code] ?? CAPSULE_PRODUCT_KINDS[code];
 }

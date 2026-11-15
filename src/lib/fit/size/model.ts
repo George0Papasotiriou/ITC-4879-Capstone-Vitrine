@@ -11,7 +11,7 @@ import learned from "@/lib/fit/size/model.json";
 import type { FitParams } from "@/lib/fit/size/ordinal";
 
 /**
- * docs/adr/064. research/fit learns the six parameters on RentTheRunway
+ * research/fit learns the six parameters on RentTheRunway
  * (E12), in steps of each item's size ladder, and writes them here with the
  * scale that turns them into the shop's. The data cannot fix the margin in
  * size steps: renters mostly take their own size, so how far off a size may

@@ -27,7 +27,7 @@ import { currentPreferences } from "@/lib/prefs/server";
 import { recommendationsForCurrentShopper } from "@/lib/reco/server";
 
 /**
- * Home (docs/PLAN.md 4.3).
+ * Home.
  *
  * One lit object on a plinth, a display headline, and the Concierge prompt as
  * the call to action — the shape of a shop window rather than of a catalogue
@@ -72,7 +72,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       .map((item) => [item.productId, t("because", { title: seedTitles.get(item.because!)! })]),
   );
 
-  // "Fits your space" (docs/adr/034): only for someone who saved rooms, and never repeating a piece already on the page.
+  // "Fits your space": only for someone who saved rooms, and never repeating a piece already on the page.
   const { preferences } = await currentPreferences();
   const onPage = new Set([hero?.id, ...rail.map((card) => card.id)]);
   const widestWall = Math.max(0, ...preferences.rooms.map((room) => room.wallCm));
@@ -87,7 +87,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   );
   const spaceCards = spaceFits.map((fit) => wallPieces.find((entry) => entry.card.id === fit.productId)!.card);
 
-  // "Clothes, shoes and bags" (docs/adr/061, 062): the wear ranges, which the furniture-led page would otherwise hide.
+  // "Clothes, shoes and bags": the wear ranges, which the furniture-led page would otherwise hide.
   const shown = new Set([...onPage, ...spaceCards.map((card) => card.id)]);
   const wearShelf = (
     await Promise.all(

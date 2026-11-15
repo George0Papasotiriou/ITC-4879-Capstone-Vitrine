@@ -11,7 +11,7 @@ import type { ColorId } from "@/lib/search/vocabulary";
 import { CAPSULE_SIZES, stableUnit, type CapsuleSize } from "@/lib/catalog/taxonomy";
 
 /**
- * The capsule (docs/adr/022).
+ * The capsule.
  *
  * The Fitting Room needs clothes, and the shop's furniture dataset has none.
  * Buying photography is not an option for a student project, and a generated

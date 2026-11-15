@@ -11,8 +11,8 @@ import { FENCE_CLOSE, FENCE_OPEN } from "@/lib/ai/guardrails/untrusted";
 import { POLICIES } from "@/lib/support/policies.generated";
 
 /**
- * The assistant writes a draft; a person reads it, changes it and sends it
- * (docs/adr/021). That is why it may say "I do not know": the cost of a
+ * The assistant writes a draft; a person reads it, changes it and sends it.
+ * That is why it may say "I do not know": the cost of a
  * wrong draft is an agent's minute, and the cost of a confident wrong answer
  * is a customer told something untrue.
  *

@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/031. Most motion in the shop is CSS and reads the tokens in
+ * Most motion in the shop is CSS and reads the tokens in
  * globals.css. The few animations run from script — the flight to the cart,
  * the Spotlight — take the same values from here, so the whole shop keeps one
  * rhythm. A test checks the two lists agree.

@@ -15,7 +15,7 @@ import { vector } from "@electric-sql/pglite-pgvector";
 import { createPgliteServer } from "../../../scripts/pglite-server.mjs";
 
 /**
- * A database for the integration tests, with no Docker (ADR-008).
+ * A database for the integration tests, with no Docker.
  *
  * If DATABASE_URL is already set — CI provides a real PostgreSQL with pgvector —
  * the tests use it. Otherwise this starts an in-memory PGlite for the run and

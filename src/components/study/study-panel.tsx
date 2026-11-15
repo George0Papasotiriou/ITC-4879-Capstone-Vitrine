@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { PARTICIPANT_CODE, STUDY_COOKIE, STUDY_TASKS, type StudyEvent } from "@/lib/study/tasks";
 
 /**
- * docs/adr/037. Shown only in a study session (the cookie set at /study), on
+ * Shown only in a study session (the cookie set at /study), on
  * every page, folded to one line when not in use. The participant reads the
  * task here, presses Start, does it in the shop, and says how it went; the
  * moderator watches and takes notes. The panel never says whether an answer

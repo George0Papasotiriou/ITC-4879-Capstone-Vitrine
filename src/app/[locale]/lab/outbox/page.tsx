@@ -19,7 +19,7 @@ import { appMailer, outboxIsOpen } from "@/lib/email/server";
 
 /**
  * Until an email provider is connected, this page is where the shop's emails
- * arrive (docs/adr/016): open the confirmation link from here to finish a
+ * arrive: open the confirmation link from here to finish a
  * sign-up on the local stack. The emails hold one-time links, so outside the
  * local stack only an admin may read it; anyone else gets a 404.
  */

@@ -10,7 +10,7 @@
 import type { CategorySlug } from "@/lib/catalog/taxonomy";
 
 /**
- * docs/adr/067. The menu is fixed data, like the footer's category list: the
+ * The menu is fixed data, like the footer's category list: the
  * header makes no database query, and menu.test.ts checks every link against
  * the catalogue the shop ships (the committed fixtures every deploy syncs), so
  * no link can lead to an empty page in production.

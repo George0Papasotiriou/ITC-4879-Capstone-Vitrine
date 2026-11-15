@@ -10,7 +10,7 @@
 import { tokenize } from "@/lib/search/normalize";
 
 /**
- * Trigram similarity — the typo tolerance in A1 (docs/PLAN.md 2.6).
+ * Trigram similarity — the typo tolerance in A1.
  *
  * A trigram is three consecutive characters. Two spellings of a word that
  * differ by a typo still share most of their trigrams, so the share of trigrams

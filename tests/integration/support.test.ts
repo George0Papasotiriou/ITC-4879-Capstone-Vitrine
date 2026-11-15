@@ -222,7 +222,7 @@ describe.skipIf(url === undefined || url === "")("the support desk", () => {
     expect(damaged!.bodyEn).toBe(DEFAULT_MACROS.find((macro) => macro.key === "damaged")!.bodyEn);
   });
 
-  describe("ready answers the desk edits (docs/adr/029)", () => {
+  describe("ready answers the desk edits", () => {
     const agent = { userId: null as unknown as string, email: "agent@example.com" };
     const answer = (overrides: Partial<Record<string, unknown>> = {}) =>
       answerInputSchema.parse({

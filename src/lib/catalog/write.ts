@@ -24,7 +24,7 @@ import * as schema from "@/lib/db/schema";
  * carts, orders and reviews will point at — survives every re-import. Media and
  * the default variant are replaced wholesale, because the importer owns them,
  * until staff edit the product: from then on the shop owns it and the import
- * adds nothing to it but its variant's colour label (docs/adr/018).
+ * adds nothing to it but its variant's colour label.
  *
  * Each batch is one transaction: a failure part-way leaves earlier batches
  * written and the failing batch untouched, never half a product.
@@ -110,7 +110,7 @@ export async function archiveExcluded(db: CatalogDatabase, source: "abo" | "caps
 
 /**
  * Archives every product from one source: how the drawn capsule leaves the
- * shop once real clothes take its place (docs/adr/062). Archived products are
+ * shop once real clothes take its place. Archived products are
  * off listings, search and their pages, but stay in the orders that bought
  * them; nothing is deleted, so any of them can be made active again.
  */
@@ -126,7 +126,7 @@ export async function archiveSource(db: CatalogDatabase, source: "capsule"): Pro
 /**
  * Archives the products of a source that a full fixture no longer holds: a
  * garment dropped from the clothes fixture when it is rebuilt leaves the shop
- * on the next deploy instead of staying on sale (docs/adr/062). Nothing is
+ * on the next deploy instead of staying on sale. Nothing is
  * deleted. Only for a source whose whole range is one fixture.
  */
 export async function archiveMissing(db: CatalogDatabase, source: "amazon", keepSourceIds: readonly string[]): Promise<number> {
@@ -145,7 +145,7 @@ export type WriteSummary = {
   brands: number;
   /** Products that did not exist before this write: new to the shop. */
   inserted: number;
-  /** Products staff have edited, left as staff left them (docs/adr/018). */
+  /** Products staff have edited, left as staff left them. */
   keptStaffEdits: number;
 };
 
@@ -232,7 +232,7 @@ export async function upsertCatalog(
             updatedAt: sql`now()`,
           },
           // Once staff have edited a product the shop owns its text, prices and
-          // photos; the sync leaves it alone (docs/adr/018).
+          // photos; the sync leaves it alone.
           setWhere: sql`${schema.products.staffEditedAt} IS NULL`,
         });
 
@@ -248,7 +248,7 @@ export async function upsertCatalog(
 
       const refreshedIds = refreshed.map((product) => idFor.get(`${product.source}:${product.sourceId}`)!);
       // The fixtures own a product's photographs and turntable frames; its 3D
-      // model is made by the worker from `modelSource` (docs/adr/035), so a
+      // model is made by the worker from `modelSource`, so a
       // deploy's sync must not throw away what the worker has already done.
       if (refreshedIds.length > 0) {
         await tx.delete(schema.productMedia).where(and(inArray(schema.productMedia.productId, refreshedIds), ne(schema.productMedia.kind, "model")));
@@ -265,8 +265,8 @@ export async function upsertCatalog(
       if (media.length > 0) await tx.insert(schema.productMedia).values(media);
       summary.media += media.length;
 
-      // One variant per product, or one per size for anything sold in sizes
-      // (docs/adr/022). The SKU carries the size, so a size that is added later
+      // One variant per product, or one per size for anything sold in sizes.
+      // The SKU carries the size, so a size that is added later
       // is a new row and the ones already sold keep their history.
       const variants: (typeof schema.productVariants.$inferInsert)[] = batch.flatMap((product) => {
         const productId = idFor.get(`${product.source}:${product.sourceId}`)!;

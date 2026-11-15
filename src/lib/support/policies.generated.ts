@@ -10,7 +10,7 @@
 /** Written by `pnpm support policies`. The document itself is docs/policies.md, which George approves. */
 export const POLICIES = `# Vitrine shop policies
 
-- Status: **draft, written by Claude Code from what the shop actually does. George approves it
+- Status: **draft, written from what the shop actually does. George approves it
   before the support assistant is allowed to answer from it.**
 - Last checked against the code: 2026-09-20
 - Purpose: one source of truth for the support desk. The support assistant answers **only** from
@@ -34,7 +34,7 @@ end, but:
 
 Support must never let a customer believe a real order is coming.
 
-## 2. Prices and tax (\`src/lib/commerce/vat.ts\`, ADR-013, ADR-015)
+## 2. Prices and tax (\`src/lib/commerce/vat.ts\`)
 
 - Prices on the site include Greek VAT (24%) and are shown in euros.
 - Which prices you see follows the country the shop thinks you are in; you can change it yourself
@@ -82,7 +82,7 @@ placed, paid or packed. Once it is shipped, it is a return, not a cancellation.
   desk may edit an address; today the answer is to cancel and order again.
 - Every change sends the customer an email.
 
-## 6. Returns and refunds (ADR-017, \`src/lib/commerce/returns.ts\`)
+## 6. Returns and refunds (\`src/lib/commerce/returns.ts\`)
 
 - **14 days from delivery.** The order page shows the date the window closes.
 - The customer chooses a reason: changed my mind, damaged, not as described, wrong item, other.
@@ -104,7 +104,7 @@ placed, paid or packed. Once it is shipped, it is a return, not a cancellation.
 - A piece that runs out between adding and paying is refused at checkout with the reason, and
   nothing is charged.
 
-## 8. Reviews (ADR-017)
+## 8. Reviews
 
 - Only customers who bought the piece and had it delivered can review it, one review per line of a
   delivered order.
@@ -112,7 +112,7 @@ placed, paid or packed. Once it is shipped, it is a return, not a cancellation.
 - The shop hides a review only when it is abusive, names a person, or is not about the piece; the
   author is told why. The shop never hides a review for being critical.
 
-## 9. Accounts (ADR-016)
+## 9. Accounts
 
 - An account needs a confirmed email address. Sign-in is by password, passkey, or Google.
 - Two-step sign-in with an authenticator app is available in the account page.
@@ -120,7 +120,7 @@ placed, paid or packed. Once it is shipped, it is a return, not a cancellation.
   cannot see any of them.
 - A customer can ask for their account and its data to be deleted; the desk passes it to an admin.
 
-## 10. Privacy (docs/PLAN.md 2.9, ADR-018, ADR-019)
+## 10. Privacy
 
 - Searches are recorded without any identifier, and only for 90 days, to find searches that return
   nothing. Anything that looks like an email address or a phone number is removed before it is
@@ -131,7 +131,7 @@ placed, paid or packed. Once it is shipped, it is a return, not a cancellation.
   are kept for 24 hours and are then deleted, and never appear in logs.
 - Price watches belong to an account and go when the account does.
 
-## 11. Price watches (ADR-020)
+## 11. Price watches
 
 - A signed-in customer can name a price below today's on any product page. The shop emails them
   once, the day the price reaches it.
@@ -140,7 +140,7 @@ placed, paid or packed. Once it is shipped, it is a return, not a cancellation.
 - Watching a price is not a promise that the price will fall, and no discount can be requested
   through it.
 
-## 12. What the AI does and does not do (ADR-019)
+## 12. What the AI does and does not do
 
 - The Concierge searches, compares, recommends, builds sets, fills the cart and moves the page.
 - It never pays, never enters personal details, never changes a price and never promises anything

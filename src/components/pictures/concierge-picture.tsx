@@ -23,7 +23,7 @@ const FOLLOW_MS = 2000;
 const MAX_FOLLOWS = 180;
 
 /**
- * docs/adr/053, docs/adr/060. `picture_in_room` answers with an id; this
+ * `picture_in_room` answers with an id; this
  * follows it — the same darkroom as the product page, smaller — and shows the
  * picture with its label in the corner, a Save link and the way back to the piece. The picture's address
  * comes from the shop (a scene's public one, or a short-lived link to the

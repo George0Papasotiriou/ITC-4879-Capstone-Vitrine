@@ -23,7 +23,7 @@ import * as schema from "@/lib/db/schema";
 import { compressPendingModels } from "@/worker/processors/catalog-models";
 
 /**
- * docs/adr/035. The job reads which pieces still need their scan, fetches
+ * The job reads which pieces still need their scan, fetches
  * each, compresses it, stores it, and only then adds the media row. The
  * download is a stand-in here: tests never reach ABO's bucket.
  */

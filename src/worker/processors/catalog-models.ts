@@ -21,7 +21,7 @@ import { storage } from "@/lib/storage";
 import type { StorageDriver } from "@/lib/storage/types";
 
 /**
- * docs/adr/035. After a deploy the database knows which pieces have a scan
+ * After a deploy the database knows which pieces have a scan
  * (`products.model_source`, from the committed fixture) and which already
  * have it as `model` media. Each run takes the next few, most popular first:
  * downloads the original from ABO's public bucket, compresses it

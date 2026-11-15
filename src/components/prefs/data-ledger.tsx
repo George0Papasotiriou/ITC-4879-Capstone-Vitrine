@@ -25,7 +25,7 @@ import type { Ledger } from "@/lib/prefs/ledger";
 import { PUSH_TOPICS } from "@/lib/push/notices";
 
 /**
- * docs/adr/033. Read from where the data is kept, never from a description of
+ * Read from where the data is kept, never from a description of
  * it; one line per thing kept, and a delete next to each. "Delete everything"
  * asks once, in words, what will go and what stays.
  */

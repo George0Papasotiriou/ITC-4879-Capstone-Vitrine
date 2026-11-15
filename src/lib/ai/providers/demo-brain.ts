@@ -8,7 +8,7 @@
  */
 
 /**
- * Demo mode (docs/adr/019). Until George adds a Gemini key, the Concierge runs
+ * Demo mode. Until George adds a Gemini key, the Concierge runs
  * on these rules instead of a model. They read the shopper's last message in
  * English or Greek, choose tools the way a model would, and write a short
  * answer once the tools have run. They are deliberately simple: the point is
@@ -31,7 +31,7 @@ export type DemoPrompt = {
   /** Tools this surface offers. */
   tools: readonly string[];
   locale: "en" | "el";
-  /** The shopper attached a photograph to this message (docs/adr/051). */
+  /** The shopper attached a photograph to this message. */
   photo?: boolean;
 };
 
@@ -51,7 +51,7 @@ const COMMAND_WORDS = new Set(
   ].map((word) => word.normalize("NFD").replace(/\p{M}/gu, "")),
 );
 
-/** The kinds the outfit builder can complete a look around (docs/adr/066). */
+/** The kinds the outfit builder can complete a look around. */
 const WEARABLE_KINDS: ReadonlySet<string> = new Set(["TOP", "SHIRT", "KNIT", "TROUSERS", "SKIRT", "DRESS", "COAT", "JACKET", "SHOES", "BOOT", "SANDAL", "HANDBAG", "BACKPACK", "EARRING", "NECKLACE", "BRACELET", "HAT", "SCARF"]);
 
 const fold = (text: string) => text.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
@@ -60,11 +60,11 @@ export function intentOf(text: string): Intent {
   const t = fold(text);
   // Not \b: in JavaScript it only sees Latin letters as word characters, so it never matches after Greek.
   if (/^(hi|hello|hey|γεια|καλησπερα|καλημερα)(?!\p{L})/u.test(t)) return "greet";
-  // Asking for the shop to be easier to see or calmer to watch (docs/adr/032).
+  // Asking for the shop to be easier to see or calmer to watch.
   if (comfortRequestOf(text) !== null) return "comfort";
-  // Giving measurements to be told a size (docs/adr/034), before saying a size they already know.
+  // Giving measurements to be told a size, before saying a size they already know.
   if (measurementsOf(text) !== null) return "size_advice";
-  // Saying their size, or asking what the shop keeps about them (docs/adr/033).
+  // Saying their size, or asking what the shop keeps about them.
   if (sizeOf(text) !== null) return "remember_size";
   if (/\bwhat do you (know|remember) about me\b|\bmy (preferences|sizes)\b|τι (ξερεις|θυμασαι) για μενα|τις προτιμησεις μου/.test(t)) return "preferences";
   // Asking for a person wins over everything else in the sentence: an order
@@ -73,30 +73,30 @@ export function intentOf(text: string): Intent {
   if (/\b(return|send (it|this|them) back)\b|επιστρ/.test(t) && ORDER_NUMBER.test(t)) return "return";
   if (ORDER_NUMBER.test(t)) return "order_status";
   if (/\border|παραγγελ/.test(t)) return "orders";
-  // The outfit builder (docs/adr/066), before checkout ("ολοκλήρωσε το σύνολο" is not paying) and before a set with a budget.
+  // The outfit builder, before checkout ("ολοκλήρωσε το σύνολο" is not paying) and before a set with a budget.
   if (/\bcapsule\b|\bwardrobe\b|γκαρνταρομπ/.test(t)) return "capsule";
   if (/\bcolou?rs? (that |which )?(suit|go with) me\b|\bcolou?r (analysis|season|reading)\b|\bwhich season am i\b|\bmy colou?rs\b|χρωματα (μου )?(πανε|ταιριαζουν)|χρωματικη αναλυση|τα χρωματα μου/.test(t)) return "colours";
   if (/\b(complete|finish) the (look|outfit)\b|\bwhat (goes|would go|to wear) with\b|\bstyle (this|it|the)\b|\b(an )?outfit (with|around)\b|ολοκληρωσε το (συνολο|look)|τι (ταιριαζει|να φορεσω) με/.test(t)) return "look_complete";
   if (/\b(check ?out|pay)\b|ολοκληρωσ|πληρωμ/.test(t)) return "checkout";
   if (/\b(compare|versus|vs)\b|συγκριν/.test(t)) return "compare";
-  // A shop window to look at (docs/adr/040), before a set in the chat.
+  // A shop window to look at, before a set in the chat.
   if (/\b(window display|shop window|showcase|inspire me)\b|βιτριν|εμπνευσ/.test(t)) return "showcase";
   // A budget with a room or a set is a bundle, even when it says "put together".
   if (/\b(set|bundle|corner|budget)\b|σετ|γωνια/.test(t) && /\d/.test(t)) return "bundle";
-  // Everything in a photograph (docs/adr/054): "shop this look", "find everything in this photo".
+  // Everything in a photograph: "shop this look", "find everything in this photo".
   if (/\bshop (the|this) look\b|\b(everything|every piece|all the pieces) in (this|the|my) (photo|picture|room)\b|\bget (me )?this (look|room)\b|αγορασε (το|αυτο το) στιλ|ολα (τα κομματια )?στη φωτογραφια/.test(t)) return "look";
-  // Getting a piece into the home (docs/adr/055): through a door, up the stairs, round the hall. Before a picture
+  // Getting a piece into the home: through a door, up the stairs, round the hall. Before a picture
   // and a room: "fit through my door" is about the way in, not a wall.
   if (/\bthrough (the |my |our )?(front )?(door|doorway|hall|hallway|corridor)|\b(up|down) (the |my |our )?(stairs|staircase)|\bget (it |this |that |them )?(in|into|inside|up|through)\b|\bcarry (it |this )?in\b|απο (την |τη )?(εξω)?πορτα|απο τις σκαλες|να μπει|θα περασει/.test(t)) return "way_in";
-  // An AI picture of a piece in a room (docs/adr/053): "picture it", "what would it look like", «φαντάσου το».
+  // An AI picture of a piece in a room: "picture it", "what would it look like", «φαντάσου το».
   // "…like this picture" is a photograph, not a request for one.
   if (/\b(picture|render|visuali[sz]e|imagine)\b|\bwhat (would|will|does) [^?.!]{0,48}?\blooks? like\b|φαντασου|φτιαξε (μια )?εικονα/.test(t) && !/\b(this|my|the|that) (picture|photo)\b/.test(t)) return "picture";
-  // Trying a hat, earrings or a necklace on live through the camera (docs/adr/065), before a picture or the cart.
+  // Trying a hat, earrings or a necklace on live through the camera, before a picture or the cart.
   // "Live" alone is too loose ("a live demo"): it counts only with trying or wearing.
   const mirrorWords = /\b(in the mirror|with (my|the) (camera|webcam)|on my face|on me (now|live))\b|καθρεφτ|με την καμερα|στο προσωπο μου/.test(t);
   const liveTry = /\blive\b|ζωντανα/.test(t) && /\b(try|wear)\b|δοκιμ|φορεσ/.test(t);
   if ((mirrorWords && /\b(try|see|wear|show)\b|δοκιμ|δειξ|φορεσ/.test(t)) || liveTry) return "mirror";
-  // A room board (docs/adr/056) before the cart: "add it to my board" keeps it, it does not buy it.
+  // A room board before the cart: "add it to my board" keeps it, it does not buy it.
   if (/\b(board|moodboard)\b|πινακα/.test(t)) return "board";
   if (/\b(add|put|buy)\b|προσθεσ|βαλε/.test(t)) return "add";
   if (/\bmy room\b|\bfits? (in|into|against)?\s*(my|the)\b|δωματιο μου|χωρα(ει|νε)/.test(t)) return "room";

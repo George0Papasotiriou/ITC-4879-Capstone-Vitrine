@@ -12,7 +12,7 @@ import { defineConfig } from "drizzle-kit";
 /**
  * drizzle-kit reads this for `pnpm db:generate` (produce SQL from the schema)
  * and `pnpm db:studio`. Generated SQL is reviewed by hand before it is
- * committed; `push` is never used (CLAUDE.md guardrails).
+ * committed; `push` is never used, so every schema change is a reviewed migration.
  */
 export default defineConfig({
   schema: "./src/lib/db/schema.ts",

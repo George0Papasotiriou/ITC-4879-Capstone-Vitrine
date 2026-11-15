@@ -13,7 +13,7 @@ import type { MoodId } from "@/lib/display/moods";
 import { TEMPLATE_IDS, type TemplateId } from "@/lib/optimize/templates";
 
 /**
- * docs/adr/040. A window display is not decoration picked by hand: it is the
+ * A window display is not decoration picked by hand: it is the
  * Budget Stylist's best set (A3) for a room, a budget and a few words. So every
  * display can be bought as shown, for the total it shows, and the pieces go
  * together by the Stylist's colour harmony. A theme is that request, named.
@@ -29,7 +29,7 @@ export type DisplayRequest = {
   query?: string;
 };
 
-/** `mood`: the time of day the window is lit for (src/lib/display/moods.ts, docs/adr/048). */
+/** `mood`: the time of day the window is lit for (src/lib/display/moods.ts). */
 export type Theme = DisplayRequest & { id: string; mood: MoodId; title: { en: string; el: string }; line: { en: string; el: string } };
 
 export const THEMES: readonly Theme[] = [

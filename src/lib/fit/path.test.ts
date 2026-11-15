@@ -62,7 +62,7 @@ function rectangleFitsBruteForce(p: number, q: number, a: number, b: number, sam
   return false;
 }
 
-describe("round a corridor's corner (docs/adr/055)", () => {
+describe("round a corridor's corner", () => {
   it("gives the ladder's length for a piece of no width, and 2√2·a − 2w for equal corridors", () => {
     expect(longestAroundCorner(100, 100, 0)).toBeCloseTo(200 * Math.SQRT2, 6);
     expect(longestAroundCorner(90, 120, 0)).toBeCloseTo((90 ** (2 / 3) + 120 ** (2 / 3)) ** 1.5, 6);

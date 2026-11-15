@@ -109,7 +109,7 @@ describe("message catalogues", () => {
     }
   });
 
-  it("do not set Greek in capitals, which strips the accents (docs/PLAN.md 4.6)", () => {
+  it("do not set Greek in capitals, which strips the accents", () => {
     const shouting = [...greek.entries()]
       .filter(([, text]) => {
         const letters = text.replace(/\{[^}]*\}/g, "").replace(/[^Ͱ-Ͽἀ-῿]/g, "");

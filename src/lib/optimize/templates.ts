@@ -19,7 +19,7 @@
  * Kinds are broad (ABO files an office swivel chair as CHAIR, like a dining
  * chair), so a slot may also name words that, in a title, say a piece is made
  * for another room: a dining set never gets office chairs, a living room never
- * gets a drafting stool (found when the shop window showed both, docs/adr/048).
+ * gets a drafting stool (found when the shop window showed both).
  * A slot may instead require a word: a dining chair says "dining" or "kitchen".
  *
  * The plan's outfit template needs the fashion capsule (Phase 3, step 4), which

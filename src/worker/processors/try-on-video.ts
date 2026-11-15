@@ -20,7 +20,7 @@ import { createPhotoStore } from "@/lib/photos/store";
 import { storage } from "@/lib/storage";
 
 /**
- * docs/adr/063. The try-on's own picture goes to FASHN's Image to Video as a
+ * The try-on's own picture goes to FASHN's Image to Video as a
  * data URI; the video comes back as a link, which is fetched at once and
  * stored beside the picture, gone when the photograph goes. FASHN keeps its
  * copy for up to three days (it has no shorter option for video), which the

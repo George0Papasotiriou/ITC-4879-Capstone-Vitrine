@@ -25,7 +25,7 @@ import { displayFromParams, displayHref, THEMES } from "@/lib/display/themes";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/040, docs/adr/048. The display is the Budget Stylist's best set for
+ * The display is the Budget Stylist's best set for
  * the theme (src/lib/display/server.ts): every price and the total come from
  * the database in the shopper's prices. It is shown as a shopfront — a fascia
  * with the theme's name in the shop's own heading type, the window itself (a lit 3D room,

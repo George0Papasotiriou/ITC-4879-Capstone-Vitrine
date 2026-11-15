@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/050.
- *
  *   pnpm exec tsx scripts/reco-parity.ts
  *
  * Reads research/reco_otto/tests/fixtures/parity-events.json (sessions in

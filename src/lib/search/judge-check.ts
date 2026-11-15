@@ -10,7 +10,7 @@
 import type { Grade } from "@/lib/search/metrics";
 
 /**
- * docs/adr/049. E1's relevance grades come from an AI judge — a language
+ * E1's relevance grades come from an AI judge — a language
  * model grading each (query, product) pair 0–3 on the same rubric a person
  * uses at /admin/labeling, from the product's facts alone. That is a published
  * method (Thomas et al., SIGIR 2024; Faggioli et al., ICTIR 2023), but a

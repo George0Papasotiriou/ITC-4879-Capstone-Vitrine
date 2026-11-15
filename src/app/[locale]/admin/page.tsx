@@ -26,7 +26,7 @@ import { cn } from "@/lib/ui/cn";
 /**
  * For "reports:read" (merchandiser, admin). Every figure follows a definition
  * in src/lib/admin/metrics.ts, and the integration tests check each panel
- * against sums over the raw rows (docs/adr/018).
+ * against sums over the raw rows.
  */
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/admin">): Promise<Metadata> {
@@ -42,7 +42,7 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
   const period = periodFor(days);
   const data = await (await dashboards()).overview(period, { locale });
 
-  // The weekly reports that have been built, each with a link that expires (docs/adr/020).
+  // The weekly reports that have been built, each with a link that expires.
   const stored = await (await reports()).list({ limit: 8 });
   const files = await storage();
   const storedReports = await Promise.all(

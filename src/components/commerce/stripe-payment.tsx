@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "@/i18n/navigation";
 
 /**
- * docs/adr/038. The card form is Stripe's own, in frames served by Stripe: the
+ * The card form is Stripe's own, in frames served by Stripe: the
  * card number never reaches this shop. The order page asks the server for the
  * order's PaymentIntent, shows the form, and after the bank says yes waits for
  * the webhook — the only thing that marks the order paid — by refreshing the

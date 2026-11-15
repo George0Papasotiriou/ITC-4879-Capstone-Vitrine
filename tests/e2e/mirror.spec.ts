@@ -11,7 +11,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * docs/adr/065. The test machine has no camera, so the page's camera is a
+ * The test machine has no camera, so the page's camera is a
  * canvas stream (getUserMedia replaced before the page loads, as the voice
  * tests replace the microphone). Most tests also replace the landmarker with
  * the scripted face (window.vitrineMirrorScripted), whose pose the test

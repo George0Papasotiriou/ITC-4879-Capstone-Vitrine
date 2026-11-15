@@ -20,8 +20,8 @@ import { useRouter } from "@/i18n/navigation";
 import { MAX_MESSAGE_LENGTH, renderMacro, type TicketStatus } from "@/lib/support/tickets";
 
 /**
- * A draft is a suggestion in the reply box, never a sent message
- * (docs/adr/021): the agent reads it, edits it and presses send, and the
+ * A draft is a suggestion in the reply box, never a sent message:
+ * the agent reads it, edits it and presses send, and the
  * message that goes out is theirs. The same box takes a ready answer, so
  * both start the same way: text an agent can change.
  */

@@ -14,7 +14,7 @@ import type { TemplateId } from "@/lib/optimize/templates";
 import { buildBundles } from "@/lib/stylist/server";
 
 /**
- * docs/adr/040. The Stylist's first set is the display: its pieces, in its
+ * The Stylist's first set is the display: its pieces, in its
  * quantities, and its total — computed by the Stylist from the database in the
  * shopper's country, never by the page or a model. The first piece of the set
  * (the template's anchor: the chair of a reading corner, the sofa of a living
@@ -22,7 +22,7 @@ import { buildBundles } from "@/lib/stylist/server";
  * so and falls back to the pieces a search for the theme's words finds,
  * without a total, so it is never an empty window.
  *
- * docs/adr/048. The window is a 3D room, so the Stylist is asked first for a
+ * The window is a 3D room, so the Stylist is asked first for a
  * set it can stand there truthfully — pieces with their own scan, and rugs and
  * pictures, whose photograph is their face. Only when no such set fits does it
  * choose from every piece, and those without a scan are shown as cut-outs.

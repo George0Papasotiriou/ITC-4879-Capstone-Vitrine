@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/061 (George, 2026-10-04: "at least 300 … with real photos, reviews and stuff").
- *
  *   pnpm catalog wear-fixture [--dry-run]
  *
  * Reads the ABO listings in .abo-cache and the reviews found by
@@ -250,7 +248,7 @@ export async function wearFixture(options: { dryRun: boolean }): Promise<void> {
   products.sort((a, b) => a.category.localeCompare(b.category) || a.kind.localeCompare(b.kind) || a.sourceId.localeCompare(b.sourceId));
   const fixture = {
     version: 1 as const,
-    description: `Wearables: ${products.length} Amazon Berkeley Objects listings (CC BY 4.0, by Amazon.com), in their sizes. Photographs are served from the ABO bucket through the shop's image optimizer. Rebuilt by \`pnpm catalog wear-fixture\` (docs/adr/061).`,
+    description: `Wearables: ${products.length} Amazon Berkeley Objects listings (CC BY 4.0, by Amazon.com), in their sizes. Photographs are served from the ABO bucket through the shop's image optimizer. Rebuilt by \`pnpm catalog wear-fixture\`.`,
     products,
   };
   catalogFixtureSchema.parse(fixture);
@@ -290,7 +288,7 @@ async function wearSpecimen(products: ProductInput[]): Promise<void> {
   }
   const fixture = catalogFixtureSchema.parse({
     version: 1,
-    description: "Wear specimen: twelve ABO wearables with photographs in public/products/wear, for the tests (docs/adr/061).",
+    description: "Wear specimen: twelve ABO wearables with photographs in public/products/wear, for the tests.",
     products: specimen,
   });
   await writeFile(WEAR_SPECIMEN_FIXTURE, `${JSON.stringify(fixture, null, 2)}\n`);

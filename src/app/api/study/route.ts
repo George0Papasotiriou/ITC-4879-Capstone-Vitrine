@@ -16,7 +16,7 @@ import { clientAddress } from "@/lib/geo/ip-country";
 import { PARTICIPANT_CODE, STUDY_EVENTS, STUDY_TASKS } from "@/lib/study/tasks";
 
 /**
- * docs/adr/037. Nothing but the code the moderator gave out, the task and the
+ * Nothing but the code the moderator gave out, the task and the
  * event; the time is the server's, so a device's clock cannot change a
  * result. Limited per address.
  */

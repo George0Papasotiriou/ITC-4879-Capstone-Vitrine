@@ -20,7 +20,7 @@ import { dashboards } from "@/lib/admin/server";
 import { requirePermission } from "@/lib/auth/session";
 
 /**
- * docs/adr/034. For "reports:read". Every figure comes from the anonymous
+ * For "reports:read". Every figure comes from the anonymous
  * Concierge log and the usage log; a rate with nothing to divide by shows as
  * a dash, never as 0%. Demo answers are counted as turns (they are real use of
  * the Concierge) but cost nothing, so the cost per turn reads the usage log.

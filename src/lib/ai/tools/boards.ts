@@ -13,7 +13,7 @@ import type { VitrineTool } from "@/lib/ai/tools/types";
 import { uiCommandSchema } from "@/lib/ai/ui-commands";
 
 /**
- * docs/adr/056. Like a cart change, it runs at once and the dock offers an
+ * Like a cart change, it runs at once and the dock offers an
  * undo (the board's own API, which knows the shopper is its owner). The
  * board is the one the shopper names, else their latest, else a new one — a
  * board is a collection they keep and can share, never a cart: nothing is

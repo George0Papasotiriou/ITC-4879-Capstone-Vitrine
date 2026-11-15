@@ -8,7 +8,7 @@
  */
 
 /**
- * The storage contract both drivers implement (ADR-008).
+ * The storage contract both drivers implement.
  *
  * Deliberately small: callers get signed URLs and never a file handle, so the
  * same code works whether the bytes end up in a bucket or in a local folder.
@@ -31,7 +31,7 @@ export interface StorageDriver {
   getObject(key: string): Promise<{ body: Uint8Array; contentType: string } | null>;
   /**
    * Removes one object. Deleting something that is not there is not an error:
-   * the expiry job (docs/adr/023) must be safe to run twice.
+   * the expiry job must be safe to run twice.
    */
   deleteObject(key: string): Promise<void>;
   /** Health probe: resolves if storage is reachable and writable. */

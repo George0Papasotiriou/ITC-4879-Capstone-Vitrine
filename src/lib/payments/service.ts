@@ -16,7 +16,7 @@ import { logger } from "@/lib/log";
 import { createStripePayments, type StripeLike, type StripePayments } from "@/lib/payments/stripe-payments";
 
 /**
- * docs/adr/038. Null while Stripe's keys are not set: the local test payment
+ * Null while Stripe's keys are not set: the local test payment
  * stands in, exactly as before. Usable from pages and from the worker (no
  * request needed). The SDK is loaded the first time a payment needs it, so
  * pages that never take one do not carry it.

@@ -18,7 +18,7 @@ import { authorize } from "@/lib/auth/session";
 import { logger } from "@/lib/log";
 
 /**
- * docs/adr/045. For "catalog:edit". The words sent are the ones in the form
+ * For "catalog:edit". The words sent are the ones in the form
  * now, so a draft follows what the person is looking at, not what was last
  * saved. A draft costs money with a key, so it passes the same guard as every
  * AI call (kill switch, daily budget) and is recorded against the person who

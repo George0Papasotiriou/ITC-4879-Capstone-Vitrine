@@ -13,7 +13,7 @@ import { money, type Money } from "@/lib/commerce/money";
 import { localizeCents, toBaseBound } from "@/lib/commerce/vat";
 
 /**
- * Catalogue prices in the shopper's country (docs/adr/013). The database holds
+ * Catalogue prices in the shopper's country. The database holds
  * Greek prices; everything a page renders passes through here first, so no
  * component ever shows a stored price by mistake.
  */

@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/064. Student-built and graded (CLAUDE.md rule 6): every formula is
+ * Every formula is
  * written out, and research/fit/fit/gaussian.py is the same code line for
  * line, so the shop and the evaluation (E12) compute the same numbers
  * (src/lib/fit/size/parity.test.ts).

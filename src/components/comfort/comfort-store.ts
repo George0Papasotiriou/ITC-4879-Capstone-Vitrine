@@ -14,7 +14,7 @@ import { useSyncExternalStore } from "react";
 import { COMFORT_COOKIE, comfortAttributes, DEFAULT_COMFORT, parseComfort, patchComfort, serializeComfort, type Comfort } from "@/lib/comfort/settings";
 
 /**
- * docs/adr/032. The cookie is the store: the head script reads it before the
+ * The cookie is the store: the head script reads it before the
  * first paint, and every change is written back to it, applied to <html> and
  * announced with an event, so every component showing a setting agrees.
  */
@@ -58,7 +58,7 @@ export function setComfort(patch: Partial<Record<string, unknown>>): Comfort {
   document.cookie = value === "" ? `${COMFORT_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax${secure}` : `${COMFORT_COOKIE}=${value}; Path=/; Max-Age=${ONE_YEAR}; SameSite=Lax${secure}`;
   applyComfort(next);
   window.dispatchEvent(new CustomEvent<Comfort>(COMFORT_EVENT, { detail: next }));
-  // Signed in, the account keeps them too, so they follow the shopper to other devices (docs/adr/033).
+  // Signed in, the account keeps them too, so they follow the shopper to other devices.
   void syncComfort({ changed: true });
   return next;
 }
@@ -99,7 +99,7 @@ export const SYNCED_KEY = "vt_synced";
 /**
  * Asks the next page to bring the device and the account into step. Used when
  * signing in or up: the navigation that follows must not wait for it, and the
- * next page's comfort layer does it once it loads (docs/adr/033).
+ * next page's comfort layer does it once it loads.
  */
 export function syncOnNextPage(): void {
   try {

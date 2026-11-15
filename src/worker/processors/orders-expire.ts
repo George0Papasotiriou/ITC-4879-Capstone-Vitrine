@@ -13,7 +13,7 @@ import { loggerFor } from "@/lib/log";
 import { afterOrderEvent } from "@/lib/payments/service";
 
 /**
- * docs/adr/038. Expiry used to happen only when someone looked at the order,
+ * Expiry used to happen only when someone looked at the order,
  * which was enough while payment was a button on the same page. With Stripe a
  * shopper could pay in another tab long after the hold; so every five minutes
  * the orders past it are expired through the state machine, and each one's

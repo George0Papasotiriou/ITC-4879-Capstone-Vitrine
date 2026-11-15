@@ -227,7 +227,7 @@ export function createTasteGraph(sql: Sql) {
 
   /**
    * The stored behaviour and content lists of several products at once, with
-   * every product's category, for "Complete the set" (docs/adr/034). Only
+   * every product's category, for "Complete the set". Only
    * neighbours that are active and in stock: a suggestion must be buyable.
    */
   async function neighboursOf(productIds: readonly string[]): Promise<{ neighbours: Map<string, Neighbour[]>; categories: Map<string, string> }> {
@@ -273,7 +273,7 @@ export function createTasteGraph(sql: Sql) {
   }
 
   /**
-   * What the shop has recorded for this shopper, newest first (docs/adr/033):
+   * What the shop has recorded for this shopper, newest first:
    * the product, what they did and when, for them to read and delete. Their
    * own events only, found by the id in their cookie.
    */

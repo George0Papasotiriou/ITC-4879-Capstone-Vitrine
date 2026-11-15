@@ -16,7 +16,7 @@ import { logger } from "@/lib/log";
 /**
  * For "reports:read". Customer emails are in the orders file, so it is only
  * for people who already see them on the order desk or the dashboards, it is
- * never cached, and every download is logged with who took it (docs/adr/018).
+ * never cached, and every download is logged with who took it.
  */
 
 export const runtime = "nodejs";
@@ -30,7 +30,7 @@ export async function GET(request: Request, { params }: RouteContext<"/api/admin
   const period = periodFor(parsePeriod(new URL(request.url).searchParams.get("days") ?? undefined));
   const store = await dashboards();
 
-  // The dashboards' tables as they are shown (docs/adr/034): counts only, nothing about any shopper.
+  // The dashboards' tables as they are shown: counts only, nothing about any shopper.
   const rate = (value: number | null) => (value === null ? null : value.toFixed(4));
   const body =
     kind === "concierge"

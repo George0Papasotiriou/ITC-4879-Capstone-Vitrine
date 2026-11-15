@@ -14,7 +14,7 @@ import { E2E_COUNTRY_HEADER } from "../../playwright.config";
 import { clientAddress, LAMP } from "./support/accounts";
 
 /**
- * docs/adr/025, docs/adr/035, docs/adr/048. AR itself happens in the phone's
+ * AR itself happens in the phone's
  * own viewer — Scene Viewer on Android, Quick Look on an iPhone — which no
  * browser test can open. What the shop controls is the hand-off, and that is
  * checked here, as each phone would receive it:

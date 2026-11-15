@@ -19,14 +19,14 @@ const eslintConfig = defineConfig([
       "no-restricted-syntax": [
         "error",
         {
-          // ADR-008. postgres.js's untyped `sql.array(values)` misbehaves
+          // postgres.js's untyped `sql.array(values)` misbehaves
           // against the local PGlite database: bare, it errors; with a cast it
           // returns no rows at all, without an error. A plain array with an
           // explicit cast behaves identically on PGlite and PostgreSQL.
           selector:
             "CallExpression[callee.object.name=/^(sql|rawSql|tx)$/][callee.property.name='array'][arguments.length<2]",
           message:
-            "Untyped sql.array() breaks on PGlite (silently empty with a cast). Pass a plain array with a cast instead: ${ids}::uuid[]. See ADR-008.",
+            "Untyped sql.array() breaks on PGlite (silently empty with a cast). Pass a plain array with a cast instead: ${ids}::uuid[]. PGlite's protocol handles a typed array parameter, not an untyped one.",
         },
       ],
     },
@@ -39,7 +39,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Build output: the bundled worker is generated, not authored.
     "dist/**",
-    // The browser depth model's runtime, copied from onnxruntime-web (ADR-014).
+    // The browser depth model's runtime, copied from onnxruntime-web.
     "public/models/**",
     // The Python research environment, whose packages ship JavaScript of their own.
     "research/.venv/**",
@@ -50,8 +50,8 @@ const eslintConfig = defineConfig([
     "drizzle/**",
     // Local stack data.
     ".local/**",
-    // Vendored Claude Code skills. Third-party tooling with its own style.
-    ".claude/**",
+    // Other hidden folders hold local editor and tool settings, not the shop's code.
+    ".*/**",
   ]),
 ]);
 

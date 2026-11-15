@@ -20,7 +20,7 @@ import * as schema from "@/lib/db/schema";
 import { roleOf } from "@/lib/optimize/outfit";
 import { CAPSULE_SIZES, createWardrobe, departmentOf, LOOK_MIN_BUDGET_CENTS } from "@/lib/stylist/wardrobe";
 
-/** docs/adr/066, with the real clothes (ADR-062) and wearables (ADR-061). */
+/** Outfits and capsules, with the real clothes and wearables. */
 
 const url = process.env.DATABASE_URL;
 

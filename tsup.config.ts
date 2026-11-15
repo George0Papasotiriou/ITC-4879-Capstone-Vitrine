@@ -12,7 +12,7 @@ import { defineConfig } from "tsup";
 /**
  * The worker is bundled into a single file rather than deployed as source.
  *
- * ADR-001: an earlier Railway project crash-looped because a workspace package
+ * An earlier Railway project crash-looped because a workspace package
  * could not be resolved at runtime under ESM. Bundling removes runtime module
  * resolution from the equation entirely — the worker ships as one file with its
  * dependencies resolved at build time.

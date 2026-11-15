@@ -16,8 +16,7 @@ import { cn } from "@/lib/ui/cn";
  * content arrives — a skeleton that is the wrong size is worse than none.
  *
  * It does not pulse (nothing loops but the listening light, 4.5) and it fades
- * in only after 300ms, so a fast answer never flashes a placeholder first
- * (docs/adr/031).
+ * in only after 300ms, so a fast answer never flashes a placeholder first.
  */
 export function Skeleton({ className }: { className?: string }) {
   return (
@@ -29,7 +28,7 @@ export function Skeleton({ className }: { className?: string }) {
 }
 
 /**
- * Empty state (docs/PLAN.md 4.4): says what to do next, and offers the next
+ * Empty state: says what to do next, and offers the next
  * step as a real action. "No lamps under €20" alone is a dead end;
  * "Show lamps under €50" is a way forward.
  */

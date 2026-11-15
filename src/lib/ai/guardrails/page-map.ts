@@ -13,7 +13,7 @@ import { agentIdSchema } from "@/lib/ai/ui-commands";
 
 /**
  * With each message the browser sends where the shopper is and what the
- * Concierge could point at (docs/PLAN.md 2.5): the route, the targets on
+ * Concierge could point at: the route, the targets on
  * screen (`data-agent-id`), the active filters and how many items are in the
  * cart. It comes from the browser, so it is validated strictly and capped at
  * about 500 tokens; anything malformed is dropped rather than trusted.

@@ -8,7 +8,7 @@
  */
 
 /**
- * Text normalisation for search — step 1 of the A1 pipeline (docs/PLAN.md 2.6).
+ * Text normalisation for search — step 1 of the A1 pipeline.
  *
  * Search compares what a person typed with what the catalogue says, and those
  * two strings differ in ways that carry no meaning: capital letters, accents,

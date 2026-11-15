@@ -12,7 +12,7 @@ import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 import { logger } from "@/lib/log";
 
 /**
- * docs/adr/046. Only the directive, the blocked origin and the page's path
+ * Only the directive, the blocked origin and the page's path
  * are logged: never a full address, which can carry a query string with
  * someone's data. Limited per address, so a page in a loop cannot fill the log.
  */

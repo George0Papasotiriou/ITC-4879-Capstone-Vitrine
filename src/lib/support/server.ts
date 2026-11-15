@@ -100,6 +100,6 @@ export async function notifyTicket(kind: SupportEmailKind, ticket: { id: string;
   } catch (error) {
     logger.warn({ err: error, ticket: ticket.number }, "support email not written");
   }
-  // A reply from a person at the desk also reaches the shopper's devices, when they asked for it (docs/adr/044).
+  // A reply from a person at the desk also reaches the shopper's devices, when they asked for it.
   if (kind === "reply") await queuePush({ type: "desk", ticketId: ticket.id });
 }

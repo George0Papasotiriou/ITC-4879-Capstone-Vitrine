@@ -13,7 +13,7 @@ import { productKindOf } from "@/lib/catalog/taxonomy";
 import { COLORS, MATERIALS } from "@/lib/search/vocabulary";
 
 /**
- * Listing state in the URL (docs/PLAN.md Phase 3, step 5).
+ * Listing state in the URL.
  *
  * Filters, sort and page live in the query string, so a filtered view can be
  * shared, bookmarked, reloaded and navigated with the back button, and the
@@ -24,7 +24,7 @@ import { COLORS, MATERIALS } from "@/lib/search/vocabulary";
  *   /c/seating?color=black&color=grey&material=leather&max=300&stock=1&sort=price-asc&page=2
  *
  * A kind narrows a category to one kind of piece, as the header's categories
- * menu links it (docs/adr/067): /c/seating?kind=SOFA. Codes are the catalogue's
+ * menu links it: /c/seating?kind=SOFA. Codes are the catalogue's
  * own; anything else is dropped.
  */
 
@@ -35,14 +35,14 @@ export const PAGE_SIZE = 24;
 const MAX_PAGE = 500;
 
 export type ListingState = {
-  /** Catalogue kind codes ("SOFA", "BOOT"), from the categories menu (docs/adr/067). */
+  /** Catalogue kind codes ("SOFA", "BOOT"), from the categories menu. */
   kinds: string[];
   colors: string[];
   materials: string[];
   brands: string[];
-  /** Sizes in stock, for pieces sold in sizes (shoes, hats, the capsule; docs/adr/061). */
+  /** Sizes in stock, for pieces sold in sizes (shoes, hats, the capsule). */
   sizes: string[];
-  /** Who the clothes are for, from their listing's department: "women", "men" (docs/adr/062). */
+  /** Who the clothes are for, from their listing's department: "women", "men". */
   departments: string[];
   /** Whole-euro bounds in the URL, cents here. */
   minCents: number | null;

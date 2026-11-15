@@ -14,7 +14,7 @@ import type { StorageDriver } from "@/lib/storage/types";
 
 /**
  * The production storage driver: an S3-compatible bucket, reached only through
- * presigned URLs (docs/PLAN.md 2.8).
+ * presigned URLs.
  *
  * Nothing reads or writes the bucket through the application server: browsers
  * upload with a presigned PUT and read with a presigned GET. Large files stay

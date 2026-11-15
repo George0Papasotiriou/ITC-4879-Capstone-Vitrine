@@ -19,7 +19,7 @@ import { pushStore } from "@/lib/push/server";
 import { ACTOR_COOKIE, CONSENT_COOKIE, currentActor, tasteGraph } from "@/lib/reco/server";
 
 /**
- * docs/adr/033. Only ever the person asking: their device's cookies, their
+ * Only ever the person asking: their device's cookies, their
  * account. Deleting a line of history deletes that event and nothing else;
  * "everything" deletes the preferences (device and account), the reading and
  * comfort settings (device and account), the whole history, and turns
@@ -66,7 +66,7 @@ export async function POST(request: Request): Promise<Response> {
   const user = await currentUser();
   await clearPreferences();
   if (user !== null) await preferenceStore().saveComfort(user.id, "");
-  // Every device that could show this account's notifications stops (docs/adr/044).
+  // Every device that could show this account's notifications stops.
   if (user !== null) await (await pushStore()).removeAll(user.id);
   if (actor !== null) await tasteGraph().forget(actor);
   const jar = await cookies();

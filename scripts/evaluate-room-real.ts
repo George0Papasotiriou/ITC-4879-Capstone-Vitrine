@@ -8,7 +8,7 @@
  */
 
 /**
- * Evaluation E4, the real-photo half (docs/PLAN.md Phase 10, acceptance: mean
+ * Evaluation E4, the real-photo half (acceptance: mean
  * size error ≤ 10% over at least 12 rooms).
  *
  *   pnpm evals:room-real                     reads .local/e4/e4-real.json

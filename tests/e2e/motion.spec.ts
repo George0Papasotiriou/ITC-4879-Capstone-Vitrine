@@ -12,7 +12,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/031. Motion is checked for what it must guarantee rather than how
+ * Motion is checked for what it must guarantee rather than how
  * it looks: that it runs when it should, that it ends with the page in the
  * right state, and that it does not run at all for someone who asked for less
  * motion — whether they asked their system or the shop.
@@ -48,7 +48,7 @@ async function live(locator: Locator) {
 /**
  * Hovers a link, as a pointer does before a click, and waits for Next.js to
  * prefetch its page. The transition plays when the destination is ready at the
- * moment of the click; one that still has to load simply appears (docs/adr/031).
+ * moment of the click; one that still has to load simply appears.
  */
 async function prefetched(page: Page, link: Locator) {
   const href = await link.getAttribute("href");

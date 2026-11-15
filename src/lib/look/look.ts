@@ -12,7 +12,7 @@ import { z } from "zod";
 import { STOPWORDS } from "@/lib/search/vocabulary";
 
 /**
- * docs/adr/054. What the model may answer is fixed by `lookSchema` (the AI SDK
+ * What the model may answer is fixed by `lookSchema` (the AI SDK
  * validates it); what the shop does with it is here, pure and tested:
  * - a box is [ymin, xmin, ymax, xmax] on 0–1000 (Gemini's own convention for
  *   boxes); a box that is inverted, too small to measure or nearly the whole

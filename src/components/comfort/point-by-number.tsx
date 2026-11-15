@@ -15,7 +15,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { placeBadges } from "@/lib/comfort/badges";
 
 /**
- * docs/adr/032. For someone who cannot use a mouse, or can only speak, the
+ * For someone who cannot use a mouse, or can only speak, the
  * long way to a control is tabbing through everything before it. Numbers make
  * every visible control one step away: press "n" (or say "show numbers"),
  * then type (or say) the number. It works on every page, because it reads the
@@ -69,7 +69,7 @@ function visibleControls(): HTMLElement[] {
     if (box.width < 4 || box.height < 4 || box.bottom < 0 || box.right < 0 || box.top > height || box.left > width) continue;
     const style = getComputedStyle(element);
     if (style.visibility === "hidden" || style.display === "none" || Number(style.opacity) === 0) continue;
-    // Covered by something fixed on top (the phone's bottom bar, the header): it cannot be seen or pressed, so no number (docs/adr/034).
+    // Covered by something fixed on top (the phone's bottom bar, the header): it cannot be seen or pressed, so no number.
     const hit = document.elementFromPoint(Math.min(width - 1, Math.max(0, box.left + box.width / 2)), Math.min(height - 1, Math.max(0, box.top + box.height / 2)));
     if (hit !== null && !element.contains(hit) && !hit.contains(element)) continue;
     // A stretched link covering a tile and the heading link inside it are one control: keep the first.
@@ -93,7 +93,7 @@ export function PointByNumber() {
 
   const measure = useCallback((): Target[] => {
     const elements = visibleControls();
-    // Fields are marked: their label sits above them, so their badge goes on their right end (docs/adr/034).
+    // Fields are marked: their label sits above them, so their badge goes on their right end.
     const boxes = elements.map((element) => {
       const box = element.getBoundingClientRect();
       return { left: box.left, top: box.top, width: box.width, height: box.height, field: isField(element) };

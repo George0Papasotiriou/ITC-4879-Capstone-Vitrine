@@ -12,7 +12,7 @@ import { z } from "zod";
 import { TICKET_TOPICS } from "@/lib/support/tickets";
 
 /**
- * Ready answers (docs/adr/029). They are the words the desk's drafts start
+ * Ready answers. They are the words the desk's drafts start
  * from, so an edit here changes what customers read — which is why an answer
  * is checked before it is saved rather than when it is sent.
  */

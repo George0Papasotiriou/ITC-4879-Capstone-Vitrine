@@ -13,7 +13,7 @@ import { expect, test } from "@playwright/test";
 import { freshPage, LAMP } from "./support/accounts";
 
 /**
- * docs/adr/025, docs/adr/058. A piece without a scan gets the model the shop
+ * A piece without a scan gets the model the shop
  * makes of it, built when first asked for and stored after that, so there is
  * nothing to seed: the tests check that the file really is a .glb, that the
  * dialog says the model is the shop's own, and that a piece with no floor to

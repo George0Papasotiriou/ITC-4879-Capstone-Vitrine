@@ -33,7 +33,7 @@ export const CART_COOKIE = "vt_cart";
 export const ORDER_COOKIE = "vt_order";
 const SIXTY_DAYS = 60 * 24 * 60 * 60;
 
-/** The local test payment: what pays for orders while Stripe's keys are not set (docs/adr/038). */
+/** The local test payment: what pays for orders while Stripe's keys are not set. */
 export const LOCAL_TEST_PROVIDER = "local_test";
 
 export async function commerce(): Promise<CommerceStore> {

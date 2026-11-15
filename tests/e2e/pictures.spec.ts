@@ -14,7 +14,7 @@ import { sampleRoomGeometry, SAMPLE_WIDTH } from "../../src/components/room/samp
 import { freshPage, LAMP, signUpAndConfirm, uniqueEmail } from "./support/accounts";
 
 /**
- * docs/adr/053, docs/adr/060. The test server runs with PICTURES_PROVIDER=
+ * The test server runs with PICTURES_PROVIDER=
  * fixture: the tests' stand-in for the image model, refused in production,
  * which hands back the first photograph it is given (the room, or the
  * piece's own) and passes its check. Every flow here is the production flow —

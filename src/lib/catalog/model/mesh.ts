@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/058. Everything the modeler draws ends up as one of these: indexed
+ * Everything the modeler draws ends up as one of these: indexed
  * triangles, each vertex with a position (metres, Y up), a unit normal for
  * shading, and texture coordinates *in metres* — so a wood grain or a fabric
  * weave keeps its real scale whether it lands on a stool or a sofa.

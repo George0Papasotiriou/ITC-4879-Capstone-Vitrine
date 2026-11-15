@@ -13,7 +13,7 @@ import dynamic from "next/dynamic";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 /**
- * docs/adr/034. The chat engine (the AI SDK, the Spotlight, the dock and its
+ * The chat engine (the AI SDK, the Spotlight, the dock and its
  * parts) is most of the JavaScript a page would otherwise download, and most
  * visits never open the Concierge. So every page gets only this: the open
  * state the header, the bar and the shortcuts toggle, and an `ask` that
@@ -23,7 +23,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
  * conversation survives navigation as before.
  */
 
-/** `photoId`: a photograph the shopper attached, already through the photo route (docs/adr/051). */
+/** `photoId`: a photograph the shopper attached, already through the photo route. */
 export type AskOptions = { spoken?: boolean; photoId?: string };
 type Ask = (text: string, options?: AskOptions) => void;
 /** What a loaded engine hands the shell: its ask, and a way to start listening. */
@@ -33,7 +33,7 @@ type ShellValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
   ask: Ask;
-  /** Opens the dock and starts listening, as the dock's own Speak button does (docs/adr/026). */
+  /** Opens the dock and starts listening, as the dock's own Speak button does. */
   listen: () => void;
   /** Starts fetching the engine without opening anything: for hover and focus on what opens it. */
   warm: () => void;

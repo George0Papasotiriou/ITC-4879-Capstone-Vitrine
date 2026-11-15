@@ -8,7 +8,7 @@
  */
 
 /**
- * Models and prices (docs/PLAN.md 3.1–3.2, docs/adr/019). Identifiers were
+ * Models and prices. Identifiers were
  * checked against the model list of the installed provider package
  * (@ai-sdk/google 4.0.75); prices are the plan's, checked on the date below and
  * to be checked again before any spend. A price not yet confirmed is null:
@@ -37,11 +37,11 @@ export type Pricing =
 
 export type ModelEntry = {
   /**
-   * "drawn" is the keyless stand-in that composes rather than generates
-   * (docs/adr/023); "browser" is work the browser itself does — the speech of
-   * docs/adr/026 — which costs nothing and still deserves a line in the usage
+   * "drawn" is the keyless stand-in that composes rather than generates;
+   * "browser" is work the browser itself does — the browser's
+   * own speech — which costs nothing and still deserves a line in the usage
    * table, so /admin/ai shows the feature being used. "fixture" is the test
-   * double for AI pictures (docs/adr/060), refused in production.
+   * double for AI pictures, refused in production.
    */
   provider: "google" | "openai" | "fashn" | "fal" | "demo" | "drawn" | "browser" | "fixture";
   id: string;
@@ -61,7 +61,7 @@ export type AiFeature = (typeof AI_FEATURES)[number];
 const GEMINI_FLASH: ModelEntry = { provider: "google", id: "gemini-3.8-flash", pricing: { kind: "tokens", inputUsdPerMillion: 0.75, outputUsdPerMillion: 3.75 } };
 
 export const MODELS = {
-  /** The Concierge's text model: the plan's leading candidate until the Phase 6 bake-off (ADR-007) decides. */
+  /** The Concierge's text model: the plan's leading candidate until the Phase 6 bake-off decides. */
   concierge: GEMINI_FLASH,
   /** The support assistant and the drafts offered to agents. */
   support: GEMINI_FLASH,
@@ -72,7 +72,7 @@ export const MODELS = {
   /** Attributes read from a shopper's photo for Snap to shop. */
   snap: GEMINI_FLASH,
   /**
-   * AI pictures of a piece in a room (docs/adr/053, docs/adr/060), at 2K. Nano
+   * AI pictures of a piece in a room, at 2K. Nano
    * Banana 2 (Gemini 3.1 Flash Image), the cheaper choice (PICTURES_MODEL=flash):
    * $0.101 a 2K image, $0.50 a million tokens in (the photographs it is shown),
    * $3 a million out for its thinking (ai.google.dev/pricing, 2026-10-04; no free
@@ -81,16 +81,16 @@ export const MODELS = {
   image: { provider: "google", id: "gemini-3.1-flash-image", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.101, inputUsdPerMillion: 0.5, outputUsdPerMillion: 3 } },
   /** Nano Banana Pro (Gemini 3 Pro Image), the default: $0.134 a 1K or 2K image, $2 a million in, $12 out (same page and date). */
   imagePro: { provider: "google", id: "gemini-3-pro-image", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.134, inputUsdPerMillion: 2, outputUsdPerMillion: 12 } },
-  /** The same model at 4K ($0.24 an image): the sixteen showroom rooms only, made once (docs/adr/060). */
+  /** The same model at 4K ($0.24 an image): the sixteen showroom rooms only, made once. */
   imagePro4k: { provider: "google", id: "gemini-3-pro-image", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.24, inputUsdPerMillion: 2, outputUsdPerMillion: 12 } },
   /** Nano Banana 2 at 4K ($0.151 an image): a showroom room's fallback when Pro cannot make it. */
   image4k: { provider: "google", id: "gemini-3.1-flash-image", pricing: { kind: "per_unit", unit: "image", usdPerUnit: 0.151, inputUsdPerMillion: 0.5, outputUsdPerMillion: 3 } },
-  /** The quality check on every AI picture before anyone sees it (docs/adr/060): a fraction of a cent a look. */
+  /** The quality check on every AI picture before anyone sees it: a fraction of a cent a look. */
   pictureJudge: GEMINI_FLASH,
   /** Veo 3.1 Lite: "Animate me", five seconds at 720p. */
   video: { provider: "google", id: "veo-3.1-lite-generate-preview", pricing: { kind: "per_unit", unit: "second", usdPerUnit: 0.05 } },
   /**
-   * FASHN (docs/adr/023, docs/adr/063), billed in credits at $0.075 each on
+   * FASHN, billed in credits at $0.075 each on
    * demand (minimum purchase $7.50; checked 2026-10-05). How many credits a
    * call takes is FASHN's table in src/lib/fitting/engines.ts; usage records
    * those credits as units. Try-On v1.6 takes 1 credit, for clothes.
@@ -103,7 +103,7 @@ export const MODELS = {
   /** FASHN Product to Model: "On a model like you", a piece worn by a model of a chosen build and skin tone; 1–5 credits. */
   modelShot: { provider: "fashn", id: "product-to-model", pricing: { kind: "per_unit", unit: "credit", usdPerUnit: 0.075 } },
   /**
-   * Realtime voice, OpenAI (docs/adr/030). gpt-realtime-2.1 rather than the
+   * Realtime voice, OpenAI. gpt-realtime-2.1 rather than the
    * newer gpt-live-1: Live cannot be given a short-lived browser token or the
    * shop's tools (@ai-sdk/openai 4.0.70 refuses both), so it would need a
    * server relay for the audio. Billed per audio token ($32 in, $64 out per
@@ -120,7 +120,7 @@ export const MODELS = {
    */
   voiceGoogle: { provider: "google", id: "gemini-3.8-live", pricing: { kind: "per_unit", unit: "minute", usdPerUnit: 0.03 } },
   /**
-   * A 3D model from a piece's studio photograph (docs/adr/059): Microsoft's
+   * A 3D model from a piece's studio photograph: Microsoft's
    * TRELLIS on fal, $0.02 a model (fal.ai/models/fal-ai/trellis, checked
    * 2026-10-03). Run only by hand (scripts/models.ts ai), after George's yes,
    * and the price is checked again before any batch.

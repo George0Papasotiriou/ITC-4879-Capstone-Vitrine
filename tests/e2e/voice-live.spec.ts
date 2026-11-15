@@ -13,7 +13,7 @@ import { expect, test, type Page, type WebSocketRoute } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/030. No key and no audio leave this machine: the session route and
+ * No key and no audio leave this machine: the session route and
  * the token route are answered by the test, and the provider's socket is
  * played by a scripted server (`page.routeWebSocket`) that speaks OpenAI's
  * realtime events. Everything between — the AI SDK's session, the captions,

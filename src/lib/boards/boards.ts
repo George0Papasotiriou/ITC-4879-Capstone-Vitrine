@@ -12,7 +12,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
 /**
- * docs/adr/056. A board belongs to whoever made it (an account, or a guest's
+ * A board belongs to whoever made it (an account, or a guest's
  * browser). Two links share it:
  * - the VIEW link lets anyone with it look, and follow along live;
  * - the EDIT link lets them add, remove, note and reorder pieces with you.

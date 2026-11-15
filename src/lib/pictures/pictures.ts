@@ -8,11 +8,11 @@
  */
 
 /**
- * docs/adr/053 (George, 2026-10-03: "one click and a bit of wait"). Three ways
+ * One click and a short wait. Three ways
  * to see a piece in a room without measuring anything yourself:
  *
  * - room: the room planner's picture — the piece already placed at true size by
- *   the sheet of paper (docs/adr/052) — made photoreal. The geometry is the
+ *   the sheet of paper — made photoreal. The geometry is the
  *   planner's; the model only relights and grounds it. Exact.
  * - quick: the shopper's own room photograph and the piece; the model places
  *   it. Its size is the model's judgement, and the page says so.
@@ -101,7 +101,7 @@ export const sceneKey = (id: string) => `catalog/scenes/${id}.webp`;
 export const sceneUrl = (id: string) => `/media/${sceneKey(id)}`;
 
 /**
- * Every file of one picture (docs/adr/060): the picture as shown (WebP, up to
+ * Every file of one picture: the picture as shown (WebP, up to
  * 2560 px), a 1024 px copy for strips and thumbnails, and the full-size JPEG
  * that Save gives — a format every phone and program opens. A shopper's own
  * sit with their photographs and go with them; a scene's are public.
@@ -116,7 +116,7 @@ export const PICTURE_LONG_SIDE = 2560;
 export const PREVIEW_LONG_SIDE = 1024;
 
 /**
- * The rooms a showroom picture is set in (docs/adr/060). Each style has one
+ * The rooms a showroom picture is set in. Each style has one
  * photograph of each, made once and kept, and a piece is photographed in the
  * room it belongs to: a bed in the bedroom, a desk in the study.
  */

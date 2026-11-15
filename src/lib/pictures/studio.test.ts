@@ -14,7 +14,7 @@ import { chooseReferenceMedia, detailCrop, MAX_REFERENCES, prepareImage, type Me
 
 const row = (src: string, position: number, whiteGround = false, kind = "image"): MediaRow => ({ src, position, whiteGround, kind });
 
-describe("chooseReferenceMedia (docs/adr/060)", () => {
+describe("chooseReferenceMedia", () => {
   it("shows the studio shots on white first, then the others, in the listing's order, at most three, each once", () => {
     const media = [row("/a-room.jpg", 0), row("/b-white.jpg", 2, true), row("/c-white.jpg", 1, true), row("/d-spin.jpg", 0, false, "spin"), row("/b-white.jpg", 5, true), row("/e.jpg", 3), row("/f.jpg", 4)];
     expect(chooseReferenceMedia(media).map((entry) => entry.src)).toEqual(["/c-white.jpg", "/b-white.jpg", "/a-room.jpg"]);

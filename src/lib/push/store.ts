@@ -14,7 +14,7 @@ import type { PushTopic } from "@/lib/push/notices";
 import { sendPush, type PushMessage, type PushOutcome, type PushSubscriptionKeys, type VapidKeys } from "@/lib/push/webpush";
 
 /**
- * docs/adr/044. A browser's endpoint is unique: subscribing again (new
+ * A browser's endpoint is unique: subscribing again (new
  * topics, or another account signed in on the same browser) updates the one
  * row rather than adding one. Sending marks what worked, deletes what the
  * push service says is gone, and drops a subscription after ten failures in a

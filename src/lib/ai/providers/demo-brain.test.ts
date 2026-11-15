@@ -68,7 +68,7 @@ describe("demoStep", () => {
     expect(shown).toMatchObject({ kind: "tools", calls: [{ toolName: "show_products", input: { productIds: [LAMP.id, CHAIR.id] } }] });
     const answer = demoStep(prompt("velvet sofa under 900", [{ toolName: "search_products", output: { products: [LAMP, CHAIR] } }, { toolName: "show_products", output: { products: [LAMP, CHAIR] } }]));
     expect(answer).toMatchObject({ kind: "text" });
-    // Prices are shown by the cards, never written by the Concierge (golden rule 5).
+    // Prices are shown by the cards, never written by the Concierge: they come from the database.
     expect((answer as { text: string }).text).not.toMatch(/€|\d+\.\d\d/);
   });
 
@@ -84,7 +84,7 @@ describe("demoStep", () => {
     expect(demoStep(prompt("a living room set for 1.500 euros"))).toEqual({ kind: "tools", calls: [{ toolName: "build_bundle", input: { template: "living-room", budgetEuros: 1500 } }] });
   });
 
-  it("opens a shop window: a theme from its words, or a room and budget of the shopper's own (docs/adr/040)", () => {
+  it("opens a shop window: a theme from its words, or a room and budget of the shopper's own", () => {
     expect(intentOf("show me a shop window for a bedroom")).toBe("showcase");
     expect(intentOf("δείξε μου μια βιτρίνα")).toBe("showcase");
     expect(demoStep(prompt("show me a shop window for a bedroom"))).toEqual({
@@ -177,7 +177,7 @@ describe("placing in a room", () => {
   });
 });
 
-describe("a photograph attached to the question (docs/adr/051)", () => {
+describe("a photograph attached to the question", () => {
   it("reads its colours first, when the question is about pieces", () => {
     expect(demoStep({ ...prompt("find a table that matches my room"), photo: true })).toEqual({ kind: "tools", calls: [{ toolName: "find_by_photo", input: {} }] });
     // A question about something else is answered as usual, photograph or not.
@@ -200,7 +200,7 @@ describe("a photograph attached to the question (docs/adr/051)", () => {
   });
 });
 
-describe("an AI picture of a piece in a room (docs/adr/053)", () => {
+describe("an AI picture of a piece in a room", () => {
   it("knows a request for a picture from a photograph to match", () => {
     expect(intentOf("Picture a walnut sideboard in a Scandinavian room")).toBe("picture");
     expect(intentOf("What would the Radford chair look like in a dark moody room?")).toBe("picture");
@@ -240,7 +240,7 @@ describe("an AI picture of a piece in a room (docs/adr/053)", () => {
   });
 });
 
-describe("shop the look (docs/adr/054)", () => {
+describe("shop the look", () => {
   it("knows a request for every piece in a photo, and answers from what was found", () => {
     expect(intentOf("Shop the look")).toBe("look");
     expect(intentOf("find everything in this photo")).toBe("look");
@@ -252,7 +252,7 @@ describe("shop the look (docs/adr/054)", () => {
   });
 });
 
-describe("room boards (docs/adr/056)", () => {
+describe("room boards", () => {
   it("keeps a piece on a board rather than buying it, and reads the board's name", () => {
     expect(intentOf("Add the Radford chair to my living room board")).toBe("board");
     expect(intentOf("Βάλε την καρέκλα στον πίνακα")).toBe("board");
@@ -271,7 +271,7 @@ describe("room boards (docs/adr/056)", () => {
   });
 });
 
-describe("will it get in (docs/adr/055)", () => {
+describe("will it get in", () => {
   it("tells the way in from a wall, and keeps the piece's name", () => {
     expect(intentOf("Will the Radford chair get through my front door?")).toBe("way_in");
     expect(intentOf("Can I get this sofa up the stairs?")).toBe("way_in");

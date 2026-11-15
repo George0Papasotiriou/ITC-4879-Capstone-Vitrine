@@ -17,7 +17,7 @@ import type { CatalogImage } from "@/lib/catalog/queries";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * The media stage on a product page (docs/PLAN.md 4.3): one photograph on the
+ * The media stage on a product page: one photograph on the
  * hero plinth, the other angles as thumbnails beneath it.
  *
  * The main plinth carries the same view-transition name as the tile the
@@ -45,7 +45,7 @@ export function ProductGallery({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* The photograph that flies to the cart when the piece is added (docs/adr/031). */}
+      {/* The photograph that flies to the cart when the piece is added. */}
       <div data-flight-source="product-hero">
         <ViewTransition name={transitionName} share="morph" default="none">
           <HeroPlinth className="aspect-square w-full">

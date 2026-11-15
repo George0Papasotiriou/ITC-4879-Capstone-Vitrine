@@ -10,8 +10,8 @@
 import { SCENE_STYLES, type PictureKind, type RoomType, type SceneStyle } from "@/lib/pictures/pictures";
 
 /**
- * docs/adr/060 (George, 2026-10-04: "hyper realistic pictures ONLY that my
- * users won't be able to tell if they are AI generated or real").
+ * The brief for photoreal pictures: a shopper should not be able to tell
+ * them from a real photograph.
  *
  * Version 1 asked in three sentences for "a photograph". This version briefs
  * the model the way an art director briefs a photographer, because an image
@@ -199,7 +199,7 @@ const ROOM_WORDS: Record<RoomType, string> = {
 };
 
 /**
- * The prompt for one of the sixteen showroom photographs (docs/adr/060): a
+ * The prompt for one of the sixteen showroom photographs: a
  * real room in a style, photographed once at 4K and kept, into which every
  * piece of that room's kind is later placed. It is staged for one piece: its
  * floor is left clear where the piece will stand, it has a door or a window

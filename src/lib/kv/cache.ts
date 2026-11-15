@@ -13,9 +13,9 @@ import { dayKey, kv } from "@/lib/kv";
 import type { KeyValue } from "@/lib/kv/types";
 
 /**
- * docs/adr/039. What is cached is what is expensive and the same for
+ * What is cached is what is expensive and the same for
  * everybody: a search's ranking (ids, what the query was read as), a
- * capsule wardrobe or a completed look (ids, docs/adr/066), never
+ * capsule wardrobe or a completed look (ids), never
  * prices, stock or anything about a person — those are read fresh from the
  * database every time, so a cached ranking can be a little old but never
  * wrong about money.

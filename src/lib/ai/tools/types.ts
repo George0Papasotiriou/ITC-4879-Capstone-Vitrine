@@ -24,7 +24,7 @@ import type { Preferences } from "@/lib/prefs/preferences";
 import type { TicketTopic } from "@/lib/support/tickets";
 
 /**
- * One tool registry (CLAUDE.md rule 4, docs/PLAN.md 2.5). Chat, voice, the
+ * One tool registry. Chat, voice, the
  * support assistant and, later, MCP are thin adapters over these tools; none
  * of them carries its own copy of what a tool does.
  *
@@ -67,7 +67,7 @@ export type ToolServices = {
     /** A signed token that puts the line back to `quantity` (src/lib/ai/tools/undo.ts). */
     undoToken(payload: { cartId: string; variantId: string; quantity: number; tool?: string }): string;
   };
-  /** The Fitting Room (docs/adr/023, 063): the photograph the shopper gave, try-ons and outfits, and their videos. */
+  /** The Fitting Room: the photograph the shopper gave, try-ons and outfits, and their videos. */
   tryOn: {
     /** The newest photograph this shopper gave for trying pieces on, if any. */
     photo(): Promise<{ id: string; minutesLeft: number } | null>;
@@ -78,46 +78,46 @@ export type ToolServices = {
     /** "See it move" for a try-on. */
     animate(input: { tryOnId: string }): Promise<{ ok: true } | { ok: false; reason: string }>;
   };
-  /** Search by photo (docs/adr/024): the photograph the shopper gave, and what the shop has like it. */
+  /** Search by photo: the photograph the shopper gave, and what the shop has like it. */
   snap: {
     photo(): Promise<{ id: string } | null>;
     search(input: { photoId: string; category?: string }): Promise<{ ids: string[]; colours: string[] }>;
   };
-  /** AI pictures of a piece in a room (docs/adr/053), through the same start as the page: guard, allowance, job. */
+  /** AI pictures of a piece in a room, through the same start as the page: guard, allowance, job. */
   pictures: {
     /** A showroom scene (`style`), or the room in a photograph the shopper gave (`photoId`). */
     start(input: { productId: string; style: SceneStyle | null; photoId: string | null }): Promise<{ ok: true; id: string; ready: boolean; left: number } | { ok: false; reason: string }>;
   };
-  /** Shop the look (docs/adr/054): each piece in a photograph the shopper gave, with the shop's closest pieces. */
+  /** Shop the look: each piece in a photograph the shopper gave, with the shop's closest pieces. */
   look: {
     find(photoId: string): Promise<{ ok: true; drawn: boolean; pieces: { kind: string | null; colours: string[]; products: ProductBrief[] }[] } | { ok: false; reason: string }>;
   };
-  /** Room boards (docs/adr/056): a piece put on the board named, else the latest, else a new one called `defaultTitle`. */
+  /** Room boards: a piece put on the board named, else the latest, else a new one called `defaultTitle`. */
   boards: {
     add(input: { productId: string; board?: string; defaultTitle: string }): Promise<
       { ok: true; boardId: string; title: string; itemId: string; created: boolean; createdBoard: boolean; quantity: number } | { ok: false; reason: "not_found" | "too_many" | "full" }
     >;
   };
-  /** Price watches on one product, for the signed-in shopper (docs/adr/020). */
+  /** Price watches on one product, for the signed-in shopper. */
   watch: {
     get(productId: string): Promise<{ targetCents: number } | null>;
     set(productId: string, targetCents: number): Promise<SetWatchResult>;
     remove(productId: string): Promise<boolean>;
   };
-  /** The outfit builder (docs/adr/066): looks around a piece, and capsule wardrobes. */
+  /** The outfit builder: looks around a piece, and capsule wardrobes. */
   wardrobe: {
     look(productId: string, budgetCents?: number): Promise<{ looks: { ids: string[]; totalCents: number }[] } | "not_found" | "not_wearable">;
     capsule(department: "women" | "men", size: "small" | "medium", budgetCents: number): Promise<{ ids: string[]; outfits: number; possible: number; totalCents: number } | null>;
   };
-  /** How a garment fits, as the Fit Engine believes it (docs/adr/064); null for anything that is not a charted garment. */
+  /** How a garment fits, as the Fit Engine believes it; null for anything that is not a charted garment. */
   fit: {
     forProduct(productId: string): Promise<ProductFit | null>;
   };
-  /** What the shopper has told the shop about themselves (docs/adr/033); changes go through the page, after approval. */
+  /** What the shopper has told the shop about themselves; changes go through the page, after approval. */
   preferences: {
     read(): Promise<Preferences>;
   };
-  /** The support desk (docs/adr/021, 027): a person takes over from the Concierge. */
+  /** The support desk: a person takes over from the Concierge. */
   support: {
     /**
      * Opens a ticket for the signed-in shopper with the summary they approved,
@@ -147,7 +147,7 @@ export type ToolContext = {
 export type VitrineTool<I = unknown, O = unknown> = {
   /** Stable snake_case: prompts, evals and logs refer to it. */
   name: string;
-  /** When to use it AND when not to (CLAUDE.md conventions). */
+  /** When to use it AND when not to: the model reads this to choose a tool. */
   description: string;
   scope: ToolScope;
   input: z.ZodType<I>;

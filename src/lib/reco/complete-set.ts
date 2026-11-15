@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/034. The cart is a set being built, so what it needs is what goes
+ * The cart is a set being built, so what it needs is what goes
  * *with* its pieces, not more of the same: a second armchair is a substitute
  * for the first, a lamp beside it is a complement. The Taste Graph already
  * stores, per product, its behaviour neighbours (bought or browsed together)

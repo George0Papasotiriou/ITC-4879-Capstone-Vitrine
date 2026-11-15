@@ -10,7 +10,7 @@
 import { CAPSULE_COLOURS, type CapsuleKind, type CapsulePiece } from "@/lib/catalog/capsule";
 
 /**
- * Drawing clothes instead of photographing them (docs/adr/022).
+ * Drawing clothes instead of photographing them.
  *
  * Each garment is a closed outline with a few fold lines and a shadow, in the
  * fabric's colour on the white ground the shop's tiles expect. The shapes are

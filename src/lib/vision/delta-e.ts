@@ -10,7 +10,7 @@
 import type { Lab } from "@/lib/optimize/color";
 
 /**
- * docs/adr/042. The CIE's 2000 colour difference (Sharma, Wu and Dalal 2005,
+ * The CIE's 2000 colour difference (Sharma, Wu and Dalal 2005,
  * "The CIEDE2000 color-difference formula"). Plain Euclidean distance in
  * CIELAB overstates differences in saturated colours and misjudges blues;
  * CIEDE2000 corrects lightness, chroma and hue separately and adds a rotation

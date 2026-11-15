@@ -20,7 +20,7 @@ import { DURATION } from "@/lib/ui/motion";
 import { usePresence } from "@/lib/ui/use-presence";
 
 /**
- * docs/adr/067. A disclosure, not an ARIA menu: one button with
+ * A disclosure, not an ARIA menu: one button with
  * aria-expanded opens a panel of ordinary links, which is what the links are,
  * and which screen readers and the keyboard already know how to use. The panel
  * follows the button in the document, so Tab goes from the button straight
@@ -243,7 +243,7 @@ export function CategoriesMenu({ groups }: { groups: readonly ResolvedGroup[] })
   );
 }
 
-/* Icons are inline SVG, 1.5px strokes to match the header's (docs/PLAN.md 4.8). */
+/* Icons are inline SVG, 1.5px strokes to match the header's. */
 
 function GridGlyph() {
   return (

@@ -8,7 +8,7 @@
  */
 
 /**
- * The order state machine (docs/PLAN.md 2.3).
+ * The order state machine.
  *
  *  checkout ──► pending_payment ─payment_succeeded─► paid ─pack─► packed ─ship─► shipped ─deliver─► delivered
  *                     │                               │                                                │

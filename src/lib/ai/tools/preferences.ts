@@ -18,7 +18,7 @@ import { wayIn } from "@/lib/fit/path";
 import { preferencesPatchSchema, roomFits, roomSchema, sizeGroupOf } from "@/lib/prefs/preferences";
 
 /**
- * docs/adr/033. Reading is ordinary: the shopper's own sizes, rooms and likes,
+ * Reading is ordinary: the shopper's own sizes, rooms and likes,
  * compact, for answering with them in mind. Remembering is sensitive — it
  * changes what the shop keeps about a person — so it asks first, with the
  * exact change on the approval card, and then the page saves it through the
@@ -96,7 +96,7 @@ export const suggestSize = define({
       apart: z.number().int(),
       sizeGroup: z.enum(["upper", "lower", "dress"]),
       verdicts: z.array(z.object({ measure: z.enum(MEASURES), cm: z.number(), size: z.enum(CAPSULE_SIZES), upToCm: z.number() })),
-      /** The Fit Engine's chance that `size` fits, in percent, and how sure the advice is (docs/adr/064). */
+      /** The Fit Engine's chance that `size` fits, in percent, and how sure the advice is. */
       fitChance: z.number().int(),
       certainty: z.enum(["sure", "likely", "between"]),
       runnerUp: z.object({ size: z.enum(CAPSULE_SIZES), fitChance: z.number().int() }).nullable(),
@@ -142,7 +142,7 @@ export const suggestSize = define({
 });
 
 /**
- * "Will it get in?" (docs/adr/055): the piece's catalogue box carried along
+ * "Will it get in?": the piece's catalogue box carried along
  * the way into the shopper's home that they saved — doors, corners, stairs —
  * by the shop's own geometry (src/lib/fit/path.ts), never the model's guess.
  */
@@ -152,7 +152,7 @@ export const checkWayIn = define({
     "Say whether a piece of furniture gets into the shopper's home along the way in they saved (doors, corridor corners, stairs): step by step, how it is carried, and by how many centimetres it fits or misses. " +
     "Use it for \"will it get through my door\", \"will it go up my stairs\", \"can I get it in\". Do not use it for whether it fits a wall of a room (that is place_in_room), and never work out a fit yourself. With no way in saved it opens the page where the shopper measures it.",
   scope: "read",
-  // The shop's own surfaces: outside agents get the tools ADR-043 opened, not every new one.
+  // The shop's own surfaces: outside agents get only the tools opened to them over MCP, not every new one.
   surfaces: ["chat", "voice", "eval"],
   input: z.object({ productId: z.uuid() }),
   output: z.discriminatedUnion("ok", [

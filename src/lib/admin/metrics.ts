@@ -10,10 +10,10 @@
 import { RETURN_REASONS, type ReturnReason } from "@/lib/commerce/returns";
 
 /**
- * Dashboards (docs/adr/018). Each figure is defined here once, as a function
+ * Dashboards. Each figure is defined here once, as a function
  * of plain rows. The dashboard computes the same figures in SQL, for speed;
  * the integration tests feed both the same orders and require the same
- * answers (docs/PLAN.md Phase 11: "dashboard numbers match database queries").
+ * answers, so dashboard numbers always match the database.
  *
  * Definitions:
  * - A sale counts on the day it was paid, not the day it was placed.
@@ -139,7 +139,7 @@ export function funnel<K extends string>(steps: readonly { key: K; count: number
   }));
 }
 
-/** A return's stored reason is "code" or "code: note" (docs/adr/017); older ones may be free text. */
+/** A return's stored reason is "code" or "code: note"; older ones may be free text. */
 export function returnReasonCode(reason: string | null): ReturnReason | "unknown" {
   const code = reason?.split(":")[0]?.trim();
   return RETURN_REASONS.find((known) => known === code) ?? "unknown";

@@ -15,7 +15,7 @@ import { loggerForRequest } from "@/lib/log";
 import { storage } from "@/lib/storage";
 
 /**
- * docs/adr/035, docs/adr/058. The best model the shop has wins: the piece's
+ * The best model the shop has wins: the piece's
  * own scan, then the model the shop makes from its measurements, words and
  * photograph. A made model is built the first time it is asked for and stored
  * (src/lib/catalog/model/serve.ts); this answer is then a redirect to the

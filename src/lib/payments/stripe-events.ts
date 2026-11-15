@@ -10,7 +10,7 @@
 import type { OrderEventType, OrderStatus } from "@/lib/commerce/order-state";
 
 /**
- * docs/adr/038. Stripe tells the shop what happened to a payment; the order's
+ * Stripe tells the shop what happened to a payment; the order's
  * own state machine (src/lib/commerce/order-state.ts) decides what that does to
  * the order. This table is the only translation between the two, and it never
  * trusts the event alone about money: a succeeded payment counts only when its

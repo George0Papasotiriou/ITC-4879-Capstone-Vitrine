@@ -13,7 +13,7 @@ import type { RatingSummary } from "@/lib/commerce/reviews";
 import { minorUnitsPerMajor } from "@/lib/commerce/money";
 
 /**
- * Structured data for search engines (docs/PLAN.md Phase 3, step 8):
+ * Structured data for search engines:
  * schema.org Product with an Offer, and a BreadcrumbList.
  *
  * Built from the same database record the page renders, so the price in the
@@ -21,7 +21,7 @@ import { minorUnitsPerMajor } from "@/lib/commerce/money";
  */
 
 /**
- * With reviews, an AggregateRating and the newest few reviews are added (docs/adr/017):
+ * With reviews, an AggregateRating and the newest few reviews are added:
  * the same verified reviews the page shows, never an invented score. Without
  * any, both are left out, as search engines require.
  */

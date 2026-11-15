@@ -41,7 +41,7 @@ import { readCameraExif } from "@/lib/vision/exif";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * "See it in your room" (docs/PLAN.md Phase 10, A4): photo, four taps on a sheet
+ * "See it in your room": photo, four taps on a sheet
  * of paper, product at true scale. Everything happens in this component, in the
  * browser; the photo is never uploaded.
  *
@@ -51,24 +51,24 @@ import { cn } from "@/lib/ui/cn";
  */
 
 export type PlaceableProduct = {
-  /** For "Picture it with AI" (docs/adr/053); without it the planner offers no picture. */
+  /** For "Picture it with AI"; without it the planner offers no picture. */
   slug?: string;
   title: string;
   dims: { w: number; d: number; h: number };
   mode: "stand" | "lie";
   imageSrc: string | null;
-  /** Its own 3D scan, when the shop has the file (docs/adr/052): drawn in 3D, so it turns. */
+  /** Its own 3D scan, when the shop has the file: drawn in 3D, so it turns. */
   model?: string | null;
-  /** Without a scan, the address of the model the shop makes of it (docs/adr/058): offered beside the photograph. */
+  /** Without a scan, the address of the model the shop makes of it: offered beside the photograph. */
   madeModel?: string | null;
-  /** That model is an AI model of the piece (docs/adr/059): shown first, as it looks like the photograph. */
+  /** That model is an AI model of the piece: shown first, as it looks like the photograph. */
   preferModel?: boolean;
   kind?: string;
 };
 
 type Photo = { canvas: HTMLCanvasElement; width: number; height: number; gray: GrayImage; focal35: number | null; sample: boolean };
 type Stage = "photo" | "corners" | "scan" | "place";
-/** The two ways to give the photograph a size: the sheet of paper, or a depth model (ADR-014). */
+/** The two ways to give the photograph a size: the sheet of paper, or a depth model. */
 type Method = "paper" | "depth";
 type Measured = { map: DepthMap; metric: boolean; ms: number };
 type ScanFailure = "not_installed" | "unsupported_output" | "no_webassembly" | "integrity" | "failed";
@@ -139,10 +139,10 @@ export function RoomPlanner({ product, locale, pictures = false }: { product: Pl
   const [flipped, setFlipped] = useState(false);
   const [moved, setMoved] = useState<{ x: number; y: number; rotation: number } | null>(null);
   const [outline, setOutline] = useState(false);
-  // Light harmonisation (docs/adr/042): on by default, one switch to see the plain photograph.
+  // Light harmonisation: on by default, one switch to see the plain photograph.
   const [matchLight, setMatchLight] = useState(true);
   const [cutout, setCutout] = useState<Cutout | null>(null);
-  // The piece's own scan, drawn in 3D with the photograph's camera (docs/adr/052); null until loaded, or without one.
+  // The piece's own scan, drawn in 3D with the photograph's camera; null until loaded, or without one.
   // Each loaded layer remembers the address it came from, so switching back to the photograph needs no reset.
   const [loadedScan, setLoadedScan] = useState<{ source: string; layer: ScanLayer } | null>(null);
   const [failedSource, setFailedSource] = useState<string | null>(null);
@@ -275,7 +275,7 @@ export function RoomPlanner({ product, locale, pictures = false }: { product: Pl
     };
   }, [camera, moved, product, floor, photo, scan]);
 
-  // The room's light, once per photo; the side it falls from where the piece stands, each time it moves (docs/adr/042).
+  // The room's light, once per photo; the side it falls from where the piece stands, each time it moves.
   const photoPixels = useMemo(() => (photo === null ? null : photo.canvas.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, photo.width, photo.height).data), [photo]);
   const room = useMemo(() => (photo === null || photoPixels === null ? null : roomLight(photoPixels, photo.width, photo.height, 4)), [photo, photoPixels]);
   const light = useMemo((): LightEstimate | null => {
@@ -582,7 +582,7 @@ export function RoomPlanner({ product, locale, pictures = false }: { product: Pl
     setFlipped(false);
   };
 
-  // What the AI is given (docs/adr/053): the photograph and the piece where the shopper put it, without the
+  // What the AI is given: the photograph and the piece where the shopper put it, without the
   // grid or the outline, which it would otherwise paint into the room. At most 1600 px on the long side, as JPEG:
   // the size the image model reads, and well inside the shop's 12 MB photo limit.
   const cleanPicture = async (): Promise<{ blob: Blob; width: number; height: number } | null> => {
@@ -741,7 +741,7 @@ export function RoomPlanner({ product, locale, pictures = false }: { product: Pl
               aria-label={t("stageLabel")}
               aria-describedby={helpId}
               data-agent-id="room:stage"
-              // The gains applied to the piece, or "off": read by tests and by anyone checking what the page did (docs/adr/042).
+              // The gains applied to the piece, or "off": read by tests and by anyone checking what the page did.
               data-light={gainsKey === "" ? "off" : gainsKey}
               className={cn("block h-auto max-h-[75vh] w-auto max-w-full touch-none select-none", stage === "place" ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair")}
               onPointerDown={onPointerDown}
@@ -1012,7 +1012,7 @@ export function RoomPlanner({ product, locale, pictures = false }: { product: Pl
                 ) : null}
                 <div className="flex flex-wrap gap-3">
                   {product.mode === "stand" && !hasScan && cutout !== null ? (
-                    // A photograph cannot turn (docs/adr/052), but it can be seen the other way round.
+                    // A photograph cannot turn, but it can be seen the other way round.
                     <Button variant="secondary" aria-pressed={mirrored} onClick={() => setMirrored((value) => !value)} data-agent-id="room:mirror">
                       {t("mirror")}
                     </Button>

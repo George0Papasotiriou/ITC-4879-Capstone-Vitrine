@@ -8,7 +8,7 @@
  */
 
 /**
- * The capsule (docs/adr/022).
+ * The capsule.
  *
  *   pnpm capsule build [--dry-run]     draw the images and write the fixture
  *   pnpm capsule images [--dry-run]    only the images
@@ -105,7 +105,7 @@ function productFor(piece: CapsulePiece): ProductInput {
     descriptionEl: `${piece.fabricEl}. ${piece.fitEl}. ${piece.careEl}`,
     highlightsEn: highlights(piece, "en"),
     highlightsEl: highlights(piece, "el"),
-    // Written by hand in both languages, not machine translated (docs/adr/022).
+    // Written by hand in both languages, not machine translated.
     translation: "reviewed",
     // The label is the fabric's name; the colour is the shop's word for it (E9).
     colorLabel: piece.colorLabelEn,
@@ -137,7 +137,7 @@ async function fixture(): Promise<void> {
   const products = CAPSULE.map(productFor);
   const file = {
     version: 1 as const,
-    description: "The Wear capsule: 24 pieces the shop designed and drew itself, in five sizes each (docs/adr/022).",
+    description: "The Wear capsule: 24 pieces the shop designed and drew itself, in five sizes each.",
     products,
   };
   if (dryRun) {

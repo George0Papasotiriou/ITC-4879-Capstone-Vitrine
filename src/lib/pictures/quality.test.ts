@@ -13,7 +13,7 @@ import { better, corrections, overall, passes, QUALITY_BAR, verdictSchema, type 
 
 const verdict = (patch: Partial<Verdict> = {}): Verdict => ({ fidelity: 8, realism: 8, scale: 7, roomKept: 8, issues: [], ...patch });
 
-describe("passes (docs/adr/060)", () => {
+describe("passes", () => {
   it("needs every question at or above its bar", () => {
     expect(passes(verdict(), "quick")).toBe(true);
     expect(passes(verdict({ fidelity: QUALITY_BAR.fidelity, realism: QUALITY_BAR.realism, scale: QUALITY_BAR.scale, roomKept: QUALITY_BAR.roomKept }), "quick")).toBe(true);

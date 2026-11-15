@@ -37,7 +37,7 @@ function noise(seed: number) {
   return () => Math.sqrt(-2 * Math.log(uniform())) * Math.cos(2 * Math.PI * uniform());
 }
 
-describe("the head's pose from landmarks (docs/adr/065)", () => {
+describe("the head's pose from landmarks", () => {
   const truth = headAt(25, -10, 8, [20, -15, 600]);
 
   it("reads the same yaw, pitch and roll it was built from", () => {

@@ -14,7 +14,7 @@ import { untrusted } from "@/lib/ai/guardrails/untrusted";
 import { copyInstructions, COPY_PROMPT_VERSION, type CopyTask } from "@/lib/ai/prompts/copy-v1";
 
 /**
- * docs/adr/045. Like the desk's reply drafts (ADR-021): the staff UI asks, a
+ * Like the desk's reply drafts: the staff UI asks, a
  * person reads, and only their Save changes the shop. What the model returns
  * is checked against a schema, and the figures in the source — measurements,
  * counts, percentages — are looked for in the draft: a draft that dropped or

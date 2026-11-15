@@ -20,7 +20,7 @@ import { useToast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
 
 /**
- * Specimen of the interactive primitives (docs/PLAN.md Phase 2, step 3).
+ * Specimen of the interactive primitives.
  *
  * Each one is shown doing the job it exists for in this shop, rather than as an
  * abstract widget — sorting is a select, the delivery choice is a radio group,

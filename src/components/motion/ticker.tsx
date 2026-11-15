@@ -12,7 +12,7 @@
 import { useState, type ReactNode } from "react";
 
 /**
- * docs/adr/031. The new value rises into place (`animate-tick`) each time
+ * The new value rises into place (`animate-tick`) each time
  * `value` changes; the first value, seen as the page loads, just appears —
  * nothing happened for it to answer. Works wherever the new value comes from:
  * a refresh, a filter, a server action.

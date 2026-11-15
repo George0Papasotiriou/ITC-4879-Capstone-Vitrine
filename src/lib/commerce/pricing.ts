@@ -15,8 +15,8 @@ import { BASE_COUNTRY, isEuCountry, localizeAtRate, VAT_RATES_PER_MILLE, vatRate
 export { divideRounded };
 
 /**
- * Cart and order totals (docs/PLAN.md Phase 5, CLAUDE.md golden rule 5,
- * docs/adr/013).
+ * Cart and order totals, always computed here on the server from database
+ * prices.
  *
  * Pure: the caller passes the stored (Greek, VAT-included) unit prices it has
  * just read from the database and the country the prices are for; the server
@@ -49,7 +49,7 @@ export type ShippingMethod = {
 };
 
 /**
- * Flat rates by zone (docs/adr/012, 013, 015): furniture ships from Athens, so
+ * Flat rates by zone: furniture ships from Athens, so
  * Greece is domestic, Cyprus is a sea shipment, and the rest of the EU goes by
  * road freight. The two export zones were confirmed by George on 2026-09-19;
  * the three EU zones are still defaults for him to confirm.
@@ -67,7 +67,7 @@ export const SHIPPING_RATES: Readonly<Record<ShippingZone, Readonly<Record<Shipp
     standard: { id: "standard", baseCents: 2_490, freeFromBaseCents: 50_000, days: [5, 9] },
     express: { id: "express", baseCents: 4_990, freeFromBaseCents: null, days: [2, 4] },
   },
-  // Exports (docs/adr/015), set by their price without VAT: none is in them.
+  // Exports, set by their price without VAT: none is in them.
   europe: {
     standard: { id: "standard", baseCents: fromNet(3_990), freeFromBaseCents: fromNet(80_000), days: [6, 12] },
     express: { id: "express", baseCents: fromNet(7_990), freeFromBaseCents: null, days: [3, 5] },

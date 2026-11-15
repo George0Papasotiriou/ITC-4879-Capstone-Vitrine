@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/032. The floor of 4.7 (WCAG 2.2 AA) makes the shop usable; these
+ * The floor of 4.7 (WCAG 2.2 AA) makes the shop usable; these
  * settings make it comfortable for the person using it, whatever their
  * eyesight, reading or attention. Each is a data attribute on <html> that the
  * stylesheet answers, so a setting changes the whole shop at once, including

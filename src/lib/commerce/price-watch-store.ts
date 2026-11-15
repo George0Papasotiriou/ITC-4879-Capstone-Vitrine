@@ -13,7 +13,7 @@ import { uuidv7 } from "uuidv7";
 import { MAX_WATCHES, showsNotice, watchDecisions, type WatchState } from "@/lib/commerce/price-watch";
 
 /**
- * The store behind the watches (docs/adr/020). One watch per person and
+ * The store behind the watches. One watch per person and
  * product — asking twice moves the target rather than adding a row — and a
  * cap per person, so the nightly pass stays small.
  *
@@ -39,7 +39,7 @@ export type PersonWatch = {
 /** A watch the price has answered, with everything the email needs. */
 export type DueWatch = {
   id: string;
-  /** The watcher, for a notification on their devices as well as the email (docs/adr/044). */
+  /** The watcher, for a notification on their devices as well as the email. */
   userId: string;
   email: string;
   name: string;
@@ -177,7 +177,7 @@ export function createPriceWatchStore(sql: Sql) {
   }
 
   /**
-   * The drops to tell this person about in the shop (docs/adr/034): watches
+   * The drops to tell this person about in the shop: watches
    * the nightly pass has answered, not yet seen, still at or under the
    * target. Ids only: the page reads titles and prices from the catalogue.
    */

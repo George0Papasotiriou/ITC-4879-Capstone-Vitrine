@@ -13,7 +13,7 @@ import { uuidv7 } from "uuidv7";
 import { costMicros, eurToMicros, type AiFeature, type ModelEntry, type Usage } from "@/lib/ai/models";
 
 /**
- * Cost discipline (CLAUDE.md rule 8, docs/PLAN.md 3.3, docs/adr/019). Before an
+ * Cost discipline: every AI call is recorded and capped. Before an
  * AI call, `gate` checks, in this order:
  * 1. the mode: "off" when no provider is configured;
  * 2. the kill switch: an admin setting, or AI_KILL_SWITCH;
@@ -28,7 +28,7 @@ import { costMicros, eurToMicros, type AiFeature, type ModelEntry, type Usage } 
  * Most calls are recorded after they happen. A realtime voice session cannot
  * be: the browser holds the socket and the shop never sees the audio, so the
  * whole session is reserved when it starts (`record` with an id) and settled
- * down to what it used when it ends (`settle`), never up (docs/adr/030).
+ * down to what it used when it ends (`settle`), never up.
  */
 
 type Sql = postgres.Sql;
@@ -43,7 +43,7 @@ export const DAILY_CAPS: Readonly<Record<ActorKind, { turns: number; credits: nu
   customer: { turns: 60, credits: 20 },
 };
 
-/** What a costly action takes from the daily credits (PLAN 3.3). A model shot is charged only to the shopper who has it made: once made, it is free for everyone (docs/adr/063). */
+/** What a costly action takes from the daily credits (PLAN 3.3). A model shot is charged only to the shopper who has it made: once made, it is free for everyone. */
 export const CREDIT_COSTS = { try_on: 3, harmonize: 2, voice_minute: 1, animate: 10, model_shot: 3 } as const;
 export type CostlyAction = keyof typeof CREDIT_COSTS;
 

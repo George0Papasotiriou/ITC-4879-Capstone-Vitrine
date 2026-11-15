@@ -10,7 +10,7 @@
 import type { ColorId } from "@/lib/search/vocabulary";
 
 /**
- * Search by photo, without a key (docs/adr/024).
+ * Search by photo, without a key.
  *
  * With a paid multimodal model, a photograph becomes attributes — "a rust
  * linen armchair" — and an embedding to search with. Neither is available yet,
@@ -135,7 +135,7 @@ export function nameColour(rgb: Rgb): ColorId {
 /**
  * The colour a word stands for, as a picture rather than a match: the first
  * anchor of that word. Used where the shop has to *show* a colour it only has
- * a name for — the stand-in models of docs/adr/025.
+ * a name for — the earlier stand-in 3D models.
  */
 export function colourSwatch(color: ColorId): Rgb {
   return ANCHORS[color]?.[0] ?? { r: 150, g: 150, b: 150 };

@@ -10,8 +10,8 @@
 import { stripePayments } from "@/lib/payments/service";
 
 /**
- * docs/adr/038. The signature is checked on the body exactly as it arrived, so
- * it is read as text, never parsed first (CLAUDE.md, known gotchas). A 400
+ * The signature is checked on the body exactly as it arrived, so
+ * it is read as text, never parsed first (Stripe signs the raw bytes). A 400
  * tells Stripe the delivery was not ours; anything the shop decided — applied,
  * refunded, needs a person, ignored, already seen — is a 200, so Stripe stops
  * retrying. An unexpected failure throws: Stripe retries, and the event is

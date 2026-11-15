@@ -28,14 +28,14 @@ import { judgingPool, scoreSystem, type Grade } from "@/lib/search/metrics";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/036. Judging: for each query, every version of the search
+ * Judging: for each query, every version of the search
  * (E1_SYSTEMS) runs, their top ten are pooled, and the products nobody has
  * graded yet come up one at a time. Results: each version scored on every
  * query judged so far — NDCG@10, MRR and recall@10 (src/lib/search/metrics.ts)
  * — by kind of query, so the effect of each stage can be read off the table.
  * For "reports:read".
  *
- * docs/adr/049. Checking the AI judge: where the blind sample exists (it is
+ * Checking the AI judge: where the blind sample exists (it is
  * drawn by `pnpm evals:search --check-set` on the local shop, beside the AI
  * judge's grades, which are not part of the source), a third view walks a
  * person through those pairs without showing the judge's grades. The grades

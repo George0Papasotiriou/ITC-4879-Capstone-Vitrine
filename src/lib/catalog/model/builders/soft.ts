@@ -16,7 +16,7 @@ import { metalTone } from "@/lib/catalog/model/words";
 import type { Rgb } from "@/lib/vision/palette";
 
 /**
- * docs/adr/058. A rug is the one piece whose look is mostly a picture: its
+ * A rug is the one piece whose look is mostly a picture: its
  * pattern. So a rug wears its own studio photograph, made flat by the
  * homography the Showcase already uses for rugs (vision/rectify.ts), over a
  * pile drawn in code; without a readable photograph, a field and a border in

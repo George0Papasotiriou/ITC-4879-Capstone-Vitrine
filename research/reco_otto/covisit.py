@@ -5,7 +5,7 @@
 #
 # The baseline: co-visitation matrices and a hand-tuned reranker, as in the best-known public OTTO solution.
 
-"""The co-visitation baseline (docs/PLAN.md reference [9]: C. Deotte, "Candidate
+"""The co-visitation baseline (C. Deotte, "Candidate
 ReRank Model – LB 0.575", Kaggle, 2022), the strong and widely reproduced
 starting point of the OTTO competition.
 

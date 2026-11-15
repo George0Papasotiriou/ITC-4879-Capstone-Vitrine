@@ -13,13 +13,13 @@ import { COLORS, extractTerms, MATERIALS, type ColorId, type MaterialId } from "
 import { palette, type Rgb } from "@/lib/vision/palette";
 
 /**
- * docs/adr/062. The clothes come from the product listings of Amazon Reviews
+ * The clothes come from the product listings of Amazon Reviews
  * 2023: a listing's category path ("Clothing, Shoes & Jewelry › Women ›
  * Clothing › Dresses › Casual") says what it is, its `store` who made it,
  * and its bullet points what it is made of. Everything here is pure, so the
  * rules can be tested on the titles that taught them.
  *
- * The garments take the capsule's kinds (docs/adr/022), so the size charts,
+ * The garments take the capsule's kinds, so the size charts,
  * the size finder, preferences, the Fitting Room and try-on work for them as
  * they did for the drawn pieces.
  */

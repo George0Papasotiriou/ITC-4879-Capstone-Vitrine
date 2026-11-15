@@ -15,7 +15,7 @@ import { deskWords, ORDER_PUSH_KINDS, orderWords, priceWords, pushMessage, topic
 import { createPushStore } from "@/lib/push/store";
 
 /**
- * docs/adr/044. The job carries only ids; the person and the words are read
+ * The job carries only ids; the person and the words are read
  * here, when it runs, so a notification never says something the database no
  * longer does. Guests have no devices subscribed: an order or a ticket without
  * an account sends nothing. Of several order changes at once, the latest is

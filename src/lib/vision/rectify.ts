@@ -10,7 +10,7 @@
 import { applyHomography, homographyDLT, orderTaps, type Point2 } from "@/lib/vision/camera";
 
 /**
- * docs/adr/048 addendum. The shop window lays a rug on its floor as a flat
+ * The shop window lays a rug on its floor as a flat
  * textured slab, so it needs the rug as seen from straight above. The
  * catalogue does not have that photograph: a rug's first picture is usually
  * the rug in a furnished room, and its studio picture (on white) shows the

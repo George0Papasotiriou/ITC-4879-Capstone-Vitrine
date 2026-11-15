@@ -24,7 +24,7 @@ import { HorizontalBlurShader } from "three/addons/shaders/HorizontalBlurShader.
 import { VerticalBlurShader } from "three/addons/shaders/VerticalBlurShader.js";
 
 /**
- * docs/adr/048. The sun's shadow is crisp where the window light falls and
+ * The sun's shadow is crisp where the window light falls and
  * absent everywhere else; a real floor is also darker right under and around
  * whatever stands on it, because less of the room's light reaches there. That
  * is ambient occlusion, and this is its cheapest honest form:

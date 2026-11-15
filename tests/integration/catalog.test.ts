@@ -168,7 +168,7 @@ describe.skipIf(url === undefined || url === "")("catalogue", () => {
   it("keeps the worker's 3D scans through a deploy sync and records where each scan lives", async () => {
     const piece = fixture[3]!;
     const [product] = await db.select({ id: schema.products.id }).from(schema.products).where(eq(schema.products.sourceId, piece.sourceId));
-    // The worker has stored this piece's compressed scan (docs/adr/035).
+    // The worker has stored this piece's compressed scan.
     await connection`
       INSERT INTO product_media (id, product_id, kind, src, bytes, alt_en, position)
       VALUES (gen_random_uuid(), ${product!.id}, 'model', '/media/catalog/abo-3d/test.glb', 1234, 'A 3D scan of the piece', 0)

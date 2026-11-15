@@ -12,8 +12,7 @@ import { greeklishCandidates } from "@/lib/search/greeklish";
 import { scriptOf, tokenize } from "@/lib/search/normalize";
 
 /**
- * The controlled vocabulary shared by query parsing and catalogue indexing
- * (docs/PLAN.md 2.6, A1).
+ * The controlled vocabulary shared by query parsing and catalogue indexing.
  *
  * A query filter only works if the products were described with the same
  * words. When a shopper types "μαύρη δερμάτινη πολυθρόνα", the parser turns
@@ -88,7 +87,7 @@ export const MATERIALS = {
     english: ["metal", "metallic", "steel", "iron", "aluminum", "aluminium"],
     greekStems: ["μεταλλ", "ατσαλ", "σιδερ"],
   },
-  // «γυαλί» and «γυάλινο/-η/-α», but not «γυαλιά», which are glasses (an accessory, docs/adr/061).
+  // «γυαλί» and «γυάλινο/-η/-α», but not «γυαλιά», which are glasses (an accessory).
   glass: { labelEn: "Glass", labelEl: "Γυαλί", english: ["glass"], greekStems: ["γυαλιν"], greekWords: ["γυαλι"] },
   leather: { labelEn: "Leather", labelEl: "Δέρμα", english: ["leather", "leathersoft"], greekStems: ["δερμα"] },
   fabric: {
@@ -156,13 +155,13 @@ export const CATEGORY_TERMS: Record<CategorySlug, Entry> = {
     greekStems: ["γλαστρ", "διακοσμητ"],
     greekWords: ["βαζο", "βαζα", "κερι", "κερια"],
   },
-  // The Wear capsule (docs/adr/022): a shopper looking for clothes says so in
+  // The Wear capsule: a shopper looking for clothes says so in
   // either language, and "wear" is also how the category is named in the shop.
   wear: {
     english: ["wear", "clothes", "clothing", "shirt", "top", "tee", "knit", "jumper", "sweater", "trousers", "skirt", "dress", "coat", "jacket", "capsule"],
     greekStems: ["ρουχ", "μπλουζ", "πουκαμισ", "πλεκτ", "παντελον", "φουστ", "φορεμ", "παλτ", "σακακ"],
   },
-  // The ABO wearables (docs/adr/061).
+  // The ABO wearables.
   shoes: {
     english: ["shoe", "shoes", "boot", "boots", "sandal", "sandals", "sneaker", "sneakers", "trainer", "trainers", "loafer", "loafers", "heel", "heels", "pump", "pumps", "flats", "mule", "mules", "footwear"],
     greekStems: ["παπουτσ", "μποτ", "μποτακ", "σανδαλ", "αθλητικ", "μοκασιν", "υποδηματ"],
@@ -182,7 +181,7 @@ export const CATEGORY_TERMS: Record<CategorySlug, Entry> = {
 };
 
 /**
- * The names of pieces, Greek to English (docs/adr/047).
+ * The names of pieces, Greek to English.
  *
  * A category word is a filter *and* a search word ("λάμπα" means "only
  * lighting" and "rank lamps first"). The search word must also appear in the

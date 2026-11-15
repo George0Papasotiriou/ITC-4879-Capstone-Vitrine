@@ -119,7 +119,7 @@ describe.skipIf(url === undefined || url === "")("AI pictures", () => {
     await expect(connection`INSERT INTO pictures (id, kind, product_id, actor_key, provider, model) VALUES (${uuidv7()}, 'quick', ${productId}, 'guest:pictures-test-x', 'drawn', 'm')`).rejects.toThrow();
   });
 
-  it("never serves or keeps the place of the old drawn previews (docs/adr/060)", async () => {
+  it("never serves or keeps the place of the old drawn previews", async () => {
     // A drawn scene from before: still in the table, never shown, and an AI scene may be made beside it.
     const drawn = await connection<{ id: string }[]>`
       INSERT INTO pictures (id, kind, product_id, style, actor_key, status, provider, model, result_key)

@@ -19,7 +19,7 @@ import { useHydrated } from "@/components/ui/use-hydrated";
 import { useToast } from "@/components/ui/toast";
 
 /**
- * docs/adr/040. The cart API is asked once per piece, each with the product id
+ * The cart API is asked once per piece, each with the product id
  * and the quantity only — the server picks the variant, checks the stock and
  * prices it, as it does for every add. A piece that cannot be added (sold out
  * since the page was drawn) is named, and the rest still go in. The cart can

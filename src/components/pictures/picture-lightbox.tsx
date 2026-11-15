@@ -16,7 +16,7 @@ import { DialogContent, DialogRoot } from "@/components/ui/dialog";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/060. The pictures are made at 2K so they can be looked at closely,
+ * The pictures are made at 2K so they can be looked at closely,
  * the way a shopper inspects a product photograph before buying. Two views:
  * the whole picture fitted to the screen, and actual size, where the picture
  * scrolls (by finger, wheel or arrow keys) and opens at the spot that was

@@ -13,7 +13,6 @@ import path from "node:path";
 import { createDrawnTryOnDriver, createFashnDriver, createFixtureStudioDriver, type TryOnDriver } from "@/lib/ai/providers/fashn";
 
 /**
- * docs/adr/063.
  * - "service": FASHN, with the key.
  * - "fixture": the tests' FASHN (FASHN_PROVIDER=fixture, refused in production).
  * - "drawn": no key — the photograph beside the piece, and no video or model shot.

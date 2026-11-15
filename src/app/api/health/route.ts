@@ -21,7 +21,7 @@ import { storage } from "@/lib/storage";
  * is wrong. It reports each component separately — "the site is up but the
  * worker died" is a different problem from "the database is gone" — and says
  * which driver each one is using, so a local stand-in is never mistaken for the
- * real thing (ADR-008).
+ * real thing.
  *
  * A component the selected drivers do not use is reported as `skipped`, not
  * `ok`: with inline jobs there is no Redis to be healthy, and pretending
@@ -59,8 +59,8 @@ async function timed(run: () => Promise<Record<string, unknown> | void>): Promis
 function checkDatabase(): Promise<ComponentResult> {
   return timed(async () => {
     // A plain array with an explicit cast, never an untyped sql.array(): that
-    // form errors on PGlite, and with a cast it silently matches nothing
-    // (ADR-008). The lint rule in eslint.config.mjs forbids it.
+    // form errors on PGlite, and with a cast it silently matches nothing.
+    // The lint rule in eslint.config.mjs forbids it.
     const rows = await rawSql<{ extname: string }[]>`
       SELECT extname FROM pg_extension WHERE extname = ANY(${[...REQUIRED_EXTENSIONS]}::text[])
     `;

@@ -20,7 +20,7 @@ import { RETURN_REASONS } from "@/lib/commerce/returns";
  * Only the shopper's own orders: a signed-in account's, or the guest's most
  * recent order in this browser. The services enforce it; these tools never
  * take an email or an order id from the model, only an order number, which is
- * then looked up among the shopper's own orders (docs/PLAN.md 2.5 guardrails).
+ * then looked up among the shopper's own orders.
  *
  * The sensitive tools ask the shopper first (an approval card; on voice, an
  * on-screen button too) and neither takes money: checkout only opens the page
@@ -193,7 +193,7 @@ export const tryOnPiece = define({
 const fittingRoomCommand = (locale: string) =>
   uiCommandSchema.parse({ type: "navigate", href: "/fitting-room", caption: locale === "el" ? "Άνοιγμα του δοκιμαστηρίου" : "Opening the Fitting Room" });
 
-/** The categories that can be worn (docs/adr/061, 062): the Fitting Room tries every one of them on. */
+/** The categories that can be worn: the Fitting Room tries every one of them on. */
 const WEARABLE_CATEGORIES: ReadonlySet<string> = new Set(["wear", "shoes", "bags", "accessories"]);
 
 export const tryOnOutfit = define({

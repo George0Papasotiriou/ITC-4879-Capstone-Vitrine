@@ -13,7 +13,7 @@ export type StaffDesk = {
   key: "orders" | "support" | "reviews" | "products" | "models" | "dashboard" | "concierge" | "recommendations" | "labeling" | "ai" | "system" | "audit";
   href: string;
   permission: Permission;
-  /** The Concierge's handle on the link (CLAUDE.md conventions). */
+  /** The Concierge's handle on the link (its `data-agent-id`). */
   agentId: string;
 };
 

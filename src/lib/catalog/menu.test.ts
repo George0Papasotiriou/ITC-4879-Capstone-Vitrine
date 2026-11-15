@@ -19,7 +19,7 @@ import { CATEGORIES, productKindOf } from "@/lib/catalog/taxonomy";
 import { brandSlug } from "@/lib/catalog/write";
 
 /**
- * docs/adr/067. The production catalogue is what `pnpm db:setup` syncs on
+ * The production catalogue is what `pnpm db:setup` syncs on
  * every deploy: these committed fixtures. A link counts as good when at least
  * one product in them matches it, so the menu can never send a shopper to an
  * empty page on the live site.

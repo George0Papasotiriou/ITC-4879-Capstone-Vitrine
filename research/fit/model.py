@@ -5,7 +5,7 @@
 #
 # The Fit Engine's ordinal model and its assumed-density learning — the same code as src/lib/fit/size/ordinal.ts.
 
-"""The Fit Engine's model (docs/adr/064); the derivation is in ordinal.ts.
+"""The Fit Engine's model; the derivation is in ordinal.ts.
 
 z = (s + b - t) + eps, eps ~ N(0, noise^2); small if z < -(margin + tau),
 large if z > margin + tau, fit between. b (how the item runs), tau (how

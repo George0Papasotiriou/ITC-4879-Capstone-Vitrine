@@ -54,7 +54,7 @@ export function ProductEditor({ productId, initial }: { productId: string; initi
   const formRef = useRef<HTMLFormElement>(null);
   const [pending, setPending] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<FieldName | "form", string>>>({});
-  // A copy draft (docs/adr/045): shown beside the form, used only if the person chooses to, saved only by Save.
+  // A copy draft: shown beside the form, used only if the person chooses to, saved only by Save.
   const [drafting, setDrafting] = useState<CopyTask | null>(null);
   const [draft, setDraft] = useState<CopyDraft | null>(null);
   const [draftError, setDraftError] = useState<string | null>(null);
@@ -125,7 +125,7 @@ export function ProductEditor({ productId, initial }: { productId: string; initi
       setErrors({ ...Object.fromEntries(Object.entries(result.fields).map(([key, value]) => [key, errorFor(value)])), form: t("fixFields") });
       return;
     }
-    // Publishing a draft that has no photograph yet (docs/adr/034).
+    // Publishing a draft that has no photograph yet.
     setErrors({ form: result?.reason === "needs_photo" ? t("needsPhoto") : t("failed") });
   };
 

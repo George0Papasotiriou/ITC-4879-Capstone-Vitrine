@@ -15,7 +15,7 @@ import { Build, buttons, leg, placeLeg } from "@/lib/catalog/model/parts";
 import { fabricOf } from "@/lib/catalog/model/words";
 
 /**
- * docs/adr/058. A bed frame alone reads as a crate. So every bed is dressed
+ * A bed frame alone reads as a crate. So every bed is dressed
  * the same plain way — a white mattress, a duvet turned back, two or three
  * pillows — and the viewer says so ("bedding shown for scale"). The frame is
  * the piece: its headboard (upholstered and tufted or channelled, panelled

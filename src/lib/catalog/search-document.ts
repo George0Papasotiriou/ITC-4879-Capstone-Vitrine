@@ -66,7 +66,7 @@ const join = (...parts: (string | null | undefined)[]) =>
   normalize(parts.filter((part): part is string => typeof part === "string" && part !== "").join(" "));
 
 export function buildSearchDocument(input: SearchDocumentInput): SearchDocument {
-  // Garments use the clothing kinds (ADR-062): without them «φόρεμα» found no dress.
+  // Garments use the clothing kinds: without them «φόρεμα» found no dress.
   const kind = productKindOf(input.kind);
   const category = CATEGORIES.find((candidate) => candidate.slug === input.category);
 

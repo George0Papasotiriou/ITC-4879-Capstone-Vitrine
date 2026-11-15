@@ -21,7 +21,7 @@ import { CATEGORIES, isCategorySlug } from "@/lib/catalog/taxonomy";
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
- * Category listing (docs/PLAN.md Phase 3, step 5): the category's products
+ * Category listing: the category's products
  * with facets, sort and pagination, all held in the URL.
  */
 

@@ -26,7 +26,7 @@ import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/056. What everyone with the link sees, in step: a change anyone
+ * What everyone with the link sees, in step: a change anyone
  * makes is announced on the board's live stream (/api/boards/[id]/live) and
  * every open page reads the board again — with its own link's rights, so a
  * viewer never receives an editor's controls. Prices are read from the

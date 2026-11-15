@@ -14,7 +14,7 @@ import { accessibleOrder } from "@/lib/commerce/server";
 import { stripePayments } from "@/lib/payments/service";
 
 /**
- * docs/adr/038. Only for someone who may see the order — its link's token, or
+ * Only for someone who may see the order — its link's token, or
  * the signed-in owner — and only while it waits for payment. The answer is the
  * PaymentIntent's client secret, which lets the browser pay this one amount
  * and nothing else, and the publishable key; neither is a secret of the shop.

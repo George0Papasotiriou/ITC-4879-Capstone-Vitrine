@@ -13,13 +13,13 @@ import { DELIVERY_COUNTRIES, type DeliveryCountry } from "@/lib/commerce/exports
 import { needsRegion, normaliseRegion } from "@/lib/commerce/regions";
 
 /**
- * What the checkout form may send (Zod at the boundary, CLAUDE.md conventions).
+ * What the checkout form may send (validated with Zod at the boundary).
  * Deliberately no prices, totals or product ids: those come from the cart in
  * the database. Errors are reported per field as stable codes, which the form
  * turns into sentences in the shopper's language.
  *
- * Delivery is to the EU (docs/adr/013) and to the export countries
- * (docs/adr/015); the postcode is checked against the country's own format, and
+ * Delivery is to the EU and to the export countries;
+ * the postcode is checked against the country's own format, and
  * the United States, Canada and Australia also need their state or province.
  */
 
@@ -57,7 +57,7 @@ const POSTCODES: Record<DeliveryCountry, { pattern: RegExp; format?: (compact: s
   SE: { pattern: /^\d{5}$/, strip: /^SE-?/, format: (c) => `${c.slice(0, 3)} ${c.slice(3)}` },
   SI: { pattern: /^\d{4}$/, strip: /^SI-?/ },
   SK: { pattern: /^\d{5}$/, format: (c) => `${c.slice(0, 3)} ${c.slice(3)}` },
-  // Beyond the EU (docs/adr/015).
+  // Beyond the EU.
   // UK: an outward code (area and district) and an inward code (sector digit and unit letters).
   GB: { pattern: /^[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}$/, format: (c) => `${c.slice(0, -3)} ${c.slice(-3)}` },
   CH: { pattern: /^[1-9]\d{3}$/, strip: /^CH-?/ },

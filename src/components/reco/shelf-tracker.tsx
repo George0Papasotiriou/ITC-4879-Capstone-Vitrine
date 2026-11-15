@@ -15,7 +15,7 @@ import { useEffect } from "react";
 import { ADDED_EVENT } from "@/components/commerce/cart-client";
 
 /**
- * docs/adr/034. Any section marked `data-shelf` is a shelf. It is counted as
+ * Any section marked `data-shelf` is a shelf. It is counted as
  * seen once per visit to the page when a quarter of it is on screen; a piece
  * on it is counted as opened when its link is followed; and if that piece is
  * then put in the cart within half an hour, the shelf gets the credit. Nothing

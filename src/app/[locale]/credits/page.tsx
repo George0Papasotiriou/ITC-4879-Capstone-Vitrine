@@ -42,7 +42,7 @@ async function depthModel(): Promise<{ name: string; licence: string } | null> {
   return modelCredit("depth");
 }
 
-/** A browser model's name and licence from its manifest, or null when its files are not served (docs/adr/014, docs/adr/065). */
+/** A browser model's name and licence from its manifest, or null when its files are not served. */
 async function modelCredit(folder: "depth" | "face"): Promise<{ name: string; licence: string } | null> {
   try {
     const manifest = JSON.parse(await readFile(path.join("public", "models", folder, "manifest.json"), "utf8")) as {

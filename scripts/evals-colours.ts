@@ -19,7 +19,7 @@ import { CANONICAL_FACE_MM } from "@/lib/vision/mirror/face-model";
 import { frameIntrinsics, headAngles, solveHeadPose } from "@/lib/vision/mirror/pose";
 
 /**
- * docs/adr/066, docs/report/evaluations/e15-colours.md.
+ * Writes docs/report/evaluations/e15-colours.md.
  *
  *   pnpm evals:colours        (after pnpm evals:mirror has cached the landmarks)
  *

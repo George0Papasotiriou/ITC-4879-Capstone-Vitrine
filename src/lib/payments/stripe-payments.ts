@@ -13,8 +13,6 @@ import type { OrderEventType, OrderStatus, SideEffect } from "@/lib/commerce/ord
 import { decidePayment, orderIdOf, paymentIntentIdOf, type OrderForPayment, type StripeEventLike } from "@/lib/payments/stripe-events";
 
 /**
- * docs/adr/038.
- *
  * - Starting a payment creates one PaymentIntent per order, for the total the
  *   database holds, with the order's id as the idempotency key: pressing "Pay"
  *   twice, or two tabs, never makes two. The client secret goes to the

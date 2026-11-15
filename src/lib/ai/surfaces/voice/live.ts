@@ -16,7 +16,7 @@ import { toolsFor } from "@/lib/ai/tools/registry";
 import { OPEN_WINDOW_SECONDS } from "@/lib/ai/surfaces/voice/sessions";
 
 /**
- * docs/adr/026 built voice on the browser's own speech; docs/adr/030 adds a
+ * Voice first ran on the browser's own speech; this adds a
  * realtime model beside it. The browser opens the socket to the provider
  * itself, with a token this file mints on the server — the key never leaves
  * the server, and the token only opens a socket for a minute.
@@ -25,7 +25,7 @@ import { OPEN_WINDOW_SECONDS } from "@/lib/ai/surfaces/voice/sessions";
  * live, the language, captions for both sides, and the tools of the registry
  * offered to voice. The model's tool calls come back to the shop through
  * `/api/concierge/tools`, so they run with the same checks, approvals and undo
- * as a typed turn (CLAUDE.md rule 4).
+ * as a typed turn.
  *
  * Which provider: VOICE_PROVIDER, when its key exists; otherwise nobody, and
  * voice stays on the browser's speech. Nothing here depends on the Concierge's
@@ -71,7 +71,7 @@ export async function realtimeTools(): Promise<RealtimeToolDefinition[]> {
  * The session the token is minted for. OpenAI's voice is named; Google's
  * default voice speaks both languages, so it is left to choose. Captions are
  * asked for on both sides: what the shopper said and what was answered are
- * always written as well as heard (docs/adr/026).
+ * always written as well as heard.
  */
 export function realtimeSessionConfig({ provider, locale, signedIn, tools }: { provider: RealtimeProvider; locale: "en" | "el"; signedIn: boolean; tools: RealtimeToolDefinition[] }): RealtimeSessionConfig {
   return {

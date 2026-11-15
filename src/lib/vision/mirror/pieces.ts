@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/065. The mirror puts a piece's own studio photograph on the
+ * The mirror puts a piece's own studio photograph on the
  * face, cut out of its white ground (cutout.ts), at the piece's true size.
  * The catalogue holds no measurements for jewellery or hats (a box's size is
  * not a ring's), so the size comes from the listing's own words when it says

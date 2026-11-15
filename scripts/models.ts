@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/059.
- *
  *   pnpm models ai --dry-run [--limit 10] [--provider trellis|trellis-2] [--scanned] [--kinds CHAIR,SOFA]
  *   pnpm models ai --yes     [same options]
  *

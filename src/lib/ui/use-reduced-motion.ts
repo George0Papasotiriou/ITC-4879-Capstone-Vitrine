@@ -24,12 +24,12 @@ import { useSyncExternalStore } from "react";
  * agree; the real value arrives in the re-render immediately after hydration,
  * before anything has had time to move.
  *
- * Two places can ask for it (docs/adr/032): the operating system, and the
+ * Two places can ask for it: the operating system, and the
  * shop's comfort settings, which write `data-motion` on <html> — "reduce" to
  * ask for less motion whatever the system says, "full" to keep it. The
  * stylesheet reads the same attribute, so CSS and script always agree.
  *
- * Reduced motion is honoured everywhere (docs/PLAN.md 4.7). The rule is that
+ * Reduced motion is honoured everywhere. The rule is that
  * turning it on removes animation, never function: the Spotlight still acts,
  * still captions, still announces and still records an undo.
  */

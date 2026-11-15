@@ -5,7 +5,7 @@
 #
 # E12's baselines: the commonest verdict, each item's own record, and the one-latent-variable model of Sembium et al. (2017).
 
-"""E12's baselines (docs/adr/064).
+"""E12's baselines.
 
 1. Majority: always the training set's class shares — what a shop that knows
    nothing about sizes would say.

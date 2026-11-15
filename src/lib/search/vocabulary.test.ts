@@ -103,7 +103,7 @@ describe("the vocabulary as a whole", () => {
   });
 });
 
-describe("englishPieceNames (docs/adr/047)", () => {
+describe("englishPieceNames", () => {
   it("names in English the pieces production could not find in Greek", () => {
     expect(englishPieceNames("πολυθρονα")).toEqual(["armchair"]);
     expect(englishPieceNames("λαμπα")).toEqual(["lamp"]);

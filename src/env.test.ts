@@ -101,7 +101,7 @@ describe("the production guard", () => {
     expect(result.success).toBe(true);
   });
 
-  it("refuses the AI pictures' test stand-in in production, and reads the old drawn previews as off (docs/adr/060)", () => {
+  it("refuses the AI pictures' test stand-in in production, and reads the old drawn previews as off", () => {
     const production = { ...base, ...s3, ...cookieSecret, NODE_ENV: "production", REDIS_URL: "redis://redis.internal:6379" };
     const fixture = parseEnvironment({ ...production, PICTURES_PROVIDER: "fixture" });
     expect(fixture.success).toBe(false);
@@ -136,7 +136,7 @@ describe("the production guard", () => {
     expect(parseEnvironment({ ...base, ...localSecret }).success).toBe(true);
   });
 
-  it("requires an auth secret of at least 32 characters in production (docs/adr/016)", () => {
+  it("requires an auth secret of at least 32 characters in production", () => {
     const production = { ...base, ...s3, NODE_ENV: "production", REDIS_URL: "redis://redis.internal:6379", COOKIE_SECRET: "c".repeat(32) };
     const missing = parseEnvironment(production);
     expect(missing.error?.issues.map((issue) => issue.path.join("."))).toEqual(["BETTER_AUTH_SECRET"]);
@@ -149,7 +149,7 @@ describe("the production guard", () => {
     expect(parseEnvironment({ ...base, ...localSecret, GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "secret" }).success).toBe(true);
   });
 
-  it("picks the AI mode: Gemini with a key, the demo locally, off in a deployment without a key (docs/adr/019)", () => {
+  it("picks the AI mode: Gemini with a key, the demo locally, off in a deployment without a key", () => {
     const production = { ...base, ...s3, ...cookieSecret, NODE_ENV: "production", REDIS_URL: "redis://redis.internal:6379" };
     expect(parseEnvironment({ ...base, ...localSecret }).data?.aiMode).toBe("demo");
     expect(parseEnvironment(production).data?.aiMode).toBe("off");
@@ -176,7 +176,7 @@ describe("the local stack and the deployment that carries its flag (2026-09-29)"
   });
 });
 
-describe("Stripe (docs/adr/038)", () => {
+describe("Stripe", () => {
   const stripe = { STRIPE_SECRET_KEY: "sk_test_abc", STRIPE_PUBLISHABLE_KEY: "pk_test_abc", STRIPE_WEBHOOK_SECRET: "whsec_abc" };
 
   it("pays with Stripe when all three keys are set, and with the local test payment otherwise", () => {
@@ -194,7 +194,7 @@ describe("Stripe (docs/adr/038)", () => {
   });
 });
 
-describe("Web Push (docs/adr/044)", () => {
+describe("Web Push", () => {
   const vapid = { VAPID_PUBLIC_KEY: `B${"a".repeat(86)}`, VAPID_PRIVATE_KEY: "k".repeat(43), VAPID_SUBJECT: "mailto:shop@example.com" };
 
   it("offers notifications only when the three VAPID variables are set", () => {

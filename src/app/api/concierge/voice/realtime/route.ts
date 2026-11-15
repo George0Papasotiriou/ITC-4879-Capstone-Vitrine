@@ -15,7 +15,7 @@ import { currentUser } from "@/lib/auth/session";
 import { loggerForRequest } from "@/lib/log";
 
 /**
- * docs/adr/030. The AI SDK's realtime client asks this address for its setup
+ * The AI SDK's realtime client asks this address for its setup
  * (`api.token`) and opens the socket with what comes back. It is given for a
  * session `/api/concierge/voice/session` has already reserved, to the person
  * who reserved it, once, within a minute — so a reservation is one socket.

@@ -22,8 +22,6 @@ import { usePrefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 import type { Hotspot, WindowEngine } from "./engine";
 
 /**
- * docs/adr/048.
- *
  * THE ENGINE OUTLIVES THE PAGE. Choosing another window is a navigation, and
  * the page around the window is rendered afresh (src/app/[locale]/template.tsx
  * mounts pages anew). The 3D room should not be: so the engine and its canvas

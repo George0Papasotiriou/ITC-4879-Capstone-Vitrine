@@ -26,7 +26,7 @@ describe("toLatin1", () => {
   });
 
   it("drops what it cannot write at all, rather than writing nonsense", () => {
-    // Greek is why the report is in English (docs/adr/020).
+    // Greek is why the report is in English.
     expect(toLatin1("Καναπές")).toBe("");
   });
 });

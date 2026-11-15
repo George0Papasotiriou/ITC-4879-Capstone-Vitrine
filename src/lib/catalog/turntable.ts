@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/035. ABO photographs 8,222 products on a turntable, as 24 or 72
+ * ABO photographs 8,222 products on a turntable, as 24 or 72
  * frames at equal angles (spins/metadata/spins.csv.gz), and has glTF models
  * of 7,953 (3dmodels/metadata/3dmodels.csv.gz, with each model's extent in
  * metres). These are the pure parts: reading the two index files, and taking

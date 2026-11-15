@@ -14,7 +14,7 @@ import { COMFORT_OPTIONS, type ComfortKey } from "@/lib/comfort/settings";
 /**
  * Kept apart from settings.ts, which every page loads to apply the settings
  * before first paint: the schema library is for the boundaries that check a
- * change, and has no business in every page's download (docs/adr/034).
+ * change, and has no business in every page's download.
  */
 
 /** A partial update, validated: at least one known setting, each with a value from its list. */

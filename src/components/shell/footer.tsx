@@ -67,7 +67,7 @@ export async function Footer() {
               {item.label}
             </Link>
           ))}
-          {/* The comfort settings, for anyone who looks for them where help usually is (docs/adr/032). */}
+          {/* The comfort settings, for anyone who looks for them where help usually is. */}
           <ComfortLink className="text-slate text-sm" />
         </nav>
 

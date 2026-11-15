@@ -20,7 +20,7 @@ import { currentRegion } from "@/lib/commerce/region";
 import { currentPreferences } from "@/lib/prefs/server";
 
 /**
- * docs/adr/056. `?k=` carries the link; the owner needs none. A board this
+ * `?k=` carries the link; the owner needs none. A board this
  * visitor may not see is "not found", the same as one that does not exist, so
  * a link cannot be used to learn which boards there are.
  */

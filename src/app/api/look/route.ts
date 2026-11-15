@@ -21,7 +21,7 @@ import { photoStore } from "@/lib/photos/server";
 import { storage } from "@/lib/storage";
 
 /**
- * docs/adr/054. The photograph is one the shopper gave a moment ago with its
+ * The photograph is one the shopper gave a moment ago with its
  * consent line (POST /api/photos, kind "snap" or "room"), found only for the
  * browser that gave it and only while it lasts. The answer names where each
  * pin is and what was measured there; prices and pictures come from the

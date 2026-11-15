@@ -18,7 +18,7 @@ import { photoStore } from "@/lib/photos/server";
 import { readPalette, snapSearch } from "@/lib/vision/snap-server";
 
 /**
- * Snap to shop (docs/adr/024). With no multimodal key the shop reads what it
+ * Snap to shop. With no multimodal key the shop reads what it
  * can measure — the photograph's colours — names them in its own vocabulary,
  * and searches with them. It says exactly what it saw, so a shopper is never
  * left guessing why these pieces came back.

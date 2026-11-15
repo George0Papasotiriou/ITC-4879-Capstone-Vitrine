@@ -20,7 +20,7 @@ import { dashboards } from "@/lib/admin/server";
 import { requirePermission } from "@/lib/auth/session";
 
 /**
- * docs/adr/034. For "reports:read". A shelf is counted as seen once per page
+ * For "reports:read". A shelf is counted as seen once per page
  * visit, a click when a piece on it is opened, and an add when that piece goes
  * into the cart within half an hour. Nothing identifies the shopper; the
  * shelf names are the Taste Graph's (for you, pairs with, complete the set …).

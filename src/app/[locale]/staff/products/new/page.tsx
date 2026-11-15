@@ -17,7 +17,7 @@ import { requirePermission } from "@/lib/auth/session";
 import { ABO_PRODUCT_KINDS, CATEGORIES } from "@/lib/catalog/taxonomy";
 
 /**
- * docs/adr/034. The kinds are the catalogue's own, grouped by the category
+ * The kinds are the catalogue's own, grouped by the category
  * they belong to, so a new product lands in the right aisle and search reads
  * its kind like any imported piece. Clothing in sizes is made by the capsule
  * tool, not here.

@@ -17,7 +17,7 @@ import * as schema from "@/lib/db/schema";
 import { createPushStore, MAX_FAILURES, type PushStore } from "@/lib/push/store";
 import { generateVapidKeys } from "@/lib/push/webpush";
 
-/** docs/adr/044. The push service is a stand-in that answers as told and records what it was sent; nothing leaves the machine. */
+/** The push service is a stand-in that answers as told and records what it was sent; nothing leaves the machine. */
 
 const url = process.env.DATABASE_URL;
 const KEYS = { p256dh: "BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4", auth: "BTBZMqHH6r4Tts7J_aSIgg" };

@@ -40,21 +40,21 @@ const wardrobeInstance = () => (wardrobe ??= createWardrobe(sql));
 
 /**
  * Both are the same for everyone in a country and costly to work out (a
- * capsule up to a few seconds of CPU), so they are kept in the shared cache
- * (docs/adr/039): cleared when the catalogue changes, and refreshed every
+ * capsule up to a few seconds of CPU), so they are kept in the shared cache:
+ * cleared when the catalogue changes, and refreshed every
  * half hour for stock. The pages read prices and stock fresh around them.
  */
 const LOOK_CACHE_SECONDS = 10 * 60;
 const CAPSULE_CACHE_SECONDS = 30 * 60;
 
-/** "Complete the look" around a piece (docs/adr/066), in the shopper's prices. */
+/** "Complete the look" around a piece, in the shopper's prices. */
 export async function lookFor(productId: string, budgetCents?: number) {
   await connection();
   const { country } = await currentRegion();
   return cached("wardrobe", { look: productId, country, budgetCents: budgetCents ?? null }, LOOK_CACHE_SECONDS, () => wardrobeInstance().lookFor(productId, country, budgetCents));
 }
 
-/** A capsule wardrobe (docs/adr/066), in the shopper's prices. */
+/** A capsule wardrobe, in the shopper's prices. */
 export async function capsuleFor(department: Department, size: CapsuleSize, budgetCents: number) {
   await connection();
   const { country } = await currentRegion();

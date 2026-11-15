@@ -14,7 +14,7 @@ import { MODELS, type ModelEntry } from "@/lib/ai/models";
 import { createDemoModel } from "@/lib/ai/providers/demo";
 
 /**
- * Providers are swappable behind the AI SDK (ADR-004); model IDs come only
+ * Providers are swappable behind the AI SDK; model IDs come only
  * from src/lib/ai/models.ts. The key is read from the server environment and
  * handed to the provider explicitly, so no code path can pick up a key from
  * somewhere unexpected.

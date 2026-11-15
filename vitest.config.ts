@@ -14,12 +14,12 @@ import { defineConfig } from "vitest/config";
 const srcAlias = { "@": fileURLToPath(new URL("./src", import.meta.url)) };
 
 /**
- * Two projects, run separately (docs/PLAN.md Part 6).
+ * Two projects, run separately.
  *
  * - `unit` covers pure logic and runs anywhere, with no services. This is where
  *   the graded algorithms are tested.
  * - `integration` needs PostgreSQL with pgvector. CI provides a real one;
- *   locally, global setup starts an in-memory PGlite (ADR-008), so the suite
+ *   locally, global setup starts an in-memory PGlite, so the suite
  *   runs on any machine without Docker.
  */
 export default defineConfig({

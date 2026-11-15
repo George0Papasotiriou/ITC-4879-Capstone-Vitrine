@@ -138,7 +138,7 @@ test("the placed piece takes the room's light, and the shopper can turn that off
   }
   await page.getByRole("button", { name: "Place it" }).click();
 
-  // On by default (docs/adr/042): the piece's photograph is multiplied by the room's white.
+  // On by default: the piece's photograph is multiplied by the room's white.
   const stage = page.locator('canvas[data-agent-id="room:stage"]');
   const matchLight = page.locator('[data-agent-id="room:match-light"] input');
   await expect(matchLight).toBeChecked();
@@ -198,7 +198,7 @@ test("product pages link to the room only for pieces that can be placed", async 
 });
 
 /**
- * The paper-free mode (ADR-014). The drawn room's depth is known exactly, so
+ * The paper-free mode. The drawn room's depth is known exactly, so
  * this exercises the whole flow — choose the method, measure, judge, place —
  * and checks the geometry against the camera the room was drawn with: 1.4 m up.
  */

@@ -10,7 +10,7 @@
 import type postgres from "postgres";
 
 /**
- * Retrieval — step 3 of the A1 pipeline (docs/PLAN.md 2.6).
+ * Retrieval — step 3 of the A1 pipeline.
  *
  * Each retriever answers the same question in its own way and returns product
  * ids best first. None of them is trusted alone; fusion combines them.
@@ -212,7 +212,7 @@ export function createRetrievers(sql: Sql) {
     return new Map(usable.map((word) => [word, Math.log(1 + total / Math.max(1, of(word)))]));
   }
 
-  /** What the learned ranking stage reads about each candidate (docs/adr/057): its English title, brand and colours. */
+  /** What the learned ranking stage reads about each candidate: its English title, brand and colours. */
   async function rankingFacts(ids: readonly string[]) {
     if (ids.length === 0) return [];
     return sql<{ id: string; title: string; brand: string | null; colors: string[] }[]>`

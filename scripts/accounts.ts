@@ -8,7 +8,7 @@
  */
 
 /**
- * Accounts (docs/adr/016).
+ * Accounts.
  *
  *   pnpm accounts list                         every account, its roles and how it signs in
  *   pnpm accounts grant <email> <role>         add a role (customer, support, merchandiser, admin)
@@ -80,7 +80,7 @@ async function changeRole(sql: postgres.Sql, change: "grant" | "revoke", email: 
   const next = change === "grant" ? withRole(user.role, role) : withoutRole(user.role, role);
   console.log(`${email}: ${user.role} → ${next}${next === user.role ? " (no change)" : ""}`);
   if (dryRun || next === user.role) return;
-  // Audited with no person as the actor: whoever ran the script is not an account (docs/adr/018).
+  // Audited with no person as the actor: whoever ran the script is not an account.
   await sql.begin(async (tx) => {
     await tx`UPDATE users SET role = ${next}, updated_at = now() WHERE id = ${user.id}`;
     await recordAudit(tx, {

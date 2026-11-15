@@ -20,7 +20,7 @@ import {
 } from "@/lib/jobs/types";
 
 /**
- * Enqueueing, independent of the jobs driver (ADR-008).
+ * Enqueueing, independent of the jobs driver.
  *
  * Callers write `enqueue("ping", payload)` and never learn which driver runs it:
  * BullMQ on Redis in production, the inline driver on a laptop.

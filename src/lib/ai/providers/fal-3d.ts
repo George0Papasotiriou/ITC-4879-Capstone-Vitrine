@@ -10,7 +10,7 @@
 import { z } from "zod";
 
 /**
- * docs/adr/059. Written against fal's own documentation (fal.ai/docs, "Queue",
+ * Written against fal's own documentation (fal.ai/docs, "Queue",
  * and the TRELLIS and TRELLIS.2 API pages, read 2026-10-03), with no SDK: the
  * queue is three HTTP calls.
  *

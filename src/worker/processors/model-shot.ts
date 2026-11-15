@@ -20,7 +20,7 @@ import { loggerFor } from "@/lib/log";
 import { storage } from "@/lib/storage";
 
 /**
- * docs/adr/063. FASHN's Product to Model is given the piece's own studio
+ * FASHN's Product to Model is given the piece's own studio
  * photograph and a brief naming the build and skin tone the shopper picked —
  * no face, nothing of the shopper's. The shot is stored under catalog/, served
  * to everyone at /media, and never made twice; the shopper who asked gets the

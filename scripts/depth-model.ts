@@ -8,7 +8,7 @@
  */
 
 /**
- * The depth model for placing a piece without a sheet of paper (ADR-014).
+ * The depth model for placing a piece without a sheet of paper.
  *
  *   pnpm depth-model            what it would take, and what is installed now
  *   pnpm depth-model check      list the installed files

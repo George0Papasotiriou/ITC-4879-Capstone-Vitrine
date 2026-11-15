@@ -13,7 +13,7 @@ import { SmartLink } from "@/components/ui/smart-link";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * A filter chip that is a link (docs/PLAN.md 4.4).
+ * A filter chip that is a link.
  *
  * Listing filters live in the URL, so choosing one is a navigation: it works
  * without JavaScript, can be opened in a new tab, and goes back with the back
@@ -45,7 +45,7 @@ export function FilterLink({
       href={href}
       aria-current={current ? "page" : undefined}
       scroll={false}
-      // The grid rearranges itself rather than being replaced (docs/adr/031).
+      // The grid rearranges itself rather than being replaced.
       transitionTypes={["listing"]}
       className={cn(
         "inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm no-underline",

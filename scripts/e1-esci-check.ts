@@ -8,12 +8,10 @@
  */
 
 /**
- * docs/adr/049 (addendum).
- *
  *   pnpm evals:e1-esci-check sample     writes the blind sample and, apart, its key
  *   pnpm evals:e1-esci-check score      compares the judge's grades with the key
  *
- * E1's grades come from an AI judge (docs/adr/049). How far such a judge can be
+ * E1's grades come from an AI judge. How far such a judge can be
  * trusted is measured by its agreement with people. Amazon's Shopping Queries
  * Dataset (ESCI, already in .local/esci for `pnpm evals:esci`) was labelled by
  * Amazon's human annotators on the very scale the shop's rubric uses —

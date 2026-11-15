@@ -11,7 +11,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * The interactive primitives (docs/PLAN.md Phase 2, step 3; 4.7).
+ * The interactive primitives.
  *
  * These are the behaviours that are easy to break and invisible in a
  * screenshot: where focus goes when a dialog opens and closes, whether Esc

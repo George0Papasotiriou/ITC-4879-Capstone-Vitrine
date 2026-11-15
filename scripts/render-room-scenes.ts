@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/036 (addendum).
- *
  *   pnpm e4:render [--per-category 4] [--seed 4949] [--out .local/e4-render]
  *
  * The web-photo proxy (evaluate-room-web.ts) has hand marks, manufacturers'
@@ -73,7 +71,7 @@ export type RenderedScene = {
   distanceM: number;
   /** The renderer's exact depth (Float32, little-endian, row by row), for the control run. */
   exactDepth: { file: string; width: number; height: number };
-  /** E4-H's images (docs/adr/042): in the room, the room alone, the studio photograph, the outline. */
+  /** E4-H's images: in the room, the room alone, the studio photograph, the outline. */
   harmonise: { truth: string; room: string; studio: string; mask: string };
   /** The scene's light: colour (0xRRGGBB) and strength. */
   light: { colour: number; level: number };
@@ -187,7 +185,7 @@ window.renderScene = async (p) => {
   skirting.position.set(0, 0.04, back.position.z + 0.01);
   scene.add(skirting);
 
-  // Each scene its own light (docs/adr/042): warm lamp, neutral bulb or cool daylight, bright to dim,
+  // Each scene its own light: warm lamp, neutral bulb or cool daylight, bright to dim,
   // so harmonisation has something to match.
   const LIGHT_COLOURS = [0xffc58f, 0xfff4e6, 0xd6e6ff];
   const lightColour = LIGHT_COLOURS[p.seed % 3];
@@ -243,7 +241,7 @@ window.renderScene = async (p) => {
   let binary = "";
   for (let i = 0; i < bytes.length; i += 32768) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 32768));
 
-  // E4-H (docs/adr/042): the room as a shopper would photograph it, without the piece; the piece alone
+  // E4-H (light harmonisation): the room as a shopper would photograph it, without the piece; the piece alone
   // under neutral studio light from the same camera, as a product photograph; and its exact outline.
   piece.visible = false;
   renderer.render(scene, camera);

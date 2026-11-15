@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/cart">):
 export default async function CartPage({ params, searchParams }: PageProps<"/[locale]/cart">) {
   const locale = await requireLocale(params);
   const t = await getTranslations("cart");
-  // Arrived from an AI agent's checkout link (docs/adr/043): say so, and say what happens next.
+  // Arrived from an AI agent's checkout link: say so, and say what happens next.
   const handoff = (await searchParams).handoff;
   const handoffNote =
     handoff === "agent" || handoff === "gone" || handoff === "invalid" ? (
@@ -90,7 +90,7 @@ export default async function CartPage({ params, searchParams }: PageProps<"/[lo
   const { totals } = view;
   const blocked = view.lines.some((line) => !line.available);
 
-  // What completes the set (docs/adr/034): complements of the cart's pieces, each with the piece it goes with.
+  // What completes the set: complements of the cart's pieces, each with the piece it goes with.
   const suggestions = await completeSetFor(view.lines.map((line) => line.productId), 4);
   const suggestionCards = suggestions.length === 0 ? [] : await getCardsByIds(suggestions.map((entry) => entry.productId), locale);
   const titleOf = new Map(view.lines.map((line) => [line.productId, line.title]));
@@ -105,7 +105,7 @@ export default async function CartPage({ params, searchParams }: PageProps<"/[lo
       {handoffNote}
 
       <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
-        {/* A line removed folds away, and the lines below close the gap (docs/adr/031). */}
+        {/* A line removed folds away, and the lines below close the gap. */}
         <FlipGroup>
         <ul className="border-hairline divide-hairline divide-y border-y" data-agent-id="cart:lines">
           {view.lines.map((line) => (

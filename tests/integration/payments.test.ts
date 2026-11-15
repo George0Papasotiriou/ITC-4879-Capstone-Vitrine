@@ -24,7 +24,7 @@ import * as schema from "@/lib/db/schema";
 import { createStripePayments, type StripeLike } from "@/lib/payments/stripe-payments";
 
 /**
- * docs/adr/038. Events are signed here with the Stripe SDK's own test helper
+ * Events are signed here with the Stripe SDK's own test helper
  * and a made-up secret, then checked by the same SDK in the webhook: the
  * signature rule is Stripe's, and nothing leaves the machine. PaymentIntents and
  * refunds are a stand-in that records what the shop asked for.

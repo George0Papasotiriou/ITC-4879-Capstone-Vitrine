@@ -15,7 +15,7 @@ import { useId } from "react";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Text field (docs/PLAN.md 4.4, 4.7)
+ * Text field
  *
  * The label is a required prop rather than something a caller can forget, and
  * it is wired to the input by a generated id. A placeholder is never the label:

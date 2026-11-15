@@ -64,7 +64,7 @@ describe("parseListing", () => {
     expect(activeFilterCount(state)).toBe(2);
   });
 
-  it("filters clothes by who they are for, in the URL as `for` (docs/adr/062)", () => {
+  it("filters clothes by who they are for, in the URL as `for`", () => {
     const state = parseListing({ for: "men" });
     expect(state.departments).toEqual(["men"]);
     expect(listingQuery(state)).toBe("?for=men");
@@ -73,7 +73,7 @@ describe("parseListing", () => {
     expect(activeFilterCount(state)).toBe(1);
   });
 
-  it("narrows a listing to kinds of piece, as the categories menu links them (docs/adr/067)", () => {
+  it("narrows a listing to kinds of piece, as the categories menu links them", () => {
     const state = parseListing({ kind: ["LAMP", "HOME_LIGHTING_AND_LAMPS"] });
     expect(state.kinds).toEqual(["HOME_LIGHTING_AND_LAMPS", "LAMP"]);
     expect(listingQuery(state)).toBe("?kind=HOME_LIGHTING_AND_LAMPS&kind=LAMP");

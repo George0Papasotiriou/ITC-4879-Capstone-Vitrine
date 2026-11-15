@@ -9,7 +9,7 @@
 
 /**
  * Captures the pages named on the command line at the two viewports the
- * capstone report uses (docs/PLAN.md, /log step 6): 1440x900 desktop and
+ * capstone report uses (/log step 6): 1440x900 desktop and
  * 390x844 mobile. Full-page, so a design review sees the whole thing.
  *
  *   node scripts/screenshot.mjs /design /

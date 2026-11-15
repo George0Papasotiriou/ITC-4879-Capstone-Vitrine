@@ -15,16 +15,16 @@ import { money, type Money } from "@/lib/commerce/money";
 import type { DimensionsCm } from "@/lib/db/schema";
 
 /**
- * Catalogue reads (docs/PLAN.md Phase 3).
+ * Catalogue reads.
  *
  * Written against the postgres.js client rather than a framework, so the same
  * functions serve pages, route handlers, the Concierge's tools and the
  * integration tests. Everything a component shows comes from here: prices and
  * stock are read from the database on every request and never computed in the
- * browser or by a model (CLAUDE.md golden rule 5).
+ * browser or by a model.
  *
  * Arrays are passed as `${values}::text[]`, the form proven identical on PGlite
- * and PostgreSQL (tests/integration/sql-arrays.test.ts, ADR-008).
+ * and PostgreSQL (tests/integration/sql-arrays.test.ts).
  */
 
 type Sql = postgres.Sql;
@@ -74,14 +74,14 @@ export type ProductDetail = ProductCard & {
   dimsCm: DimensionsCm | null;
   weightGrams: number | null;
   stock: number;
-  /** One per size for the capsule, one without a size for everything else (docs/adr/022). */
+  /** One per size for the capsule, one without a size for everything else. */
   variants: { id: string; sku: string; size: string | null; stock: number; priceCents: number | null }[];
   media: CatalogImage[];
-  /** A real 3D model of the piece (the ABO scan, compressed), when the shop has one (docs/adr/035). */
+  /** A real 3D model of the piece (the ABO scan, compressed), when the shop has one. */
   model: { src: string; bytes: number | null } | null;
-  /** A model an AI made from the piece's photograph, checked and shown (docs/adr/059); only when there is no scan. */
+  /** A model an AI made from the piece's photograph, checked and shown; only when there is no scan. */
   aiModel: { src: string; bytes: number | null } | null;
-  /** Turntable photographs, in order round the piece (docs/adr/035); empty when there are none. */
+  /** Turntable photographs, in order round the piece; empty when there are none. */
   spin: string[];
   ratingSum: number;
   ratingCount: number;
@@ -191,16 +191,16 @@ export function createCatalogQueries(sql: Sql) {
   function conditions(category: string | null, state: ListingState, except?: Facet) {
     const parts = [sql`p.status = 'active'`];
     if (category !== null) parts.push(sql`c.slug = ${category}`);
-    // One kind of piece within the category, from the categories menu (docs/adr/067).
+    // One kind of piece within the category, from the categories menu.
     if (except !== "kinds" && state.kinds.length > 0) parts.push(sql`p.kind = ANY(${state.kinds}::text[])`);
     if (except !== "colors" && state.colors.length > 0) parts.push(sql`p.colors && ${state.colors}::text[]`);
     if (except !== "materials" && state.materials.length > 0) parts.push(sql`p.materials && ${state.materials}::text[]`);
     if (except !== "brands" && state.brands.length > 0) parts.push(sql`b.slug = ANY(${state.brands}::text[])`);
-    // A size is chosen to be bought: only pieces with that size in stock (docs/adr/061).
+    // A size is chosen to be bought: only pieces with that size in stock.
     if (except !== "sizes" && state.sizes.length > 0) {
       parts.push(sql`EXISTS (SELECT 1 FROM product_variants sv WHERE sv.product_id = p.id AND sv.size = ANY(${state.sizes}::text[]) AND sv.stock > 0)`);
     }
-    // Who a garment is for, as its listing says (docs/adr/062).
+    // Who a garment is for, as its listing says.
     if (except !== "departments" && state.departments.length > 0) parts.push(sql`p.attributes->>'department' = ANY(${state.departments}::text[])`);
     if (state.minCents !== null) parts.push(sql`p.price_cents >= ${state.minCents}`);
     if (state.maxCents !== null) parts.push(sql`p.price_cents <= ${state.maxCents}`);
@@ -355,7 +355,7 @@ export function createCatalogQueries(sql: Sql) {
   /**
    * In-stock pieces of the given kinds with measurements, no wider than
    * `maxWidthCm`, most popular first, with their measurements: the candidates
-   * for "Fits your space" (docs/adr/034), which judges each against the rooms.
+   * for "Fits your space", which judges each against the rooms.
    */
   async function forWalls(params: { locale: string; kinds: readonly string[]; minWidthCm: number; maxWidthCm: number; limit: number }): Promise<{ card: ProductCard; dimsCm: DimensionsCm }[]> {
     const rows = await sql<(CardRow & { dims_cm: DimensionsCm })[]>`
@@ -373,7 +373,7 @@ export function createCatalogQueries(sql: Sql) {
   }
 
   /**
-   * Other pieces to picture in the same room (docs/adr/060, "Try another in
+   * Other pieces to picture in the same room ("Try another in
    * this room"): active and in stock, of the same kind, with measurements,
    * nearest in price first — the distance measured as a ratio, so €400 is as
    * near €500 as €40 is to €50 — then the most popular.

@@ -23,8 +23,7 @@ import { formatMoney, money } from "@/lib/commerce/money";
 import { flyToCart } from "@/lib/ui/fly-to-cart";
 
 /**
- * "Add to cart" on a product page, and the mini cart it opens (docs/PLAN.md
- * 4.3, Phase 5 step 2).
+ * "Add to cart" on a product page, and the mini cart it opens.
  *
  * The button sends only the product id; the server picks the variant, checks
  * stock and answers with the cart as it now is. The sheet shows that answer,
@@ -33,7 +32,7 @@ import { flyToCart } from "@/lib/ui/fly-to-cart";
  * button when it closes (Radix Dialog).
  *
  * Before the sheet, the piece's photograph flies to the cart and the count
- * ticks as it lands (docs/adr/031); the button says "Added to cart" with a
+ * ticks as it lands; the button says "Added to cart" with a
  * drawn tick for a moment. The flight starts only once the server has said
  * yes, so nothing ever flies into a cart it did not reach.
  */
@@ -55,7 +54,7 @@ export function AddToCart({
   agentId: string;
   /** A selector for the photograph that flies to the cart; the product page's hero by default. */
   flightSource?: string;
-  /** "dark" on a dusk band (the picture studio, docs/adr/060): a glass button instead of a dusk one. */
+  /** "dark" on a dusk band (the picture studio): a glass button instead of a dusk one. */
   tone?: "light" | "dark";
 }) {
   const t = useTranslations("cart");

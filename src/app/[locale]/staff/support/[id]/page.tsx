@@ -21,8 +21,7 @@ import { cn } from "@/lib/ui/cn";
 
 /**
  * For "support:work". Drafts and internal notes are shown here and nowhere
- * else: the customer's page asks the store for the conversation without them
- * (docs/adr/021).
+ * else: the customer's page asks the store for the conversation without them.
  */
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/staff/support/[id]">): Promise<Metadata> {

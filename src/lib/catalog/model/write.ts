@@ -26,9 +26,9 @@ import { TEXTURE_TILE_M, textureSet, type TextureSet } from "@/lib/catalog/model
 import type { Rgb } from "@/lib/vision/palette";
 
 /**
- * docs/adr/058. The file is written with glTF-Transform (already the shop's
- * tool for compressing scans, docs/adr/035) rather than by hand as the first
- * stand-ins were (docs/adr/025): with textures, samplers and five material
+ * The file is written with glTF-Transform (already the shop's
+ * tool for compressing scans) rather than by hand as the first
+ * stand-ins were: with textures, samplers and five material
  * extensions, the hand-written writer would grow into a worse copy of it.
  *
  * Parts that share a material are merged into one mesh, so a sofa is a

@@ -10,7 +10,7 @@
 import { expect, test, type Page, type Locator } from "@playwright/test";
 
 /**
- * Phase 2 acceptance (docs/PLAN.md):
+ * Phase 2 acceptance:
  *
  *   The Spotlight demo works with a mouse, with the keyboard only, and with
  *   reduced motion (instant highlight, no glide); actions are announced to

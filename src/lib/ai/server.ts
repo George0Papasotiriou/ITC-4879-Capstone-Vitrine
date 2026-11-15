@@ -69,7 +69,7 @@ export async function usageStore(): Promise<UsageStore> {
 
 let voiceSessions: VoiceSessionStore | undefined;
 
-/** Realtime voice sessions (docs/adr/030), reserved and settled through the same usage guard. */
+/** Realtime voice sessions, reserved and settled through the same usage guard. */
 export async function voiceSessionStore(): Promise<VoiceSessionStore> {
   const usage = await usageStore();
   return (voiceSessions ??= createVoiceSessionStore(sql, usage));
@@ -119,7 +119,7 @@ export function toolUser(user: CurrentUser | null): ToolUser | null {
  * The cart the Concierge will change, decided before the answer starts.
  * A chat answer is a stream: once the first byte is sent, no cookie can be
  * added, so a guest's cart id is minted and remembered here, and the cart row
- * is created under that id when something is first added (docs/adr/019).
+ * is created under that id when something is first added.
  * Call it only where cookies may be written.
  */
 export async function conciergeCart(): Promise<{ cartId: string | null; userId: string | null }> {
@@ -149,7 +149,7 @@ export async function toolServices({
   locale: "en" | "el";
   user: CurrentUser | null;
   cart?: { cartId: string | null; userId: string | null };
-  /** The conversation so far as plain text, for a hand-over to a person (docs/adr/027). */
+  /** The conversation so far as plain text, for a hand-over to a person. */
   conversation?: string;
 }): Promise<ToolServices> {
   const store = await commerce();
@@ -185,7 +185,7 @@ export async function toolServices({
       return mine.items.map((item) => item.productId);
     },
     bundles: (request) => buildBundles(request),
-    // Enough reviews for the points to count (docs/adr/041); the tool quotes four.
+    // Enough reviews for the points to count; the tool quotes four.
     reviews: (productId) => reviews.productReviews(productId, { limit: 50 }),
     productIdBySlug: async (slug) => (await getProduct(slug, locale))?.id ?? null,
     cart: {
@@ -283,7 +283,7 @@ export async function toolServices({
         // A try-on needs a photograph, and a photograph means the browser is already known.
         const actor = await knownActor(user);
         if (actor === null) return { ok: false as const, reason: "not_found" as const };
-        // The same start as the page (docs/adr/063): pieces checked, credits first, the work as a job.
+        // The same start as the page: pieces checked, credits first, the work as a job.
         // Imported here: src/lib/fitting/server.ts uses this module's usage store.
         const { startTryOns } = await import("@/lib/fitting/server");
         const started = await startTryOns({ actor, photoId, productIds });

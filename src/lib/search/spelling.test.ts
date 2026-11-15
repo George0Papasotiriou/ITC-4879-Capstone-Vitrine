@@ -91,7 +91,7 @@ describe("corrections", () => {
   });
 });
 
-describe("corrections with the catalogue's word counts (docs/adr/047)", () => {
+describe("corrections with the catalogue's word counts", () => {
   it("prefers the word more products use when two are equally close", () => {
     // Found on production: "chiar" is one edit from "char" (a dropped letter) and "chair" (two swapped).
     const frequency = new Map([

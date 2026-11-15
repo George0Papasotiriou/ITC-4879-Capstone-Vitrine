@@ -14,8 +14,8 @@ import { MAX_STEPS, stepSchema } from "@/lib/fit/path";
 import { MAX_ROOMS } from "@/lib/prefs/rooms";
 
 /**
- * docs/adr/033. The Taste Graph learns from what a shopper does, with their
- * consent (docs/PLAN.md 2.8). These are what they *say*: their size, the rooms
+ * The Taste Graph learns from what a shopper does, with their
+ * consent. These are what they *say*: their size, the rooms
  * they are furnishing, colours and materials they like or would rather not
  * see, what they are comfortable spending. Said once, used everywhere — the
  * size picker starts at their size, a sofa says whether it fits their wall,
@@ -70,7 +70,7 @@ export const preferencesSchema = z.object({
   avoid: z.object({ colors: words.default([]), materials: words.default([]) }).default({ colors: [], materials: [] }),
   /** What they are comfortable spending on one piece, in whole euros. */
   budgetEuros: z.number().int().min(10).max(50_000).nullable().default(null),
-  /** The way into their home, step by step, for "will it fit through my door" (docs/adr/055). */
+  /** The way into their home, step by step, for "will it fit through my door". */
   wayIn: z.array(stepSchema).max(MAX_STEPS).default([]),
 });
 export type Preferences = z.infer<typeof preferencesSchema>;
@@ -221,7 +221,7 @@ export const WALL_PIECE_MIN_CM = 60;
 export type SpaceFit = { productId: string; room: string; spareCm: number };
 
 /**
- * "Fits your space" (docs/adr/034): from candidate pieces with measurements,
+ * "Fits your space": from candidate pieces with measurements,
  * those that fit at least one of the shopper's rooms, each with the first of
  * their rooms it fits (their own order) and the room it leaves. At most two
  * per category, so a shelf of eight is not eight sofas. The candidates arrive

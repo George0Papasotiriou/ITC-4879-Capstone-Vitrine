@@ -13,7 +13,7 @@ import { expect, test } from "@playwright/test";
 import { freshPage } from "./support/accounts";
 
 /**
- * docs/adr/024. No key is needed: the photograph is measured on the shop's own
+ * No key is needed: the photograph is measured on the shop's own
  * server and the colours become an ordinary search. The fixture is a drawn
  * scene — a beige wall, a brown floor, a blue sofa — so the expected answer is
  * known and nobody's home is in the repository.

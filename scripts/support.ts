@@ -8,7 +8,7 @@
  */
 
 /**
- * Support (docs/adr/021).
+ * Support.
  *
  *   pnpm support macros                  write the ready answers the desk ships with (safe to repeat)
  *   pnpm support demo [--count 6]        a handful of tickets on the local shop, to see the desk working

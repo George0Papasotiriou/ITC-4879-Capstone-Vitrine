@@ -13,7 +13,7 @@ import type { JobName, JobPayloads } from "@/lib/jobs/types";
 import { loggerFor } from "@/lib/log";
 
 /**
- * The inline jobs driver: the local stand-in for Redis and BullMQ (ADR-008).
+ * The inline jobs driver: the local stand-in for Redis and BullMQ.
  *
  * `enqueue` returns immediately with an id and the job runs a moment later in
  * the same process, with the same retry policy as production — three attempts,

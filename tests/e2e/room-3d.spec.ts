@@ -12,7 +12,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { sampleRoomGeometry, SAMPLE_WIDTH } from "../../src/components/room/sample-room";
 
 /**
- * docs/adr/052. "Only the shadow rotates" (George, 2026-10-03): the planner
+ * "Only the shadow rotates" (George, 2026-10-03): the planner
  * stood a photograph up in the room. A piece with its own scan is now drawn as
  * the scan, with the camera the sheet gave, and turning it turns the piece.
  * The test catalogue's Angela coffee table carries a model for this

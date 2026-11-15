@@ -10,7 +10,7 @@
 import type { StorageDriver } from "@/lib/storage/types";
 
 /**
- * docs/adr/035 promised "a piece shows its stand-in shape until its scan is
+ * The promise: "a piece shows its stand-in shape until its scan is
  * ready, never a broken one". A media row alone does not keep that promise:
  * the first deployment stored scans on the worker's own disk, which the web
  * service cannot read, so every scanned piece's 3D view pointed at a 404

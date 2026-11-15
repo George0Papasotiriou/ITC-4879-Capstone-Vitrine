@@ -17,7 +17,7 @@ import { storage } from "@/lib/storage";
 
 /**
  * A photograph arrives here, is re-encoded, and is written to the shop's own
- * storage (docs/adr/023). Re-encoding is the privacy step as much as the size
+ * storage. Re-encoding is the privacy step as much as the size
  * step: it drops the camera's metadata — where and when the photograph was
  * taken, and on what — before anything is stored.
  *

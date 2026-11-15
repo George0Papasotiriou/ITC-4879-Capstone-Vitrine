@@ -11,7 +11,7 @@ import { optimizeBundles, type Bundle, type Slot } from "@/lib/optimize/bundle";
 import { compatibility, type StylistCandidate } from "@/lib/optimize/compatibility";
 
 /**
- * docs/adr/066. An outfit is pieces in roles: something on top, something
+ * An outfit is pieces in roles: something on top, something
  * below (or a dress for both), shoes, and optionally a coat or jacket over
  * them, a bag and one accessory. "Complete the look" fixes the piece the
  * shopper is looking at in its role and fills the others with the Budget

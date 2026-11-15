@@ -17,7 +17,7 @@ import { getProduct } from "@/lib/catalog/server";
 import { clientAddress } from "@/lib/geo/ip-country";
 import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 
-/** docs/adr/056. Every change is the board's (an editor's link or the owner), and tells everyone with it open. */
+/** Every change is the board's (an editor's link or the owner), and tells everyone with it open. */
 
 export const runtime = "nodejs";
 

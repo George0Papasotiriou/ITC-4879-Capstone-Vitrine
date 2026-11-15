@@ -5,7 +5,7 @@
 #
 # E12's data: RentTheRunway's and ModCloth's fit records (Misra, Wan and McAuley, RecSys 2018), read as one transaction per line.
 
-"""E12's datasets (docs/adr/064).
+"""E12's datasets.
 
 Each line of the McAuley lab's files is one rental (RentTheRunway) or one
 purchase (ModCloth) with the customer's own verdict on fit: "small", "fit"

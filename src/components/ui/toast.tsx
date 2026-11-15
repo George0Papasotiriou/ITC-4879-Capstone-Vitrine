@@ -20,7 +20,7 @@ import {
 } from "react";
 
 /**
- * Toasts (docs/PLAN.md 4.4, 4.6).
+ * Toasts.
  *
  * Brief confirmation of something the person did — "Added to cart" — or that
  * failed. Three tones, so the kind of message is carried by the words and a

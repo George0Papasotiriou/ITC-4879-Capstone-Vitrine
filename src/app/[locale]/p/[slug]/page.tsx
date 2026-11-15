@@ -65,18 +65,18 @@ import { externalReviewStore, productInsights } from "@/lib/reviews/server";
 import { wearChart } from "@/lib/catalog/wear";
 import { ModelShots } from "@/components/fitting/model-shots";
 
-/** What can be worn (docs/adr/061, 062): the Fitting Room and "On a model like you" offer these. */
+/** What can be worn: the Fitting Room and "On a model like you" offer these. */
 const WEARABLE_CATEGORIES: ReadonlySet<string> = new Set(["wear", "shoes", "bags", "accessories"]);
 import { colorLabel, materialLabel } from "@/lib/search/vocabulary";
 
 /**
- * Product page (docs/PLAN.md 4.3, Phase 3 step 6).
+ * Product page.
  *
  * The media stage on the left, the decision column on the right. Everything a
  * shopper decides on — price, stock, dimensions — is read from the database for
  * this request. "See it in your room" and "See it in 3D" are offered for the same
  * pieces: those with measured dimensions that stand or lie on a floor. The 3D
- * shape is built from those dimensions (docs/adr/025); a 360° spin waits for the
+ * shape is built from those dimensions; a 360° spin waits for the
  * full ABO import.
  */
 
@@ -122,15 +122,15 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const related = neighbourCards.length > 0 ? neighbourCards : await getFeatured({ locale, limit: 4, category: product.category, excludeIds: [product.id] });
   const relatedTitle = neighbours.source === "behavior" && neighbourCards.length > 0 ? t("pairsWith") : t("moreLikeThis");
 
-  // "Complete the look" (docs/adr/066): the pieces that finish an outfit around this one, chosen by the outfit builder.
+  // "Complete the look": the pieces that finish an outfit around this one, chosen by the outfit builder.
   const look = roleOf(product.kind) === null ? null : await lookFor(product.id);
   const lookCards = look === null || look.looks.length === 0 ? [] : await getCardsByIds(look.looks[0]!.ids.slice(1), locale);
   const lookTotal = lookCards.length === 0 ? null : { cents: product.price.cents + lookCards.reduce((sum, card) => sum + card.price.cents, 0), currency: product.price.currency };
 
   const reviews = await (await reviewsStore()).productReviews(product.id, { limit: 10 });
-  // What buyers like and mention against, read from every published review (docs/adr/041).
+  // What buyers like and mention against, read from every published review.
   const insights = reviews.summary.count === 0 ? undefined : await productInsights(product.id);
-  // Reviews Amazon.com customers wrote of this same product, for the ABO wearables: shown apart, never counted as ours (docs/adr/061).
+  // Reviews Amazon.com customers wrote of this same product, for the ABO wearables: shown apart, never counted as ours.
   const amazon = await (await externalReviewStore()).forProduct(product.id);
   // A price watch belongs to an account, so the form only has a target to show for someone signed in.
   const user = await currentUser();
@@ -163,7 +163,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   if (product.attributes.style !== undefined && locale === "en") {
     specs.push({ label: t("style"), value: product.attributes.style });
   }
-  // A garment's label: who it is for, its fabric as the label gives it, and its care (docs/adr/062).
+  // A garment's label: who it is for, its fabric as the label gives it, and its care.
   if (product.attributes.department === "women" || product.attributes.department === "men") {
     specs.push({ label: t("for"), value: t(`forValue.${product.attributes.department}`) });
   }
@@ -177,19 +177,19 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         ? { label: t("lowStock", { count: product.stock }), tone: "text-dusk" }
         : { label: t("inStock"), tone: "text-success" };
 
-  // A piece cut in sizes is added by size; everything else has one variant (docs/adr/022).
+  // A piece cut in sizes is added by size; everything else has one variant.
   const sizes: SizeOption[] = product.variants
     .filter((variant) => variant.size !== null)
     .map((variant) => ({ variantId: variant.id, size: variant.size!, stock: variant.stock }));
   const sizeChart = sizes.length > 0 ? sizeChartFor(product.kind) : null;
-  // Shoes and hats chart their own measure: foot length by EU size, head circumference by S/M/L (docs/adr/061).
+  // Shoes and hats chart their own measure: foot length by EU size, head circumference by S/M/L.
   const wearSizeChart = sizes.length > 0 && sizeChart === null ? wearChart(product.kind, sizes.map((entry) => entry.size)) : null;
 
-  // What the shopper has told the shop (docs/adr/033): their size for this kind of garment, and their rooms.
+  // What the shopper has told the shop: their size for this kind of garment, and their rooms.
   const { preferences } = await currentPreferences();
   const yourSize = sizes.length > 0 ? preferredSize(preferences, product.kind) : null;
   const sizeGroup = sizeGroupOf(product.kind);
-  // How the piece fits, from its reviews, its fabric and the shop's own kept and returned sizes (docs/adr/064),
+  // How the piece fits, from its reviews, its fabric and the shop's own kept and returned sizes,
   // on the chart's ladder (XS = 0 … XL = 4) whichever sizes this piece still has.
   const fit =
     sizeChart === null || sizeGroup === null
@@ -197,10 +197,10 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
       : await (await fitStore()).forProduct(product.id, CAPSULE_SIZES, stretchPercent(product.attributes.fabric));
   const finder = sizeChart === null || sizeGroup === null ? undefined : { chart: sizeChart, group: sizeGroup, fit };
   const fits = roomFits(product.dimsCm, preferences.rooms);
-  // "Will it get in?" (docs/adr/055): for pieces that go in a room, carried as their catalogue box.
+  // "Will it get in?": for pieces that go in a room, carried as their catalogue box.
   const wayInBox = product.dimsCm !== null && roomPlacement(product.kind, product.dimsCm) !== null ? product.dimsCm : null;
 
-  // "Picture it" (docs/adr/053, docs/adr/060), for pieces that belong in a room: the showroom pictures already
+  // "Picture it", for pieces that belong in a room: the showroom pictures already
   // made, whether new ones can be made now, this shopper's own from the last day and the room they last gave,
   // the style tiles, and pieces of the same kind to try in the same room. Reads only: no guest id is minted.
   const pictureable = sizes.length === 0 && roomPlacement(product.kind, product.dimsCm) !== null;
@@ -285,7 +285,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           </p>
 
           <div className="mt-4 flex flex-col gap-1">
-            {/* The shop's own rating; where it has none yet but Amazon.com customers reviewed the same product, a labelled way to theirs (docs/adr/061). */}
+            {/* The shop's own rating; where it has none yet but Amazon.com customers reviewed the same product, a labelled way to theirs. */}
             {product.ratingCount === 0 && amazon !== null && amazon.reviews.length > 0 ? null : (
               <Rating value={product.ratingCount === 0 ? 0 : product.ratingSum / product.ratingCount} count={product.ratingCount} locale={locale} />
             )}
@@ -303,7 +303,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
 
           <div className="mt-8 flex flex-col gap-3">
             {sizes.length > 0 ? null : <AddToCart productId={product.id} inStock={product.inStock} agentId={`action:add-to-cart:${product.id}`} />}
-            {/* The Concierge's open_viewer arrives as ?view=ar or ?view=model (docs/adr/025). */}
+            {/* The Concierge's open_viewer arrives as ?view=ar or ?view=model. */}
             {product.model == null && !canMakeModel(product.kind, product.dimsCm) ? null : (
               <ModelView
                 slug={product.slug}
@@ -317,22 +317,22 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                 dressed={product.model == null && product.aiModel == null && product.kind === "BED"}
               />
             )}
-            {/* Turntable photographs, when the piece has them (docs/adr/035). */}
+            {/* Turntable photographs, when the piece has them. */}
             {product.spin.length < 8 ? null : <SpinView frames={product.spin} title={product.title} productId={product.id} />}
             {roomPlacement(product.kind, product.dimsCm) === null ? null : (
               <ButtonLink href={`/${locale}/room?product=${product.slug}`} document variant="secondary" data-agent-id={`action:see-in-room:${product.id}`}>
                 {t("seeInYourRoom")}
               </ButtonLink>
             )}
-            {/* Room boards (docs/adr/056): pieces for a room, collected and shared. */}
+            {/* Room boards: pieces for a room, collected and shared. */}
             {sizes.length > 0 ? null : <AddToBoard productId={product.id} title={product.title} />}
-            {/* The Fitting Room tries on clothes, shoes, bags and accessories, this piece first (docs/adr/063). */}
+            {/* The Fitting Room tries on clothes, shoes, bags and accessories, this piece first. */}
             {!WEARABLE_CATEGORIES.has(product.category) ? null : (
               <ButtonLink href={`/fitting-room?piece=${product.slug}`} variant="secondary" data-agent-id={`action:try-it-on:${product.id}`}>
                 {t("tryItOn")}
               </ButtonLink>
             )}
-            {/* The AR Mirror tries hats, earrings and necklaces on live, through the camera (docs/adr/065). */}
+            {/* The AR Mirror tries hats, earrings and necklaces on live, through the camera. */}
             {!isMirrorKind(product.kind) ? null : (
               <ButtonLink href={`/mirror?piece=${product.slug}`} variant="secondary" data-agent-id={`action:mirror:${product.id}`}>
                 {t("tryLive")}
@@ -355,7 +355,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             <section className="mt-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-sm font-medium">{t("highlights")}</h2>
-                {/* Read aloud: the highlights, then the description (docs/adr/032). */}
+                {/* Read aloud: the highlights, then the description. */}
                 <ListenButton targets={["product-highlights", "product-description"]} />
               </div>
               <ul id="product-highlights" className="text-slate mt-3 flex list-disc flex-col gap-2 pl-5 text-sm" lang={copyLang}>
@@ -452,7 +452,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                   </div>
                 ))}
               </dl>
-              {/* Against the rooms the shopper told the shop about, with room to walk past (docs/adr/033). */}
+              {/* Against the rooms the shopper told the shop about, with room to walk past. */}
               {fits.length === 0 ? null : (
                 <ul className="mt-3 flex flex-col gap-1 text-sm" data-agent-id="product:room-fit">
                   {fits.map((fit) => (
@@ -503,7 +503,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         />
       )}
 
-      {/* "On a model like you" (docs/adr/063): shown when the service can make shots, or one is already made. */}
+      {/* "On a model like you": shown when the service can make shots, or one is already made. */}
       {WEARABLE_CATEGORIES.has(product.category) ? (
         <ModelShots slug={product.slug} title={product.title} department={product.attributes.department === "men" ? "men" : product.attributes.department === "women" ? "women" : null} />
       ) : null}

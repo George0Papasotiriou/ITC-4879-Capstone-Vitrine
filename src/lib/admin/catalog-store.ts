@@ -16,7 +16,7 @@ import { buildSearchDocument } from "@/lib/catalog/search-document";
 import { isCategorySlug, type CategorySlug } from "@/lib/catalog/taxonomy";
 
 /**
- * Staff edits (docs/adr/018). Every write locks the row, compares, writes the
+ * Staff edits. Every write locks the row, compares, writes the
  * change and its audit entry in one transaction, and marks the product as
  * edited so the deploy's catalogue sync leaves it alone. Editing the words
  * also rebuilds the product's search text, so search finds the new title at
@@ -64,7 +64,7 @@ export type StaffProduct = {
   translation: "none" | "machine" | "reviewed";
   staffEditedAt: Date | null;
   image: string | null;
-  /** Every photograph, in gallery order (docs/adr/034). */
+  /** Every photograph, in gallery order. */
   images: { src: string; whiteGround: boolean }[];
   variants: { id: string; sku: string; colorLabel: string | null; stock: number }[];
 };
@@ -205,12 +205,12 @@ export function createCatalogAdminStore(sql: Sql) {
    * Saves an edit. Returns the fields that changed; an edit that changes
    * nothing writes nothing, not even the audit entry or the edited mark.
    */
-  /** `reason` is kept with the audit entry: which model drafted the words the person accepted (docs/adr/045). */
+  /** `reason` is kept with the audit entry: which model drafted the words the person accepted. */
   async function updateProduct(id: string, details: ProductDetails, actor: AuditActor, now = new Date(), reason: string | null = null) {
     return sql.begin(async (tx) => {
       const current = await readProduct(id, tx, { lock: true });
       if (current === null) return { ok: false, reason: "not_found" } as const;
-      // On sale needs a photograph: a shop window with an empty plinth is not a product (docs/adr/034).
+      // On sale needs a photograph: a shop window with an empty plinth is not a product.
       if (details.status === "active" && current.status !== "active" && current.image === null) return { ok: false, reason: "needs_photo" } as const;
 
       const touchedGreek = details.titleEl !== current.titleEl || details.descriptionEl !== current.descriptionEl || JSON.stringify(details.highlightsEl) !== JSON.stringify(current.highlightsEl);
@@ -275,7 +275,7 @@ export function createCatalogAdminStore(sql: Sql) {
   }
 
   /**
-   * Makes a product in the shop (docs/adr/034): a draft, not on sale, with one
+   * Makes a product in the shop: a draft, not on sale, with one
    * variant holding the counted stock, its search text built at once, marked
    * as the shop's own so no deploy sync ever touches it, and audited in the
    * same transaction. Its photographs are added next, then it is published.
@@ -325,7 +325,7 @@ export function createCatalogAdminStore(sql: Sql) {
   }
 
   /**
-   * Records a photograph already stored (docs/adr/034), after the others, and
+   * Records a photograph already stored, after the others, and
    * marks the product as the shop's own. Audited with where it is kept, never
    * with its bytes.
    */

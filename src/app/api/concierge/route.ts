@@ -28,7 +28,7 @@ import { storage } from "@/lib/storage";
 import { serverEnv } from "@/env";
 
 /**
- * docs/PLAN.md Phase 6, docs/adr/019. In order: the request's shape, the rate
+ * In order: the request's shape, the rate
  * limit per address, the mode, kill switch and budget, then — for a new
  * message, not for an approval being answered — one turn from the shopper's
  * daily allowance. Messages are capped in number and length, so one request
@@ -47,7 +47,7 @@ const bodySchema = z.object({
   messages: z.array(z.unknown()).min(1).max(200),
   locale: z.enum(routing.locales).catch(routing.defaultLocale),
   pageMap: z.unknown().optional(),
-  /** True when the question was spoken and the answer will be read aloud (docs/adr/026). */
+  /** True when the question was spoken and the answer will be read aloud. */
   spoken: z.boolean().optional(),
 });
 
@@ -76,7 +76,7 @@ export async function POST(request: Request): Promise<Response> {
     logConciergeEvents([{ kind: "refused", surface, outcome: gate.reason }]);
     return refuse(gate.reason, gate.reason === "off" ? 503 : 429);
   }
-  // Approvals the shopper has just answered, yes or no (docs/adr/034).
+  // Approvals the shopper has just answered, yes or no.
   logConciergeEvents(approvalAnswers(messages.at(-1)).map((answer) => ({ kind: "tool" as const, surface, tool: answer.tool, outcome: answer.approved ? ("approved" as const) : ("declined" as const) })));
 
   const chosen = textModel(aiMode(), MODELS.concierge, { locale, apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY });
@@ -86,7 +86,7 @@ export async function POST(request: Request): Promise<Response> {
   const cart = await conciergeCart();
   const spoken = body.data.spoken === true;
   // What was said, as plain text: a hand-over carries it to the person who
-  // takes over (docs/adr/027). Only the words — no tool output, no prices.
+  // takes over. Only the words — no tool output, no prices.
   const conversation = messages
     .map((message) => {
       const text = message.parts.map((part) => (part.type === "text" ? part.text : "")).join(" ").trim();
@@ -101,7 +101,7 @@ export async function POST(request: Request): Promise<Response> {
   const result = runTurn({
     model: chosen.model,
     instructions: conciergeInstructions({ locale, pageMap: parsePageMap(body.data.pageMap), signedIn: user !== null, spoken }),
-    // A photograph attached to a question reaches the model only if it is this shopper's and still kept (docs/adr/051).
+    // A photograph attached to a question reaches the model only if it is this shopper's and still kept.
     messages: await attachPhotos(await convertToModelMessages(messages), messages, async (photoId) => {
       const photo = await (await photoStore()).byId(photoId, actor.key);
       // Past its day it is gone, even before the expiry job has swept it.
@@ -115,7 +115,7 @@ export async function POST(request: Request): Promise<Response> {
     onEvents: logConciergeEvents,
     onUsage: async (turn) => {
       const cost = await usage.record({ feature: "concierge", model: chosen.entry, surface: "chat", actorKey: actor.key, usage: turn });
-      // Counts only: no message text, no tool inputs (CLAUDE.md rule 9).
+      // Counts only: no message text and no tool inputs reach the logs, for privacy.
       log.info({ concierge: { prompt: CONCIERGE_PROMPT_VERSION, mode: aiMode(), steps: turn.steps, inputTokens: turn.inputTokens, outputTokens: turn.outputTokens, costMicros: cost } }, "concierge turn");
     },
   });

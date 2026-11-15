@@ -21,7 +21,7 @@ import { useRouter } from "@/i18n/navigation";
 import { AGENT_KEY_DAYS, AGENT_SCOPES, type AgentScope } from "@/lib/agents/tokens";
 import { cn } from "@/lib/ui/cn";
 
-/** docs/adr/043. The list comes from the server; after a change the page refreshes, so what is shown is what is stored. */
+/** The list comes from the server; after a change the page refreshes, so what is shown is what is stored. */
 
 export type AgentKeyItem = {
   id: string;

@@ -13,15 +13,15 @@ import { SmartLink } from "@/components/ui/smart-link";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Button (docs/PLAN.md 4.4)
+ * Button
  *
  * Dusk fill for primary, a hairline outline for secondary, text only for
  * tertiary. Labels are verbs in sentence case — never ALL CAPS, never an arrow
  * or emoji inside the label (4.6, 4.8).
  *
  * Nothing lifts on hover. Feedback is a colour shift inside `--duration-quick`,
- * and a press gives a little under the finger (`press`: 0.97 within a frame,
- * docs/adr/031), so every tap is answered before the server is.
+ * and a press gives a little under the finger (`press`: 0.97 within a frame),
+ * so every tap is answered before the server is.
  */
 
 type Variant = "primary" | "secondary" | "tertiary" | "danger";

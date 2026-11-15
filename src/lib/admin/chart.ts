@@ -8,7 +8,7 @@
  */
 
 /**
- * The dashboards draw their charts on the server as SVG (docs/adr/018): no
+ * The dashboards draw their charts on the server as SVG: no
  * chart library and no JavaScript in the browser. This module does the only
  * arithmetic they need, so it can be tested: an axis that ends on a round
  * number, and where each bar goes.

@@ -26,8 +26,8 @@ import { processors } from "@/worker/registry";
  *
  * Anything slow, costly or scheduled runs here rather than in a request:
  * embeddings, try-on and video generation, Taste Graph builds, emails, reports
- * and cleanup (docs/PLAN.md 2.1). It is a second Railway service deployed from
- * the same repository, bundled by tsup into `dist/worker/index.js` (ADR-001).
+ * and cleanup. It is a second Railway service deployed from
+ * the same repository, bundled by tsup into `dist/worker/index.js`.
  */
 
 const log = logger.child({ service: "worker" });
@@ -108,7 +108,7 @@ log.info(
 );
 
 /**
- * The recurring jobs (docs/adr/020). Upserting on every start keeps Redis in
+ * The recurring jobs. Upserting on every start keeps Redis in
  * step with the table in src/lib/jobs/schedule.ts: a schedule that was removed
  * from the code stops being registered, and one whose pattern changed is
  * replaced rather than duplicated. A failure here must not stop the worker

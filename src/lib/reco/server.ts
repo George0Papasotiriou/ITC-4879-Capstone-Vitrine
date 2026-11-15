@@ -19,7 +19,7 @@ import { createTasteGraph, type TasteGraph } from "@/lib/reco/store";
 /**
  * The Taste Graph for pages and route handlers.
  *
- * Personalisation is opt-in (docs/PLAN.md 2.8). The anonymous shopper id lives
+ * Personalisation is opt-in. The anonymous shopper id lives
  * in an httpOnly cookie that exists only after the shopper turns
  * personalisation on; without it nothing is recorded and nothing personal is
  * shown. A readable companion cookie tells the browser whether to send events.
@@ -41,7 +41,7 @@ export async function recommendationsForCurrentShopper(limit = 8) {
   await connection();
   const actor = await currentActor();
   if (actor === null) return { personalised: false as const, items: [] };
-  // What the shopper said they like and avoid refines the graph's ranking (docs/adr/033): twice
+  // What the shopper said they like and avoid refines the graph's ranking: twice
   // as many are asked for, so leaving out avoided pieces still fills the shelf.
   const [items, { preferences }] = await Promise.all([tasteGraph().forActor(actor, { limit: limit * 2 }), currentPreferences()]);
   const rows = await sql<{ id: string; colors: string[]; materials: string[] }[]>`
@@ -56,7 +56,7 @@ export async function pairsWith(productId: string, limit = 4) {
   return tasteGraph().pairsWith(productId, limit);
 }
 
-/** Pieces that complete the cart's set (docs/adr/034), each with the cart piece it goes with. */
+/** Pieces that complete the cart's set, each with the cart piece it goes with. */
 export async function completeSetFor(productIds: readonly string[], limit = 4) {
   await connection();
   const anchors = [...new Set(productIds)];

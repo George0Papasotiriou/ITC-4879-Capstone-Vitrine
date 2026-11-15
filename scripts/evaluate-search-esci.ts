@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/036 (addendum), docs/adr/057.
- *
  *   pnpm evals:esci [--queries 500] [--seed 7]
  *
  * 1. Reads Amazon's Shopping Queries Dataset (github.com/amazon-science/esci-data,
@@ -26,7 +24,7 @@
  * 4. Runs every query through each version of the search and scores the top
  *    ten with the same metrics as E1, E/S/C/I as grades 3/2/1/0. The versions
  *    are E1's (lexical, fuzzy, fusion, full), the same without the lexical
- *    words' rarity weights ("-plain", the ablation of ADR-009's addendum), and,
+ *    words' rarity weights ("-plain", the ablation without them), and,
  *    when a trained model is in src/lib/search/models, the learned ranking
  *    stage over fusion ("ranker") and with the shop's business re-ranking and
  *    diversity after it ("ranker-full").
@@ -188,11 +186,11 @@ async function main(): Promise<void> {
       "",
       "Grades: exact 3, substitute 2, complement 1, irrelevant 0; exact and substitute count as relevant for MRR and Recall. Products labelled for other queries count as irrelevant, so every figure is a lower bound. Only titles, brands and colours are indexed (the dataset's descriptions and bullet points are not read). Every product carries the same stand-in price and category: a category word in a query (\"chair\") narrows to a category none of them is in, and the search relaxes it, as it would in the shop.",
       "",
-      "**Rarity weights (\"-plain\" is without them).** PostgreSQL's ts_rank_cd has no inverse document frequency: a word in half the catalogue counted as much as a brand or model name in one product. The lexical retriever now weighs each word by ln(1 + N / df), from counts cached for ten minutes (ADR-009, addendum).",
+      "**Rarity weights (\"-plain\" is without them).** PostgreSQL's ts_rank_cd has no inverse document frequency: a word in half the catalogue counted as much as a brand or model name in one product. The lexical retriever now weighs each word by ln(1 + N / df), from counts cached for ten minutes.",
       "",
       "**Why the full version can score below fusion here.** Its re-ranking multiplies relevance by business signals (stock, a Bayesian rating, popularity), which are identical for every ESCI product, so only its last step acts: Maximal Marginal Relevance, which moves near-duplicates apart so a first row is not one chair in six colours. On ESCI those near-duplicates — the same item in another size or colour — are often exactly the products labelled exact, so spreading them costs NDCG while MRR (the first relevant result) holds. In the shop, where the signals differ, this is the trade the step is for; the figure shows its price on data that does not reward it.",
       "",
-      "**The learned stage (ADR-057).** LambdaMART, written for this project (research/ranker), orders the first 50 fused candidates from 20 features the shop computes (src/lib/search/ranker.ts); it was trained and stopped early on the train split's queries alone, so these test queries never shaped it.",
+      "**The learned stage.** LambdaMART, written for this project (research/ranker), orders the first 50 fused candidates from 20 features the shop computes (src/lib/search/ranker.ts); it was trained and stopped early on the train split's queries alone, so these test queries never shaped it.",
       "",
       "These figures are not comparable with the ESCI paper's (its ranking task orders each query's own twenty products, with gains 1 / 0.1 / 0.01 / 0); here each query searches the pooled corpus of ten thousand. Latency is on PGlite in one process on a laptop, not the production database: the trigram (fuzzy) retriever in particular is slower there. Semantic search is not in the table until an embedding model is set up.",
       "",

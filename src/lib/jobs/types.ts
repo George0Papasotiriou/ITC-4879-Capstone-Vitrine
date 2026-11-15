@@ -22,26 +22,26 @@ export type JobPayloads = {
   ping: { requestedAt: string; note?: string };
   /** Phase 8: rebuild the Taste Graph's neighbour lists and popularity (A2). Nightly in production. */
   "rebuild-taste-graph": { requestedAt: string; reason: "schedule" | "manual" | "simulation" };
-  /** Phase 11: email the shoppers whose watched price has been reached (docs/adr/020). Nightly. */
+  /** Phase 11: email the shoppers whose watched price has been reached. Nightly. */
   "price-watches": { requestedAt: string; reason: "schedule" | "manual" };
-  /** Phase 9: run one try-on for a shopper who asked for it (docs/adr/023). */
+  /** Phase 9: run one try-on for a shopper who asked for it. */
   "try-on": { tryOnId: string; requestedAt: string };
-  /** docs/adr/063: five seconds of video made from a finished try-on, for an account that asked for it. */
+  /** Five seconds of video made from a finished try-on, for an account that asked for it. */
   "try-on-video": { tryOnId: string; requestedAt: string };
-  /** docs/adr/063: a piece worn by the model a shopper picked, made once and kept for everyone. */
+  /** A piece worn by the model a shopper picked, made once and kept for everyone. */
   "model-shot": { shotId: string; requestedAt: string };
-  /** docs/adr/053: make one AI picture of a piece in a room, for a shopper who asked for it. */
+  /** Make one AI picture of a piece in a room, for a shopper who asked for it. */
   "picture-render": { pictureId: string; requestedAt: string };
   /** Phase 9: delete the photographs whose day is up, and the results made from them. Every 15 minutes. */
   "photo-expiry": { requestedAt: string; reason: "schedule" | "manual" };
   /** Phase 11: build the weekly PDF report and email the admins a link to it. Mondays. */
   "weekly-report": { requestedAt: string; reason: "schedule" | "manual"; /** Last day of the week to report on, YYYY-MM-DD; today when absent. */ endDay?: string };
-  /** docs/adr/035: compress the next few ABO 3D scans into storage, until every piece that has one does. */
+  /** Compress the next few ABO 3D scans into storage, until every piece that has one does. */
   "orders-expire": { requestedAt: string; reason: "schedule" | "manual" };
   "catalog-models": { requestedAt: string; reason: "schedule" | "manual"; /** How many scans this run takes on (default 8). */ limit?: number };
-  /** docs/adr/058: build the shop's own models of the next pieces without a scan, so shoppers rarely wait for one. */
+  /** Build the shop's own models of the next pieces without a scan, so shoppers rarely wait for one. */
   "made-models": { requestedAt: string; reason: "schedule" | "manual"; /** How many models this run builds (default 30). */ limit?: number };
-  /** docs/adr/044: one notification to the devices of the person it concerns (an order moved, a desk reply). */
+  /** One notification to the devices of the person it concerns (an order moved, a desk reply). */
   "push-send": { requestedAt: string; notice: PushNotice };
 };
 

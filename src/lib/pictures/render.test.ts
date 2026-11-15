@@ -73,7 +73,7 @@ async function input(patch: Partial<RenderInput> = {}): Promise<RenderInput> {
   };
 }
 
-describe("renderPicture (docs/adr/060)", () => {
+describe("renderPicture", () => {
   it("sends the room, the piece's photographs and its close crop, asks for 2K in the room's own framing, and keeps a picture that passes", async () => {
     const { maker, asked } = recordingMaker();
     const { judge, looked } = scriptedJudge([GOOD]);

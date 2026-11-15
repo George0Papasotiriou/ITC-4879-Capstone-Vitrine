@@ -11,7 +11,7 @@ import { fold, scriptOf } from "@/lib/search/normalize";
 import type { TrigramIndex } from "@/lib/search/trigram";
 
 /**
- * Greeklish — Greek written with Latin letters (docs/PLAN.md 2.6, A1).
+ * Greeklish — Greek written with Latin letters.
  *
  * Many Greeks type "kanapes" for καναπές, on phones without a Greek layout or out
  * of habit. There is no single standard, and the mapping is ambiguous in both

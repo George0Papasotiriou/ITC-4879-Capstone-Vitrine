@@ -18,7 +18,7 @@ import { useRouter } from "@/i18n/navigation";
 type Grade = 0 | 1 | 2 | 3;
 
 /**
- * docs/adr/036. Judging goes quickly when the hands stay on the keyboard: 0, 1,
+ * Judging goes quickly when the hands stay on the keyboard: 0, 1,
  * 2 or 3 grades the product on screen and the next one appears. The grade
  * names say what each means, so two people grading the same pair agree.
  */

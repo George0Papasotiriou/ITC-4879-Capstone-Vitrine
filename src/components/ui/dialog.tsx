@@ -16,7 +16,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Dialog and Sheet (docs/PLAN.md 4.2, 4.4).
+ * Dialog and Sheet.
  *
  * Both are the same accessible primitive — focus is trapped inside, Esc closes,
  * focus returns to the trigger, and the page behind is inert to screen readers.

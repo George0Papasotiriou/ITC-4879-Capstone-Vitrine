@@ -10,7 +10,7 @@
 import type { Point2 } from "@/lib/vision/camera";
 
 /**
- * docs/adr/042. A product photograph is taken in a studio: neutral white light,
+ * A product photograph is taken in a studio: neutral white light,
  * bright and even. Pasted into a room lit by a warm lamp or a dim evening, it
  * looks cut out even at the right size. Two measurements of the room photo,
  * both made in linear light (the sRGB curve undone, so that multiplying means

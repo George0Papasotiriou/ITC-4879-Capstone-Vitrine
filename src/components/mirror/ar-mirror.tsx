@@ -29,7 +29,7 @@ import { inflateTriangle, warpTriangles } from "@/lib/vision/mirror/warp";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * docs/adr/065. Everything happens on the shopper's device: the camera's
+ * Everything happens on the shopper's device: the camera's
  * frames go to the landmarker in this tab (face-tracker.ts), the pose and
  * the drawing are computed here, and a picture is saved only when asked, to
  * the shopper's own downloads. Nothing is sent, so nothing is kept.

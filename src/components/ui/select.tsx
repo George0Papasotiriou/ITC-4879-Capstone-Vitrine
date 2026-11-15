@@ -15,7 +15,7 @@ import { useId } from "react";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Select (docs/PLAN.md 4.4).
+ * Select.
  *
  * Used for sort order and variant pickers where the options are few and known.
  * The trigger looks like a field — hairline, 2px radius, 44px — because it is

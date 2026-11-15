@@ -8,7 +8,7 @@
  */
 
 /**
- * The Taste Graph (A2, docs/PLAN.md 2.6): building the graph.
+ * The Taste Graph: building the graph.
  *
  * Nodes are products. Edges say "someone who is interested in this is likely
  * to be interested in that". They come from two sources, blended per product:

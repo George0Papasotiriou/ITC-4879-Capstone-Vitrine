@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/032. Reading aloud a sentence at a time keeps the highlighted
+ * Reading aloud a sentence at a time keeps the highlighted
  * sentence and the spoken one together, and lets a long passage be stopped
  * between sentences. English and Greek end sentences with . ! ? and Greek also
  * with ; (its question mark). Abbreviations with a full stop ("cm.", "e.g.")

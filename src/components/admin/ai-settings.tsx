@@ -21,7 +21,7 @@ import { useRouter } from "@/i18n/navigation";
 /**
  * For "ai:manage" (admins). Both changes are recorded in the audit log by the
  * route, because they affect what the shop spends and whether the Concierge
- * answers at all (docs/adr/020).
+ * answers at all.
  */
 export function AiSettings({ killSwitch, dailyBudgetEur }: { killSwitch: boolean; dailyBudgetEur: number }) {
   const t = useTranslations("admin.ai");

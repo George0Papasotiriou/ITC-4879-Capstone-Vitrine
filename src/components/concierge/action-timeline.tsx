@@ -16,7 +16,7 @@ import { useSpotlight } from "@/components/concierge/spotlight";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Action timeline (docs/PLAN.md 4.3, 2.5)
+ * Action timeline
  *
  * The written record of everything the Concierge did, newest last, each with
  * its own Undo. The Spotlight shows an action happening; this shows what has

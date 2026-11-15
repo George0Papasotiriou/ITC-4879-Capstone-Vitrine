@@ -11,7 +11,7 @@ import { cutoutFromWhite } from "@/lib/vision/cutout";
 import { quadFromMask, targetRectangle, warp } from "@/lib/vision/rectify";
 
 /**
- * docs/adr/060. The image model can only copy what it is shown, so a piece is
+ * The image model can only copy what it is shown, so a piece is
  * shown well: up to three of its catalogue photographs, its studio shots on
  * white first (the clearest view of its shape and colour), then the others in
  * the listing's order — a second angle shows the back legs a first one hides.
@@ -117,7 +117,7 @@ export async function detailCrop(studio: PictureImage, longSide = REFERENCE_LONG
 }
 
 /**
- * A rug's studio photograph made flat, the Showcase's own way (docs/adr/048):
+ * A rug's studio photograph made flat, the Showcase's own way:
  * cut out, its four corners found, warped to a rectangle of its true
  * proportions — turned, if need be, so its long side runs across the picture.
  */

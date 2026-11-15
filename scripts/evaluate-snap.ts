@@ -8,7 +8,7 @@
  */
 
 /**
- * Search by photo without a multimodal model reads colour (docs/adr/024), so
+ * Search by photo without a multimodal model reads colour, so
  * the question this evaluation asks is the one the feature rests on: **when the
  * shop looks at a photograph, does it name the colour the catalogue gave that
  * piece?**
@@ -172,7 +172,7 @@ async function main() {
   say();
   say(`Generated ${new Date().toISOString()} by \`scripts/evaluate-snap.ts\` (\`pnpm evals:snap\`).`);
   say();
-  say("Search by photo reads colour while there is no multimodal key (docs/adr/024). This measures");
+  say("Search by photo reads colour while there is no multimodal key. This measures");
   say("that reading against the catalogue's own colour word, on every product photograph the shop");
   say("holds whose entry names exactly one colour. The label is the dataset's attribute rather than");
   say("a person judging the photograph, so a disagreement is not always the reading's mistake.");

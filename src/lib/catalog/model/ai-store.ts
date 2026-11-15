@@ -12,11 +12,11 @@ import type postgres from "postgres";
 import { recordAudit, type AuditActor } from "@/lib/admin/audit";
 
 /**
- * docs/adr/059. An AI model is shown only when its status is "ready". The
+ * An AI model is shown only when its status is "ready". The
  * batch sets "ready" or, when its shape did not match the piece, "rejected";
  * staff can hide a ready one that looks wrong, or show a rejected one that
  * looks right — the fit number is a guide, the person looking decides. Each
- * change is one audited transaction, as review moderation is (docs/adr/017).
+ * change is one audited transaction, as review moderation is.
  */
 
 export type AiModelRow = {

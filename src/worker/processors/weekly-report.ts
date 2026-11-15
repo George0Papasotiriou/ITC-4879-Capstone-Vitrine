@@ -21,7 +21,7 @@ import { money, summarize, weeklyReportPdf } from "@/lib/report/weekly";
 import { storage } from "@/lib/storage";
 
 /**
- * The weekly report (docs/adr/020).
+ * The weekly report.
  *
  * It reads the same store the dashboards read, writes the PDF into the shop's
  * storage under one key per week, records the row, and emails every admin a
@@ -61,7 +61,7 @@ export async function processWeeklyReport(payload: JobPayloads["weekly-report"],
   const url = await store.presignedDownloadUrl({ key, expiresInSeconds: LINK_SECONDS });
   const mailer = appMailer();
   const admins = await reports.admins();
-  // ADMIN_EMAILS is how the first admin exists before anyone has signed in (docs/adr/016).
+  // ADMIN_EMAILS is how the first admin exists before anyone has signed in.
   const recipients = new Set([...admins.map((admin) => admin.email), ...serverEnv().ADMIN_EMAILS]);
   let emailed = 0;
 

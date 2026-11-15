@@ -14,7 +14,7 @@ import { sampleRoomGeometry, SAMPLE_WIDTH } from "../../src/components/room/samp
 import { signInAdmin } from "./support/orders";
 
 /**
- * docs/adr/058. George's screenshot (2026-10-03) was four red boxes for a
+ * George's screenshot (2026-10-03) was four red boxes for a
  * tufted chair. Every piece that stands or lies on a floor now has the shop's
  * own model, drawn from its measurements, words and photograph. These tests
  * hold it to what the dialog says: it is labelled "made by the shop" (a scan

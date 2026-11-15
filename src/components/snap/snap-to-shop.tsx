@@ -23,9 +23,9 @@ import type { ProductBrief } from "@/lib/ai/tools/briefs";
 import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES } from "@/lib/photos/photos";
 
 /**
- * The same photograph rules as the Fitting Room (docs/adr/023): consent, a
+ * The same photograph rules as the Fitting Room: consent, a
  * day, "delete now". What is different is what happens to it — it is measured,
- * not sent anywhere (docs/adr/024) — and the page says which colours it found,
+ * not sent anywhere — and the page says which colours it found,
  * so the results are never a mystery.
  */
 
@@ -88,7 +88,7 @@ export function SnapToShop({ colourLabels }: { colourLabels: Record<string, stri
   return (
     <div className="mt-8 flex flex-col gap-5" data-agent-id="snap:form">
       <label className="flex max-w-[65ch] items-start gap-3 text-sm">
-        {/* Inert until the page wakes up, so a tick always counts (docs/adr/023). */}
+        {/* Inert until the page wakes up, so a tick always counts. */}
         <input
           type="checkbox"
           checked={consent}
@@ -173,7 +173,7 @@ export function SnapToShop({ colourLabels }: { colourLabels: Record<string, stri
         </section>
       )}
 
-      {/* Each piece in the photograph, found and searched for one by one (docs/adr/054). */}
+      {/* Each piece in the photograph, found and searched for one by one. */}
       {photo === null ? null : <ShopTheLook photoId={photo.id} photoUrl={photo.url} colourLabels={colourLabels} />}
 
       {photo === null ? null : (

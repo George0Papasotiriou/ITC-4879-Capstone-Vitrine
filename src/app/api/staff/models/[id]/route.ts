@@ -14,7 +14,7 @@ import { createAiModelStore } from "@/lib/catalog/model/ai-store";
 import { sql } from "@/lib/db/client";
 import { logger } from "@/lib/log";
 
-/** For "catalog:edit" (merchandiser, admin), audited (docs/adr/059). */
+/** For "catalog:edit" (merchandiser, admin), audited. */
 
 export const runtime = "nodejs";
 

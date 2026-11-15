@@ -18,7 +18,7 @@ import { getFeatured, getProduct } from "@/lib/catalog/server";
 import { isMirrorKind, MIRROR_KINDS } from "@/lib/vision/mirror/pieces";
 
 /**
- * docs/adr/065. The pieces come from the catalogue: every hat, pair of
+ * The pieces come from the catalogue: every hat, pair of
  * earrings and necklace on sale, the most popular first, and the one the
  * shopper came from (`?piece=<slug>`) first of all. Their photographs come
  * through the shop's own image server, so the page can read their pixels to

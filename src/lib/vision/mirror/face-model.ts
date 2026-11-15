@@ -10,7 +10,7 @@
 import type { Vec3 } from "@/lib/vision/linalg";
 
 /**
- * docs/adr/065. MediaPipe's canonical face model (canonical_face_model.obj,
+ * MediaPipe's canonical face model (canonical_face_model.obj,
  * mediapipe/modules/face_geometry/data, Apache License 2.0, © Google LLC):
  * the 468 surface points of the Face Mesh in the order the landmarker
  * returns them, here converted from centimetres to millimetres. Its axes:

@@ -13,7 +13,7 @@ import { deltaE2000 } from "@/lib/vision/delta-e";
 import { colourSwatch, type Rgb } from "@/lib/vision/palette";
 
 /**
- * docs/adr/058. A listing says more about a piece's shape than its kind:
+ * A listing says more about a piece's shape than its kind:
  * "Tufted Armless English Roll Accent Chair" is a chair with no arms, a rolled
  * back and buttons; "Mid-Century Round Coffee Table with Tapered Legs" names
  * its top and its legs. The title and the attribute values are read as one

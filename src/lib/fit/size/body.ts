@@ -11,7 +11,7 @@ import { cdf, pdf } from "@/lib/fit/size/gaussian";
 import type { Belief } from "@/lib/fit/size/ordinal";
 
 /**
- * docs/adr/064. A size chart gives, for each size, the largest body
+ * A size chart gives, for each size, the largest body
  * measurement it is cut for ("chest up to 98 cm"). Sizes are numbered 0, 1,
  * 2… in the chart's order, and the size scale is continuous between them.
  */

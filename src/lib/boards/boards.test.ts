@@ -14,7 +14,7 @@ import { boardHref, boardLinkToken, canEdit, roleFor } from "@/lib/boards/boards
 const SECRET = "s".repeat(32);
 const board = { id: "01890000-0000-7000-8000-0000000000b1", ownerKey: "user:owner", linkVersion: 1 };
 
-describe("room board links (docs/adr/056)", () => {
+describe("room board links", () => {
   it("knows the owner by who they are, and everyone else by the link they came with", () => {
     expect(roleFor(board, { actorKey: "user:owner", token: null }, SECRET)).toBe("owner");
     expect(roleFor(board, { actorKey: "guest:friend", token: boardLinkToken(board.id, "edit", 1, SECRET) }, SECRET)).toBe("editor");

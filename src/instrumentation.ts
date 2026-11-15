@@ -10,7 +10,7 @@
 import type { Instrumentation } from "next";
 
 /**
- * Server error reporting (docs/PLAN.md 2.9).
+ * Server error reporting.
  *
  * Next calls `onRequestError` for every error it captures while handling a
  * request — in a Server Component, a route handler, a server action or the
@@ -22,7 +22,7 @@ import type { Instrumentation } from "next";
  * where it plugs in, and nothing else in the app needs to change when it does.
  */
 /**
- * Recurring jobs (docs/adr/020). In production the worker service owns the
+ * Recurring jobs. In production the worker service owns the
  * clock through BullMQ; on the local stack there is no Redis and no worker, so
  * the web process runs the schedules itself. Nothing is started during a
  * build, which also bootstraps a server.

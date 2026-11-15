@@ -119,14 +119,14 @@ export function orderUpdate(
     greeting: t("greeting", { name }),
     paragraphs: [t(`order.${kind}.intro`, { number })],
     action: { label: t("orderAction"), url },
-    // A delivered order is when a review is worth asking for (docs/adr/017).
+    // A delivered order is when a review is worth asking for.
     after: [...(kind === "delivered" ? [t("orderReviewAsk")] : []), ...(signInNeeded ? [t("orderSignIn")] : [])],
   });
 }
 
 /**
  * "The price you were waiting for": one email per watch, when the price
- * reaches the shopper's target (docs/adr/020). The amounts are formatted by
+ * reaches the shopper's target. The amounts are formatted by
  * the caller, which knows the currency and the language.
  */
 export function priceDrop(
@@ -158,7 +158,7 @@ export function weeklyReport(
 
 /**
  * A support email: we have your message, there is a reply, or the ticket is
- * closed (docs/adr/021). The link opens the conversation; for a guest it is
+ * closed. The link opens the conversation; for a guest it is
  * the only way in, so the email says to keep it.
  */
 export function supportUpdate(

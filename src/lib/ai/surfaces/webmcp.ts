@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/043. WebMCP (W3C Web Machine Learning Community Group draft,
+ * WebMCP (W3C Web Machine Learning Community Group draft,
  * 28 September 2026) lets a page register tools with `document.modelContext`
  * for the browser's own assistant. The assistant then acts in this page, as
  * this shopper, with their cookies: the same tools as the Concierge, run by

@@ -30,13 +30,13 @@ import {
 import { browserVoiceAvailable, createBrowserVoiceDriver, createScriptedVoiceDriver, type ScriptedVoice, type VoiceDriver } from "@/lib/ai/surfaces/voice/driver";
 
 /**
- * docs/adr/026. Speaking is a way in, not a second Concierge: what is heard
+ * Speaking is a way in, not a second Concierge: what is heard
  * becomes an ordinary turn at `/api/concierge`, so voice has the same tools,
  * the same approvals, the same undo and the same cost guard as typing. The
  * answer is spoken *and* written, and the dock stays open beside it — text is
  * always one tap away, as the plan asks.
  *
- * With a realtime key (docs/adr/030) the session route reserves a realtime
+ * With a realtime key the session route reserves a realtime
  * session instead, and a model hears and speaks by itself: the browser's
  * recogniser and voice step aside, the model's tool calls run through the
  * Concierge, and its words are written into the same conversation. The first
@@ -184,7 +184,7 @@ export function useVoice(): Voice {
         stop();
         return;
       }
-      // Point by number by voice (docs/adr/032): handled on the page, not a turn for the Concierge.
+      // Point by number by voice: handled on the page, not a turn for the Concierge.
       const numbers = numbersRequestOf(said, document.querySelector('[data-agent-id="numbers:layer"]') !== null);
       if (numbers !== null) {
         setPartial("");

@@ -30,8 +30,6 @@ import {
 import { kelvinToLinearRgb, sunDirection, type Mood } from "@/lib/display/moods";
 
 /**
- * docs/adr/048.
- *
  * THE SUN is a spot light six metres outside the window, aimed through it. Its
  * colour comes from the mood's colour temperature (src/lib/display/moods.ts),
  * its shadow softness from the mood (a PCF filter radius: overcast light is

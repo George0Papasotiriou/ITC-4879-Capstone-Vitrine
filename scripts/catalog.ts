@@ -8,7 +8,7 @@
  */
 
 /**
- * Catalogue command line (docs/PLAN.md Phase 3).
+ * Catalogue command line.
  *
  *   pnpm catalog seed [--fixture <file>] [--if-empty]
  *       Write a catalogue fixture into the database. Defaults to the specimen
@@ -30,19 +30,19 @@
  *
  *   pnpm catalog abo-fixture [--dry-run] [--per-category 750] [--images 2] [--spins 300] [--frames 24] [--models 300]
  *       Rebuild src/lib/catalog/fixtures/abo.json, the large catalogue, from all
- *       ABO listing files (scripts/catalog-abo.ts, docs/adr/035). Committed text;
+ *       ABO listing files (scripts/catalog-abo.ts). Committed text;
  *       seeded on every deploy with `seed --abo`.
  *
  *   pnpm catalog made [--limit 60]
  *       builds the shop's own 3D models of pieces without a scan into storage, as the
- *       made-models job does in production (docs/adr/058).
+ *       made-models job does in production.
  *   pnpm catalog models [--limit 300]
  *       Compress the catalogue's ABO 3D scans into storage now, as the worker's
- *       catalog-models job does after a deploy (docs/adr/035).
+ *       catalog-models job does after a deploy.
  *
  *   pnpm catalog spins [--dry-run] [--limit 300] [--frames 24]
  *       Turntable frames for the imported products that have them, for the
- *       360° view (docs/adr/035, scripts/catalog-media.ts).
+ *       360° view (scripts/catalog-media.ts).
  *
  *   pnpm catalog specimen-fixture
  *       Rebuild src/lib/catalog/fixtures/specimen.json from the ABO metadata for
@@ -92,7 +92,7 @@ import { importSpins, processMade, processModels } from "./catalog-media";
 const CACHE = ".abo-cache";
 const SPECIMEN_FIXTURE = "src/lib/catalog/fixtures/specimen.json";
 const COLLECTION_FIXTURE = "src/lib/catalog/fixtures/collection.json";
-/** The Wear capsule the shop drew itself (docs/adr/022), written by `pnpm capsule`. */
+/** The Wear capsule the shop drew itself, written by `pnpm capsule`. */
 const CAPSULE_FIXTURE = "src/lib/catalog/fixtures/capsule.json";
 const IMPORT_OUTPUT = ".local/catalog/abo-import.json";
 /** Categories sold by their photograph as it is, where a white studio ground is not expected. */
@@ -202,7 +202,7 @@ function describeReasons(reasons: Map<RejectionReason, number>): string {
  */
 async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boolean }): Promise<void> {
   const wantsReviews = options.fixtures.some((file) => [WEAR_FIXTURE, WEAR_SPECIMEN_FIXTURE, CLOTHES_FIXTURE, CLOTHES_SPECIMEN_FIXTURE].includes(file));
-  // Real clothes replace the drawn capsule (docs/adr/062) unless the capsule is asked for by name.
+  // Real clothes replace the drawn capsule unless the capsule is asked for by name.
   const replacesCapsule = options.fixtures.some((file) => file === CLOTHES_FIXTURE || file === CLOTHES_SPECIMEN_FIXTURE) && !options.fixtures.includes(CAPSULE_FIXTURE);
   const products: ProductInput[] = [];
   const seen = new Set<string>();
@@ -237,14 +237,14 @@ async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boole
     out(
       `[catalog] ${options.sync ? "synced" : "seeded"} ${summary.products} products (${summary.inserted} new${summary.keptStaffEdits > 0 ? `, ${summary.keptStaffEdits} kept as staff edited them` : ""}), ${summary.media} media from ${options.fixtures.join(" + ")} in ${Date.now() - started} ms`,
     );
-    // The clothes are one fixture: a garment it no longer holds leaves the shop (docs/adr/062).
+    // The clothes are one fixture: a garment it no longer holds leaves the shop.
     if (options.fixtures.includes(CLOTHES_FIXTURE)) {
       const dropped = await archiveMissing(db, "amazon", products.filter((product) => product.source === "amazon").map((product) => product.sourceId));
       if (dropped > 0) out(`[catalog] archived ${dropped} garment(s) the clothes fixture no longer holds`);
     }
     return summary.inserted;
   });
-  // The deploy's sync may have changed words and prices: cached search rankings start again (docs/adr/039).
+  // The deploy's sync may have changed words and prices: cached search rankings start again.
   if (process.env.REDIS_URL !== undefined && process.env.REDIS_URL !== "") {
     try {
       const [{ bumpCatalogVersion }, { redis }] = await Promise.all([import("@/lib/kv/cache"), import("@/lib/jobs/redis")]);
@@ -254,7 +254,7 @@ async function seed(options: { fixtures: string[]; ifEmpty: boolean; sync: boole
       out(`[catalog] search cache not cleared (${error instanceof Error ? error.message : String(error)}); it expires on its own within minutes`);
     }
   }
-  // The wearables' real Amazon.com reviews, for the pieces the shop has (docs/adr/061): every run, so staff hides last.
+  // The wearables' real Amazon.com reviews, for the pieces the shop has: every run, so staff hides last.
   const reviewFiles = [AMAZON_REVIEWS_FIXTURE, CLOTHES_REVIEWS_FIXTURE].filter((file) => existsSync(file));
   if (wantsReviews && reviewFiles.length > 0) {
     // One sync for both files: a sync removes the reviews of any product it is not given.

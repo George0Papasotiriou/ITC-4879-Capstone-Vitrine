@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/061. ABO (CC BY 4.0) has almost no garments, but thousands of
+ * ABO (CC BY 4.0) has almost no garments, but thousands of
  * wearables photographed in a studio on white: shoes, boots and sandals, bags,
  * hats, scarves, sunglasses, jewellery and watches. This module is the shop's
  * reading of them, pure and tested:
@@ -20,7 +20,7 @@
  * - who a piece is for (women, men, both), read from its title, which decides
  *   a shoe's size run;
  * - the sizes each kind is sold in, each its own variant with its own stock
- *   (docs/adr/022's pattern): shoes in EU sizes, hats S/M/L or one size.
+ *   (the capsule's pattern): shoes in EU sizes, hats S/M/L or one size.
  *
  * Children's pieces are left out: their sizes are another system, and the
  * shop's fit tools are built for adults.
@@ -127,7 +127,7 @@ export function wearSizes(kind: WearKind, shownTitle: string, listedTitle: strin
  * EU (Paris point) shoe size from foot length: an EU size is 2/3 cm of last
  * length, and a last is about 1.5 cm longer than the foot it fits, so
  * size = (foot cm + 1.5) × 1.5. Used both to label the chart and, in the
- * Fit Engine, to turn a measured foot into a size (docs/adr/061).
+ * Fit Engine, to turn a measured foot into a size.
  */
 export const euSizeForFoot = (footCm: number) => (footCm + 1.5) * 1.5;
 export const footForEuSize = (size: number) => size / 1.5 - 1.5;

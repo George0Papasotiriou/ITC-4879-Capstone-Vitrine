@@ -17,7 +17,7 @@ import { MODEL_PRESETS } from "@/lib/fitting/presets";
 import { currentStudioMode, modelShotsFor, requestModelShot, type ModelShotView } from "@/lib/fitting/server";
 
 /**
- * docs/adr/063. Reading costs nothing and needs no identity. Asking pays only
+ * Reading costs nothing and needs no identity. Asking pays only
  * when the shot does not exist yet; once made, it is everyone's to see.
  */
 

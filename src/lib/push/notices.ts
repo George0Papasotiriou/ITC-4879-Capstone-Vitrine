@@ -12,7 +12,7 @@ import { z } from "zod";
 import type { PushMessage } from "@/lib/push/webpush";
 
 /**
- * docs/adr/044. Three things a shopper can ask to hear about on a device:
+ * Three things a shopper can ask to hear about on a device:
  * their orders moving, a watched price reached, and a reply from the desk.
  * Nothing else — no offers, no reminders — and only after they turn it on.
  */

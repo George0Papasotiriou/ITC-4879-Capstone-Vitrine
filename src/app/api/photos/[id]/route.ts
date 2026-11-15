@@ -13,7 +13,7 @@ import { photoStore, removeFiles } from "@/lib/photos/server";
 import { pictureStore } from "@/lib/pictures/server";
 
 /**
- * "Delete now" (docs/adr/023). Only the shopper who gave the photograph can
+ * "Delete now". Only the shopper who gave the photograph can
  * delete it, and the file goes with the row; a try-on made from it goes too,
  * because it is a picture of the same person.
  */
@@ -23,7 +23,7 @@ export const runtime = "nodejs";
 export async function DELETE(_request: Request, context: RouteContext<"/api/photos/[id]">): Promise<Response> {
   const user = await currentUser();
   // Deleting is about a photograph that already exists, so the browser is
-  // already known; nothing is minted here (docs/adr/023).
+  // already known; nothing is minted here.
   const actor = await knownActor(user);
   const { id } = await context.params;
   if (actor === null) return Response.json({ ok: false, reason: "not_found" }, { status: 404 });
@@ -33,11 +33,11 @@ export async function DELETE(_request: Request, context: RouteContext<"/api/phot
   if (photo === null) return Response.json({ ok: false, reason: "not_found" }, { status: 404 });
 
   const results = (await store.tryOnsForActor(actor.key)).filter((tryOn) => tryOn.uploadId === id && tryOn.resultKey !== null);
-  // An AI picture of a piece in this room goes too: it is a picture of the same room (docs/adr/053).
+  // An AI picture of a piece in this room goes too: it is a picture of the same room.
   const pictures = (await (await pictureStore()).forActor(actor.key)).filter((picture) => picture.uploadId === id && picture.resultKey !== null);
-  // Every file of each picture: as shown, its small copy and the download (docs/adr/060).
+  // Every file of each picture: as shown, its small copy and the download.
   const pictureFiles = pictures.flatMap((picture) => [picture.resultKey, picture.previewKey, picture.downloadKey].filter((key): key is string => key !== null));
-  // A try-on is its picture and, when it was asked for, its video (docs/adr/063).
+  // A try-on is its picture and, when it was asked for, its video.
   const videos = results.map((tryOn) => tryOn.videoKey).filter((key): key is string => key !== null);
   await removeFiles([photo.storageKey, ...results.map((tryOn) => tryOn.resultKey!), ...videos, ...pictureFiles]);
   return Response.json({ ok: true });

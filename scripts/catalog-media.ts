@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/035. `pnpm catalog spins [--dry-run] [--limit 300] [--frames 24] [--files all]`
+ * `pnpm catalog spins [--dry-run] [--limit 300] [--frames 24] [--files all]`
  *
  * For the imported ABO products whose listing has a turntable sequence, keeps
  * `--frames` of its frames at equal angles, each re-encoded to an 800 px WebP
@@ -146,7 +146,7 @@ export async function importSpins(options: { dryRun: boolean; limit: number; fra
 }
 
 /**
- * docs/adr/035. `pnpm catalog models [--limit 300]`: runs the worker's own
+ * `pnpm catalog models [--limit 300]`: runs the worker's own
  * catalog-models job here, eight scans at a time, until every piece that has a
  * scan has it or the limit is reached. In production the worker does the same
  * every five minutes after a deploy.
@@ -162,7 +162,7 @@ export async function processModels(options: { limit: number }): Promise<void> {
   }
 }
 
-/** `pnpm catalog made`: the made-models job's work, run here until `limit` models are built or none are left (docs/adr/058). */
+/** `pnpm catalog made`: the made-models job's work, run here until `limit` models are built or none are left. */
 export async function processMade(limit: number): Promise<void> {
   const { processMadeModels } = await import("@/worker/processors/made-models");
   let done = 0;

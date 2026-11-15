@@ -15,7 +15,7 @@ import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 import { clientAddress } from "@/lib/geo/ip-country";
 
 /**
- * docs/adr/034. No cookie is read and nothing is sent back: the batch holds
+ * No cookie is read and nothing is sent back: the batch holds
  * shelf names from a fixed list, what happened, and at most a product id.
  * Limited per address, so a script cannot fill the table.
  */

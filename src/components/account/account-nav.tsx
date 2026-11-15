@@ -16,7 +16,7 @@ import { cn } from "@/lib/ui/cn";
 import { prefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
- * docs/adr/067. On wide screens a column that stays beside the page as it
+ * On wide screens a column that stays beside the page as it
  * scrolls; on phones a row of chips under the header that scrolls sideways.
  * The links are plain anchors (#orders, #passkeys…), so they work before any
  * script loads; with script, the jump is smooth unless motion is reduced, and

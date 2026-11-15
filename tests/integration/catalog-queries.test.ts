@@ -95,7 +95,7 @@ describe.skipIf(url === undefined || url === "")("catalogue queries", () => {
     expect(both.total).toBeLessThanOrEqual(Math.min(first!.count, material.count));
   });
 
-  it("narrows a category to one kind of piece, as the categories menu links it (docs/adr/067)", async () => {
+  it("narrows a category to one kind of piece, as the categories menu links it", async () => {
     const lighting = fixture.filter((product) => product.category === "lighting");
     const lamps = lighting.filter((product) => product.kind === "LAMP" || product.kind === "HOME_LIGHTING_AND_LAMPS").length;
     expect(lamps).toBeGreaterThan(0);

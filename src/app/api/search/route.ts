@@ -19,12 +19,12 @@ import { loggerForRequest } from "@/lib/log";
 import { recordTrending } from "@/lib/search/trending";
 
 /**
- * Typed search endpoint (docs/PLAN.md Phase 4, step 4) for the instant search
+ * Typed search endpoint for the instant search
  * overlay and the Concierge's search tool.
  *
  * The response is compact on purpose: ids and the essentials to render a
  * result, plus what the search understood. Components and tools look up
- * anything else from the database themselves (CLAUDE.md conventions).
+ * anything else from the database themselves.
  */
 
 export const runtime = "nodejs";
@@ -34,7 +34,7 @@ const querySchema = z.object({
   locale: z.string().refine(isLocale).default("en"),
   category: z.enum(CATEGORY_SLUGS as [CategorySlug, ...CategorySlug[]]).optional(),
   limit: z.coerce.number().int().min(1).max(48).default(24),
-  /** Sent by search-as-you-type, whose keystrokes are not searches worth counting (docs/adr/018). */
+  /** Sent by search-as-you-type, whose keystrokes are not searches worth counting. */
   instant: z.literal("1").optional(),
 });
 
@@ -64,7 +64,7 @@ export async function GET(request: Request): Promise<Response> {
       tookMs,
       source: "api",
     });
-    // "Trending now" (docs/adr/039): once per person, term and hour, only for plain words that found something.
+    // "Trending now": once per person, term and hour, only for plain words that found something.
     void recordTrending(kv(), q, anonymous(clientAddress(request.headers) ?? "unknown"), result.ids.length).catch(() => {});
   }
   loggerForRequest(request.headers).info(

@@ -12,7 +12,7 @@ import type { JobName, JobPayloads } from "@/lib/jobs/types";
 import { loggerFor } from "@/lib/log";
 
 /**
- * Recurring work is described once here (docs/adr/020) and run two ways:
+ * Recurring work is described once here and run two ways:
  *
  * - in production the worker upserts each entry as a BullMQ job scheduler,
  *   keyed by `id`, so a redeploy replaces the schedule instead of adding a
@@ -55,16 +55,16 @@ export const SCHEDULES: readonly ScheduledJob[] = [
   // The Taste Graph is rebuilt nightly, after the day's behaviour is in.
   { id: "taste-graph-nightly", job: "rebuild-taste-graph", pattern: "30 3 * * *", localEveryMs: 30 * MINUTE },
   // Photographs are kept for a day; the sweep runs often enough that "deleted
-  // after 24 hours" is true to the quarter hour (docs/adr/023).
+  // after 24 hours" is true to the quarter hour.
   { id: "photo-expiry", job: "photo-expiry", pattern: "*/15 * * * *", localEveryMs: 15 * MINUTE },
-  // After a deploy, the pieces with a 3D scan get it a few at a time; once all have, a run finds nothing to do (docs/adr/035).
+  // After a deploy, the pieces with a 3D scan get it a few at a time; once all have, a run finds nothing to do.
   // Not on a local timer: locally, `pnpm catalog models` does it when asked.
   { id: "catalog-models", job: "catalog-models", pattern: "*/5 * * * *", localEveryMs: null },
-  // The shop's own models of the pieces without a scan, built ahead thirty at a time (docs/adr/058). Locally,
+  // The shop's own models of the pieces without a scan, built ahead thirty at a time. Locally,
   // `pnpm catalog made` does it when asked; a shopper's request builds any that are missing anyway.
   { id: "made-models", job: "made-models", pattern: "*/10 * * * *", localEveryMs: null },
   // Unpaid orders past their 30-minute hold give their stock back and their payment is voided,
-  // so a card cannot be charged for an order that no longer exists (docs/adr/038).
+  // so a card cannot be charged for an order that no longer exists.
   { id: "orders-expire", job: "orders-expire", pattern: "*/5 * * * *", localEveryMs: 5 * MINUTE },
 ];
 

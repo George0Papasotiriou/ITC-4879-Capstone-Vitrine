@@ -15,15 +15,15 @@ import { runTool, TOOLS } from "@/lib/ai/tools/registry";
 import type { ToolContext, VitrineTool } from "@/lib/ai/tools/types";
 
 /**
- * docs/adr/043. Only the registry's tools, run by the registry (CLAUDE.md
- * rule 4); this file decides which of them an agent outside the shop may use
+ * Only the registry's tools, run by the registry, the same
+ * as in chat and voice; this file decides which of them an agent outside the shop may use
  * and turns their answers into MCP results.
  *
  * - The catalogue is open: searching, reading, comparing, recommending,
  *   building a set, reading reviews, composing a shop window.
  * - The cart and the orders need a key the shopper made, allowed to use them.
  * - Checkout gives back the link to the shop's own checkout page, where the
- *   shopper pays; nothing here takes money (rule 5).
+ *   shopper pays; nothing here takes money.
  * - Nothing else is offered: tools that drive a page, photographs, the
  *   shopper's preferences, returns, price watches and the desk stay with the
  *   shop's own Concierge, where the shopper sees and approves them.

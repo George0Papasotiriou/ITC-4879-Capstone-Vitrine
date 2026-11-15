@@ -15,7 +15,7 @@ import { uiCommandSchema } from "@/lib/ai/ui-commands";
 import { CAPSULE_BUDGETS } from "@/lib/stylist/wardrobe";
 
 /**
- * docs/adr/066. The outfit builder decides; the model only asks and
+ * The outfit builder decides; the model only asks and
  * explains. Both tools read: nothing is added to a cart, and the shopper
  * sees every piece on the page before choosing.
  */
@@ -41,7 +41,7 @@ export const completeTheLook = define({
     const cards = new Map((await ctx.services.cards([...new Set(result.looks.flatMap((look) => look.ids))])).map((card) => [card.id, card]));
     return {
       ok: true as const,
-      // Totals from the prices read now, not the optimiser's (golden rule 5).
+      // Totals from the prices read now from the database, not the optimiser's.
       looks: result.looks.slice(0, 2).map((look) => {
         const products = look.ids.flatMap((id) => (cards.has(id) ? [brief(cards.get(id)!)] : []));
         return { totalCents: products.reduce((sum, product) => sum + product.priceCents, 0), products };

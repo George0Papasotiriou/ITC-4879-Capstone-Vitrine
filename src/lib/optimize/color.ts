@@ -8,7 +8,7 @@
  */
 
 /**
- * Colour harmony for the Budget Stylist (A3, docs/PLAN.md 2.6).
+ * Colour harmony for the Budget Stylist.
  *
  * Two pieces go together when their colours do. "Do" has a working definition
  * from colour theory, and it is stated in hue angles, so colours are compared

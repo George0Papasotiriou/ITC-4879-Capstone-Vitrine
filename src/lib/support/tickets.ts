@@ -8,7 +8,7 @@
  */
 
 /**
- * Support tickets (docs/adr/021). The rules live here, away from the database
+ * Support tickets. The rules live here, away from the database
  * and the request, because they are what the desk promises: a first reply
  * within a working day (docs/policies.md), a conversation that reopens when
  * the customer writes again, and one satisfaction question when it closes.
@@ -169,8 +169,8 @@ export function guessTopic(text: string): TicketTopic {
 }
 
 /**
- * Where the Concierge leaves a guest's approved summary for the contact form
- * (docs/adr/027). Session storage, in this tab only: the summary never travels
+ * Where the Concierge leaves a guest's approved summary for the contact form.
+ * Session storage, in this tab only: the summary never travels
  * in a URL, and the guest's email is typed into the form, never into a chat.
  */
 export const CONTACT_DRAFT_KEY = "vitrine:contact-draft";

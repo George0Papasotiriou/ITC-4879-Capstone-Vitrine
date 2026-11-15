@@ -21,13 +21,13 @@ import type { ProductFit } from "@/lib/fit/size/store";
 import type { SizeGroup } from "@/lib/prefs/preferences";
 
 /**
- * docs/adr/034. The advice appears as the numbers are typed, with the reason
+ * The advice appears as the numbers are typed, with the reason
  * beside it — which measurement decided and what the chart allows — so the
  * shopper can check it rather than take it on trust. Choosing the size fills
- * the picker; keeping it saves it to Your shop (docs/adr/033), the same place
+ * the picker; keeping it saves it to Your shop, the same place
  * the preferences page writes, and only when asked.
  *
- * The Fit Engine (docs/adr/064) chooses the size: how likely each size is to
+ * The Fit Engine chooses the size: how likely each size is to
  * fit this body, allowing for how this piece runs and how forgiving it is
  * (`fit`, learned on the server from its reviews and the shop's returns).
  * The dialog says how sure it is, the size next most likely when it is

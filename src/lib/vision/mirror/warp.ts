@@ -10,7 +10,7 @@
 import { applyHomography, homographyDLT, type Point2 } from "@/lib/vision/camera";
 
 /**
- * docs/adr/065. A piece's card, seen in perspective, is a quadrilateral on
+ * A piece's card, seen in perspective, is a quadrilateral on
  * screen, and its photograph must be mapped onto it by a homography
  * (camera.ts). A 2D canvas can only draw affine maps (straight lines stay
  * parallel). But a homography is close to affine over a small patch, and

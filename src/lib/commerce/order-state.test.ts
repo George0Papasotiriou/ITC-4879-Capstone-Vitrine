@@ -27,7 +27,7 @@ const ACTORS: Actor[] = ["customer", "staff", "system"];
 const days = (n: number) => new Date(NOW.getTime() + n * 24 * 60 * 60 * 1000);
 
 /**
- * The diagram in docs/PLAN.md 2.3, written out independently of the
+ * The order lifecycle, written out independently of the
  * implementation's table: [from, event, to, actors, effects].
  */
 const EXPECTED: [OrderStatus, OrderEventType, OrderStatus, Actor[], SideEffect[]][] = [

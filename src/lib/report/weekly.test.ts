@@ -87,7 +87,7 @@ describe("weekly report", () => {
     expect(words).toContain("Searches that found nothing");
     expect(words).toContain("waterbed");
     expect(words).toContain("Concierge");
-    // The desk's week, when there is one (docs/adr/021).
+    // The desk's week, when there is one.
     expect(words).toContain("Questions asked");
     expect(words).toContain("95 min");
     // Parentheses are escaped in a PDF literal, which is what `printed` reads.

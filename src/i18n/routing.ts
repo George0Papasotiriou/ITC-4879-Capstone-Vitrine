@@ -10,7 +10,7 @@
 import { defineRouting } from "next-intl/routing";
 
 /**
- * Locales (docs/PLAN.md 1.4, product principle 6: bilingual from day one).
+ * Locales (product principle 6: bilingual from day one).
  *
  * Both locales are prefixed — `/en/...` and `/el/...` — rather than leaving
  * English at the root. An unprefixed default makes the two languages

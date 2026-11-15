@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/058. A made model's surfaces need the detail a real piece has up
+ * A made model's surfaces need the detail a real piece has up
  * close — the grain in an oak top, the over-and-under of a linen weave, the
  * creases of leather — or they read as plastic. No photograph of a texture is
  * used (nothing to license, nothing to download): each is drawn here from

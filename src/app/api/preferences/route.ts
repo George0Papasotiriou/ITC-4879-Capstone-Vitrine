@@ -11,7 +11,7 @@ import { preferencesPatchSchema } from "@/lib/prefs/preferences";
 import { clearPreferences, currentPreferences, updatePreferences, type PreferencesView } from "@/lib/prefs/server";
 
 /**
- * docs/adr/033. Only ever the person asking: a guest's device, or the signed-in
+ * Only ever the person asking: a guest's device, or the signed-in
  * account. A change is checked field by field (preferencesPatchSchema); what
  * does not fit is refused with the fields named, never half-saved.
  */

@@ -14,7 +14,7 @@ import { serverEnv } from "@/env";
 /**
  * Shared Redis connection factory.
  *
- * Known gotcha (docs/PLAN.md, CLAUDE.md): on Railway's private network the
+ * Known gotcha: on Railway's private network the
  * hostname may resolve over IPv6 only. `family: 0` lets Node try both stacks
  * instead of failing with ENOTFOUND.
  *

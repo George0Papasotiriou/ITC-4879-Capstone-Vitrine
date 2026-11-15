@@ -22,7 +22,7 @@ import { createPictureStore, type Picture } from "@/lib/pictures/store";
 import { storage } from "@/lib/storage";
 
 /**
- * docs/adr/053, docs/adr/060. The picture was asked for, inside the
+ * The picture was asked for, inside the
  * shopper's allowance, by POST /api/pictures or the Concierge; this makes it
  * (src/lib/pictures/render.ts) and stores its three files. The shopper's
  * photograph never leaves the shop's storage except to the paid model and
@@ -40,7 +40,7 @@ import { storage } from "@/lib/storage";
 /** Who makes and checks this picture: the one its row was promised to when it was asked for. */
 function workersFor(picture: Picture, env: ReturnType<typeof serverEnv>): { maker: ImageMaker; judge: PictureJudge } | "retired" | "off" {
   if (picture.provider === "fixture") return { maker: fixtureMaker(), judge: fixtureJudge() };
-  // The old drawn previews are not made any more (docs/adr/060); a row still queued from before is let go.
+  // The old drawn previews are not made any more; a row still queued from before is let go.
   if (picture.provider !== "google") return "retired";
   if (env.GOOGLE_GENERATIVE_AI_API_KEY === undefined || env.aiMode !== "google") return "off";
   // The model asked for first; the other stands in if it cannot make the picture (makers.ts googleChain).

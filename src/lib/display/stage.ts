@@ -8,7 +8,7 @@
  */
 
 /**
- * docs/adr/040. A window display that shows a lamp as tall as the sofa beside
+ * A window display that shows a lamp as tall as the sofa beside
  * it lies about both. Here every standing piece is drawn with ONE scale s (a
  * share of the window's height per centimetre), so on screen
  *

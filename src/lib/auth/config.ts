@@ -26,7 +26,7 @@ import type { Mailer } from "@/lib/email/mailer";
 import { emailLocale, resetPassword, verifyEmail } from "@/lib/email/templates";
 
 /**
- * Accounts (docs/PLAN.md Phase 5 step 1, docs/adr/016).
+ * Accounts.
  *
  * WHAT A SHOPPER GETS
  * - Email and password, with the address confirmed by a link before the first
@@ -100,7 +100,7 @@ export function createAuth({ db, mailer, secret, baseURL, google, rateLimit, adm
     if (user === undefined || !user.emailVerified || !admins.has(user.email)) return;
     const role = withRole(user.role, "admin");
     if (role === user.role) return;
-    // Recorded like any other role change, with the system as the actor (docs/adr/018).
+    // Recorded like any other role change, with the system as the actor.
     await db.transaction(async (tx) => {
       await tx.update(users).set({ role }).where(eq(users.id, userId));
       await tx

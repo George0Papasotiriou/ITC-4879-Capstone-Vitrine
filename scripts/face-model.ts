@@ -8,7 +8,7 @@
  */
 
 /**
- * The AR Mirror's face tracking (docs/adr/065).
+ * The AR Mirror's face tracking.
  *
  *   pnpm face-model          check the model and list what is installed
  *   pnpm face-model build    what `pnpm build` runs: verify the model, copy the runtime

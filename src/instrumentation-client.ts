@@ -10,7 +10,7 @@
 import { z } from "zod";
 
 /**
- * docs/adr/046. Zod speeds up parsing by compiling schemas with
+ * Zod speeds up parsing by compiling schemas with
  * `new Function`, and first checks whether it may by trying one. Under the
  * shop's Content Security Policy that check is refused — harmlessly, since
  * zod catches it — but the browser still reports a violation on every page

@@ -16,7 +16,7 @@ import { outfitCompatibility, type Department } from "@/lib/optimize/outfit";
 import { CAPSULE_SIZES, CAPSULE_THRESHOLD, createWardrobe, type WardrobeCandidate } from "@/lib/stylist/wardrobe";
 
 /**
- * docs/adr/066, docs/report/evaluations/e14-capsule.md.
+ * Writes docs/report/evaluations/e14-capsule.md.
  *
  *   pnpm evals:capsule
  *

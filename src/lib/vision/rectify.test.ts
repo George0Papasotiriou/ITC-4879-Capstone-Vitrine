@@ -98,7 +98,7 @@ describe("rectifying a rug", () => {
   });
 });
 
-describe("laying a flat picture onto a floor (docs/adr/053)", () => {
+describe("laying a flat picture onto a floor", () => {
   // A 40 × 20 flat rug: its left half red, its right half blue, fully opaque.
   const flat = { data: new Uint8ClampedArray(40 * 20 * 4), width: 40, height: 20 };
   for (let y = 0; y < 20; y += 1) for (let x = 0; x < 40; x += 1) flat.data.set(x < 20 ? [200, 30, 30, 255] : [30, 30, 200, 255], (y * 40 + x) * 4);

@@ -19,7 +19,7 @@ import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 import { routing } from "@/i18n/routing";
 
 /**
- * docs/adr/056. A guest's boards are their browser's (the same guest id as
+ * A guest's boards are their browser's (the same guest id as
  * their cart and their pictures) until they sign in, when they become the
  * account's. Reading the list never mints a guest id.
  */

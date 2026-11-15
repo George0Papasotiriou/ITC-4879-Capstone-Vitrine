@@ -20,7 +20,7 @@ import { cn } from "@/lib/ui/cn";
 import { prefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
- * docs/adr/026. Three things are always on screen while voice is on: what the
+ * Three things are always on screen while voice is on: what the
  * Concierge is doing, what it heard, and a way to stop it. Captions are not a
  * setting — everything spoken is written, in the conversation above and in the
  * line below, because a shop where the only record of an answer is a sound is
@@ -32,7 +32,7 @@ import { prefersReducedMotion } from "@/lib/ui/use-reduced-motion";
  * thinking, speaking). Listening, it breathes slowly — the shop's one loop
  * (4.5, moment 3). In a live session it follows the voice instead: a ring that
  * swells with how loudly the shopper is speaking, so they can see they are
- * heard (docs/adr/031).
+ * heard.
  */
 const LIGHT: Record<string, string> = {
   idle: "bg-slate/40",
@@ -83,7 +83,7 @@ export function VoiceBar() {
   const ring = useRef<HTMLSpanElement>(null);
   useVoiceLevel(voice.stream, ring);
 
-  // The home page's microphone (docs/adr/051): a request from outside the dock starts listening once,
+  // The home page's microphone: a request from outside the dock starts listening once,
   // as this bar's own Speak button would, as soon as the bar is on screen.
   const { listenPending, takeListen } = useConcierge();
   const { start } = voice;
@@ -153,7 +153,7 @@ export function VoiceBar() {
         </div>
       )}
 
-      {/* Before live voice sends anything the first time, the shopper reads where it goes (docs/adr/030). */}
+      {/* Before live voice sends anything the first time, the shopper reads where it goes. */}
       {voice.notice === null ? null : (
         <div className="border-hairline rounded-plinth bg-plinth flex flex-col gap-2 border p-3" role="group" aria-labelledby="voice-notice-title" data-agent-id="voice:notice">
           <p id="voice-notice-title" className="text-sm font-medium">

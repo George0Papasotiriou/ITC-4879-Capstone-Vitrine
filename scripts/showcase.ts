@@ -8,7 +8,7 @@
  */
 
 /**
- * Showcase (docs/adr/028).
+ * Showcase.
  *
  *   pnpm showcase ensure            accounts up to date, history written once (runs on every deploy)
  *   pnpm showcase list              the accounts and what each can show
@@ -48,7 +48,7 @@ async function passwordInForce(): Promise<ReturnType<typeof showcasePassword>> {
 
 function list() {
   const own = (key: string) => ORDER_STORIES.filter((story) => story.owner === key).map((story) => story.stage);
-  console.log("Showcase accounts (docs/adr/028):\n");
+  console.log("Showcase accounts:\n");
   for (const account of SHOWCASE_ACCOUNTS) {
     const orders = own(account.key);
     console.log(`  ${account.email.padEnd(28)} ${account.role.padEnd(13)} ${account.name.padEnd(22)} ${orders.length} ${orders.length === 1 ? "order" : "orders"}${orders.length > 0 ? ` (${orders.join(", ")})` : ""}`);

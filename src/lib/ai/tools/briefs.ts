@@ -12,10 +12,10 @@ import { z } from "zod";
 import type { ProductCard } from "@/lib/catalog/queries";
 
 /**
- * Tool outputs are compact (CLAUDE.md conventions): an id, the title, the
+ * Tool outputs are compact: an id, the title, the
  * price for the shopper's country and whether it is in stock. Components render
  * the product from these database values; the model is told to point at them
- * rather than repeat prices in its own words (golden rule 5).
+ * rather than repeat prices in its own words.
  */
 
 export const productBriefSchema = z.object({

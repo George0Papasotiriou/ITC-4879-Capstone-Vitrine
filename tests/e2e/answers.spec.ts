@@ -14,7 +14,7 @@ import { freshPage } from "./support/accounts";
 import { signInAdmin } from "./support/orders";
 
 /**
- * docs/adr/029. One test per device: the accounts service limits sign-ins,
+ * One test per device: the accounts service limits sign-ins,
  * and the flow is one person working through the page anyway.
  */
 

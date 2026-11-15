@@ -14,7 +14,8 @@ import { describe, expect, it } from "vitest";
 import { arcPoints } from "@/lib/ui/fly-to-cart";
 import { DURATION, EASE } from "@/lib/ui/motion";
 
-const css = readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8");
+// Line endings normalised: a Windows checkout (core.autocrlf) stores the stylesheet with CRLF.
+const css = readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const token = (name: string) => css.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1]?.trim();
 
 describe("one rhythm for the whole shop", () => {
@@ -26,7 +27,7 @@ describe("one rhythm for the whole shop", () => {
   });
 
   it("makes every exit faster than its entrance", () => {
-    // Each overlay leaves on a shorter duration than it arrives on (docs/adr/031).
+    // Each overlay leaves on a shorter duration than it arrives on.
     for (const utility of ["animate-overlay", "animate-sheet-right", "animate-sheet-bottom", "animate-toast", "animate-dock"]) {
       const block = css.slice(css.indexOf(`@utility ${utility} {`));
       const open = block.match(/data-state="open"\] \{ animation: [\w-]+ var\(--duration-(\w+)\)/)?.[1];
@@ -41,7 +42,7 @@ describe("one rhythm for the whole shop", () => {
     expect(css).toContain(':root[data-motion="reduce"]::view-transition-group(*)');
     expect(css).toContain(':root:not([data-motion="full"])::view-transition-group(*)');
     // Loops are few and each one means "still working": the listening light, and the darkroom's sheen while an
-    // AI picture develops (docs/adr/053). Skeletons no longer pulse. Without motion the sheen is not drawn at all.
+    // AI picture develops. Skeletons no longer pulse. Without motion the sheen is not drawn at all.
     const loops = [...css.matchAll(/animation: ([\w-]+) [^;]*\binfinite\b/g)].map((match) => match[1]);
     expect(loops).toEqual(["vitrine-breathe", "vitrine-sheen"]);
     expect(css).toContain(':root[data-motion="reduce"] .picture-sheen {\n  display: none;');

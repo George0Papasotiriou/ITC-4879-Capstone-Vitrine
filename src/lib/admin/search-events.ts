@@ -13,7 +13,7 @@ import { uuidv7 } from "uuidv7";
 import { normalize } from "@/lib/search/normalize";
 
 /**
- * Search events (docs/adr/018). A row holds the query, folded as search folds
+ * Search events. A row holds the query, folded as search folds
  * it, how many results it found and whether search had to correct or relax
  * it — never a user, a session or an address. Before storing:
  * - email addresses are dropped;

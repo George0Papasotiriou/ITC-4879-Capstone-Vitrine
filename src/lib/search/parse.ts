@@ -11,7 +11,7 @@ import { fold } from "@/lib/search/normalize";
 import { CATEGORY_TERMS, COLORS, lookup, MATERIALS, STOPWORDS } from "@/lib/search/vocabulary";
 
 /**
- * Query parsing — step 2 of the A1 pipeline (docs/PLAN.md 2.6).
+ * Query parsing — step 2 of the A1 pipeline.
  *
  * "Δερμάτινη μαύρη πολυθρόνα κάτω από 300€" is two things at once: words to
  * search for ("πολυθρόνα") and conditions a result must meet (leather, black,

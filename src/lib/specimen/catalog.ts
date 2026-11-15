@@ -16,8 +16,8 @@
  * https://amazon-berkeley-objects.s3.amazonaws.com/index.html
  *
  * Prices are synthetic: ABO carries no prices, so each is derived
- * deterministically from the item id within a documented per-category band
- * (docs/PLAN.md Phase 3, step 2). They are plausible, not real.
+ * deterministically from the item id within a documented per-category band.
+ * They are plausible, not real.
  *
  * This stands in until Phase 3 imports the full catalogue into PostgreSQL.
  */
@@ -30,10 +30,10 @@ export type SpecimenProduct = {
   category: string;
   categoryLabel: string;
   colour: string | null;
-  /** Integer cents, EUR. Money is never a float (CLAUDE.md). */
+  /** Integer cents, EUR. Money is never a float. */
   priceCents: number;
   image: { src: string; width: number; height: number };
-  /** A second angle, revealed on hover (docs/PLAN.md 4.4). */
+  /** A second angle, revealed on hover. */
   hoverImage: { src: string; width: number; height: number } | null;
 };
 

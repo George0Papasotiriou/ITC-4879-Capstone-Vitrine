@@ -19,7 +19,7 @@ import { can, parseRoles, type Permission, type Role } from "@/lib/auth/roles";
  * The only way pages, server actions and route handlers learn who is asking.
  * Every check here runs on the server against the session in the database;
  * the proxy's cookie check is only a fast redirect for people who are plainly
- * signed out (CLAUDE.md: "auth checks there are optimistic only").
+ * signed out; it is never the authorisation itself.
  */
 
 export type CurrentUser = {
@@ -80,7 +80,7 @@ export async function requirePermission(locale: string, returnTo: string, permis
   return user;
 }
 
-/** Plan name for the same check (docs/PLAN.md Phase 5): a role instead of a permission. */
+/** Plan name for the same check: a role instead of a permission. */
 export async function requireRole(locale: string, returnTo: string, ...roles: Role[]): Promise<CurrentUser> {
   const user = await requireUser(locale, returnTo);
   if (!user.roles.some((role) => roles.includes(role))) notFound();

@@ -24,7 +24,7 @@ const query = (text: string, overrides: Partial<RankingQuery> = {}): RankingQuer
 });
 const feature = (values: number[], name: (typeof FEATURE_NAMES)[number]) => values[FEATURE_NAMES.indexOf(name)];
 
-describe("the learned ranker's features (docs/adr/057)", () => {
+describe("the learned ranker's features", () => {
   it("measures how much of the query a title holds, weighting rare words more", () => {
     const product = { id: "a", title: "Canova 3 Seater Maxi", brand: "Canova", colors: ["grey"] };
     const values = rankingFeatures(query("canova sofa"), product);

@@ -12,7 +12,7 @@
 import { ConciergeDock } from "@/components/concierge/concierge-dock";
 import { ConciergeProvider } from "@/components/concierge/concierge-provider";
 
-/** docs/adr/034. One chunk, fetched when the shell first needs it. */
+/** One chunk, fetched when the shell first needs it. */
 export function ConciergeEngine(props: Omit<Parameters<typeof ConciergeProvider>[0], "children">) {
   return (
     <ConciergeProvider {...props}>

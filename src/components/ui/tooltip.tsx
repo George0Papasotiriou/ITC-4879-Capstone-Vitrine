@@ -15,7 +15,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * Tooltip (docs/PLAN.md 4.4, 4.7).
+ * Tooltip.
  *
  * A tooltip supplements a name; it never replaces one. Anything that only makes
  * sense with its tooltip — an icon-only button, say — must still carry an

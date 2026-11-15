@@ -118,7 +118,7 @@ describe("the FASHN driver", () => {
   });
 });
 
-describe("the studio's other calls (docs/adr/063)", () => {
+describe("the studio's other calls", () => {
   const body = (call: Call) => JSON.parse(String(call.init?.body)) as { model_name: string; inputs: Record<string, unknown> };
 
   it("asks Try-On Max for shoes, bags and jewellery, and reads the base64 answer without fetching anything", async () => {

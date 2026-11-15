@@ -14,7 +14,7 @@ import { freshPage, linkFromOutbox, uniqueEmail } from "./support/accounts";
 import { signInAdmin } from "./support/orders";
 
 /**
- * docs/adr/021. The test server has no AI key, so "Write a draft" comes from
+ * The test server has no AI key, so "Write a draft" comes from
  * the desk's ready answers — the same path a model takes, with the same
  * storage, the same editing and the same send.
  */

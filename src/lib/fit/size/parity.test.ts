@@ -13,7 +13,7 @@ import parity from "@/lib/fit/size/parity.json";
 import { itemFromCounts, predictFit, updateFit, type Belief, type FitOutcome, type FitParams, type ItemBelief } from "@/lib/fit/size/ordinal";
 
 /**
- * docs/adr/064. research/fit/evaluate.py writes parity.json from the Python
+ * research/fit/evaluate.py writes parity.json from the Python
  * twin with E12's own parameters (RentTheRunway's units): for each step the
  * beliefs going in, the outcome, the prediction and the beliefs coming out.
  * Both sides compute the normal functions with the same Chebyshev fit, so
@@ -30,7 +30,7 @@ const fixture = parity as unknown as { params: FitParams; steps: Step[]; counts:
 const belief = ([mean, variance]: Pair): Belief => ({ mean, variance });
 const item = (json: JsonItem): ItemBelief => ({ offset: belief(json.offset), tolerance: belief(json.tolerance) });
 
-describe("the shop's Fit Engine is E12's (docs/adr/064)", () => {
+describe("the shop's Fit Engine is E12's", () => {
   it("predicts and learns as the evaluated one did, step by step", () => {
     expect(fixture.steps.length).toBe(200);
     for (const step of fixture.steps) {

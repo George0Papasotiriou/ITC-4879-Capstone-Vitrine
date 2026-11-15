@@ -16,7 +16,7 @@ import { clientAddress } from "@/lib/geo/ip-country";
 import { sharedRateLimiter } from "@/lib/kv/rate-limit";
 
 /**
- * docs/adr/056. Anyone who can see the board may put its pieces in their own
+ * Anyone who can see the board may put its pieces in their own
  * cart — the board is never anyone's cart. Each piece goes through the cart's
  * own rules (stock limits, the default variant), so a piece out of stock is
  * reported, not forced in; prices are the cart's, read again from the database.

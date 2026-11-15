@@ -21,7 +21,7 @@ import { openInstantSearch } from "@/components/search/search-events";
 const ShortcutsHelp = dynamic(() => import("@/components/comfort/shortcuts-help").then((module) => module.ShortcutsHelp), { ssr: false });
 
 /**
- * docs/adr/032. Single keys, because a shortcut that needs three fingers is no
+ * Single keys, because a shortcut that needs three fingers is no
  * shortcut for someone using one. WCAG 2.1.4 asks that single-key shortcuts
  * can be switched off, so they can: in the comfort settings. They never fire
  * while someone is typing, and never with a modifier held, so they cannot

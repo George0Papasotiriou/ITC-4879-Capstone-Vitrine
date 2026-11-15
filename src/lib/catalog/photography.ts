@@ -24,7 +24,7 @@ export const MASTER_EDGE = 1100;
 /**
  * Whether a photograph sits on a white studio ground.
  *
- * The plinth treatment (docs/PLAN.md 4.4) blends photographs into the plinth
+ * The plinth treatment blends photographs into the plinth
  * with `mix-blend-mode: multiply`, which dissolves white and turns any other
  * background into a visible dark rectangle. So the check measures what the
  * blend needs: the share of the image border that is near-white and neutral.

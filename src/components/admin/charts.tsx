@@ -13,7 +13,7 @@ import { barLayout, niceTicks } from "@/lib/admin/chart";
 import { cn } from "@/lib/ui/cn";
 
 /**
- * No chart library and no JavaScript in the browser (docs/adr/018): the SVG is
+ * No chart library and no JavaScript in the browser: the SVG is
  * written here from the numbers, in the design tokens' colours, and every
  * chart has the same figures as a table for screen readers and for the report.
  */
@@ -95,7 +95,7 @@ export function DayBars({
                 y={bar.y}
                 width={bar.width}
                 height={bar.height}
-                // Each bar grows from zero once, a beat after the one before (docs/adr/031).
+                // Each bar grows from zero once, a beat after the one before.
                 className="fill-dusk animate-grow"
                 style={{ animationDelay: `${Math.min(index, 30) * 12}ms` }}
               >

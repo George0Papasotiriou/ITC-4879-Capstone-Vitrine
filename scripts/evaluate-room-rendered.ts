@@ -8,8 +8,6 @@
  */
 
 /**
- * docs/adr/036 (addendum).
- *
  *   pnpm e4:render                 render the scenes (.local/e4-render)
  *   pnpm evals:room-rendered       measure them and write the report
  *

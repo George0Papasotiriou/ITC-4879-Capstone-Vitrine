@@ -19,7 +19,7 @@ import { SPECIMEN_CATALOG } from "@/lib/specimen/catalog";
 import { usePrefersReducedMotion } from "@/lib/ui/use-reduced-motion";
 
 /**
- * The window light (docs/PLAN.md 4.5, moment 1)
+ * The window light (moment 1)
  *
  * The only motion in Vitrine that nobody triggers. On the first load of the
  * home page, Lumen sweeps once across the hero plinth and settles within 1.2

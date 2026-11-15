@@ -13,7 +13,7 @@ import { parseComfort, serializeComfort } from "@/lib/comfort/settings";
 import { EMPTY_PREFERENCES, preferencesSchema, type Preferences } from "@/lib/prefs/preferences";
 
 /**
- * docs/adr/033. One row per person. The document is checked on the way in and
+ * One row per person. The document is checked on the way in and
  * on the way out, so a row written by an older version, or edited by hand,
  * can never put something the shop does not understand in front of anyone:
  * what does not parse is read as nothing.

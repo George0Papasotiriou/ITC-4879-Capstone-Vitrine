@@ -14,7 +14,7 @@ import { createFitStore, type FitStore } from "@/lib/fit/size/store";
 
 let store: FitStore | undefined;
 
-/** docs/adr/064. One store per process, so the typical piece's tolerance is worked out once every ten minutes rather than per page. */
+/** One store per process, so the typical piece's tolerance is worked out once every ten minutes rather than per page. */
 export async function fitStore(): Promise<FitStore> {
   await connection();
   return (store ??= createFitStore(sql));

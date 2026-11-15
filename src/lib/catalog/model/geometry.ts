@@ -10,7 +10,7 @@
 import { add, cross, dot, length, Mesh, normalize, scale, sub, type Vec2, type Vec3 } from "@/lib/catalog/model/mesh";
 
 /**
- * docs/adr/058. Six primitives draw every piece in the catalogue:
+ * Six primitives draw every piece in the catalogue:
  *
  *   roundedBox  a box whose edges are quarter-cylinders and corners
  *               eighth-spheres — a drawer front, a seat platform, a mattress;

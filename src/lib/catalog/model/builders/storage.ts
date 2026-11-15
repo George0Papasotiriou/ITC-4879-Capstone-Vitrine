@@ -14,7 +14,7 @@ import { compose, rotationX, translation, type Vec3 } from "@/lib/catalog/model/
 import { Build, castor, drawerFronts, handle, leg, placeLeg, shakerDoor, type HandleStyle } from "@/lib/catalog/model/parts";
 
 /**
- * docs/adr/058. A case piece is a box (the carcase) on a base — legs, a
+ * A case piece is a box (the carcase) on a base — legs, a
  * plinth or bun feet — with a top that overhangs it a little, and a front
  * made of drawers, doors or open shelves. Drawer and door fronts stand a few
  * millimetres proud of the carcase with real gaps between them, so the light

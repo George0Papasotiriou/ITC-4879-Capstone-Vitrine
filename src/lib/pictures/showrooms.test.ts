@@ -34,7 +34,7 @@ function memoryStorage(): StorageDriver & { objects: Map<string, { body: Uint8Ar
 
 afterEach(() => forgetShowroomTiles());
 
-describe("showrooms (docs/adr/060)", () => {
+describe("showrooms", () => {
   it("are sixteen: four styles of four rooms", () => {
     expect(SHOWROOMS).toHaveLength(16);
     expect(new Set(SHOWROOMS.map((entry) => `${entry.style}-${entry.room}`)).size).toBe(16);

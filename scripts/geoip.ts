@@ -8,7 +8,7 @@
  */
 
 /**
- * The IP-to-country database behind prices by country (docs/adr/013).
+ * The IP-to-country database behind prices by country.
  *
  *   pnpm geoip update --dry-run   say what would be downloaded, and how big it is
  *   pnpm geoip update             download this month's DB-IP "IP to Country Lite" and compile it

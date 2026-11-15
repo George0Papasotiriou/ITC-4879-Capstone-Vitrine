@@ -14,7 +14,7 @@ import { useEffect, useRef } from "react";
 import { useComfort } from "@/components/comfort/comfort-store";
 
 /**
- * docs/adr/032. A reading ruler, as people with dyslexia or low vision use on
+ * A reading ruler, as people with dyslexia or low vision use on
  * paper: the line being read stays clear, everything above and below is
  * dimmed, so the eye does not slip to the next line. It follows the pointer,
  * and the keyboard focus for someone who does not use one. Two fixed bands

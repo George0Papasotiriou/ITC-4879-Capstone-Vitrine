@@ -14,8 +14,8 @@ import { createPhotoStore } from "@/lib/photos/store";
 import { storage } from "@/lib/storage";
 
 /**
- * The promise in docs/policies.md and docs/PLAN.md 2.9: a photograph is kept
- * for a day. This is what keeps it (docs/adr/023).
+ * The shop's promise: a photograph is kept
+ * for a day. This is what keeps it.
  *
  * The file goes first and the row is marked afterwards, so a crash between the
  * two leaves a row whose file is already gone — which the next pass tidies —

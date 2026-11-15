@@ -8,7 +8,7 @@
  */
 
 /**
- * Delivery beyond the EU (docs/adr/015).
+ * Delivery beyond the EU.
  *
  * A sale from Greece to a consumer outside the EU is an export: no EU VAT is
  * charged. The destination taxes the goods instead, in one of two ways.

@@ -14,8 +14,8 @@ import { accessibleOrder, reviewsStore } from "@/lib/commerce/server";
 
 /**
  * Only whoever may see the order may review its lines — the guest with its
- * link, or the account it belongs to — and only once it was delivered
- * (docs/adr/017). Sending again rewrites the same review. The text is checked
+ * link, or the account it belongs to — and only once it was delivered.
+ * Sending again rewrites the same review. The text is checked
  * and cleaned by `reviewInputSchema`, and the database checks the rest.
  */
 

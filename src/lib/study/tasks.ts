@@ -10,7 +10,7 @@
 import type { Attempt, TaskOutcome } from "@/lib/study/analysis";
 
 /**
- * docs/adr/037, docs/report/user-study/protocol.md. Six tasks, one per thing
+ * The user study's tasks. Six tasks, one per thing
  * the shop claims to do differently. Their wording lives in the messages
  * (study.tasks.<id>) so a participant reads them in their own language.
  */

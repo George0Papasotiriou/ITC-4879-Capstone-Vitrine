@@ -15,7 +15,7 @@ import { better, corrections, passes, type Verdict } from "@/lib/pictures/qualit
 import { prepareImage, type PictureImage } from "@/lib/pictures/studio";
 
 /**
- * docs/adr/060, replacing docs/adr/053's single call and its drawn stand-in.
+ * Making one AI picture, with a quality check and one corrected retry.
  *
  * 1. The images, in the order the brief names them (prompts/picture-v2.ts):
  *    the room first — the shopper's photograph (quick), the planner's picture

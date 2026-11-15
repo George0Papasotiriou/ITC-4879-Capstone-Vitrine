@@ -32,10 +32,8 @@ import type { PieceForm, Vec3 } from "@/lib/display/scene";
 import { PIECE_LAYER } from "./contact-shadows";
 
 /**
- * docs/adr/048.
- *
  * A SCAN is loaded as it is — the shop's compressed copy of the ABO model, in
- * metres (docs/adr/035) — and measured: its bounding box gives the size the
+ * metres — and measured: its bounding box gives the size the
  * room is arranged with, so the arrangement uses the scan's real extent, not
  * the listing's (a bed's listed width can be the scan's depth). It is then
  * centred on its footprint and stood on the floor; a pendant, whose model

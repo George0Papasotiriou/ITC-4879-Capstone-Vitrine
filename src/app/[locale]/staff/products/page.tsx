@@ -70,7 +70,7 @@ export default async function StaffProductsPage({ params, searchParams }: PagePr
     <main className="mx-auto w-full max-w-[1440px] px-6 py-10 md:px-10 md:py-16" data-agent-id="staff:products">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <h1 className="font-display text-3xl">{t("title")}</h1>
-        {/* Making a product in the shop, with its own photographs (docs/adr/034). */}
+        {/* Making a product in the shop, with its own photographs. */}
         <ButtonLink href="/staff/products/new" variant="secondary" data-agent-id="staff:new-product">
           {t("newProduct")}
         </ButtonLink>
